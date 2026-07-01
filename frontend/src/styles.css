@@ -330,6 +330,18 @@ input:focus, select:focus { outline: 2px solid var(--indigo); border-color: tran
   .feedback-head--pop, .feedback-head--pop svg { animation: none; }
 }
 
+/* Completed step badge on the topic flow */
+.flow-step--done {
+  background: #ecfdf5;
+  color: var(--green);
+  border: 1px solid #a7f3d0;
+}
+.flow-step--done:hover { background: #d1fae5; }
+.flow-check { color: var(--green); }
+
+/* "Next step" call-to-action that carries the student through the flow */
+.step-next { margin-top: 1rem; }
+
 /* Per-subject grade editor */
 .enroll-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .enroll-row {

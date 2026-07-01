@@ -3,10 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Eye, Lightbulb, PartyPopper } from 'lucide-react'
 import { api, GuidedFeedback, GuidedQuestion } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
+import NextStepButton from '../components/NextStepButton'
 import { celebrateCorrect } from '../lib/celebrate'
+import { markStepDone } from '../lib/steps'
+import { useAuth } from '../auth'
 
 export default function GuidedPractice() {
   const { topicId } = useParams()
+  const { user } = useAuth()
   const [question, setQuestion] = useState<GuidedQuestion | null>(null)
   const [value, setValue] = useState('')
   const [attempt, setAttempt] = useState(1)
@@ -31,6 +35,7 @@ export default function GuidedPractice() {
       if (fb.correct) {
         setFeedback(fb)
         celebrateCorrect()
+        markStepDone(user?.id, topicId, 'guided')
       } else {
         setHints((h) => [...h, fb.hint ?? 'Keep trying!'])
         setAttempt((a) => a + 1)
@@ -47,6 +52,7 @@ export default function GuidedPractice() {
     setBusy(true)
     try {
       setFeedback(await api.guidedSolution(question.questionId))
+      markStepDone(user?.id, topicId, 'guided')
     } finally {
       setBusy(false)
     }
@@ -107,6 +113,7 @@ export default function GuidedPractice() {
                 )}
                 {feedback.solution && <p className="solution">{feedback.solution}</p>}
                 <button className="btn btn--accent btn--block" onClick={newQuestion}>Another problem <ArrowRight size={16} /></button>
+                <NextStepButton topicId={topicId!} current="guided" />
               </div>
             )}
           </div>

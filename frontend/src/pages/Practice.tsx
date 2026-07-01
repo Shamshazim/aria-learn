@@ -3,10 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle, RotateCcw, Star } from 'lucide-react'
 import { api, AnswerResult, PracticeSet } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
+import NextStepButton from '../components/NextStepButton'
 import { celebrateBig, celebrateCorrect } from '../lib/celebrate'
+import { markStepDone } from '../lib/steps'
+import { useAuth } from '../auth'
 
 export default function Practice() {
   const { topicId } = useParams()
+  const { user } = useAuth()
   const [set, setSet] = useState<PracticeSet | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
@@ -40,6 +44,7 @@ export default function Practice() {
         if (isLast && newScore === (set?.questions.length ?? 0)) celebrateBig()
         else celebrateCorrect()
       }
+      if (isLast) markStepDone(user?.id, topicId, 'practice') // finishing the set completes Practice
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -102,7 +107,8 @@ export default function Practice() {
                 {isLast && (
                   <div className="done">
                     <h3>You scored {score} / {set.questions.length} <Star size={20} className="star-inline" /></h3>
-                    <button className="btn btn--primary" onClick={load}><RotateCcw size={16} /> Practice again</button>
+                    <NextStepButton topicId={topicId!} current="practice" />
+                    <button className="btn btn--ghost" onClick={load}><RotateCcw size={16} /> Practice again</button>
                     <Link className="btn btn--ghost" to="/student">Back to lessons</Link>
                   </div>
                 )}

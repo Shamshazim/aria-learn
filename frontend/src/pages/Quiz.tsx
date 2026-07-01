@@ -5,9 +5,12 @@ import { api, QuizDto, QuizResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import Timer from '../components/Timer'
 import { celebrateBig } from '../lib/celebrate'
+import { markStepDone } from '../lib/steps'
+import { useAuth } from '../auth'
 
 export default function Quiz() {
   const { topicId } = useParams()
+  const { user } = useAuth()
   const [quiz, setQuiz] = useState<QuizDto | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState<QuizResult | null>(null)
@@ -31,13 +34,14 @@ export default function Quiz() {
       }))
       const r = await api.quizSubmit(quiz.attemptId, payload)
       setResult(r)
+      markStepDone(user?.id, topicId, 'quiz')
       if (r.passed) celebrateBig()
     } catch (e) {
       setError((e as Error).message)
     } finally {
       setSubmitting(false)
     }
-  }, [quiz, answers, result, submitting])
+  }, [quiz, answers, result, submitting, user?.id, topicId])
 
   return (
     <div className="app-shell student-theme">

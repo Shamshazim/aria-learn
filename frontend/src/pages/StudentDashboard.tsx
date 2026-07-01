@@ -1,8 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  BookOpen, ClipboardCheck, Handshake, House, Lock, LogOut, PencilLine,
-  Search, Sparkles, TrendingUp, Trophy,
+  Check, Lock, LogOut, Sparkles, TrendingUp, Trophy,
 } from 'lucide-react'
 import {
   AdaptiveProfile, api, EnrolledSubject, GamificationSummary, HomeworkSummary, StudentProfile, TopicProgress,
@@ -12,6 +11,7 @@ import AdvicePanel from '../components/AdvicePanel'
 import GamePanel from '../components/GamePanel'
 import NotificationBell from '../components/NotificationBell'
 import ChangePassword from '../components/ChangePassword'
+import { TOPIC_STEPS, getDoneSteps, stepPath } from '../lib/steps'
 
 const STATUS_LABEL: Record<string, ReactNode> = {
   MASTERED: <><Trophy size={14} /> Mastered</>,
@@ -47,6 +47,10 @@ export default function StudentDashboard() {
   const [gradeId, setGradeId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Remember the last subject this student was working on, so navigating back to the
+  // dashboard (or returning after a lesson) keeps them on it instead of resetting.
+  const subjectKey = `aria:subject:${user?.id ?? 'anon'}`
+
   // Global, once: profile, gamification, homework, and the list of subjects.
   useEffect(() => {
     api.me().then(setMe).catch(() => {})
@@ -54,17 +58,40 @@ export default function StudentDashboard() {
     api.listHomework().then(setHomework).catch(() => {})
     api.studentSubjects().then((s) => {
       setSubjects(s)
-      if (s[0]) setGradeId(s[0].gradeId)
+      const stored = localStorage.getItem(subjectKey)
+      const pick = s.find((x) => x.gradeId === stored) ?? s[0]
+      if (pick) setGradeId(pick.gradeId)
     }).catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Per-subject: progress + recommendations for the selected subject.
+  // Switch subject and remember the choice until they pick another or log out.
+  const selectSubject = (gid: string) => {
+    setGradeId(gid)
+    localStorage.setItem(subjectKey, gid)
+  }
+
+  // Per-subject: progress + recommendations for the SELECTED subject only.
+  // Wait until a subject is resolved (never call with an undefined grade — that returns the
+  // default subject and can land after the real one, showing the wrong topics). Also ignore
+  // responses from a grade we've since switched away from, to prevent out-of-order overwrites.
   useEffect(() => {
-    api.progress(gradeId ?? undefined).then(setTopics).catch((e) => setError((e as Error).message))
-    api.studentProfile(gradeId ?? undefined).then(setAdaptive).catch(() => {})
+    if (!gradeId) return
+    let active = true
+    api.progress(gradeId)
+      .then((t) => { if (active) setTopics(t) })
+      .catch((e) => { if (active) setError((e as Error).message) })
+    api.studentProfile(gradeId)
+      .then((p) => { if (active) setAdaptive(p) })
+      .catch(() => {})
+    return () => { active = false }
   }, [gradeId])
 
   const currentSubject = subjects.find((s) => s.gradeId === gradeId)
+
+  // Which steps each topic has completed (from local progress), for the ✓ badges.
+  const doneByTopic: Record<string, string[]> = {}
+  topics.forEach((t) => { doneByTopic[t.topicId] = getDoneSteps(user?.id ?? '', t.topicId) })
 
   const continueTopic = topics.find((t) => t.status === 'IN_PROGRESS') ?? topics.find((t) => t.status === 'AVAILABLE')
   const pendingHw = homework.filter((h) => h.status !== 'EVALUATED')
@@ -78,7 +105,7 @@ export default function StudentDashboard() {
         <div className="topbar-right">
           <NotificationBell />
           <span className="muted">Hi, {user?.displayName}!</span>
-          <button className="btn btn--ghost" onClick={logout}><LogOut size={16} /> Sign out</button>
+          <button className="btn btn--ghost" onClick={() => { localStorage.removeItem(subjectKey); logout() }}><LogOut size={16} /> Sign out</button>
         </div>
       </header>
 
@@ -88,7 +115,7 @@ export default function StudentDashboard() {
             {subjects.map((s) => (
               <button key={s.subjectId}
                       className={`subject-tab ${s.gradeId === gradeId ? 'subject-tab--active' : ''}`}
-                      onClick={() => setGradeId(s.gradeId)}>
+                      onClick={() => selectSubject(s.gradeId)}>
                 {s.subjectName}
               </button>
             ))}
@@ -171,12 +198,17 @@ export default function StudentDashboard() {
                       <div className="locked-note">Master the previous topic to unlock this one.</div>
                     ) : (
                       <div className="topic-flow">
-                        <Link className="flow-step" to={`/student/topic/${t.topicId}/knowledge`}><BookOpen size={15} /> Learn</Link>
-                        <Link className="flow-step" to={`/student/topic/${t.topicId}/examples`}><Search size={15} /> Examples</Link>
-                        <Link className="flow-step" to={`/student/topic/${t.topicId}/guided`}><Handshake size={15} /> Guided</Link>
-                        <Link className="flow-step" to={`/student/topic/${t.topicId}/practice`}><PencilLine size={15} /> Practice</Link>
-                        <Link className="flow-step flow-step--quiz" to={`/student/topic/${t.topicId}/quiz`}><ClipboardCheck size={15} /> Quiz</Link>
-                        <Link className="flow-step flow-step--hw" to={`/student/topic/${t.topicId}/homework`}><House size={15} /> Homework</Link>
+                        {TOPIC_STEPS.map((step) => {
+                          const done = doneByTopic[t.topicId]?.includes(step.key)
+                          const Icon = step.icon
+                          return (
+                            <Link key={step.key}
+                                  className={`flow-step ${step.className ?? ''} ${done ? 'flow-step--done' : ''}`}
+                                  to={stepPath(t.topicId, step)}>
+                              {done ? <Check size={15} className="flow-check" /> : <Icon size={15} />} {step.label}
+                            </Link>
+                          )
+                        })}
                       </div>
                     )}
                   </div>

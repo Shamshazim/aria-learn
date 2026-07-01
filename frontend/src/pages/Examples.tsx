@@ -2,16 +2,23 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { api, ExamplesView } from '../api'
+import NextStepButton from '../components/NextStepButton'
+import { markStepDone } from '../lib/steps'
+import { useAuth } from '../auth'
 
 export default function Examples() {
   const { topicId } = useParams()
+  const { user } = useAuth()
   const [data, setData] = useState<ExamplesView | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!topicId) return
     setData(null); setError(null)
-    api.examples(topicId).then(setData).catch((e) => setError((e as Error).message))
+    api.examples(topicId).then((d) => {
+      setData(d)
+      markStepDone(user?.id, topicId, 'examples')
+    }).catch((e) => setError((e as Error).message))
   }, [topicId])
 
   return (
@@ -39,9 +46,7 @@ export default function Examples() {
                 <div className="example-answer">✅ Answer: <strong>{ex.answer}</strong></div>
               </article>
             ))}
-            <Link className="btn btn--accent btn--block" to={`/student/topic/${topicId}/guided`}>
-              Now try it with Aria's help →
-            </Link>
+            <NextStepButton topicId={topicId!} current="examples" />
           </>
         )}
       </main>

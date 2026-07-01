@@ -3,9 +3,13 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { api, HomeworkDetail, HomeworkResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
+import NextStepButton from '../components/NextStepButton'
+import { markStepDone } from '../lib/steps'
+import { useAuth } from '../auth'
 
 export default function Homework() {
   const { topicId } = useParams()
+  const { user } = useAuth()
   const [hw, setHw] = useState<HomeworkDetail | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState<HomeworkResult | null>(null)
@@ -32,9 +36,11 @@ export default function Homework() {
     const r = await api.homeworkResult(homeworkId)
     if (r.status === 'EVALUATED') {
       setResult(r)
+      markStepDone(user?.id, topicId, 'homework')
       if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null }
     }
     return r
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const startPolling = useCallback((homeworkId: string) => {
@@ -127,6 +133,7 @@ export default function Homework() {
               </div>
             ))}
             <div className="done">
+              <NextStepButton topicId={topicId!} current="homework" />
               <Link className="btn btn--ghost" to="/student">Back to lessons</Link>
             </div>
           </>

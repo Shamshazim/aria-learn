@@ -4,6 +4,9 @@ import { ArrowLeft } from 'lucide-react'
 import { api, KnowledgeContent, KnowledgeView } from '../api'
 import MathVisual from '../components/MathVisual'
 import ReadAloud from '../components/ReadAloud'
+import NextStepButton from '../components/NextStepButton'
+import { markStepDone } from '../lib/steps'
+import { useAuth } from '../auth'
 
 function Section({ title, items, emoji }: { title: string; items: string[]; emoji: string }) {
   if (!items?.length) return null
@@ -52,6 +55,7 @@ function LessonBody({ content }: { content: KnowledgeContent }) {
 
 export default function Knowledge() {
   const { topicId } = useParams()
+  const { user } = useAuth()
   const [data, setData] = useState<KnowledgeView | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [elab, setElab] = useState<KnowledgeContent | null>(null)
@@ -60,7 +64,10 @@ export default function Knowledge() {
   useEffect(() => {
     if (!topicId) return
     setData(null); setError(null); setElab(null)
-    api.knowledge(topicId).then(setData).catch((e) => setError((e as Error).message))
+    api.knowledge(topicId).then((d) => {
+      setData(d)
+      markStepDone(user?.id, topicId, 'learn') // reading the lesson completes the Learn step
+    }).catch((e) => setError((e as Error).message))
   }, [topicId])
 
   const explainDifferently = async () => {
@@ -125,9 +132,7 @@ export default function Knowledge() {
               </article>
             )}
 
-            <Link className="btn btn--accent btn--block" to={`/student/topic/${topicId}/practice`}>
-              Try some practice →
-            </Link>
+            <NextStepButton topicId={topicId!} current="learn" />
           </>
         )}
       </main>
