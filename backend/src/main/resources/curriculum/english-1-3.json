@@ -1,0 +1,211 @@
+{
+  "subject": "English Writing",
+  "grades": [
+    {
+      "name": "Grade 1",
+      "level": 1,
+      "units": [
+        {
+          "name": "Letters, Sounds, and Words",
+          "lessons": [
+            {
+              "name": "Printing and Spelling",
+              "topics": [
+                { "name": "Printing Letters", "objectives": ["Print uppercase and lowercase letters correctly"] },
+                { "name": "Beginning and Ending Sounds", "objectives": ["Write the letter for the beginning and ending sound of a word"] },
+                { "name": "Spelling Simple Words", "objectives": ["Spell simple short-vowel words phonetically", "Spell common sight words"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Building Sentences",
+          "lessons": [
+            {
+              "name": "What Is a Sentence",
+              "topics": [
+                { "name": "Words That Make a Sentence", "objectives": ["Understand that a sentence tells a complete idea", "Put words in order to make a sentence"] },
+                { "name": "Capital Letters to Begin Sentences", "objectives": ["Begin every sentence with a capital letter", "Capitalize the word I and names"] },
+                { "name": "Ending Punctuation", "objectives": ["End sentences with a period, question mark, or exclamation point"] }
+              ]
+            },
+            {
+              "name": "Naming and Action Words",
+              "topics": [
+                { "name": "Naming Words (Nouns)", "objectives": ["Identify nouns as people, places, and things"] },
+                { "name": "Action Words (Verbs)", "objectives": ["Identify verbs as action words in a sentence"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Grammar Basics",
+          "lessons": [
+            {
+              "name": "Nouns and Pronouns",
+              "topics": [
+                { "name": "One and More Than One", "objectives": ["Add -s to make a noun mean more than one"] },
+                { "name": "Using I, Me, and We", "objectives": ["Use common pronouns like I, me, we, and they correctly"] },
+                { "name": "Question Words", "objectives": ["Use who, what, where, when, and why to ask questions"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Writing About Ideas",
+          "lessons": [
+            {
+              "name": "From Sentences to Stories",
+              "topics": [
+                { "name": "Writing a Sentence About a Picture", "objectives": ["Write a complete sentence that describes a picture"] },
+                { "name": "Writing Sentences That Go Together", "objectives": ["Write two or more sentences about the same topic"] },
+                { "name": "Telling a Story in Order", "objectives": ["Tell events in order using first, next, and last"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 2",
+      "level": 2,
+      "units": [
+        {
+          "name": "Sentences and Capitalization",
+          "lessons": [
+            {
+              "name": "Kinds of Sentences",
+              "topics": [
+                { "name": "Complete Sentences", "objectives": ["Write complete sentences with a naming part and an action part"] },
+                { "name": "Statements and Questions", "objectives": ["Write telling sentences and asking sentences with correct end marks"] },
+                { "name": "Commands and Exclamations", "objectives": ["Write commands and exclamations with correct end marks"] }
+              ]
+            },
+            {
+              "name": "Capital Letters",
+              "topics": [
+                { "name": "Capitalizing Names and Places", "objectives": ["Capitalize proper nouns for people and places"] },
+                { "name": "Capitalizing Days, Months, and Holidays", "objectives": ["Capitalize days of the week, months, and holidays"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Grammar and Parts of Speech",
+          "lessons": [
+            {
+              "name": "Nouns and Verbs",
+              "topics": [
+                { "name": "Common and Proper Nouns", "objectives": ["Tell the difference between common and proper nouns"] },
+                { "name": "Plural and Irregular Nouns", "objectives": ["Form regular plurals and common irregular plurals like feet and children"] },
+                { "name": "Verbs and Verb Tense", "objectives": ["Use present and past tense verbs, including adding -ed"] }
+              ]
+            },
+            {
+              "name": "Describing Words",
+              "topics": [
+                { "name": "Adjectives", "objectives": ["Use adjectives to describe nouns"] },
+                { "name": "Pronouns", "objectives": ["Replace nouns with pronouns so writing is not repetitive"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Punctuation and Spelling",
+          "lessons": [
+            {
+              "name": "Punctuation",
+              "topics": [
+                { "name": "Commas in Dates and Lists", "objectives": ["Use commas in dates and in a series of words"] },
+                { "name": "Apostrophes in Contractions", "objectives": ["Form common contractions such as don't and I'm"] },
+                { "name": "Spelling Patterns", "objectives": ["Spell words with common vowel patterns and word families"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Writing Paragraphs",
+          "lessons": [
+            {
+              "name": "Building a Paragraph",
+              "topics": [
+                { "name": "Topic Sentence and Details", "objectives": ["Write a topic sentence and supporting detail sentences"] },
+                { "name": "Writing a Short Paragraph", "objectives": ["Organize a paragraph with a beginning, middle, and closing"] },
+                { "name": "Writing an Opinion", "objectives": ["State an opinion and give a reason using because"] },
+                { "name": "Writing a Story", "objectives": ["Write a short narrative with events in order"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 3",
+      "level": 3,
+      "units": [
+        {
+          "name": "Sentence Structure",
+          "lessons": [
+            {
+              "name": "Building Better Sentences",
+              "topics": [
+                { "name": "Simple and Compound Sentences", "objectives": ["Write simple and compound sentences", "Join two sentences with a conjunction and a comma"] },
+                { "name": "Fixing Fragments and Run-Ons", "objectives": ["Correct sentence fragments and run-on sentences"] },
+                { "name": "Combining Sentences with Conjunctions", "objectives": ["Use conjunctions such as and, but, and because to combine ideas"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Grammar and Parts of Speech",
+          "lessons": [
+            {
+              "name": "Nouns, Verbs, and Agreement",
+              "topics": [
+                { "name": "Plural and Possessive Nouns", "objectives": ["Form plural nouns and possessive nouns with apostrophes"] },
+                { "name": "Verb Tenses and Irregular Verbs", "objectives": ["Use correct past, present, and future tenses, including irregular verbs"] },
+                { "name": "Subject-Verb Agreement", "objectives": ["Make subjects and verbs agree in number"] },
+                { "name": "Pronouns and Antecedents", "objectives": ["Use pronouns that agree with the nouns they replace"] }
+              ]
+            },
+            {
+              "name": "Modifiers",
+              "topics": [
+                { "name": "Adjectives and Adverbs", "objectives": ["Use adjectives and adverbs to add detail"] },
+                { "name": "Comparing with Adjectives", "objectives": ["Use comparative and superlative forms such as bigger and biggest"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Punctuation and Conventions",
+          "lessons": [
+            {
+              "name": "Punctuation",
+              "topics": [
+                { "name": "Commas in Addresses and Series", "objectives": ["Use commas in addresses and in a series"] },
+                { "name": "Quotation Marks for Dialogue", "objectives": ["Use quotation marks to show what a character says"] },
+                { "name": "Capitalizing Titles", "objectives": ["Capitalize important words in titles of books and stories"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Writing Compositions",
+          "lessons": [
+            {
+              "name": "Types of Writing",
+              "topics": [
+                { "name": "Strong Paragraphs", "objectives": ["Write a paragraph with a topic sentence, supporting details, and a closing"] },
+                { "name": "Narrative Writing", "objectives": ["Write a story with a clear beginning, middle, and end using descriptive details"] },
+                { "name": "Opinion Writing", "objectives": ["Write an opinion piece with reasons that support the opinion"] },
+                { "name": "Informative Writing", "objectives": ["Write to inform, grouping related facts together"] },
+                { "name": "Revising and Editing", "objectives": ["Revise for clarity and edit for grammar, spelling, and punctuation"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

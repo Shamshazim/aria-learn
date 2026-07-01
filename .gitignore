@@ -1,0 +1,37 @@
+# ── Build output ─────────────────────────────────────────────
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Local environment / secrets (never commit) ───────────────
+.env
+.env.*
+*.local
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-prod.yml
+
+# ── Database dumps / data (your children's data stays local) ─
+*.sql.bak
+*.dump
+*.sqlite
+data/
+
+# ── IDE / editor ─────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# ── OS files ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Misc ─────────────────────────────────────────────────────
+*.pid
+.cache/

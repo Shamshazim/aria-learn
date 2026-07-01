@@ -1,0 +1,275 @@
+{
+  "subject": "Mathematics",
+  "grades": [
+    {
+      "name": "Grade 1",
+      "level": 1,
+      "units": [
+        {
+          "name": "Counting and Number Sense",
+          "lessons": [
+            {
+              "name": "Counting Numbers",
+              "topics": [
+                { "name": "Counting to 20", "objectives": ["Count forward to 20 starting at any number", "Match a count to a group of objects"] },
+                { "name": "Counting to 120", "objectives": ["Count forward to 120 from any starting number", "Read and write numerals to 120"] },
+                { "name": "Skip Counting by 2s, 5s, and 10s", "objectives": ["Skip count by 2s, 5s, and 10s", "Recognize skip-counting patterns"] }
+              ]
+            },
+            {
+              "name": "Comparing Numbers",
+              "topics": [
+                { "name": "Comparing Two-Digit Numbers", "objectives": ["Compare two two-digit numbers using greater than, less than, and equal to", "Use the symbols >, <, and ="] },
+                { "name": "Ordering Numbers to 100", "objectives": ["Order a set of numbers from least to greatest", "Find one more and one less than a number"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Addition and Subtraction within 20",
+          "lessons": [
+            {
+              "name": "Addition Facts",
+              "topics": [
+                { "name": "Addition within 10", "objectives": ["Add two numbers with sums to 10", "Use counting on to add"] },
+                { "name": "Making Ten", "objectives": ["Find pairs of numbers that make 10", "Use make-a-ten to add"] },
+                { "name": "Addition within 20", "objectives": ["Add two numbers with sums to 20", "Use strategies like make-a-ten and doubles"] },
+                { "name": "Adding Three Numbers", "objectives": ["Add three whole numbers with a sum within 20", "Group addends to add efficiently"] }
+              ]
+            },
+            {
+              "name": "Subtraction Facts",
+              "topics": [
+                { "name": "Subtraction within 10", "objectives": ["Subtract within 10", "Use counting back to subtract"] },
+                { "name": "Subtraction within 20", "objectives": ["Subtract within 20", "Use the relationship between addition and subtraction"] },
+                { "name": "Fact Families", "objectives": ["Write related addition and subtraction facts", "Use fact families to solve for an unknown"] }
+              ]
+            },
+            {
+              "name": "Solving Problems",
+              "topics": [
+                { "name": "Addition and Subtraction Word Problems", "objectives": ["Solve word problems within 20 using addition and subtraction", "Find the unknown in any position"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Place Value: Tens and Ones",
+          "lessons": [
+            {
+              "name": "Understanding Tens and Ones",
+              "topics": [
+                { "name": "Tens and Ones", "objectives": ["Understand a two-digit number as tens and ones", "Represent numbers with base-ten blocks"] },
+                { "name": "Ten More and Ten Less", "objectives": ["Find 10 more and 10 less than a two-digit number without counting"] }
+              ]
+            },
+            {
+              "name": "Adding with Tens and Ones",
+              "topics": [
+                { "name": "Adding a Two-Digit and a One-Digit Number", "objectives": ["Add within 100 using place value", "Compose a ten when needed"] },
+                { "name": "Adding Multiples of Ten", "objectives": ["Add a two-digit number and a multiple of ten"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Measurement, Time, and Data",
+          "lessons": [
+            {
+              "name": "Measurement and Time",
+              "topics": [
+                { "name": "Comparing and Ordering Lengths", "objectives": ["Order three objects by length", "Compare lengths indirectly using a third object"] },
+                { "name": "Telling Time to the Hour and Half-Hour", "objectives": ["Tell and write time to the hour and half-hour using analog and digital clocks"] }
+              ]
+            },
+            {
+              "name": "Working with Data",
+              "topics": [
+                { "name": "Picture Graphs and Tally Charts", "objectives": ["Organize data into categories", "Ask and answer questions about a picture graph"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Geometry and Fractions",
+          "lessons": [
+            {
+              "name": "Shapes",
+              "topics": [
+                { "name": "Two-Dimensional Shapes", "objectives": ["Identify and describe circles, triangles, squares, and rectangles by their attributes"] },
+                { "name": "Three-Dimensional Shapes", "objectives": ["Identify cubes, spheres, cones, and cylinders", "Distinguish defining attributes from non-defining ones"] }
+              ]
+            },
+            {
+              "name": "Partitioning Shapes",
+              "topics": [
+                { "name": "Halves and Fourths", "objectives": ["Partition circles and rectangles into two and four equal shares", "Use the words halves and fourths"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 2",
+      "level": 2,
+      "units": [
+        {
+          "name": "Place Value to 1000",
+          "lessons": [
+            {
+              "name": "Understanding Three-Digit Numbers",
+              "topics": [
+                { "name": "Hundreds, Tens, and Ones", "objectives": ["Understand a three-digit number as hundreds, tens, and ones", "Model numbers with base-ten blocks"] },
+                { "name": "Counting within 1000", "objectives": ["Count within 1000", "Skip count by 5s, 10s, and 100s"] },
+                { "name": "Reading and Writing Numbers to 1000", "objectives": ["Read and write numbers to 1000 in standard, word, and expanded form"] }
+              ]
+            },
+            {
+              "name": "Comparing Numbers",
+              "topics": [
+                { "name": "Comparing Three-Digit Numbers", "objectives": ["Compare three-digit numbers using >, <, and =", "Reason using hundreds, tens, and ones"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Addition and Subtraction within 100 and 1000",
+          "lessons": [
+            {
+              "name": "Fluency and Two-Digit Computation",
+              "topics": [
+                { "name": "Addition and Subtraction Facts Fluency", "objectives": ["Fluently add and subtract within 20 from memory"] },
+                { "name": "Two-Digit Addition with Regrouping", "objectives": ["Add two-digit numbers using regrouping", "Add up to four two-digit numbers"] },
+                { "name": "Two-Digit Subtraction with Regrouping", "objectives": ["Subtract two-digit numbers using regrouping"] }
+              ]
+            },
+            {
+              "name": "Working within 1000",
+              "topics": [
+                { "name": "Adding and Subtracting within 1000", "objectives": ["Add and subtract within 1000 using place value and properties"] },
+                { "name": "Two-Step Word Problems", "objectives": ["Solve one- and two-step word problems within 100", "Use a variable for the unknown"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Measurement, Time, and Money",
+          "lessons": [
+            {
+              "name": "Length and Time",
+              "topics": [
+                { "name": "Measuring Length with Units", "objectives": ["Measure length using rulers and standard units", "Compare lengths and find the difference"] },
+                { "name": "Telling Time to Five Minutes", "objectives": ["Tell and write time to the nearest five minutes", "Use a.m. and p.m."] }
+              ]
+            },
+            {
+              "name": "Money and Data",
+              "topics": [
+                { "name": "Counting Money", "objectives": ["Count coins and dollar bills", "Solve word problems involving money"] },
+                { "name": "Line Plots and Bar Graphs", "objectives": ["Create and read picture graphs, bar graphs, and line plots"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Foundations of Multiplication and Geometry",
+          "lessons": [
+            {
+              "name": "Getting Ready to Multiply",
+              "topics": [
+                { "name": "Even and Odd Numbers", "objectives": ["Tell whether a group of objects is even or odd", "Write an even number as a sum of two equal addends"] },
+                { "name": "Arrays and Repeated Addition", "objectives": ["Use arrays to find a total", "Write a repeated-addition equation for an array"] }
+              ]
+            },
+            {
+              "name": "Shapes and Fractions",
+              "topics": [
+                { "name": "Two- and Three-Dimensional Shapes", "objectives": ["Recognize and draw shapes by their attributes such as number of sides and angles"] },
+                { "name": "Partitioning Shapes into Equal Shares", "objectives": ["Partition shapes into halves, thirds, and fourths", "Describe the whole as two, three, or four equal shares"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 3",
+      "level": 3,
+      "units": [
+        {
+          "name": "Place Value and Fluency",
+          "lessons": [
+            {
+              "name": "Place Value and Rounding",
+              "topics": [
+                { "name": "Place Value to Thousands", "objectives": ["Read, write, and represent numbers to the thousands place"] },
+                { "name": "Rounding to the Nearest 10 and 100", "objectives": ["Round whole numbers to the nearest 10 and 100 using place value"] },
+                { "name": "Adding and Subtracting within 1000", "objectives": ["Fluently add and subtract within 1000 using strategies and the standard algorithm"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Multiplication and Division",
+          "lessons": [
+            {
+              "name": "Understanding Multiplication and Division",
+              "topics": [
+                { "name": "Understanding Multiplication", "objectives": ["Interpret products as equal groups and arrays", "Write multiplication equations"] },
+                { "name": "Multiplication Facts to 100", "objectives": ["Fluently multiply within 100", "Know products of one-digit numbers from memory"] },
+                { "name": "Understanding Division", "objectives": ["Interpret division as equal sharing and equal grouping"] },
+                { "name": "Division Facts", "objectives": ["Fluently divide within 100 using the relationship to multiplication"] }
+              ]
+            },
+            {
+              "name": "Multiplication and Division Reasoning",
+              "topics": [
+                { "name": "Relating Multiplication and Division", "objectives": ["Use multiplication and division as inverse operations", "Find an unknown factor"] },
+                { "name": "Properties of Multiplication", "objectives": ["Apply the commutative, associative, and distributive properties"] },
+                { "name": "Multiplying by Multiples of Ten", "objectives": ["Multiply one-digit numbers by multiples of ten using place value"] },
+                { "name": "Multiplication and Division Word Problems", "objectives": ["Solve two-step word problems using the four operations"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fractions",
+          "lessons": [
+            {
+              "name": "Understanding Fractions",
+              "topics": [
+                { "name": "Understanding Fractions", "objectives": ["Understand a fraction as a part of a whole partitioned into equal parts"] },
+                { "name": "Fractions on a Number Line", "objectives": ["Represent and locate fractions on a number line"] },
+                { "name": "Equivalent Fractions", "objectives": ["Recognize and generate simple equivalent fractions", "Explain why two fractions are equal"] },
+                { "name": "Comparing Fractions", "objectives": ["Compare fractions with the same numerator or the same denominator", "Use the symbols >, <, and ="] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Measurement, Data, and Geometry",
+          "lessons": [
+            {
+              "name": "Measurement and Data",
+              "topics": [
+                { "name": "Telling Time and Elapsed Time", "objectives": ["Tell time to the minute", "Solve problems involving elapsed time"] },
+                { "name": "Mass and Liquid Volume", "objectives": ["Measure and estimate mass and liquid volume in metric units", "Solve one-step problems involving these measures"] },
+                { "name": "Area", "objectives": ["Measure area by counting unit squares", "Relate area to multiplication"] },
+                { "name": "Perimeter", "objectives": ["Find the perimeter of polygons", "Find an unknown side length given the perimeter"] },
+                { "name": "Scaled Graphs and Line Plots", "objectives": ["Draw and read scaled picture graphs and bar graphs", "Make line plots with halves and fourths"] }
+              ]
+            },
+            {
+              "name": "Geometry",
+              "topics": [
+                { "name": "Classifying Shapes", "objectives": ["Classify quadrilaterals by their attributes", "Recognize shared attributes across categories"] },
+                { "name": "Partitioning Shapes into Equal Areas", "objectives": ["Partition shapes into equal areas", "Express the area of each part as a unit fraction of the whole"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: aria-learn-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mathtutor}
+    username: ${DB_USER:mathtutor}
+    password: ${DB_PASSWORD:mathtutor}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: ${SERVER_PORT:8081}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-prod-this-is-a-dev-only-secret-key-min-32-bytes-long-0123456789}
+    access-token-ttl-minutes: ${JWT_ACCESS_TTL:120}
+    refresh-token-ttl-days: ${JWT_REFRESH_TTL:30}
+  ai:
+    provider: ${AI_PROVIDER:ollama}
+    ollama:
+      base-url: ${OLLAMA_URL:http://localhost:11434}
+      teach-model: ${OLLAMA_TEACH_MODEL:qwen2.5:7b}
+      fast-model: ${OLLAMA_FAST_MODEL:qwen2.5:3b}
+      timeout-seconds: ${OLLAMA_TIMEOUT:120}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.mathtutor: INFO

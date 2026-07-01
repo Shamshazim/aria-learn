@@ -1,0 +1,463 @@
+{
+  "subject": "English Writing",
+  "grades": [
+    {
+      "name": "Grade 4",
+      "level": 4,
+      "units": [
+        {
+          "name": "Sentences and Paragraphs",
+          "lessons": [
+            {
+              "name": "Sentence Basics",
+              "topics": [
+                { "name": "Complete Sentences", "objectives": ["Write complete sentences with a subject and a predicate"] },
+                { "name": "Subjects and Predicates", "objectives": ["Identify the subject and predicate of a sentence"] },
+                { "name": "Four Kinds of Sentences", "objectives": ["Use declarative, interrogative, imperative, and exclamatory sentences"] },
+                { "name": "Fixing Run-Ons and Fragments", "objectives": ["Correct sentence fragments and run-on sentences"] }
+              ]
+            },
+            {
+              "name": "Building Paragraphs",
+              "topics": [
+                { "name": "Topic Sentences", "objectives": ["Write a clear topic sentence for a paragraph"] },
+                { "name": "Supporting Details", "objectives": ["Support a topic sentence with relevant details"] },
+                { "name": "Writing a Paragraph", "objectives": ["Organize a paragraph with a topic sentence, details, and a closing"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Grammar and Parts of Speech",
+          "lessons": [
+            {
+              "name": "Nouns and Pronouns",
+              "topics": [
+                { "name": "Common and Proper Nouns", "objectives": ["Identify and capitalize common and proper nouns"] },
+                { "name": "Singular and Plural Nouns", "objectives": ["Form regular and irregular plural nouns"] },
+                { "name": "Pronouns", "objectives": ["Use pronouns to replace nouns clearly"] }
+              ]
+            },
+            {
+              "name": "Verbs and Modifiers",
+              "topics": [
+                { "name": "Action and Linking Verbs", "objectives": ["Tell the difference between action and linking verbs"] },
+                { "name": "Verb Tenses", "objectives": ["Use past, present, and future verb tenses correctly"] },
+                { "name": "Subject-Verb Agreement", "objectives": ["Make subjects and verbs agree in number"] },
+                { "name": "Adjectives and Adverbs", "objectives": ["Use adjectives and adverbs to add detail"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Punctuation and Conventions",
+          "lessons": [
+            {
+              "name": "Punctuation",
+              "topics": [
+                { "name": "End Punctuation", "objectives": ["Use periods, question marks, and exclamation points correctly"] },
+                { "name": "Commas in a Series", "objectives": ["Use commas to separate items in a list"] },
+                { "name": "Capitalization Rules", "objectives": ["Capitalize names, titles, and the beginnings of sentences"] }
+              ]
+            },
+            {
+              "name": "Spelling and Word Use",
+              "topics": [
+                { "name": "Commonly Confused Words", "objectives": ["Use commonly confused words such as their, there, and they are correctly"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Writing Types",
+          "lessons": [
+            {
+              "name": "Narrative Writing",
+              "topics": [
+                { "name": "Writing a Personal Narrative", "objectives": ["Write a narrative about a real experience"] },
+                { "name": "Using Descriptive Details", "objectives": ["Add descriptive details to bring a story to life"] },
+                { "name": "Sequencing Events", "objectives": ["Order events using time-order words"] }
+              ]
+            },
+            {
+              "name": "Informative and Opinion Writing",
+              "topics": [
+                { "name": "Writing to Explain", "objectives": ["Write a paragraph that explains a topic with facts"] },
+                { "name": "Stating an Opinion", "objectives": ["State an opinion clearly in writing"] },
+                { "name": "Giving Reasons", "objectives": ["Support an opinion with reasons"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "lessons": [
+            {
+              "name": "Word Skills",
+              "topics": [
+                { "name": "Context Clues", "objectives": ["Use context clues to find the meaning of a new word"] },
+                { "name": "Prefixes and Suffixes", "objectives": ["Use prefixes and suffixes to understand word meaning"] },
+                { "name": "Synonyms and Antonyms", "objectives": ["Identify synonyms and antonyms"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 5",
+      "level": 5,
+      "units": [
+        {
+          "name": "Sentence Structure",
+          "lessons": [
+            {
+              "name": "Building Sentences",
+              "topics": [
+                { "name": "Simple and Compound Sentences", "objectives": ["Write simple and compound sentences"] },
+                { "name": "Conjunctions", "objectives": ["Use coordinating conjunctions to join ideas"] },
+                { "name": "Combining Sentences", "objectives": ["Combine short sentences to improve flow"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Grammar and Usage",
+          "lessons": [
+            {
+              "name": "Verbs and Tenses",
+              "topics": [
+                { "name": "Perfect Verb Tenses", "objectives": ["Use the perfect verb tenses correctly"] },
+                { "name": "Correcting Shifts in Tense", "objectives": ["Keep verb tense consistent in a passage"] },
+                { "name": "Irregular Verbs", "objectives": ["Use common irregular verbs correctly"] }
+              ]
+            },
+            {
+              "name": "Pronouns and Modifiers",
+              "topics": [
+                { "name": "Pronoun-Antecedent Agreement", "objectives": ["Match pronouns with their antecedents"] },
+                { "name": "Prepositions and Prepositional Phrases", "objectives": ["Identify prepositions and prepositional phrases"] },
+                { "name": "Comparative and Superlative Forms", "objectives": ["Use comparative and superlative adjectives and adverbs"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Punctuation",
+          "lessons": [
+            {
+              "name": "Conventions",
+              "topics": [
+                { "name": "Commas in Sentences", "objectives": ["Use commas after introductory elements and to set off elements"] },
+                { "name": "Punctuating Titles", "objectives": ["Use italics and quotation marks for titles"] },
+                { "name": "Quotation Marks in Dialogue", "objectives": ["Punctuate dialogue with quotation marks correctly"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Writing Types",
+          "lessons": [
+            {
+              "name": "Narrative and Informative",
+              "topics": [
+                { "name": "Crafting a Narrative", "objectives": ["Write a narrative with a clear beginning, middle, and end"] },
+                { "name": "Dialogue and Pacing", "objectives": ["Use dialogue and pacing to develop events"] },
+                { "name": "Multi-Paragraph Explanatory Writing", "objectives": ["Write a multi-paragraph piece that explains a topic"] },
+                { "name": "Introductions and Conclusions", "objectives": ["Write strong introductions and conclusions"] }
+              ]
+            },
+            {
+              "name": "Opinion Writing",
+              "topics": [
+                { "name": "Writing an Opinion Essay", "objectives": ["Write an opinion essay with a clear point of view"] },
+                { "name": "Supporting with Reasons and Evidence", "objectives": ["Support an opinion with reasons and evidence"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Writing Process",
+          "lessons": [
+            {
+              "name": "Process Steps",
+              "topics": [
+                { "name": "Planning and Drafting", "objectives": ["Plan and draft a piece of writing"] },
+                { "name": "Revising for Clarity", "objectives": ["Revise writing to improve clarity and word choice"] },
+                { "name": "Editing", "objectives": ["Edit writing for grammar, spelling, and punctuation"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "lessons": [
+            {
+              "name": "Word Skills",
+              "topics": [
+                { "name": "Figurative Language", "objectives": ["Understand similes and metaphors"] },
+                { "name": "Greek and Latin Roots", "objectives": ["Use Greek and Latin roots to determine word meaning"] },
+                { "name": "Context Clues", "objectives": ["Use context to figure out unfamiliar words"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 6",
+      "level": 6,
+      "units": [
+        {
+          "name": "Sentences and Grammar",
+          "lessons": [
+            {
+              "name": "Clauses and Sentences",
+              "topics": [
+                { "name": "Independent and Dependent Clauses", "objectives": ["Identify independent and dependent clauses"] },
+                { "name": "Complex Sentences", "objectives": ["Write complex sentences using subordinating conjunctions"] },
+                { "name": "Fixing Run-Ons and Comma Splices", "objectives": ["Correct run-on sentences and comma splices"] }
+              ]
+            },
+            {
+              "name": "Pronoun Usage",
+              "topics": [
+                { "name": "Pronoun Case", "objectives": ["Use subjective, objective, and possessive pronouns correctly"] },
+                { "name": "Correcting Vague Pronouns", "objectives": ["Fix unclear or vague pronoun references"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Punctuation",
+          "lessons": [
+            {
+              "name": "Conventions",
+              "topics": [
+                { "name": "Commas, Parentheses, and Dashes", "objectives": ["Use commas, parentheses, and dashes to set off information"] },
+                { "name": "Punctuating Nonrestrictive Elements", "objectives": ["Punctuate nonrestrictive and parenthetical elements"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Argument Writing",
+          "lessons": [
+            {
+              "name": "Building an Argument",
+              "topics": [
+                { "name": "Writing an Argument", "objectives": ["Write an argument that supports a claim"] },
+                { "name": "Claims and Reasons", "objectives": ["State a clear claim and give reasons"] },
+                { "name": "Supporting Claims with Evidence", "objectives": ["Support claims with relevant evidence"] },
+                { "name": "Acknowledging the Other Side", "objectives": ["Recognize an opposing point of view"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informative and Narrative Writing",
+          "lessons": [
+            {
+              "name": "Informative Writing",
+              "topics": [
+                { "name": "Organizing Information", "objectives": ["Organize ideas using definition, classification, and compare and contrast"] },
+                { "name": "Using Transitions", "objectives": ["Use transitions to connect ideas"] },
+                { "name": "Formatting and Graphics", "objectives": ["Use headings and graphics to aid comprehension"] }
+              ]
+            },
+            {
+              "name": "Narrative Writing",
+              "topics": [
+                { "name": "Establishing Context and Point of View", "objectives": ["Set up a narrator and point of view"] },
+                { "name": "Narrative Techniques", "objectives": ["Use dialogue, description, and pacing in a narrative"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "lessons": [
+            {
+              "name": "Word Skills",
+              "topics": [
+                { "name": "Context Clues", "objectives": ["Use context clues to determine word meaning"] },
+                { "name": "Word Relationships", "objectives": ["Understand relationships such as cause and effect and part and whole"] },
+                { "name": "Denotation and Connotation", "objectives": ["Tell the difference between denotation and connotation"] },
+                { "name": "Figurative Language", "objectives": ["Interpret similes, metaphors, and personification"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 7",
+      "level": 7,
+      "units": [
+        {
+          "name": "Grammar and Sentences",
+          "lessons": [
+            {
+              "name": "Phrases, Clauses, and Sentences",
+              "topics": [
+                { "name": "Phrases and Clauses", "objectives": ["Identify phrases and clauses in sentences"] },
+                { "name": "Sentence Types", "objectives": ["Use simple, compound, complex, and compound-complex sentences"] },
+                { "name": "Correcting Misplaced and Dangling Modifiers", "objectives": ["Fix misplaced and dangling modifiers"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Argument Writing",
+          "lessons": [
+            {
+              "name": "Strong Arguments",
+              "topics": [
+                { "name": "Writing Arguments with Clear Claims", "objectives": ["Introduce and support a clear claim"] },
+                { "name": "Logical Reasoning and Relevant Evidence", "objectives": ["Support claims with logical reasoning and relevant evidence"] },
+                { "name": "Counterclaims", "objectives": ["Acknowledge and respond to counterclaims"] },
+                { "name": "Cohesion and Transitions", "objectives": ["Use transitions to create cohesion between ideas"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informative and Narrative Writing",
+          "lessons": [
+            {
+              "name": "Informative Writing",
+              "topics": [
+                { "name": "Thesis and Development", "objectives": ["Write a clear thesis and develop it"] },
+                { "name": "Relevant Facts, Definitions, and Examples", "objectives": ["Develop a topic with facts, definitions, and examples"] },
+                { "name": "Precise Language and Vocabulary", "objectives": ["Use precise language and domain-specific vocabulary"] }
+              ]
+            },
+            {
+              "name": "Narrative Writing",
+              "topics": [
+                { "name": "Engaging Openings", "objectives": ["Write openings that engage the reader"] },
+                { "name": "Narrative Techniques and Sensory Language", "objectives": ["Use sensory language and narrative techniques"] },
+                { "name": "Writing Strong Conclusions", "objectives": ["Write conclusions that follow from the narrative"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Language and Style",
+          "lessons": [
+            {
+              "name": "Writing Style",
+              "topics": [
+                { "name": "Concise Wording", "objectives": ["Eliminate wordiness and redundancy"] },
+                { "name": "Coordinating and Subordinating Ideas", "objectives": ["Coordinate and subordinate ideas to show their relationship"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "lessons": [
+            {
+              "name": "Word Skills",
+              "topics": [
+                { "name": "Context Clues", "objectives": ["Use context to determine the meaning of words"] },
+                { "name": "Roots and Affixes", "objectives": ["Use roots and affixes to understand words"] },
+                { "name": "Figurative Language and Word Nuance", "objectives": ["Interpret figurative language and shades of meaning"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 8",
+      "level": 8,
+      "units": [
+        {
+          "name": "Grammar and Usage",
+          "lessons": [
+            {
+              "name": "Verbals and Voice",
+              "topics": [
+                { "name": "Gerunds, Participles, and Infinitives", "objectives": ["Identify and use gerunds, participles, and infinitives"] },
+                { "name": "Active and Passive Voice", "objectives": ["Use active and passive voice purposefully"] },
+                { "name": "Verb Moods", "objectives": ["Recognize and use verb moods such as indicative and imperative"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Punctuation",
+          "lessons": [
+            {
+              "name": "Conventions",
+              "topics": [
+                { "name": "Punctuation for Pauses and Breaks", "objectives": ["Use a comma, ellipsis, or dash to indicate a pause or break"] },
+                { "name": "Punctuating Dialogue and Quotations", "objectives": ["Punctuate dialogue and quotations correctly"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Argument Writing",
+          "lessons": [
+            {
+              "name": "Persuasive Essays",
+              "topics": [
+                { "name": "Writing a Strong Argument", "objectives": ["Write a well-organized argument essay"] },
+                { "name": "Distinguishing Claims from Counterclaims", "objectives": ["Distinguish claims from alternate or opposing claims"] },
+                { "name": "Evidence and Reasoning", "objectives": ["Support claims with sound evidence and reasoning"] },
+                { "name": "Maintaining a Formal Style", "objectives": ["Keep a formal style and objective tone"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informative and Narrative Writing",
+          "lessons": [
+            {
+              "name": "Informative Writing",
+              "topics": [
+                { "name": "Thesis and Organization", "objectives": ["Organize ideas around a clear thesis"] },
+                { "name": "Synthesizing Sources", "objectives": ["Combine information from several sources"] },
+                { "name": "Transitions and Cohesion", "objectives": ["Use transitions to create cohesion and clarify relationships"] }
+              ]
+            },
+            {
+              "name": "Narrative Writing",
+              "topics": [
+                { "name": "Well-Structured Event Sequences", "objectives": ["Write a narrative with a logical sequence of events"] },
+                { "name": "Advanced Narrative Techniques", "objectives": ["Use reflection, dialogue, and pacing to develop experiences"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Research and Citation",
+          "lessons": [
+            {
+              "name": "Using Sources",
+              "topics": [
+                { "name": "Gathering Credible Sources", "objectives": ["Find and evaluate credible sources"] },
+                { "name": "Quoting and Paraphrasing", "objectives": ["Quote and paraphrase information accurately"] },
+                { "name": "Avoiding Plagiarism", "objectives": ["Give credit to sources and avoid plagiarism"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "lessons": [
+            {
+              "name": "Word Skills",
+              "topics": [
+                { "name": "Context Clues and Word Patterns", "objectives": ["Use context and word patterns to determine meaning"] },
+                { "name": "Connotation and Word Choice", "objectives": ["Choose words for their connotation and effect"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,587 @@
+{
+  "subject": "Mathematics",
+  "grades": [
+    {
+      "name": "Grade 4",
+      "level": 4,
+      "units": [
+        {
+          "name": "Place Value and Whole Numbers",
+          "lessons": [
+            {
+              "name": "Reading and Writing Numbers",
+              "topics": [
+                { "name": "Place Value to Millions", "objectives": ["Identify the value of each digit up to the millions place", "Use place value to understand large numbers"] },
+                { "name": "Reading and Writing Multi-Digit Numbers", "objectives": ["Read and write numbers in standard, word, and expanded form"] }
+              ]
+            },
+            {
+              "name": "Comparing and Rounding",
+              "topics": [
+                { "name": "Comparing and Ordering Numbers", "objectives": ["Compare multi-digit numbers using greater than, less than, and equal to", "Order a set of numbers"] },
+                { "name": "Rounding Multi-Digit Numbers", "objectives": ["Round whole numbers to any place value"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Addition and Subtraction",
+          "lessons": [
+            {
+              "name": "Multi-Digit Addition and Subtraction",
+              "topics": [
+                { "name": "Adding Multi-Digit Numbers", "objectives": ["Add multi-digit numbers using the standard algorithm with regrouping"] },
+                { "name": "Subtracting Multi-Digit Numbers", "objectives": ["Subtract multi-digit numbers with regrouping"] },
+                { "name": "Addition and Subtraction Word Problems", "objectives": ["Solve multi-step word problems with addition and subtraction"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Multiplication",
+          "lessons": [
+            {
+              "name": "Multiplying Whole Numbers",
+              "topics": [
+                { "name": "Multiplying Single-Digit Numbers", "objectives": ["Recall multiplication facts for single-digit numbers", "Multiply two single-digit numbers"] },
+                { "name": "Multiplying Two-Digit by One-Digit Numbers", "objectives": ["Multiply a two-digit number by a one-digit number using place value and carrying"] },
+                { "name": "Multiplying Two-Digit by Two-Digit Numbers", "objectives": ["Multiply two two-digit numbers using partial products"] },
+                { "name": "Multiplying by 10, 100, 1000", "objectives": ["Multiply whole numbers by powers of ten using place value shifts"] },
+                { "name": "Multiplication Word Problems", "objectives": ["Solve word problems using multiplication"] }
+              ]
+            },
+            {
+              "name": "Factors and Multiples",
+              "topics": [
+                { "name": "Factors and Multiples", "objectives": ["Find the factors and multiples of a whole number"] },
+                { "name": "Prime and Composite Numbers", "objectives": ["Tell whether a number is prime or composite"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Division",
+          "lessons": [
+            {
+              "name": "Dividing Whole Numbers",
+              "topics": [
+                { "name": "Division Facts", "objectives": ["Recall basic division facts and relate them to multiplication"] },
+                { "name": "Dividing by One-Digit Numbers", "objectives": ["Divide multi-digit numbers by a one-digit number"] },
+                { "name": "Division with Remainders", "objectives": ["Divide and interpret the remainder in context"] },
+                { "name": "Division Word Problems", "objectives": ["Solve word problems using division"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fractions",
+          "lessons": [
+            {
+              "name": "Understanding Fractions",
+              "topics": [
+                { "name": "Equivalent Fractions", "objectives": ["Find equivalent fractions using multiplication and division"] },
+                { "name": "Comparing Fractions", "objectives": ["Compare two fractions with different numerators and denominators"] }
+              ]
+            },
+            {
+              "name": "Fraction Operations",
+              "topics": [
+                { "name": "Adding and Subtracting Fractions with Like Denominators", "objectives": ["Add and subtract fractions that have the same denominator"] },
+                { "name": "Adding and Subtracting Mixed Numbers", "objectives": ["Add and subtract mixed numbers with like denominators"] },
+                { "name": "Multiplying Fractions by Whole Numbers", "objectives": ["Multiply a fraction by a whole number"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Decimals",
+          "lessons": [
+            {
+              "name": "Decimal Basics",
+              "topics": [
+                { "name": "Tenths and Hundredths", "objectives": ["Understand decimals to the hundredths place"] },
+                { "name": "Comparing Decimals", "objectives": ["Compare two decimals to the hundredths"] },
+                { "name": "Relating Fractions and Decimals", "objectives": ["Write fractions with denominators of 10 and 100 as decimals"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Measurement and Data",
+          "lessons": [
+            {
+              "name": "Measurement",
+              "topics": [
+                { "name": "Units of Measurement", "objectives": ["Know units of length, mass, volume, and time"] },
+                { "name": "Converting Units", "objectives": ["Convert larger units to smaller units within a system"] },
+                { "name": "Perimeter", "objectives": ["Find the perimeter of rectangles and polygons"] },
+                { "name": "Area of Rectangles", "objectives": ["Find the area of rectangles using a formula"] }
+              ]
+            },
+            {
+              "name": "Data",
+              "topics": [
+                { "name": "Line Plots", "objectives": ["Make and read line plots with fractional values"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Geometry",
+          "lessons": [
+            {
+              "name": "Lines and Angles",
+              "topics": [
+                { "name": "Points, Lines, Rays, and Angles", "objectives": ["Identify points, lines, line segments, rays, and angles"] },
+                { "name": "Measuring Angles", "objectives": ["Measure and draw angles using a protractor"] },
+                { "name": "Classifying Angles", "objectives": ["Classify angles as acute, right, obtuse, or straight"] }
+              ]
+            },
+            {
+              "name": "Two-Dimensional Shapes",
+              "topics": [
+                { "name": "Classifying Triangles", "objectives": ["Classify triangles by their sides and angles"] },
+                { "name": "Classifying Quadrilaterals", "objectives": ["Classify quadrilaterals by their properties"] },
+                { "name": "Lines of Symmetry", "objectives": ["Identify lines of symmetry in shapes"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 5",
+      "level": 5,
+      "units": [
+        {
+          "name": "Place Value and Decimals",
+          "lessons": [
+            {
+              "name": "Decimal Place Value",
+              "topics": [
+                { "name": "Place Value Through Thousandths", "objectives": ["Understand decimal place value to the thousandths"] },
+                { "name": "Reading and Writing Decimals", "objectives": ["Read and write decimals in standard, word, and expanded form"] },
+                { "name": "Comparing and Ordering Decimals", "objectives": ["Compare and order decimals to the thousandths"] },
+                { "name": "Rounding Decimals", "objectives": ["Round decimals to any place"] }
+              ]
+            },
+            {
+              "name": "Powers of Ten",
+              "topics": [
+                { "name": "Multiplying and Dividing by Powers of Ten", "objectives": ["Multiply and divide by 10, 100, and 1000 and explain the pattern"] },
+                { "name": "Exponents and Powers of Ten", "objectives": ["Write powers of ten using exponents"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Whole Number Operations",
+          "lessons": [
+            {
+              "name": "Multiplication and Division",
+              "topics": [
+                { "name": "Multi-Digit Multiplication", "objectives": ["Multiply multi-digit whole numbers using the standard algorithm"] },
+                { "name": "Long Division with Two-Digit Divisors", "objectives": ["Divide whole numbers by two-digit divisors"] }
+              ]
+            },
+            {
+              "name": "Expressions",
+              "topics": [
+                { "name": "Order of Operations", "objectives": ["Evaluate expressions using the order of operations"] },
+                { "name": "Writing and Interpreting Expressions", "objectives": ["Write and read simple numerical expressions"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Adding and Subtracting Fractions",
+          "lessons": [
+            {
+              "name": "Unlike Denominators",
+              "topics": [
+                { "name": "Adding Fractions with Unlike Denominators", "objectives": ["Add fractions by finding a common denominator"] },
+                { "name": "Subtracting Fractions with Unlike Denominators", "objectives": ["Subtract fractions with unlike denominators"] },
+                { "name": "Adding and Subtracting Mixed Numbers", "objectives": ["Add and subtract mixed numbers with unlike denominators"] },
+                { "name": "Fraction Word Problems", "objectives": ["Solve word problems involving adding and subtracting fractions"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Multiplying and Dividing Fractions",
+          "lessons": [
+            {
+              "name": "Multiplying Fractions",
+              "topics": [
+                { "name": "Multiplying Fractions by Fractions", "objectives": ["Multiply a fraction by a fraction"] },
+                { "name": "Multiplying Fractions and Whole Numbers", "objectives": ["Multiply fractions and whole numbers"] },
+                { "name": "Area with Fractional Sides", "objectives": ["Find the area of rectangles with fractional side lengths"] }
+              ]
+            },
+            {
+              "name": "Dividing Fractions",
+              "topics": [
+                { "name": "Dividing Unit Fractions and Whole Numbers", "objectives": ["Divide unit fractions by whole numbers and whole numbers by unit fractions"] },
+                { "name": "Fraction Division Word Problems", "objectives": ["Solve word problems involving fraction division"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Decimal Operations",
+          "lessons": [
+            {
+              "name": "Operations with Decimals",
+              "topics": [
+                { "name": "Adding and Subtracting Decimals", "objectives": ["Add and subtract decimals to the hundredths"] },
+                { "name": "Multiplying Decimals", "objectives": ["Multiply decimals to the hundredths"] },
+                { "name": "Dividing Decimals", "objectives": ["Divide decimals to the hundredths"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Measurement and Volume",
+          "lessons": [
+            {
+              "name": "Measurement",
+              "topics": [
+                { "name": "Converting Measurement Units", "objectives": ["Convert among units within a measurement system"] },
+                { "name": "Line Plots with Fractions", "objectives": ["Use line plots to display and analyze fractional data"] }
+              ]
+            },
+            {
+              "name": "Volume",
+              "topics": [
+                { "name": "Understanding Volume", "objectives": ["Understand volume as the number of unit cubes that fill a solid"] },
+                { "name": "Volume of Rectangular Prisms", "objectives": ["Find the volume of rectangular prisms using a formula"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Geometry",
+          "lessons": [
+            {
+              "name": "Coordinate Plane",
+              "topics": [
+                { "name": "The Coordinate Plane", "objectives": ["Understand the first quadrant of the coordinate plane"] },
+                { "name": "Plotting Points", "objectives": ["Plot and name ordered pairs in the first quadrant"] },
+                { "name": "Graphing Relationships", "objectives": ["Graph points to represent real-world relationships"] }
+              ]
+            },
+            {
+              "name": "Classifying Shapes",
+              "topics": [
+                { "name": "Classifying Two-Dimensional Shapes", "objectives": ["Classify two-dimensional shapes in a hierarchy by their properties"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 6",
+      "level": 6,
+      "units": [
+        {
+          "name": "Ratios and Rates",
+          "lessons": [
+            {
+              "name": "Ratios",
+              "topics": [
+                { "name": "Understanding Ratios", "objectives": ["Understand the concept of a ratio and use ratio language"] },
+                { "name": "Equivalent Ratios and Ratio Tables", "objectives": ["Make tables of equivalent ratios and find missing values"] }
+              ]
+            },
+            {
+              "name": "Rates and Percent",
+              "topics": [
+                { "name": "Unit Rates", "objectives": ["Find and use unit rates"] },
+                { "name": "Understanding Percent", "objectives": ["Understand percent as a rate per 100"] },
+                { "name": "Percent of a Number", "objectives": ["Find a percent of a quantity"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Number System",
+          "lessons": [
+            {
+              "name": "Fractions and Factors",
+              "topics": [
+                { "name": "Dividing Fractions by Fractions", "objectives": ["Divide a fraction by a fraction and explain the meaning"] },
+                { "name": "Greatest Common Factor", "objectives": ["Find the greatest common factor of two numbers"] },
+                { "name": "Least Common Multiple", "objectives": ["Find the least common multiple of two numbers"] }
+              ]
+            },
+            {
+              "name": "Integers and the Coordinate Plane",
+              "topics": [
+                { "name": "Introduction to Integers", "objectives": ["Understand positive and negative integers on a number line"] },
+                { "name": "Absolute Value", "objectives": ["Find and interpret absolute value"] },
+                { "name": "Comparing and Ordering Integers", "objectives": ["Compare and order integers and rational numbers"] },
+                { "name": "The Four-Quadrant Coordinate Plane", "objectives": ["Plot points in all four quadrants of the coordinate plane"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Expressions and Equations",
+          "lessons": [
+            {
+              "name": "Expressions",
+              "topics": [
+                { "name": "Exponents", "objectives": ["Write and evaluate expressions with whole-number exponents"] },
+                { "name": "Writing Algebraic Expressions", "objectives": ["Write expressions with variables from words"] },
+                { "name": "Evaluating Expressions", "objectives": ["Evaluate algebraic expressions for given values"] },
+                { "name": "Equivalent Expressions", "objectives": ["Generate and identify equivalent expressions"] }
+              ]
+            },
+            {
+              "name": "Equations and Inequalities",
+              "topics": [
+                { "name": "One-Step Equations", "objectives": ["Solve one-step equations using inverse operations"] },
+                { "name": "One-Variable Inequalities", "objectives": ["Write and graph inequalities of the form x greater than c"] },
+                { "name": "Dependent and Independent Variables", "objectives": ["Use variables to represent relationships between quantities"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Geometry",
+          "lessons": [
+            {
+              "name": "Area, Surface Area, and Volume",
+              "topics": [
+                { "name": "Area of Triangles", "objectives": ["Find the area of triangles"] },
+                { "name": "Area of Parallelograms and Trapezoids", "objectives": ["Find the area of parallelograms and trapezoids"] },
+                { "name": "Area of Composite Figures", "objectives": ["Find the area of composite shapes by decomposing them"] },
+                { "name": "Volume with Fractional Edge Lengths", "objectives": ["Find the volume of prisms with fractional edge lengths"] },
+                { "name": "Surface Area and Nets", "objectives": ["Use nets to find the surface area of solids"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Statistics",
+          "lessons": [
+            {
+              "name": "Data and Distributions",
+              "topics": [
+                { "name": "Statistical Questions", "objectives": ["Recognize a statistical question and describe data"] },
+                { "name": "Mean, Median, and Mode", "objectives": ["Find measures of center for a data set"] },
+                { "name": "Measures of Variability", "objectives": ["Find the range and interquartile range"] },
+                { "name": "Dot Plots, Histograms, and Box Plots", "objectives": ["Display data with dot plots, histograms, and box plots"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 7",
+      "level": 7,
+      "units": [
+        {
+          "name": "Ratios and Proportional Relationships",
+          "lessons": [
+            {
+              "name": "Proportional Relationships",
+              "topics": [
+                { "name": "Unit Rates with Fractions", "objectives": ["Compute unit rates with fractions"] },
+                { "name": "Proportional Relationships", "objectives": ["Decide whether two quantities are proportional"] },
+                { "name": "Constant of Proportionality", "objectives": ["Find and use the constant of proportionality"] },
+                { "name": "Graphing Proportional Relationships", "objectives": ["Represent proportional relationships with graphs and equations"] }
+              ]
+            },
+            {
+              "name": "Percent Applications",
+              "topics": [
+                { "name": "Percent Change", "objectives": ["Find percent increase and decrease"] },
+                { "name": "Tax, Tip, and Discount", "objectives": ["Solve real-world percent problems with tax, tip, and discount"] },
+                { "name": "Simple Interest", "objectives": ["Calculate simple interest"] },
+                { "name": "Scale Drawings", "objectives": ["Use scale drawings to find actual lengths and areas"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Number System",
+          "lessons": [
+            {
+              "name": "Integer Operations",
+              "topics": [
+                { "name": "Adding and Subtracting Integers", "objectives": ["Add and subtract integers using number lines and rules"] },
+                { "name": "Multiplying and Dividing Integers", "objectives": ["Multiply and divide integers"] }
+              ]
+            },
+            {
+              "name": "Rational Numbers",
+              "topics": [
+                { "name": "Operations with Rational Numbers", "objectives": ["Add, subtract, multiply, and divide rational numbers"] },
+                { "name": "Converting Fractions to Decimals", "objectives": ["Convert fractions to terminating or repeating decimals"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Expressions and Equations",
+          "lessons": [
+            {
+              "name": "Expressions",
+              "topics": [
+                { "name": "Combining Like Terms", "objectives": ["Simplify expressions by combining like terms"] },
+                { "name": "The Distributive Property", "objectives": ["Expand expressions using the distributive property"] },
+                { "name": "Factoring Expressions", "objectives": ["Factor linear expressions"] }
+              ]
+            },
+            {
+              "name": "Equations and Inequalities",
+              "topics": [
+                { "name": "Two-Step Equations", "objectives": ["Solve two-step equations"] },
+                { "name": "Two-Step Inequalities", "objectives": ["Solve and graph two-step inequalities"] },
+                { "name": "Equation Word Problems", "objectives": ["Write and solve equations for real-world problems"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Geometry",
+          "lessons": [
+            {
+              "name": "Angles and Triangles",
+              "topics": [
+                { "name": "Angle Relationships", "objectives": ["Use complementary, supplementary, and vertical angles"] },
+                { "name": "Constructing Triangles", "objectives": ["Decide when given measures form a unique triangle"] }
+              ]
+            },
+            {
+              "name": "Circles and Solids",
+              "topics": [
+                { "name": "Area and Circumference of Circles", "objectives": ["Find the area and circumference of circles"] },
+                { "name": "Area, Volume, and Surface Area", "objectives": ["Solve problems involving area, volume, and surface area"] },
+                { "name": "Cross-Sections of Solids", "objectives": ["Describe the cross-sections of three-dimensional figures"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Statistics and Probability",
+          "lessons": [
+            {
+              "name": "Sampling and Comparing Data",
+              "topics": [
+                { "name": "Random Sampling", "objectives": ["Use random samples to make inferences about a population"] },
+                { "name": "Comparing Two Populations", "objectives": ["Compare two data distributions"] }
+              ]
+            },
+            {
+              "name": "Probability",
+              "topics": [
+                { "name": "Probability of Simple Events", "objectives": ["Find the probability of a simple event"] },
+                { "name": "Compound Events and Simulations", "objectives": ["Find probabilities of compound events using lists, tables, and simulations"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Grade 8",
+      "level": 8,
+      "units": [
+        {
+          "name": "The Number System",
+          "lessons": [
+            {
+              "name": "Real Numbers",
+              "topics": [
+                { "name": "Rational and Irrational Numbers", "objectives": ["Tell the difference between rational and irrational numbers"] },
+                { "name": "Approximating Irrational Numbers", "objectives": ["Estimate irrational numbers and place them on a number line"] },
+                { "name": "Square Roots and Cube Roots", "objectives": ["Evaluate square roots and cube roots of perfect squares and cubes"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Expressions and Equations",
+          "lessons": [
+            {
+              "name": "Exponents and Scientific Notation",
+              "topics": [
+                { "name": "Properties of Integer Exponents", "objectives": ["Apply the properties of integer exponents"] },
+                { "name": "Scientific Notation", "objectives": ["Write and interpret numbers in scientific notation"] },
+                { "name": "Operations with Scientific Notation", "objectives": ["Add, subtract, multiply, and divide in scientific notation"] }
+              ]
+            },
+            {
+              "name": "Linear Equations",
+              "topics": [
+                { "name": "Solving Linear Equations", "objectives": ["Solve linear equations in one variable"] },
+                { "name": "Equations with Variables on Both Sides", "objectives": ["Solve equations with variables on both sides"] },
+                { "name": "Understanding Slope", "objectives": ["Find the slope of a line"] },
+                { "name": "Slope-Intercept Form", "objectives": ["Write and graph linear equations in slope-intercept form"] }
+              ]
+            },
+            {
+              "name": "Systems of Equations",
+              "topics": [
+                { "name": "Solving Systems of Equations", "objectives": ["Solve systems of two linear equations by graphing and substitution"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Functions",
+          "lessons": [
+            {
+              "name": "Understanding Functions",
+              "topics": [
+                { "name": "Defining Functions", "objectives": ["Understand that a function assigns exactly one output to each input"] },
+                { "name": "Linear and Nonlinear Functions", "objectives": ["Tell linear functions from nonlinear functions"] },
+                { "name": "Comparing Functions", "objectives": ["Compare functions shown in different ways"] },
+                { "name": "Constructing and Interpreting Functions", "objectives": ["Build a function to model a relationship and describe its graph"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Geometry",
+          "lessons": [
+            {
+              "name": "Transformations and Congruence",
+              "topics": [
+                { "name": "Translations, Reflections, and Rotations", "objectives": ["Describe the effect of translations, reflections, and rotations"] },
+                { "name": "Dilations", "objectives": ["Describe dilations and their effect on figures"] },
+                { "name": "Congruence and Similarity", "objectives": ["Use transformations to show congruence and similarity"] }
+              ]
+            },
+            {
+              "name": "Angles, Pythagoras, and Volume",
+              "topics": [
+                { "name": "Angle Relationships with Parallel Lines", "objectives": ["Find angle measures formed by parallel lines and a transversal"] },
+                { "name": "The Pythagorean Theorem", "objectives": ["Use the Pythagorean theorem to find a missing side"] },
+                { "name": "Distance on the Coordinate Plane", "objectives": ["Find the distance between two points using the Pythagorean theorem"] },
+                { "name": "Volume of Cylinders, Cones, and Spheres", "objectives": ["Find the volume of cylinders, cones, and spheres"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Statistics and Probability",
+          "lessons": [
+            {
+              "name": "Bivariate Data",
+              "topics": [
+                { "name": "Scatter Plots", "objectives": ["Make and interpret scatter plots for bivariate data"] },
+                { "name": "Line of Best Fit", "objectives": ["Draw and use a line of best fit"] },
+                { "name": "Two-Way Tables", "objectives": ["Use two-way tables to study relationships between two variables"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
