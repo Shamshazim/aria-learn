@@ -280,4 +280,5 @@ cd frontend && npm run build  # type-check + production build
 
 ## 📄 License
 
-Personal/educational project. Use it for your own family and learning.
+Released under the [MIT License](LICENSE) — free to use, modify, and share. Built for
+families and learning.
