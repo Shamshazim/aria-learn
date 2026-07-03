@@ -30,12 +30,15 @@ public class AdaptiveController {
                 : adaptiveService.getProfile(studentId, gradeId);
     }
 
-    /** A parent viewing one of their own children's learning profile (ownership enforced). */
+    /** A parent viewing one of their own children's learning profile for a subject (gradeId),
+     *  or across all subjects if omitted (ownership enforced). */
     @GetMapping("/parent/students/{studentId}/profile")
     @PreAuthorize("hasRole('PARENT')")
-    public ProfileDto childProfile(@PathVariable UUID studentId) {
+    public ProfileDto childProfile(@PathVariable UUID studentId,
+                                   @RequestParam(required = false) UUID gradeId) {
         AuthPrincipal parent = SecurityUtils.currentPrincipal();
         studentService.requireOwnedStudent(parent, studentId);
-        return adaptiveService.getProfile(studentId);
+        return gradeId == null ? adaptiveService.getProfile(studentId)
+                : adaptiveService.getProfile(studentId, gradeId);
     }
 }

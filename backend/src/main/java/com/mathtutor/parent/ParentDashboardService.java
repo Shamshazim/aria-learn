@@ -52,10 +52,20 @@ public class ParentDashboardService {
 
     @Transactional
     public ChartsDto charts(AuthPrincipal parent, UUID studentId) {
+        return charts(parent, studentId, null);
+    }
+
+    /** Charts scoped to one subject (gradeId), or the child's primary subject if omitted. */
+    @Transactional
+    public ChartsDto charts(AuthPrincipal parent, UUID studentId, UUID gradeId) {
         studentService.requireOwnedStudent(parent, studentId); // 403 if not their child
 
+        List<TopicProgressDto> topics = gradeId == null
+                ? progressService.progressFor(studentId)
+                : progressService.progressForGrade(studentId, gradeId);
+
         List<TopicMasteryChartDto> byTopic = new ArrayList<>();
-        for (TopicProgressDto p : progressService.progressFor(studentId)) {
+        for (TopicProgressDto p : topics) {
             MasteryBreakdownDto b = masteryService.breakdown(studentId, p.topicId());
             byTopic.add(new TopicMasteryChartDto(p.topicId(), p.topicName(), p.status(),
                     p.masteryScore(), b.knowledgeScore(), b.practiceScore(),

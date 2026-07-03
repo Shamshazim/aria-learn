@@ -330,6 +330,103 @@ input:focus, select:focus { outline: 2px solid var(--indigo); border-color: tran
   .feedback-head--pop, .feedback-head--pop svg { animation: none; }
 }
 
+/* ── Fun loader (kid-friendly "Aria is thinking") ───────────────────────── */
+.fun-loader {
+  text-align: center;
+  padding: 2rem 1.2rem 1.6rem;
+  background: linear-gradient(160deg, #eef2ff 0%, #ffffff 60%);
+  overflow: hidden;
+}
+.fun-loader__stage {
+  position: relative;
+  height: 120px;
+  margin: 0 auto 0.4rem;
+  width: 220px;
+}
+.fun-loader__owl {
+  font-size: 4rem;
+  line-height: 1;
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  animation: fl-bob 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 6px 6px rgba(79, 70, 229, 0.25));
+}
+@keyframes fl-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(-4deg); }
+  50%      { transform: translateX(-50%) translateY(-14px) rotate(4deg); }
+}
+.fun-loader__shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 70px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(79, 70, 229, 0.18);
+  transform: translateX(-50%);
+  animation: fl-shadow 1.4s ease-in-out infinite;
+}
+@keyframes fl-shadow {
+  0%, 100% { width: 74px; opacity: 0.6; }
+  50%      { width: 52px; opacity: 0.35; }
+}
+.fun-loader__float {
+  position: absolute;
+  font-size: 1.5rem;
+  bottom: 20px;
+  opacity: 0;
+  animation: fl-rise 3.2s ease-in infinite;
+}
+.fun-loader__float.fl-1 { left: 12%;  animation-delay: 0s;   }
+.fun-loader__float.fl-2 { left: 30%;  animation-delay: 0.7s; }
+.fun-loader__float.fl-3 { left: 62%;  animation-delay: 1.3s; }
+.fun-loader__float.fl-4 { left: 80%;  animation-delay: 0.4s; }
+.fun-loader__float.fl-5 { left: 46%;  animation-delay: 2s;   }
+@keyframes fl-rise {
+  0%   { transform: translateY(10px) scale(0.6); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateY(-90px) scale(1.1) rotate(20deg); opacity: 0; }
+}
+.fun-loader__title { margin: 0.2rem 0 0.3rem; color: var(--indigo-dark); }
+.fun-loader__msg {
+  min-height: 2.6em;
+  margin: 0 auto;
+  max-width: 30rem;
+  color: var(--ink);
+  font-weight: 600;
+  animation: fl-fade 0.5s ease;
+}
+@keyframes fl-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fun-loader__dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.8rem;
+}
+.fun-loader__dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--indigo);
+  animation: fl-dot 1s ease-in-out infinite;
+}
+.fun-loader__dots span:nth-child(2) { animation-delay: 0.15s; background: var(--accent); }
+.fun-loader__dots span:nth-child(3) { animation-delay: 0.3s;  background: var(--green); }
+@keyframes fl-dot {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50%      { transform: translateY(-10px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fun-loader__owl, .fun-loader__shadow, .fun-loader__float,
+  .fun-loader__dots span, .fun-loader__msg { animation: none; }
+  .fun-loader__float { opacity: 0.9; }
+}
+
 /* Completed step badge on the topic flow */
 .flow-step--done {
   background: #ecfdf5;

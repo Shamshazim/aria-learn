@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { api, HomeworkDetail, HomeworkResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import NextStepButton from '../components/NextStepButton'
+import FunLoader from '../components/FunLoader'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
 
@@ -74,17 +75,11 @@ export default function Homework() {
 
       <main className="container narrow">
         {!hw && !error && (
-          <div className="card thinking"><div className="spinner" /><p>Aria is preparing your homework...</p></div>
+          <FunLoader variant="homework" />
         )}
         {error && <div className="error">{error}</div>}
 
-        {reviewing && (
-          <div className="card thinking reviewing">
-            <div className="spinner" />
-            <h2>Aria is reviewing your work 📝</h2>
-            <p className="muted">Checking each answer and writing feedback just for you...</p>
-          </div>
-        )}
+        {reviewing && <FunLoader variant="review" />}
 
         {hw && hw.status === 'ASSIGNED' && !reviewing && (
           <>

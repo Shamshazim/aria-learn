@@ -5,6 +5,7 @@ import { api, KnowledgeContent, KnowledgeView } from '../api'
 import MathVisual from '../components/MathVisual'
 import ReadAloud from '../components/ReadAloud'
 import NextStepButton from '../components/NextStepButton'
+import FunLoader from '../components/FunLoader'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
 
@@ -93,12 +94,7 @@ export default function Knowledge() {
       </header>
 
       <main className="container narrow">
-        {!data && !error && (
-          <div className="card thinking">
-            <div className="spinner" />
-            <p>Aria is preparing your lesson...</p>
-          </div>
-        )}
+        {!data && !error && <FunLoader variant="lesson" />}
         {error && <div className="error">{error}</div>}
 
         {data && c && (
@@ -118,9 +114,7 @@ export default function Knowledge() {
               </button>
             </div>
 
-            {elabBusy && !elab && (
-              <div className="card thinking"><div className="spinner" /><p>Aria is finding a simpler way to explain it...</p></div>
-            )}
+            {elabBusy && !elab && <FunLoader variant="lesson" />}
 
             {elab && (
               <article className="card lesson elaborate-card">

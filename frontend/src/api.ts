@@ -303,13 +303,15 @@ export const api = {
 
   studentProfile: (gradeId?: string) =>
     request<AdaptiveProfile>('GET', `/student/profile${gradeId ? `?gradeId=${gradeId}` : ''}`),
-  childProfile: (studentId: string) => request<AdaptiveProfile>('GET', `/parent/students/${studentId}/profile`),
+  childProfile: (studentId: string, gradeId?: string) =>
+    request<AdaptiveProfile>('GET', `/parent/students/${studentId}/profile${gradeId ? `?gradeId=${gradeId}` : ''}`),
 
   gamification: () => request<GamificationSummary>('GET', '/student/gamification'),
   childGamification: (studentId: string) => request<GamificationSummary>('GET', `/parent/students/${studentId}/gamification`),
 
   parentOverview: () => request<ChildSummary[]>('GET', '/parent/overview'),
-  childCharts: (studentId: string) => request<ParentCharts>('GET', `/parent/students/${studentId}/charts`),
+  childCharts: (studentId: string, gradeId?: string) =>
+    request<ParentCharts>('GET', `/parent/students/${studentId}/charts${gradeId ? `?gradeId=${gradeId}` : ''}`),
 
   adminPrompts: () => request<PromptSummary[]>('GET', '/admin/prompts'),
   promptHistory: (name: string) => request<PromptVersion[]>('GET', `/admin/prompts/${name}/history`),

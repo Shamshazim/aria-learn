@@ -190,18 +190,36 @@ export default function ChildInsights() {
   const { studentId } = useParams()
   const { logout } = useAuth()
   const [child, setChild] = useState<StudentDto | null>(null)
+  const [subjects, setSubjects] = useState<EnrolledSubject[]>([])
+  const [gradeId, setGradeId] = useState<string | null>(null)
   const [profile, setProfile] = useState<AdaptiveProfile | null>(null)
   const [progress, setProgress] = useState<TopicProgress[]>([])
   const [charts, setCharts] = useState<ParentCharts | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Load the child and the subjects they're enrolled in (once).
   useEffect(() => {
     if (!studentId) return
     api.listStudents().then((list) => setChild(list.find((s) => s.id === studentId) ?? null)).catch(() => {})
-    api.childProfile(studentId).then(setProfile).catch((e) => setError((e as Error).message))
-    api.childProgress(studentId).then(setProgress).catch(() => {})
-    api.childCharts(studentId).then(setCharts).catch(() => {})
+    api.childSubjects(studentId).then((s) => {
+      setSubjects(s)
+      if (s[0]) setGradeId(s[0].gradeId)
+    }).catch(() => {})
   }, [studentId])
+
+  // Load progress / profile / charts for the SELECTED subject only. Wait for a resolved
+  // subject and ignore stale responses so switching subjects never shows mixed data.
+  useEffect(() => {
+    if (!studentId || !gradeId) return
+    let active = true
+    api.childProgress(studentId, gradeId).then((t) => { if (active) setProgress(t) }).catch(() => {})
+    api.childProfile(studentId, gradeId).then((p) => { if (active) setProfile(p) })
+      .catch((e) => { if (active) setError((e as Error).message) })
+    api.childCharts(studentId, gradeId).then((c) => { if (active) setCharts(c) }).catch(() => {})
+    return () => { active = false }
+  }, [studentId, gradeId])
+
+  const currentSubject = subjects.find((s) => s.gradeId === gradeId)
 
   return (
     <div className="app-shell">
@@ -217,13 +235,25 @@ export default function ChildInsights() {
         <h2>Insights{child ? ` · ${child.displayName}` : ''}</h2>
         {error && <div className="error">{error}</div>}
         {studentId && <EnrollSection studentId={studentId} />}
+
+        {subjects.length > 0 && (
+          <div className="subject-tabs">
+            {subjects.map((s) => (
+              <button key={s.subjectId}
+                      className={`subject-tab ${s.gradeId === gradeId ? 'subject-tab--active' : ''}`}
+                      onClick={() => setGradeId(s.gradeId)}>
+                {s.subjectName} <span className="muted">· {s.gradeName}</span>
+              </button>
+            ))}
+          </div>
+        )}
         {studentId && <ResetChildPassword studentId={studentId} name={child?.displayName} />}
         {profile && <AdvicePanel profile={profile} childName={child?.displayName} />}
         {charts && <InsightCharts charts={charts} />}
         {studentId && <ReportSection studentId={studentId} />}
 
         <section className="card">
-          <h3>Topic progress</h3>
+          <h3>Topic progress{currentSubject ? ` · ${currentSubject.subjectName}` : ''}</h3>
           {progress.length === 0 && <p className="muted">No activity yet.</p>}
           <ul className="student-list">
             {progress.map((t) => (

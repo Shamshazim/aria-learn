@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle, RotateCcw, Star } from
 import { api, AnswerResult, PracticeSet } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import NextStepButton from '../components/NextStepButton'
+import FunLoader from '../components/FunLoader'
 import { celebrateBig, celebrateCorrect } from '../lib/celebrate'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
@@ -67,7 +68,7 @@ export default function Practice() {
 
       <main className="container narrow">
         {!set && !error && (
-          <div className="card thinking"><div className="spinner" /><p>Aria is writing your questions...</p></div>
+          <FunLoader variant="practice" />
         )}
         {error && <div className="error">{error}</div>}
 

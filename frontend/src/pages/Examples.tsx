@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { api, ExamplesView } from '../api'
 import NextStepButton from '../components/NextStepButton'
+import FunLoader from '../components/FunLoader'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
 
@@ -30,7 +31,7 @@ export default function Examples() {
 
       <main className="container narrow">
         {!data && !error && (
-          <div className="card thinking"><div className="spinner" /><p>Aria is working through examples...</p></div>
+          <FunLoader variant="examples" />
         )}
         {error && <div className="error">{error}</div>}
 

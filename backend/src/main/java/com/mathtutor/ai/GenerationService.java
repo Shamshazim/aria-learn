@@ -1,5 +1,6 @@
 package com.mathtutor.ai;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mathtutor.ai.content.Advice;
 import com.mathtutor.ai.content.AnswerEvaluation;
 import com.mathtutor.ai.content.ExamplesContent;
@@ -7,9 +8,17 @@ import com.mathtutor.ai.content.GeneratedQuestion;
 import com.mathtutor.ai.content.Hint;
 import com.mathtutor.ai.content.KnowledgeContent;
 import com.mathtutor.ai.content.PracticeBatch;
+import com.mathtutor.ai.content.VerifiedAnswerKeys;
+import com.mathtutor.ai.content.VerifiedExamples;
+import com.mathtutor.ai.content.WorkedExample;
+import com.mathtutor.practice.AnswerMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,11 +39,17 @@ public class GenerationService {
     public static final String PROMPT_EVALUATION = "EVALUATION";
     public static final String PROMPT_RECOMMENDATION = "RECOMMENDATION";
     public static final String PROMPT_ANSWER_CHECK = "ANSWER_CHECK";
+    public static final String PROMPT_ANSWER_VERIFY = "ANSWER_VERIFY";
+    public static final String PROMPT_EXAMPLE_VERIFY = "EXAMPLE_VERIFY";
+
+    private static final Logger log = LoggerFactory.getLogger(GenerationService.class);
 
     private final AiClient aiClient;
+    private final ObjectMapper objectMapper;
 
-    public GenerationService(AiClient aiClient) {
+    public GenerationService(AiClient aiClient, ObjectMapper objectMapper) {
         this.aiClient = aiClient;
+        this.objectMapper = objectMapper;
     }
 
     public KnowledgeContent generateKnowledge(GenerationContext ctx) {
@@ -44,7 +59,8 @@ public class GenerationService {
 
     public ExamplesContent generateExamples(GenerationContext ctx) {
         Map<String, String> vars = baseVars(ctx);
-        return aiClient.generateStructured(PROMPT_EXAMPLES, vars, ExamplesContent.class, null);
+        ExamplesContent content = aiClient.generateStructured(PROMPT_EXAMPLES, vars, ExamplesContent.class, null);
+        return verifyExamples(content, ctx.subjectName());
     }
 
     /** Re-teaches a topic in a fresh, simpler way (for the "Explain it differently" action). */
@@ -56,19 +72,176 @@ public class GenerationService {
         Map<String, String> vars = baseVars(ctx);
         vars.put("difficulty", difficulty);
         vars.put("count", String.valueOf(count));
-        return aiClient.generateStructured(PROMPT_PRACTICE, vars, PracticeBatch.class, studentId);
+        PracticeBatch batch = aiClient.generateStructured(PROMPT_PRACTICE, vars, PracticeBatch.class, studentId);
+        return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
     }
 
     public PracticeBatch generateQuiz(GenerationContext ctx, int count, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
         vars.put("count", String.valueOf(count));
-        return aiClient.generateStructured(PROMPT_QUIZ, vars, PracticeBatch.class, studentId);
+        PracticeBatch batch = aiClient.generateStructured(PROMPT_QUIZ, vars, PracticeBatch.class, studentId);
+        return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
     }
 
     public PracticeBatch generateHomework(GenerationContext ctx, int count, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
         vars.put("count", String.valueOf(count));
-        return aiClient.generateStructured(PROMPT_HOMEWORK, vars, PracticeBatch.class, studentId);
+        PracticeBatch batch = aiClient.generateStructured(PROMPT_HOMEWORK, vars, PracticeBatch.class, studentId);
+        return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
+    }
+
+    /**
+     * Re-checks the answer key of every multiple-choice question with a focused, low-temperature
+     * solver and corrects any that were mislabeled at generation time. Only ever moves the key to
+     * an option the verifier picks that already exists among the choices; if verification fails or
+     * returns something unrecognizable, the original key is kept (never made worse).
+     */
+    PracticeBatch verifyAnswerKeys(PracticeBatch batch, String subjectName, UUID studentId) {
+        if (batch == null || batch.questions() == null || batch.questions().isEmpty()) {
+            return batch;
+        }
+        List<GeneratedQuestion> questions = batch.questions();
+
+        // Build the verifier input from MC questions only, keyed by their position in the batch.
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (int i = 0; i < questions.size(); i++) {
+            GeneratedQuestion q = questions.get(i);
+            if (isMultipleChoice(q) && q.choices() != null && !q.choices().isEmpty()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("index", i);
+                item.put("question", q.prompt());
+                item.put("choices", q.choices());
+                items.add(item);
+            }
+        }
+        if (items.isEmpty()) {
+            return batch;
+        }
+
+        VerifiedAnswerKeys verified;
+        try {
+            Map<String, String> vars = new HashMap<>();
+            vars.put("subject_name", subjectName == null ? "this subject" : subjectName);
+            vars.put("questions_json", objectMapper.writeValueAsString(items));
+            verified = aiClient.generateStructured(PROMPT_ANSWER_VERIFY, vars, VerifiedAnswerKeys.class, studentId);
+        } catch (Exception e) {
+            log.warn("Answer-key verification failed; keeping original keys: {}", e.getMessage());
+            return batch;
+        }
+        if (verified == null || verified.answers() == null) {
+            return batch;
+        }
+
+        GeneratedQuestion[] result = questions.toArray(new GeneratedQuestion[0]);
+        int corrected = 0;
+        for (VerifiedAnswerKeys.VerifiedKey vk : verified.answers()) {
+            int idx = vk.index();
+            if (idx < 0 || idx >= result.length || vk.correctAnswer() == null || vk.correctAnswer().isBlank()) {
+                continue;
+            }
+            GeneratedQuestion q = result[idx];
+            if (!isMultipleChoice(q) || q.choices() == null) {
+                continue;
+            }
+            String match = matchingChoice(q.choices(), vk.correctAnswer());
+            if (match == null) {
+                continue; // verifier picked something not among the options — ignore, stay safe
+            }
+            if (!AnswerMatcher.matches(match, q.correctAnswer())) {
+                result[idx] = new GeneratedQuestion(q.type(), q.difficulty(), q.prompt(),
+                        q.choices(), match, q.solution());
+                corrected++;
+            }
+        }
+        if (corrected > 0) {
+            log.info("Answer-key verification corrected {} of {} multiple-choice question(s).",
+                    corrected, items.size());
+        }
+        return new PracticeBatch(List.of(result));
+    }
+
+    /**
+     * Re-solves every worked example with a focused, low-temperature solver and replaces its
+     * steps and final answer with the verified solution, so a wrong worked example never reaches
+     * a child. On any failure the original content is returned unchanged.
+     */
+    ExamplesContent verifyExamples(ExamplesContent content, String subjectName) {
+        if (content == null || content.examples() == null || content.examples().isEmpty()) {
+            return content;
+        }
+        List<WorkedExample> examples = content.examples();
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (int i = 0; i < examples.size(); i++) {
+            WorkedExample ex = examples.get(i);
+            if (ex == null || ex.problem() == null || ex.problem().isBlank()) {
+                continue;
+            }
+            Map<String, Object> item = new HashMap<>();
+            item.put("index", i);
+            item.put("problem", ex.problem());
+            item.put("steps", ex.steps() == null ? List.of() : ex.steps());
+            item.put("answer", ex.answer() == null ? "" : ex.answer());
+            items.add(item);
+        }
+        if (items.isEmpty()) {
+            return content;
+        }
+
+        VerifiedExamples verified;
+        try {
+            Map<String, String> vars = new HashMap<>();
+            vars.put("subject_name", subjectName == null ? "this subject" : subjectName);
+            vars.put("examples_json", objectMapper.writeValueAsString(items));
+            verified = aiClient.generateStructured(PROMPT_EXAMPLE_VERIFY, vars, VerifiedExamples.class, null);
+        } catch (Exception e) {
+            log.warn("Worked-example verification failed; keeping original examples: {}", e.getMessage());
+            return content;
+        }
+        if (verified == null || verified.examples() == null) {
+            return content;
+        }
+
+        WorkedExample[] result = examples.toArray(new WorkedExample[0]);
+        int corrected = 0;
+        for (VerifiedExamples.VerifiedExample ve : verified.examples()) {
+            int idx = ve.index();
+            if (idx < 0 || idx >= result.length || ve.answer() == null || ve.answer().isBlank()) {
+                continue;
+            }
+            WorkedExample original = result[idx];
+            List<String> steps = (ve.steps() == null || ve.steps().isEmpty()) ? original.steps() : ve.steps();
+            result[idx] = new WorkedExample(original.problem(), steps, ve.answer());
+            if (!AnswerMatcher.matches(ve.answer(), original.answer())) {
+                corrected++;
+            }
+        }
+        if (corrected > 0) {
+            log.info("Worked-example verification corrected {} of {} example answer(s).", corrected, items.size());
+        }
+        return new ExamplesContent(List.of(result));
+    }
+
+    private static boolean isMultipleChoice(GeneratedQuestion q) {
+        return q != null && "MULTIPLE_CHOICE".equalsIgnoreCase(q.type());
+    }
+
+    /** Finds the choice equal to the verifier's answer, tolerating a missing/extra option label. */
+    private static String matchingChoice(List<String> choices, String verified) {
+        for (String c : choices) {
+            if (AnswerMatcher.matches(c, verified) || AnswerMatcher.matches(stripLabel(c), stripLabel(verified))) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    /** Removes a leading option label such as "A)", "B.", "(C)", "d:" so values can be compared. */
+    private static String stripLabel(String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.trim().replaceFirst("(?i)^\\(?[a-d]\\)?[).:\\-]?\\s+", "").trim();
     }
 
     /** Fast check of an open short answer: accepts any answer that satisfies the question. */

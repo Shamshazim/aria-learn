@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Dumbbell, Trophy, XCircle } from 'lucide-react
 import { api, QuizDto, QuizResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import Timer from '../components/Timer'
+import FunLoader from '../components/FunLoader'
 import { celebrateBig } from '../lib/celebrate'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
@@ -55,7 +56,7 @@ export default function Quiz() {
 
       <main className="container narrow">
         {!quiz && !error && (
-          <div className="card thinking"><div className="spinner" /><p>Aria is preparing your quiz...</p></div>
+          <FunLoader variant="quiz" />
         )}
         {error && <div className="error">{error}</div>}
 

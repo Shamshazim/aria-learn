@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Eye, Lightbulb, PartyPopper } from 'lucide-react
 import { api, GuidedFeedback, GuidedQuestion } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import NextStepButton from '../components/NextStepButton'
+import FunLoader from '../components/FunLoader'
 import { celebrateCorrect } from '../lib/celebrate'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
@@ -67,7 +68,7 @@ export default function GuidedPractice() {
 
       <main className="container narrow">
         {!question && !error && (
-          <div className="card thinking"><div className="spinner" /><p>Aria is picking a problem for you...</p></div>
+          <FunLoader variant="practice" />
         )}
         {error && <div className="error">{error}</div>}
 

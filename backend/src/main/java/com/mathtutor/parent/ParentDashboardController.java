@@ -26,9 +26,10 @@ public class ParentDashboardController {
         return service.overview(SecurityUtils.currentPrincipal());
     }
 
-    /** Chart data for one child: mastery-by-topic + 7-day activity. */
+    /** Chart data for one child: mastery-by-topic (for the given subject) + 7-day activity. */
     @GetMapping("/students/{studentId}/charts")
-    public ChartsDto charts(@PathVariable UUID studentId) {
-        return service.charts(SecurityUtils.currentPrincipal(), studentId);
+    public ChartsDto charts(@PathVariable UUID studentId,
+                            @RequestParam(required = false) UUID gradeId) {
+        return service.charts(SecurityUtils.currentPrincipal(), studentId, gradeId);
     }
 }
