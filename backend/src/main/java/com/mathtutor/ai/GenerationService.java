@@ -147,10 +147,22 @@ public class GenerationService {
             if (match == null) {
                 continue; // verifier picked something not among the options — ignore, stay safe
             }
-            if (!AnswerMatcher.matches(match, q.correctAnswer())) {
+            if (AnswerMatcher.matches(match, q.correctAnswer())) {
+                continue; // verifier agrees with the original key — nothing to do
+            }
+            // Corroborate with the question's OWN solution before overwriting. The verifier is a
+            // fallible local model and can miscalculate; only trust it when the solution supports
+            // the new answer and NOT the original. This stops it from clobbering an already-correct
+            // key (which is exactly how a right answer started being marked wrong).
+            boolean newBacked = supportedBySolution(match, q.solution());
+            boolean origBacked = supportedBySolution(q.correctAnswer(), q.solution());
+            if (newBacked && !origBacked) {
                 result[idx] = new GeneratedQuestion(q.type(), q.difficulty(), q.prompt(),
                         q.choices(), match, q.solution());
                 corrected++;
+            } else {
+                log.info("Skipped answer-key change '{}' -> '{}' (solution backs new={}, original={}).",
+                        q.correctAnswer(), match, newBacked, origBacked);
             }
         }
         if (corrected > 0) {
@@ -224,6 +236,34 @@ public class GenerationService {
 
     private static boolean isMultipleChoice(GeneratedQuestion q) {
         return q != null && "MULTIPLE_CHOICE".equalsIgnoreCase(q.type());
+    }
+
+    /**
+     * Whether an answer value is corroborated by the question's solution text. For a numeric
+     * answer we compare it against the distinct numbers mentioned in the solution (so "5,000" is
+     * NOT considered a match for a solution that says "50,000"); for a text answer we look for it
+     * as a phrase. Used to decide whether a verifier-proposed key change is trustworthy.
+     */
+    private static boolean supportedBySolution(String value, String solution) {
+        if (solution == null || solution.isBlank() || value == null) {
+            return false;
+        }
+        String v = stripLabel(value).trim();
+        if (v.isEmpty()) {
+            return false;
+        }
+        if (v.matches(".*\\d.*")) {
+            String target = v.replaceAll("[,\\s]", "");
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("\\d[\\d,]*(?:\\.\\d+)?").matcher(solution);
+            while (m.find()) {
+                if (m.group().replaceAll(",", "").equals(target)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return solution.toLowerCase().contains(v.toLowerCase());
     }
 
     /** Finds the choice equal to the verifier's answer, tolerating a missing/extra option label. */

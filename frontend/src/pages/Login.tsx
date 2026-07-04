@@ -43,7 +43,9 @@ export default function Login() {
         <button className="btn btn--primary" disabled={busy}>
           {busy ? 'Signing in...' : <><LogIn size={17} /> Sign in</>}
         </button>
-        <p className="hint">Parent demo: parent@demo.com / parent123</p>
+        {import.meta.env.VITE_SHOW_DEMO_LOGIN === 'true' && (
+          <p className="hint">Parent demo: parent@demo.com / parent123</p>
+        )}
       </form>
     </div>
   )

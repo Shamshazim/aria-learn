@@ -5,6 +5,7 @@ import { api, AnswerResult, PracticeSet } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
+import ReportQuestion from '../components/ReportQuestion'
 import { celebrateBig, celebrateCorrect } from '../lib/celebrate'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
@@ -104,6 +105,7 @@ export default function Practice() {
                 {result.feedback && <p className="feedback-text">🦉 {result.feedback}</p>}
                 {!result.correct && <div>One correct answer: <strong>{result.correctAnswer}</strong></div>}
                 {result.solution && <p className="solution">{result.solution}</p>}
+                <ReportQuestion questionId={question.questionId} />
                 {!isLast && <button className="btn btn--accent btn--block" onClick={next}>Next question <ArrowRight size={16} /></button>}
                 {isLast && (
                   <div className="done">

@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Flag } from 'lucide-react'
 import { api, ChildSummary, Grade, ParentSettings, Subject } from '../api'
 import { useAuth } from '../auth'
 import NotificationBell from '../components/NotificationBell'
@@ -11,6 +12,7 @@ export default function ParentDashboard() {
   const [children, setChildren] = useState<ChildSummary[]>([])
   const [form, setForm] = useState({ displayName: '', username: '', password: '', subjectId: '', gradeId: '' })
   const [settings, setSettings] = useState<ParentSettings | null>(null)
+  const [flagCount, setFlagCount] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -25,6 +27,7 @@ export default function ParentDashboard() {
     })
     reloadOverview()
     api.getParentSettings().then(setSettings).catch(() => {})
+    api.parentFlags().then((f) => setFlagCount(f.length)).catch(() => {})
   }, [])
 
   // Load grades whenever the chosen subject changes.
@@ -70,6 +73,9 @@ export default function ParentDashboard() {
           <NotificationBell />
           <Link className="btn btn--ghost" to="/parent/curriculum">📚 Curriculum</Link>
           <Link className="btn btn--ghost" to="/parent/prompts">🤖 Prompts</Link>
+          <Link className="btn btn--ghost" to="/parent/flags">
+            <Flag size={15} /> Reported{flagCount > 0 && <span className="flag-badge">{flagCount}</span>}
+          </Link>
           <Link className="btn btn--ghost" to="/parent/mastery-config">⚙️ Mastery settings</Link>
           <span className="muted">{user?.displayName}</span>
           <button className="btn btn--ghost" onClick={logout}>Sign out</button>

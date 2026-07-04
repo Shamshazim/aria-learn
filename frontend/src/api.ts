@@ -240,6 +240,19 @@ async function tryRefresh(): Promise<boolean> {
   }
 }
 
+export interface FlagItem {
+  flagId: string
+  questionId: string
+  childName: string
+  questionType: string | null
+  prompt: string
+  choices: string[]
+  correctAnswer: string | null
+  solution: string | null
+  reason: string | null
+  createdAt: string
+}
+
 export const api = {
   login: (usernameOrEmail: string, password: string) =>
     request<TokenResponse>('POST', '/auth/login', { usernameOrEmail, password }),
@@ -312,6 +325,11 @@ export const api = {
   parentOverview: () => request<ChildSummary[]>('GET', '/parent/overview'),
   childCharts: (studentId: string, gradeId?: string) =>
     request<ParentCharts>('GET', `/parent/students/${studentId}/charts${gradeId ? `?gradeId=${gradeId}` : ''}`),
+
+  flagQuestion: (questionId: string, reason?: string) =>
+    request<void>('POST', `/questions/${questionId}/flag`, { reason: reason ?? null }),
+  parentFlags: () => request<FlagItem[]>('GET', '/parent/flags'),
+  resolveFlag: (flagId: string) => request<void>('POST', `/parent/flags/${flagId}/resolve`),
 
   adminPrompts: () => request<PromptSummary[]>('GET', '/admin/prompts'),
   promptHistory: (name: string) => request<PromptVersion[]>('GET', `/admin/prompts/${name}/history`),

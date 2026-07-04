@@ -179,6 +179,10 @@ Open **http://localhost:5173** 🎉
 1. Sign in as the auto-created demo parent:
    - **Email:** `parent@demo.com`
    - **Password:** `parent123`
+   - ⚠️ **Change this password right after your first login** (Mastery settings → Change my
+     password). For real family use, the well-known demo password should not stay valid.
+   - The login page does **not** display these credentials by default. To show a demo hint
+     (e.g. for a public demo), set `VITE_SHOW_DEMO_LOGIN=true` in `frontend/.env`.
 2. **Add a child** (choose **Mathematics** or **English Writing** and a grade).
 3. Sign out, then sign in as your child (the username/password you just created).
 4. The child sees their curriculum — start at the first topic and **Learn → Practice → Quiz**.

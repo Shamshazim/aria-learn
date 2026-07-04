@@ -6,6 +6,7 @@ import MasteryConfigPage from './pages/MasteryConfigPage'
 import ChildInsights from './pages/ChildInsights'
 import CurriculumAdminPage from './pages/CurriculumAdminPage'
 import PromptAdminPage from './pages/PromptAdminPage'
+import FlaggedQuestions from './pages/FlaggedQuestions'
 import StudentDashboard from './pages/StudentDashboard'
 import Knowledge from './pages/Knowledge'
 import Practice from './pages/Practice'
@@ -38,6 +39,7 @@ export default function App() {
       <Route path="/parent/students/:studentId/insights" element={<Protected role="PARENT"><ChildInsights /></Protected>} />
       <Route path="/parent/curriculum" element={<Protected role="PARENT"><CurriculumAdminPage /></Protected>} />
       <Route path="/parent/prompts" element={<Protected role="PARENT"><PromptAdminPage /></Protected>} />
+      <Route path="/parent/flags" element={<Protected role="PARENT"><FlaggedQuestions /></Protected>} />
       <Route path="/student" element={<Protected role="STUDENT"><StudentDashboard /></Protected>} />
       <Route path="/student/topic/:topicId/knowledge" element={<Protected role="STUDENT"><Knowledge /></Protected>} />
       <Route path="/student/topic/:topicId/examples" element={<Protected role="STUDENT"><Examples /></Protected>} />

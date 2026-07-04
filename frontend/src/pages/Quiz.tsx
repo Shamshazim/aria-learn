@@ -5,6 +5,7 @@ import { api, QuizDto, QuizResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import Timer from '../components/Timer'
 import FunLoader from '../components/FunLoader'
+import ReportQuestion from '../components/ReportQuestion'
 import { celebrateBig } from '../lib/celebrate'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
@@ -104,6 +105,7 @@ export default function Quiz() {
                 {r.feedback && <p className="feedback-text">🦉 {r.feedback}</p>}
                 {!r.correct && <div>One correct answer: <strong>{r.correctAnswer}</strong></div>}
                 {r.solution && <p className="solution">{r.solution}</p>}
+                <ReportQuestion questionId={r.questionId} />
               </div>
             ))}
             <div className="done">

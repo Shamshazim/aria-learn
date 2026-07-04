@@ -5,6 +5,7 @@ import { api, GuidedFeedback, GuidedQuestion } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
+import ReportQuestion from '../components/ReportQuestion'
 import { celebrateCorrect } from '../lib/celebrate'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
@@ -113,6 +114,7 @@ export default function GuidedPractice() {
                   <div>The answer is <strong>{feedback.correctAnswer}</strong>.</div>
                 )}
                 {feedback.solution && <p className="solution">{feedback.solution}</p>}
+                <ReportQuestion questionId={question.questionId} />
                 <button className="btn btn--accent btn--block" onClick={newQuestion}>Another problem <ArrowRight size={16} /></button>
                 <NextStepButton topicId={topicId!} current="guided" />
               </div>

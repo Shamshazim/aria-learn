@@ -5,6 +5,7 @@ import { api, HomeworkDetail, HomeworkResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
+import ReportQuestion from '../components/ReportQuestion'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
 
@@ -125,6 +126,7 @@ export default function Homework() {
                 {!r.correct && <div>Correct answer: <strong>{r.correctAnswer}</strong></div>}
                 {r.feedback && <p className="feedback-text">🦉 {r.feedback}</p>}
                 {r.misconception && <div className="misconception">To review: {r.misconception}</div>}
+                <ReportQuestion questionId={r.questionId} />
               </div>
             ))}
             <div className="done">
