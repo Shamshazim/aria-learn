@@ -62,4 +62,52 @@ class GenerationServiceVerifyTest {
 
         assertThat(out.questions().get(0).correctAnswer()).isEqualTo("B) 2.444");
     }
+
+    /** A service whose model verifier returns nothing — isolates the deterministic pass. */
+    private GenerationService deterministicOnly() {
+        AiClient ai = mock(AiClient.class); // generateStructured returns null for any args
+        return new GenerationService(ai, mapper);
+    }
+
+    @Test
+    void deterministicallyFixesWrongPlaceValueKey_withoutTheModel() {
+        // DB had this mislabelled as "B) 0.5"; 5 is in the hundredths place of 34.256 → 0.05.
+        GeneratedQuestion q = new GeneratedQuestion("MULTIPLE_CHOICE", "MEDIUM",
+                "What is the value of the digit 5 in the number 34.256?",
+                List.of("A) 5", "B) 0.5", "C) 50", "D) 0.05"),
+                "B) 0.5", "The digit 5 is in the hundredths place.");
+
+        PracticeBatch out = deterministicOnly().verifyAnswerKeys(new PracticeBatch(List.of(q)), "Mathematics", null);
+
+        assertThat(out.questions().get(0).correctAnswer()).isEqualTo("D) 0.05");
+    }
+
+    @Test
+    void deterministicallyDropsBrokenQuestionWithNoCorrectOption() {
+        GeneratedQuestion broken = new GeneratedQuestion("MULTIPLE_CHOICE", "MEDIUM",
+                "What is the value of the digit 8 in the number 123.45678?",
+                List.of("A) 8", "B) 0.0008", "C) 0.008", "D) 0.08"),
+                "C) 0.008", "The digit 8 ...");
+        GeneratedQuestion fine = new GeneratedQuestion("SHORT_ANSWER", "EASY",
+                "Write the number 564.9 in words.", List.of(),
+                "five hundred sixty-four and nine tenths", "");
+
+        PracticeBatch out = deterministicOnly()
+                .verifyAnswerKeys(new PracticeBatch(List.of(broken, fine)), "Mathematics", null);
+
+        assertThat(out.questions()).hasSize(1);
+        assertThat(out.questions().get(0).prompt()).contains("564.9");
+    }
+
+    @Test
+    void deterministicallyFixesWrongShortAnswerKey() {
+        // DB had "300"; 3 is in the ones place of 123.456 → 3.
+        GeneratedQuestion q = new GeneratedQuestion("SHORT_ANSWER", "MEDIUM",
+                "What is the value of the digit 3 in the number 123.456?",
+                List.of(), "300", "The digit 3 is in the ones place.");
+
+        PracticeBatch out = deterministicOnly().verifyAnswerKeys(new PracticeBatch(List.of(q)), "Mathematics", null);
+
+        assertThat(out.questions().get(0).correctAnswer()).isEqualTo("3");
+    }
 }

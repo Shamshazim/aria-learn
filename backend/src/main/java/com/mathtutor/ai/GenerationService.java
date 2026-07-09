@@ -100,13 +100,52 @@ public class GenerationService {
         if (batch == null || batch.questions() == null || batch.questions().isEmpty()) {
             return batch;
         }
-        List<GeneratedQuestion> questions = batch.questions();
+        GeneratedQuestion[] result = batch.questions().toArray(new GeneratedQuestion[0]);
+        boolean[] drop = new boolean[result.length];      // question is broken — remove it
+        boolean[] resolved = new boolean[result.length];   // deterministically settled — skip the model pass
 
-        // Build the verifier input from MC questions only, keyed by their position in the batch.
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (int i = 0; i < questions.size(); i++) {
-            GeneratedQuestion q = questions.get(i);
+        // ── Pass 1: deterministic math check (authoritative; the model is not trusted for these) ──
+        int detFixed = 0, detDropped = 0, detShort = 0;
+        for (int i = 0; i < result.length; i++) {
+            GeneratedQuestion q = result[i];
+            if (q == null) {
+                continue;
+            }
             if (isMultipleChoice(q) && q.choices() != null && !q.choices().isEmpty()) {
+                MathAnswerChecker.Verdict v = MathAnswerChecker.checkMultipleChoice(q.prompt(), q.choices());
+                switch (v.outcome()) {
+                    case CORRECT -> {
+                        resolved[i] = true;
+                        if (!AnswerMatcher.matches(v.correctChoice(), q.correctAnswer())) {
+                            result[i] = withAnswer(q, v.correctChoice());
+                            detFixed++;
+                        }
+                    }
+                    case NO_CORRECT_OPTION -> {
+                        drop[i] = true;
+                        resolved[i] = true;
+                        detDropped++;
+                        log.info("Dropping broken MC question (no correct option): {}", q.prompt());
+                    }
+                    case UNKNOWN -> { /* fall through to the model-based pass */ }
+                }
+            } else if (isShortAnswer(q)) {
+                var computed = MathAnswerChecker.solveNumeric(q.prompt());
+                if (computed.isPresent()) {
+                    String canonical = computed.get().stripTrailingZeros().toPlainString();
+                    if (!numericMatchesKey(canonical, q.correctAnswer())) {
+                        result[i] = withAnswer(q, canonical);
+                        detShort++;
+                    }
+                }
+            }
+        }
+
+        // ── Pass 2: model-based verification for the MC questions Pass 1 could not settle ──
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (int i = 0; i < result.length; i++) {
+            GeneratedQuestion q = result[i];
+            if (!drop[i] && !resolved[i] && isMultipleChoice(q) && q.choices() != null && !q.choices().isEmpty()) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("index", i);
                 item.put("question", q.prompt());
@@ -114,62 +153,75 @@ public class GenerationService {
                 items.add(item);
             }
         }
-        if (items.isEmpty()) {
-            return batch;
+        int modelCorrected = 0;
+        if (!items.isEmpty()) {
+            try {
+                Map<String, String> vars = new HashMap<>();
+                vars.put("subject_name", subjectName == null ? "this subject" : subjectName);
+                vars.put("questions_json", objectMapper.writeValueAsString(items));
+                VerifiedAnswerKeys verified =
+                        aiClient.generateStructured(PROMPT_ANSWER_VERIFY, vars, VerifiedAnswerKeys.class, studentId);
+                if (verified != null && verified.answers() != null) {
+                    for (VerifiedAnswerKeys.VerifiedKey vk : verified.answers()) {
+                        int idx = vk.index();
+                        if (idx < 0 || idx >= result.length || resolved[idx] || drop[idx]
+                                || vk.correctAnswer() == null || vk.correctAnswer().isBlank()) {
+                            continue;
+                        }
+                        GeneratedQuestion q = result[idx];
+                        if (!isMultipleChoice(q) || q.choices() == null) {
+                            continue;
+                        }
+                        String match = matchingChoice(q.choices(), vk.correctAnswer());
+                        if (match == null || AnswerMatcher.matches(match, q.correctAnswer())) {
+                            continue; // not an option, or already agrees — nothing to do
+                        }
+                        // Corroborate with the question's OWN solution before overwriting. The model is
+                        // fallible; only trust it when the solution supports the new answer and NOT the
+                        // original — this stops it from clobbering an already-correct key.
+                        boolean newBacked = supportedBySolution(match, q.solution());
+                        boolean origBacked = supportedBySolution(q.correctAnswer(), q.solution());
+                        if (newBacked && !origBacked) {
+                            result[idx] = withAnswer(q, match);
+                            modelCorrected++;
+                        } else {
+                            log.info("Skipped answer-key change '{}' -> '{}' (solution backs new={}, original={}).",
+                                    q.correctAnswer(), match, newBacked, origBacked);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Model answer-key verification failed; keeping keys from the deterministic pass: {}",
+                        e.getMessage());
+            }
         }
 
-        VerifiedAnswerKeys verified;
-        try {
-            Map<String, String> vars = new HashMap<>();
-            vars.put("subject_name", subjectName == null ? "this subject" : subjectName);
-            vars.put("questions_json", objectMapper.writeValueAsString(items));
-            verified = aiClient.generateStructured(PROMPT_ANSWER_VERIFY, vars, VerifiedAnswerKeys.class, studentId);
-        } catch (Exception e) {
-            log.warn("Answer-key verification failed; keeping original keys: {}", e.getMessage());
-            return batch;
-        }
-        if (verified == null || verified.answers() == null) {
-            return batch;
+        if (detFixed + detDropped + detShort + modelCorrected > 0) {
+            log.info("Answer-key verification: deterministic fixed {}, dropped {}, short-answer fixed {}; model fixed {}.",
+                    detFixed, detDropped, detShort, modelCorrected);
         }
 
-        GeneratedQuestion[] result = questions.toArray(new GeneratedQuestion[0]);
-        int corrected = 0;
-        for (VerifiedAnswerKeys.VerifiedKey vk : verified.answers()) {
-            int idx = vk.index();
-            if (idx < 0 || idx >= result.length || vk.correctAnswer() == null || vk.correctAnswer().isBlank()) {
-                continue;
-            }
-            GeneratedQuestion q = result[idx];
-            if (!isMultipleChoice(q) || q.choices() == null) {
-                continue;
-            }
-            String match = matchingChoice(q.choices(), vk.correctAnswer());
-            if (match == null) {
-                continue; // verifier picked something not among the options — ignore, stay safe
-            }
-            if (AnswerMatcher.matches(match, q.correctAnswer())) {
-                continue; // verifier agrees with the original key — nothing to do
-            }
-            // Corroborate with the question's OWN solution before overwriting. The verifier is a
-            // fallible local model and can miscalculate; only trust it when the solution supports
-            // the new answer and NOT the original. This stops it from clobbering an already-correct
-            // key (which is exactly how a right answer started being marked wrong).
-            boolean newBacked = supportedBySolution(match, q.solution());
-            boolean origBacked = supportedBySolution(q.correctAnswer(), q.solution());
-            if (newBacked && !origBacked) {
-                result[idx] = new GeneratedQuestion(q.type(), q.difficulty(), q.prompt(),
-                        q.choices(), match, q.solution());
-                corrected++;
-            } else {
-                log.info("Skipped answer-key change '{}' -> '{}' (solution backs new={}, original={}).",
-                        q.correctAnswer(), match, newBacked, origBacked);
+        // ── Remove dropped questions and return ──
+        List<GeneratedQuestion> kept = new ArrayList<>();
+        for (int i = 0; i < result.length; i++) {
+            if (!drop[i] && result[i] != null) {
+                kept.add(result[i]);
             }
         }
-        if (corrected > 0) {
-            log.info("Answer-key verification corrected {} of {} multiple-choice question(s).",
-                    corrected, items.size());
-        }
-        return new PracticeBatch(List.of(result));
+        return new PracticeBatch(kept);
+    }
+
+    private static GeneratedQuestion withAnswer(GeneratedQuestion q, String answer) {
+        return new GeneratedQuestion(q.type(), q.difficulty(), q.prompt(), q.choices(), answer, q.solution());
+    }
+
+    private static boolean isShortAnswer(GeneratedQuestion q) {
+        return q != null && "SHORT_ANSWER".equalsIgnoreCase(q.type());
+    }
+
+    /** True when the stored key parses to the same number as the deterministically-computed answer. */
+    private static boolean numericMatchesKey(String canonical, String storedKey) {
+        return MathAnswerChecker.numericEquals(canonical, storedKey);
     }
 
     /**
