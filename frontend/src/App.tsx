@@ -8,6 +8,11 @@ import CurriculumAdminPage from './pages/CurriculumAdminPage'
 import PromptAdminPage from './pages/PromptAdminPage'
 import FlaggedQuestions from './pages/FlaggedQuestions'
 import StudentDashboard from './pages/StudentDashboard'
+import Resources from './pages/Resources'
+import MultiplicationChart from './pages/MultiplicationChart'
+import AdditionChart from './pages/AdditionChart'
+import HundredsChart from './pages/HundredsChart'
+import SightWords from './pages/SightWords'
 import Knowledge from './pages/Knowledge'
 import Practice from './pages/Practice'
 import Examples from './pages/Examples'
@@ -41,6 +46,11 @@ export default function App() {
       <Route path="/parent/prompts" element={<Protected role="PARENT"><PromptAdminPage /></Protected>} />
       <Route path="/parent/flags" element={<Protected role="PARENT"><FlaggedQuestions /></Protected>} />
       <Route path="/student" element={<Protected role="STUDENT"><StudentDashboard /></Protected>} />
+      <Route path="/student/resources" element={<Protected role="STUDENT"><Resources /></Protected>} />
+      <Route path="/student/resources/multiplication" element={<Protected role="STUDENT"><MultiplicationChart /></Protected>} />
+      <Route path="/student/resources/addition" element={<Protected role="STUDENT"><AdditionChart /></Protected>} />
+      <Route path="/student/resources/hundreds-chart" element={<Protected role="STUDENT"><HundredsChart /></Protected>} />
+      <Route path="/student/resources/sight-words" element={<Protected role="STUDENT"><SightWords /></Protected>} />
       <Route path="/student/topic/:topicId/knowledge" element={<Protected role="STUDENT"><Knowledge /></Protected>} />
       <Route path="/student/topic/:topicId/examples" element={<Protected role="STUDENT"><Examples /></Protected>} />
       <Route path="/student/topic/:topicId/guided" element={<Protected role="STUDENT"><GuidedPractice /></Protected>} />
