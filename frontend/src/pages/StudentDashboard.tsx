@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Check, Lock, LogOut, Sparkles, TrendingUp, Trophy,
+  Check, Library, Lock, LogOut, Sparkles, TrendingUp, Trophy,
 } from 'lucide-react'
 import {
   AdaptiveProfile, api, EnrolledSubject, GamificationSummary, HomeworkSummary, StudentProfile, TopicProgress,
@@ -103,6 +103,7 @@ export default function StudentDashboard() {
       <header className="topbar">
         <div className="brand">🦉 Aria</div>
         <div className="topbar-right">
+          <Link className="btn btn--ghost" to="/student/resources"><Library size={16} /> Resources</Link>
           <NotificationBell />
           <span className="muted">Hi, {user?.displayName}!</span>
           <button className="btn btn--ghost" onClick={() => { localStorage.removeItem(subjectKey); logout() }}><LogOut size={16} /> Sign out</button>
