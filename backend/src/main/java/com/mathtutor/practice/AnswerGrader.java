@@ -43,6 +43,10 @@ public class AnswerGrader {
         if (exact) {
             return new GradeResult(true, q.getSolution());
         }
+        // Numerically-equivalent answers are correct without asking the AI (0.5 == 0.50, 1,000 == 1000).
+        if (com.mathtutor.ai.MathAnswerChecker.numericEquals(response, q.getCorrectAnswer())) {
+            return new GradeResult(true, q.getSolution());
+        }
         // Otherwise let the AI decide whether the answer satisfies the question.
         try {
             String subject = curriculumService.resolveTopicContext(q.getTopicId()).subjectName();
