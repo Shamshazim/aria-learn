@@ -797,3 +797,112 @@ input:focus, select:focus, textarea:focus {
   font-family: var(--font-head); font-weight: 600; color: var(--ink);
 }
 .sw-chip--known { background: #ecfdf5; border-color: var(--green); color: var(--green); }
+
+/* ── Fun student hero ──────────────────────────────────────────── */
+.hero-fun {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  background: linear-gradient(120deg, #6366f1 0%, #8b5cf6 38%, #ec4899 72%, #fb7185 100%);
+  background-size: 220% 220%;
+  animation: hero-shift 14s ease infinite;
+}
+@keyframes hero-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+.hero-mascot {
+  flex: 0 0 auto;
+  font-size: 4rem;
+  line-height: 1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.22));
+  transform-origin: 50% 85%;
+  animation: hero-bob 2.4s ease-in-out infinite;
+}
+@keyframes hero-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-9px) rotate(4deg); }
+}
+
+.hero-main { position: relative; z-index: 1; flex: 1; min-width: 0; }
+.hero-title { font-size: 2rem; margin: 0 0 0.15rem; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
+.hero-cheer { font-family: var(--font-head); font-weight: 600; font-size: 1.05rem; margin: 0 0 0.8rem; opacity: 0.97; }
+
+.hero-stats { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; }
+.hero-chip {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
+  border-radius: 99px;
+  padding: 0.35rem 0.8rem;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  animation: hero-pop 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.5) both;
+}
+.hero-chip:nth-child(2) { animation-delay: 0.09s; }
+.hero-chip:nth-child(3) { animation-delay: 0.18s; }
+@keyframes hero-pop { from { transform: scale(0.55); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.hero-subject { font-size: 0.9rem; opacity: 0.92; margin: 0 0 0.95rem; }
+.hero-cta { display: inline-flex; font-size: 1.05rem; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22); }
+.hero-cta:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+
+.hero-blobs { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hero-blob { position: absolute; font-size: 1.4rem; opacity: 0.85; animation: hero-float 6s ease-in-out infinite; }
+.hero-blob--1 { top: 14%; right: 8%; }
+.hero-blob--2 { top: 58%; right: 15%; font-size: 1.1rem; animation-delay: 1.3s; }
+.hero-blob--3 { top: 22%; right: 25%; font-size: 1rem; animation-delay: 2.2s; }
+.hero-blob--4 { top: 70%; right: 5%; animation-delay: 0.6s; }
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(14deg); }
+}
+
+@media (max-width: 540px) {
+  .hero-fun { gap: 0.8rem; }
+  .hero-mascot { font-size: 3rem; }
+  .hero-title { font-size: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-fun, .hero-mascot, .hero-chip, .hero-blob { animation: none !important; }
+}
+
+/* ── Kid header: brand left · greeting centered · actions right ─── */
+.topbar--kid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.8rem; }
+.topbar--kid .brand { justify-self: start; }
+.topbar--kid .topbar-right { justify-self: end; }
+.topbar-greeting {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--indigo-dark);
+  background: linear-gradient(120deg, #eef1ff, #fce7f3);
+  border: 2px solid #fff;
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.18);
+  padding: 0.35rem 1rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.topbar-wave {
+  display: inline-block;
+  font-size: 1.15rem;
+  transform-origin: 70% 75%;
+  animation: topbar-wave 2.4s ease-in-out infinite;
+}
+@keyframes topbar-wave {
+  0%, 65%, 100% { transform: rotate(0deg); }
+  70% { transform: rotate(14deg); }
+  78% { transform: rotate(-8deg); }
+  86% { transform: rotate(14deg); }
+  94% { transform: rotate(-4deg); }
+}
+@media (max-width: 640px) {
+  .topbar--kid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+  .topbar-greeting { order: 3; width: 100%; justify-content: center; margin-top: 0.4rem; }
+}
+@media (prefers-reduced-motion: reduce) { .topbar-wave { animation: none; } }

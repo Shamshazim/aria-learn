@@ -20,6 +20,25 @@ const STATUS_LABEL: Record<string, ReactNode> = {
   LOCKED: <><Lock size={14} /> Locked</>,
 }
 
+// Fun, high-energy encouragements — one is picked at random each visit.
+const CHEERS = [
+  'Ready to be awesome today? 🚀',
+  "Let's learn something cool! 🌈",
+  "You've got this! 💪",
+  'Time for a brain adventure! 🧠✨',
+  "Let's make today amazing! 🌟",
+  'Your next win is waiting! 🏆',
+  'Superstar mode: ON! ⚡',
+]
+
+/** A warm, time-of-day greeting so it feels personal every time they log in. */
+function timeGreeting(): { text: string; emoji: string } {
+  const h = new Date().getHours()
+  if (h < 12) return { text: 'Good morning', emoji: '☀️' }
+  if (h < 17) return { text: 'Good afternoon', emoji: '🌤️' }
+  return { text: 'Good evening', emoji: '🌙' }
+}
+
 // Where a recommendation should take the student.
 function recLink(type: string, topicId: string | null): string | null {
   if (!topicId) return null
@@ -46,6 +65,9 @@ export default function StudentDashboard() {
   const [subjects, setSubjects] = useState<EnrolledSubject[]>([])
   const [gradeId, setGradeId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Pick one cheer per visit (stable across re-renders) and a time-of-day greeting.
+  const [cheer] = useState(() => CHEERS[Math.floor(Math.random() * CHEERS.length)])
+  const greeting = timeGreeting()
 
   // Remember the last subject this student was working on, so navigating back to the
   // dashboard (or returning after a lesson) keeps them on it instead of resetting.
@@ -100,12 +122,15 @@ export default function StudentDashboard() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
+      <header className="topbar topbar--kid">
         <div className="brand">🦉 Aria</div>
+        <div className="topbar-greeting">
+          <span className="topbar-wave" aria-hidden="true">👋</span>
+          Hi, {(me?.displayName ?? user?.displayName ?? '').split(' ')[0]}!
+        </div>
         <div className="topbar-right">
           <Link className="btn btn--ghost" to="/student/resources"><Library size={16} /> Resources</Link>
           <NotificationBell />
-          <span className="muted">Hi, {user?.displayName}!</span>
           <button className="btn btn--ghost" onClick={() => { localStorage.removeItem(subjectKey); logout() }}><LogOut size={16} /> Sign out</button>
         </div>
       </header>
@@ -123,14 +148,35 @@ export default function StudentDashboard() {
           </div>
         )}
 
-        <div className="greeting card card--hero">
-          <h1>Welcome back, {me?.displayName ?? user?.displayName} 🌟</h1>
-          <p>{currentSubject ? `${currentSubject.gradeName} · ${currentSubject.subjectName}` : 'Loading your lessons...'}</p>
-          {continueTopic && (
-            <Link className="btn btn--accent btn--continue" to={`/student/topic/${continueTopic.topicId}/knowledge`}>
-              {continueTopic.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}: {continueTopic.topicName} →
-            </Link>
-          )}
+        <div className="hero-fun card card--hero">
+          <div className="hero-blobs" aria-hidden="true">
+            <span className="hero-blob hero-blob--1">⭐</span>
+            <span className="hero-blob hero-blob--2">🌈</span>
+            <span className="hero-blob hero-blob--3">🚀</span>
+            <span className="hero-blob hero-blob--4">✨</span>
+          </div>
+          <div className="hero-mascot" aria-hidden="true">🦉</div>
+          <div className="hero-main">
+            <h1 className="hero-title">
+              {greeting.text}, {(me?.displayName ?? user?.displayName ?? '').split(' ')[0]}! {greeting.emoji}
+            </h1>
+            <p className="hero-cheer">{cheer}</p>
+            {game && (
+              <div className="hero-stats">
+                <span className="hero-chip">🔥 {game.streak.current}-day streak</span>
+                <span className="hero-chip">⭐ Level {game.level}</span>
+                <span className="hero-chip">🏆 {game.xpTotal} XP</span>
+              </div>
+            )}
+            <p className="hero-subject">
+              {currentSubject ? `${currentSubject.gradeName} · ${currentSubject.subjectName}` : 'Loading your lessons…'}
+            </p>
+            {continueTopic && (
+              <Link className="btn btn--accent hero-cta" to={`/student/topic/${continueTopic.topicId}/knowledge`}>
+                {continueTopic.status === 'IN_PROGRESS' ? '▶ Keep going' : '🚀 Start'}: {continueTopic.topicName}
+              </Link>
+            )}
+          </div>
         </div>
 
         {error && <div className="error">{error}</div>}
