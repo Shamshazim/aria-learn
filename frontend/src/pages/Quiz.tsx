@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import KidHeader from '../components/KidHeader'
 import { ArrowLeft, CheckCircle2, Dumbbell, Trophy, XCircle } from 'lucide-react'
 import { api, QuizDto, QuizResult } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
@@ -47,13 +48,10 @@ export default function Quiz() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
-        <div className="brand">🦉 Aria · Quiz</div>
-        <div className="topbar-right">
-          {quiz && !result && <Timer seconds={quiz.timeLimitSec} onExpire={submit} />}
-          <Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>
-        </div>
-      </header>
+      <KidHeader subtitle="Quiz" right={<>
+        {quiz && !result && <Timer seconds={quiz.timeLimitSec} onExpire={submit} />}
+        <Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>
+      </>} />
 
       <main className="container narrow">
         {!quiz && !error && (

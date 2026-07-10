@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import KidHeader from '../components/KidHeader'
 import { ArrowLeft, Eye, EyeOff, Printer, RotateCcw, Sparkles } from 'lucide-react'
 import { celebrateCorrect, celebrateBig } from '../lib/celebrate'
 
@@ -62,10 +63,7 @@ export default function MultiplicationChart() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
-        <div className="brand">🦉 Aria</div>
-        <Link className="btn btn--ghost" to="/student/resources"><ArrowLeft size={16} /> Resources</Link>
-      </header>
+      <KidHeader right={<Link className="btn btn--ghost" to="/student/resources"><ArrowLeft size={16} /> Resources</Link>} />
 
       <main className="container">
         <div className="greeting card card--hero">

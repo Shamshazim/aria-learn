@@ -11,6 +11,7 @@ import AdvicePanel from '../components/AdvicePanel'
 import GamePanel from '../components/GamePanel'
 import NotificationBell from '../components/NotificationBell'
 import ChangePassword from '../components/ChangePassword'
+import KidHeader from '../components/KidHeader'
 import { TOPIC_STEPS, getDoneSteps, stepPath } from '../lib/steps'
 
 const STATUS_LABEL: Record<string, ReactNode> = {
@@ -122,18 +123,11 @@ export default function StudentDashboard() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar topbar--kid">
-        <div className="brand">🦉 Aria</div>
-        <div className="topbar-greeting">
-          <span className="topbar-wave" aria-hidden="true">👋</span>
-          Hi, {(me?.displayName ?? user?.displayName ?? '').split(' ')[0]}!
-        </div>
-        <div className="topbar-right">
-          <Link className="btn btn--ghost" to="/student/resources"><Library size={16} /> Resources</Link>
-          <NotificationBell />
-          <button className="btn btn--ghost" onClick={() => { localStorage.removeItem(subjectKey); logout() }}><LogOut size={16} /> Sign out</button>
-        </div>
-      </header>
+      <KidHeader right={<>
+        <Link className="btn btn--ghost" to="/student/resources"><Library size={16} /> Resources</Link>
+        <NotificationBell />
+        <button className="btn btn--ghost" onClick={() => { localStorage.removeItem(subjectKey); logout() }}><LogOut size={16} /> Sign out</button>
+      </>} />
 
       <main className="container">
         {subjects.length > 1 && (

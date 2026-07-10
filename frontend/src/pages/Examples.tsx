@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import KidHeader from '../components/KidHeader'
 import { ArrowLeft } from 'lucide-react'
 import { api, ExamplesView } from '../api'
 import NextStepButton from '../components/NextStepButton'
@@ -24,10 +25,7 @@ export default function Examples() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
-        <div className="brand">🦉 Aria</div>
-        <Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>
-      </header>
+      <KidHeader right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container narrow">
         {!data && !error && (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import KidHeader from '../components/KidHeader'
 import { ArrowLeft, ArrowRight, Eye, Lightbulb, PartyPopper } from 'lucide-react'
 import { api, GuidedFeedback, GuidedQuestion } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
@@ -62,10 +63,7 @@ export default function GuidedPractice() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
-        <div className="brand">🦉 Aria · Guided</div>
-        <Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>
-      </header>
+      <KidHeader subtitle="Guided" right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container narrow">
         {!question && !error && (

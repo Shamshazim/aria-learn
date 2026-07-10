@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import KidHeader from '../components/KidHeader'
 import { ArrowLeft, Check, LayoutGrid, RotateCcw, Shuffle, SquareStack } from 'lucide-react'
 import ReadAloud from '../components/ReadAloud'
 import { FRY_FIRST_100 } from '../lib/sightWords'
@@ -48,10 +49,7 @@ export default function SightWords() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
-        <div className="brand">🦉 Aria</div>
-        <Link className="btn btn--ghost" to="/student/resources"><ArrowLeft size={16} /> Resources</Link>
-      </header>
+      <KidHeader right={<Link className="btn btn--ghost" to="/student/resources"><ArrowLeft size={16} /> Resources</Link>} />
 
       <main className="container">
         <div className="greeting card card--hero">

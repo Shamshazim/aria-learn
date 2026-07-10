@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import KidHeader from '../components/KidHeader'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import { RESOURCES, ResourceSubject } from '../lib/resources'
 
@@ -12,10 +13,7 @@ export default function Resources() {
 
   return (
     <div className="app-shell student-theme">
-      <header className="topbar">
-        <div className="brand">🦉 Aria</div>
-        <Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>
-      </header>
+      <KidHeader right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container">
         <div className="greeting card card--hero">
