@@ -4,6 +4,8 @@ import KidHeader from '../components/KidHeader'
 import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle, RotateCcw, Star } from 'lucide-react'
 import { api, AnswerResult, PracticeSet } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
+import MathManipulative from '../components/MathManipulative'
+import { parseMathProblem } from '../lib/mathProblem'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
 import ReportQuestion from '../components/ReportQuestion'
@@ -78,6 +80,16 @@ export default function Practice() {
             </div>
             <div className="muted">Question {index + 1} of {set.questions.length} · {question.difficulty}</div>
             <h2 className="q-prompt">{question.prompt}</h2>
+
+            {(() => {
+              const mp = parseMathProblem(question.prompt)
+              return mp ? (
+                <details className="manip-toggle">
+                  <summary>🧩 Play with shapes to solve it</summary>
+                  <MathManipulative {...mp} />
+                </details>
+              ) : null
+            })()}
 
             <QuestionRenderer
               question={question}

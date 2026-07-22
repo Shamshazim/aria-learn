@@ -960,3 +960,82 @@ input:focus, select:focus, textarea:focus {
 @media (prefers-reduced-motion: reduce) {
   .kh-shape, .kh-blob, .kid-greet__wave, .kid-greet__star { animation: none !important; }
 }
+
+/* ── Interactive math manipulative (drag shapes to × and ÷) ─────── */
+.manip {
+  background: linear-gradient(180deg, #f7f8ff, #fdf2ff);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 0.8rem 0;
+  touch-action: none; /* let pointer-drag work on touch without scrolling */
+}
+.manip--solved { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+
+.manip-editor { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; }
+.manip-op { display: flex; gap: 0.4rem; }
+.manip-nums { display: flex; align-items: center; gap: 0.5rem; }
+.manip-op-sign { font-family: var(--font-head); font-weight: 800; font-size: 1.3rem; color: var(--indigo-dark); }
+.manip-stepper { text-align: center; }
+.manip-stepper-label { font-size: 0.72rem; color: var(--muted); font-weight: 700; display: block; }
+.manip-stepper-row { display: inline-flex; align-items: center; gap: 0.4rem; }
+.manip-stepper-value { font-family: var(--font-head); font-weight: 800; font-size: 1.2rem; min-width: 1.4rem; color: var(--ink); }
+.manip-step-btn {
+  width: 1.8rem; height: 1.8rem; border-radius: 50%; border: 2px solid var(--border); background: #fff;
+  display: grid; place-items: center; cursor: pointer; color: var(--indigo-dark); transition: all 0.12s ease;
+}
+.manip-step-btn:hover { border-color: var(--indigo); background: #eef1ff; }
+
+.manip-goal { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; color: var(--indigo-dark); margin-bottom: 0.7rem; }
+
+.manip-pool {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+  min-height: 3.4rem; padding: 0.6rem; border-radius: 14px;
+  background: rgba(99,102,241,0.06); border: 2px dashed var(--border); margin-bottom: 0.8rem;
+}
+.manip-hint { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+
+.manip-groups { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.manip-group {
+  flex: 1 1 90px; min-width: 84px; min-height: 5.5rem;
+  border: 2px dashed #c7cbe8; border-radius: 14px; background: #fff;
+  padding: 0.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.manip-group--full { border-style: solid; border-color: var(--green); background: #f0fdf4; }
+.manip-group-shapes { display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center; flex: 1; align-content: flex-start; }
+.manip-group-count {
+  font-family: var(--font-head); font-weight: 800; font-size: 1rem; color: var(--indigo-dark);
+  background: #eef1ff; border-radius: 99px; min-width: 1.6rem; text-align: center; padding: 0.05rem 0.4rem;
+}
+.manip-group--full .manip-group-count { background: var(--green); color: #fff; }
+
+.manip-shape {
+  width: 30px; height: 30px; border-radius: 50%; cursor: grab; touch-action: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.18); transition: transform 0.1s ease;
+  border: 2px solid rgba(255,255,255,0.7);
+}
+.manip-shape:active { cursor: grabbing; transform: scale(1.12); }
+
+.manip-ghost {
+  position: fixed; width: 34px; height: 34px; border-radius: 50%; pointer-events: none; z-index: 1000;
+  transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.85);
+}
+
+.manip-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.9rem; }
+.manip-note { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+.manip-result {
+  margin-top: 0.9rem; text-align: center; font-family: var(--font-head); font-weight: 800; font-size: 1.4rem;
+  color: var(--green); animation: hero-pop 0.4s cubic-bezier(0.2,0.8,0.3,1.5) both;
+}
+
+/* Collapsible "play with shapes" wrapper used on practice/guided pages. */
+.manip-toggle { margin: 0.6rem 0; }
+.manip-toggle > summary {
+  cursor: pointer; font-family: var(--font-head); font-weight: 700; color: var(--indigo-dark);
+  padding: 0.5rem 0.9rem; background: #eef1ff; border-radius: 12px; display: inline-block; list-style: none;
+}
+.manip-toggle > summary::-webkit-details-marker { display: none; }
+.manip-toggle > summary:hover { background: #e0e5ff; }
+.manip-toggle[open] > summary { margin-bottom: 0.2rem; }

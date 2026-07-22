@@ -4,6 +4,8 @@ import KidHeader from '../components/KidHeader'
 import { ArrowLeft } from 'lucide-react'
 import { api, KnowledgeContent, KnowledgeView } from '../api'
 import MathVisual from '../components/MathVisual'
+import MathManipulative from '../components/MathManipulative'
+import { MathProblem } from '../lib/mathProblem'
 import ReadAloud from '../components/ReadAloud'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
@@ -18,6 +20,14 @@ function Section({ title, items, emoji }: { title: string; items: string[]; emoj
       <ul>{items.map((it, i) => <li key={i}>{it}</li>)}</ul>
     </div>
   )
+}
+
+/** For multiplication/division lessons, offer an interactive explorer with sensible starting numbers. */
+function manipForTopic(topic: string | undefined): MathProblem | null {
+  const t = (topic ?? '').toLowerCase()
+  if (/divi|shar(e|ing)|equal group|split/.test(t)) return { op: '÷', a: 12, b: 3 }
+  if (/multipl|times|array|repeated add|group/.test(t)) return { op: '×', a: 3, b: 4 }
+  return null
 }
 
 function fullText(c: KnowledgeContent) {
@@ -104,6 +114,14 @@ export default function Knowledge() {
               </div>
               <LessonBody content={c} />
             </article>
+
+            {manipForTopic(data.topicName) && (
+              <article className="card">
+                <h3>🧩 Try it yourself!</h3>
+                <p className="muted">Drag the shapes into the groups. Change the numbers to explore different problems.</p>
+                <MathManipulative {...manipForTopic(data.topicName)!} editable />
+              </article>
+            )}
 
             {/* Stuck? Ask Aria to re-teach it a different way. */}
             <div className="elaborate-zone">

@@ -4,6 +4,8 @@ import KidHeader from '../components/KidHeader'
 import { ArrowLeft, ArrowRight, Eye, Lightbulb, PartyPopper } from 'lucide-react'
 import { api, GuidedFeedback, GuidedQuestion } from '../api'
 import QuestionRenderer from '../components/QuestionRenderer'
+import MathManipulative from '../components/MathManipulative'
+import { parseMathProblem } from '../lib/mathProblem'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
 import ReportQuestion from '../components/ReportQuestion'
@@ -75,6 +77,16 @@ export default function GuidedPractice() {
           <div className="card practice">
             <div className="muted">Aria is right here with you 🤝</div>
             <h2 className="q-prompt">{question.prompt}</h2>
+
+            {(() => {
+              const mp = parseMathProblem(question.prompt)
+              return mp ? (
+                <details className="manip-toggle">
+                  <summary>🧩 Play with shapes to solve it</summary>
+                  <MathManipulative {...mp} />
+                </details>
+              ) : null
+            })()}
 
             <QuestionRenderer
               question={{ ...question, difficulty: '' }}
