@@ -1,0 +1,140 @@
+{
+  "subject": "Math Adventures",
+  "grades": [
+    {
+      "name": "Math Explorer",
+      "level": 1,
+      "units": [
+        {
+          "name": "Patterns & Puzzles",
+          "lessons": [
+            {
+              "name": "Patterns Everywhere",
+              "topics": [
+                { "name": "Cool Number Patterns", "objectives": ["Find the rule in a number pattern and say what comes next", "Make your own repeating and growing patterns"] },
+                { "name": "Shape Pattern Fun", "objectives": ["Continue and create patterns using shapes and colors", "Spot the part of a pattern that repeats"] },
+                { "name": "Skip-Counting Secrets", "objectives": ["Skip-count by 2s, 5s, and 10s to solve puzzles", "Notice the patterns in the numbers you land on"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Chance & Games",
+          "lessons": [
+            {
+              "name": "Will It Happen?",
+              "topics": [
+                { "name": "Roll the Dice!", "objectives": ["Describe outcomes as likely, unlikely, or impossible", "Predict and then test what a dice roll might land on"] },
+                { "name": "Heads or Tails?", "objectives": ["Explore the chance of a coin landing on heads or tails", "Record results and compare them to your guess"] },
+                { "name": "Spinner Surprises", "objectives": ["Compare chances on spinners with different colored sections", "Say which outcome is more or less likely"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Math All Around Me",
+          "lessons": [
+            {
+              "name": "Everyday Math",
+              "topics": [
+                { "name": "Money & Shopping", "objectives": ["Add up coin and bill values to make amounts of money", "Work out the change from a small purchase"] },
+                { "name": "Telling Time Adventures", "objectives": ["Read clocks to the hour, half hour, and five minutes", "Figure out how much time has passed"] },
+                { "name": "Shapes in the Real World", "objectives": ["Find 2D and 3D shapes in everyday objects", "Sort shapes by their sides and corners"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Math Adventurer",
+      "level": 2,
+      "units": [
+        {
+          "name": "Brain Teasers",
+          "lessons": [
+            {
+              "name": "Think It Through",
+              "topics": [
+                { "name": "Magic Squares", "objectives": ["Fill a grid so every row and column has the same sum", "Explain the trick behind a 3-by-3 magic square"] },
+                { "name": "Number Riddles", "objectives": ["Solve riddles by reasoning about number clues", "Write your own number riddle for a friend"] },
+                { "name": "Math Magic Tricks", "objectives": ["Follow a number trick that always gives the same result", "Explain why the trick always works"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Big & Small Numbers",
+          "lessons": [
+            {
+              "name": "Numbers Get Wild",
+              "topics": [
+                { "name": "How Big Is a Million?", "objectives": ["Compare thousands, millions, and billions", "Estimate large quantities from everyday life"] },
+                { "name": "Below Zero", "objectives": ["Read and order negative numbers on a number line", "Use negative numbers for temperature and elevation"] },
+                { "name": "Roman Numerals", "objectives": ["Read and write Roman numerals up to 100", "Spot Roman numerals on clocks and in the real world"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Chance & Data",
+          "lessons": [
+            {
+              "name": "Data Detective",
+              "topics": [
+                { "name": "Probability with Dice & Cards", "objectives": ["Write simple probabilities as fractions", "Design a game that is fair and one that is unfair"] },
+                { "name": "Make a Survey", "objectives": ["Collect data and show it in a pictograph or bar graph", "Answer questions using your own graph"] },
+                { "name": "Estimation Games", "objectives": ["Make and improve estimates for how many objects there are", "Use rounding to estimate answers quickly"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Math Master",
+      "level": 3,
+      "units": [
+        {
+          "name": "Puzzles & Logic",
+          "lessons": [
+            {
+              "name": "Crack the Code",
+              "topics": [
+                { "name": "Logic Grid Puzzles", "objectives": ["Use clues and a grid to solve a logic puzzle", "Explain your reasoning step by step"] },
+                { "name": "The Fibonacci Sequence", "objectives": ["Build the Fibonacci sequence and find its pattern", "Spot Fibonacci numbers in nature"] },
+                { "name": "Prime Number Mysteries", "objectives": ["Identify prime and composite numbers", "Use factors to crack number puzzles"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Real-World Math",
+          "lessons": [
+            {
+              "name": "Math on the Job",
+              "topics": [
+                { "name": "Sports Stats & Averages", "objectives": ["Calculate the mean (average) of a set of scores", "Compare players or teams using averages"] },
+                { "name": "Cooking with Ratios", "objectives": ["Scale a recipe up or down using ratios", "Use fractions to measure ingredients"] },
+                { "name": "Budgeting Like a Boss", "objectives": ["Plan a budget with income and expenses", "Use percentages to work out savings and discounts"] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mind-Bending Math",
+          "lessons": [
+            {
+              "name": "Beyond the Textbook",
+              "topics": [
+                { "name": "Secret Codes & Ciphers", "objectives": ["Encode and decode messages with a Caesar shift cipher", "Use number patterns to break a simple code"] },
+                { "name": "Patterns in Pascal's Triangle", "objectives": ["Build Pascal's triangle and find its hidden patterns", "Connect the triangle to simple counting problems"] },
+                { "name": "To Infinity!", "objectives": ["Explore what infinity means using simple examples", "Compare very large and very small numbers"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
