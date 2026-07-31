@@ -46,47 +46,55 @@ public class GenerationService {
 
     private final AiClient aiClient;
     private final ObjectMapper objectMapper;
+    private final com.mathtutor.tutor.TutorModeService tutorModeService;
 
-    public GenerationService(AiClient aiClient, ObjectMapper objectMapper) {
+    public GenerationService(AiClient aiClient, ObjectMapper objectMapper,
+                             com.mathtutor.tutor.TutorModeService tutorModeService) {
         this.aiClient = aiClient;
         this.objectMapper = objectMapper;
+        this.tutorModeService = tutorModeService;
     }
 
-    public KnowledgeContent generateKnowledge(GenerationContext ctx) {
-        Map<String, String> vars = baseVars(ctx);
-        return aiClient.generateStructured(PROMPT_KNOWLEDGE, vars, KnowledgeContent.class, null);
+    /** The child's tutor-personality instructions, appended to the system prompt of student-facing calls. */
+    private String style(UUID studentId) {
+        return tutorModeService.styleForStudent(studentId);
     }
 
-    public ExamplesContent generateExamples(GenerationContext ctx) {
+    public KnowledgeContent generateKnowledge(GenerationContext ctx, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
-        ExamplesContent content = aiClient.generateStructured(PROMPT_EXAMPLES, vars, ExamplesContent.class, null);
+        return aiClient.generateStructured(PROMPT_KNOWLEDGE, vars, KnowledgeContent.class, studentId, style(studentId));
+    }
+
+    public ExamplesContent generateExamples(GenerationContext ctx, UUID studentId) {
+        Map<String, String> vars = baseVars(ctx);
+        ExamplesContent content = aiClient.generateStructured(PROMPT_EXAMPLES, vars, ExamplesContent.class, studentId, style(studentId));
         return verifyExamples(content, ctx.subjectName());
     }
 
     /** Re-teaches a topic in a fresh, simpler way (for the "Explain it differently" action). */
-    public KnowledgeContent elaborate(GenerationContext ctx) {
-        return aiClient.generateStructured(PROMPT_ELABORATE, baseVars(ctx), KnowledgeContent.class, null);
+    public KnowledgeContent elaborate(GenerationContext ctx, UUID studentId) {
+        return aiClient.generateStructured(PROMPT_ELABORATE, baseVars(ctx), KnowledgeContent.class, studentId, style(studentId));
     }
 
     public PracticeBatch generatePractice(GenerationContext ctx, String difficulty, int count, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
         vars.put("difficulty", difficulty);
         vars.put("count", String.valueOf(count));
-        PracticeBatch batch = aiClient.generateStructured(PROMPT_PRACTICE, vars, PracticeBatch.class, studentId);
+        PracticeBatch batch = aiClient.generateStructured(PROMPT_PRACTICE, vars, PracticeBatch.class, studentId, style(studentId));
         return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
     }
 
     public PracticeBatch generateQuiz(GenerationContext ctx, int count, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
         vars.put("count", String.valueOf(count));
-        PracticeBatch batch = aiClient.generateStructured(PROMPT_QUIZ, vars, PracticeBatch.class, studentId);
+        PracticeBatch batch = aiClient.generateStructured(PROMPT_QUIZ, vars, PracticeBatch.class, studentId, style(studentId));
         return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
     }
 
     public PracticeBatch generateHomework(GenerationContext ctx, int count, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
         vars.put("count", String.valueOf(count));
-        PracticeBatch batch = aiClient.generateStructured(PROMPT_HOMEWORK, vars, PracticeBatch.class, studentId);
+        PracticeBatch batch = aiClient.generateStructured(PROMPT_HOMEWORK, vars, PracticeBatch.class, studentId, style(studentId));
         return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
     }
 
@@ -344,7 +352,7 @@ public class GenerationService {
         vars.put("question", question);
         vars.put("expected", expected == null ? "" : expected);
         vars.put("student_answer", studentAnswer == null ? "" : studentAnswer);
-        return aiClient.generateStructured(PROMPT_ANSWER_CHECK, vars, AnswerEvaluation.class, studentId);
+        return aiClient.generateStructured(PROMPT_ANSWER_CHECK, vars, AnswerEvaluation.class, studentId, style(studentId));
     }
 
     /** Grades one homework answer: correctness, partial credit, feedback, misconception. */
@@ -356,7 +364,7 @@ public class GenerationService {
         vars.put("expected", expected == null ? "" : expected);
         vars.put("solution", solution == null ? "" : solution);
         vars.put("student_answer", studentAnswer == null ? "" : studentAnswer);
-        return aiClient.generateStructured(PROMPT_EVALUATION, vars, AnswerEvaluation.class, studentId);
+        return aiClient.generateStructured(PROMPT_EVALUATION, vars, AnswerEvaluation.class, studentId, style(studentId));
     }
 
     /** Short, friendly study advice from a summary of strengths, weaknesses, and mistakes. */
@@ -367,7 +375,7 @@ public class GenerationService {
         vars.put("strengths", strengths == null || strengths.isBlank() ? "none yet" : strengths);
         vars.put("weaknesses", weaknesses == null || weaknesses.isBlank() ? "none yet" : weaknesses);
         vars.put("mistakes", mistakes == null || mistakes.isBlank() ? "none yet" : mistakes);
-        return aiClient.generateStructured(PROMPT_RECOMMENDATION, vars, Advice.class, studentId);
+        return aiClient.generateStructured(PROMPT_RECOMMENDATION, vars, Advice.class, studentId, style(studentId));
     }
 
     /** Synchronous, fast-model hint for the guided-practice loop. Never reveals the answer. */
@@ -377,7 +385,7 @@ public class GenerationService {
         vars.put("question", question);
         vars.put("student_answer", studentAnswer);
         vars.put("attempt", String.valueOf(attempt));
-        return aiClient.generateStructured(PROMPT_HINT, vars, Hint.class, studentId);
+        return aiClient.generateStructured(PROMPT_HINT, vars, Hint.class, studentId, style(studentId));
     }
 
     private Map<String, String> baseVars(GenerationContext ctx) {

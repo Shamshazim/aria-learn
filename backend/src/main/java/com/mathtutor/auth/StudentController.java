@@ -2,6 +2,7 @@ package com.mathtutor.auth;
 
 import com.mathtutor.auth.dto.StudentDtos.CreateStudentRequest;
 import com.mathtutor.auth.dto.StudentDtos.ResetPasswordRequest;
+import com.mathtutor.auth.dto.StudentDtos.SetTutorModeRequest;
 import com.mathtutor.auth.dto.StudentDtos.StudentResponse;
 import com.mathtutor.auth.security.SecurityUtils;
 import jakarta.validation.Valid;
@@ -36,6 +37,12 @@ public class StudentController {
     @PostMapping("/{studentId}/password")
     public void resetPassword(@PathVariable UUID studentId, @Valid @RequestBody ResetPasswordRequest request) {
         studentService.resetStudentPassword(SecurityUtils.currentPrincipal(), studentId, request.newPassword());
+    }
+
+    /** Parent sets one of their children's tutor personality mode. */
+    @PutMapping("/{studentId}/tutor-mode")
+    public StudentResponse setTutorMode(@PathVariable UUID studentId, @Valid @RequestBody SetTutorModeRequest request) {
+        return studentService.setTutorMode(SecurityUtils.currentPrincipal(), studentId, request.code());
     }
 }
 

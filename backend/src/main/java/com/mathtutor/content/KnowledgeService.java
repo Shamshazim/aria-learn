@@ -54,7 +54,7 @@ public class KnowledgeService {
         GenerationContext genCtx = new GenerationContext(
                 ctx.subjectName(), ctx.gradeName(), ctx.topicName(), ctx.objectives(),
                 learnerNote(studentId, topicId));
-        KnowledgeContent content = generationService.generateKnowledge(genCtx);
+        KnowledgeContent content = generationService.generateKnowledge(genCtx, studentId);
 
         KnowledgeArticle article = new KnowledgeArticle();
         article.setTopicId(topicId);
@@ -72,7 +72,7 @@ public class KnowledgeService {
         GenerationContext genCtx = new GenerationContext(
                 ctx.subjectName(), ctx.gradeName(), ctx.topicName(), ctx.objectives(),
                 learnerNote(studentId, topicId));
-        return new KnowledgeView(topicId, ctx.topicName(), generationService.elaborate(genCtx));
+        return new KnowledgeView(topicId, ctx.topicName(), generationService.elaborate(genCtx, studentId));
     }
 
     private String learnerNote(UUID studentId, UUID topicId) {

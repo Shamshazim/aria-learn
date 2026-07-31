@@ -5,6 +5,7 @@ import com.mathtutor.ai.content.GeneratedQuestion;
 import com.mathtutor.ai.content.PracticeBatch;
 import com.mathtutor.ai.content.VerifiedAnswerKeys;
 import com.mathtutor.ai.content.VerifiedAnswerKeys.VerifiedKey;
+import com.mathtutor.tutor.TutorModeService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -27,7 +28,7 @@ class GenerationServiceVerifyTest {
         AiClient ai = mock(AiClient.class);
         when(ai.generateStructured(eq(GenerationService.PROMPT_ANSWER_VERIFY), any(),
                 eq(VerifiedAnswerKeys.class), any())).thenReturn(verified);
-        return new GenerationService(ai, mapper);
+        return new GenerationService(ai, mapper, mock(TutorModeService.class));
     }
 
     @Test
@@ -66,7 +67,7 @@ class GenerationServiceVerifyTest {
     /** A service whose model verifier returns nothing — isolates the deterministic pass. */
     private GenerationService deterministicOnly() {
         AiClient ai = mock(AiClient.class); // generateStructured returns null for any args
-        return new GenerationService(ai, mapper);
+        return new GenerationService(ai, mapper, mock(TutorModeService.class));
     }
 
     @Test

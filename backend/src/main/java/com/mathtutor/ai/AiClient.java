@@ -44,18 +44,27 @@ public class AiClient {
 
     public <T> T generateStructured(String promptName, Map<String, String> vars,
                                     Class<T> type, UUID studentId) {
+        return generateStructured(promptName, vars, type, studentId, null);
+    }
+
+    /**
+     * @param tutorStyle optional persona instructions appended to the system prompt so a child's
+     *                   chosen tutor mode shapes the output. Pass null/blank for a neutral voice.
+     */
+    public <T> T generateStructured(String promptName, Map<String, String> vars,
+                                    Class<T> type, UUID studentId, String tutorStyle) {
         JavaType javaType = objectMapper.getTypeFactory().constructType(type);
-        return generate(promptName, vars, javaType, studentId, false);
+        return generate(promptName, vars, javaType, studentId, false, tutorStyle);
     }
 
     public <T> T generateStructured(String promptName, Map<String, String> vars,
                                     JavaType javaType, UUID studentId) {
-        return generate(promptName, vars, javaType, studentId, false);
+        return generate(promptName, vars, javaType, studentId, false, null);
     }
 
     public String generateText(String promptName, Map<String, String> vars, UUID studentId) {
         ResolvedPrompt prompt = promptRegistry.resolve(promptName, vars);
-        LlmResponse response = call(prompt.systemPrompt(), prompt.userPrompt(), prompt, false);
+        LlmResponse response = call(prompt.systemPrompt(), prompt.userPrompt(), prompt, false, null);
         persistLog(prompt, response, studentId, 0, true);
         return response.content();
     }
@@ -64,7 +73,7 @@ public class AiClient {
      *  Logged with is_test=true so it does not pollute production usage stats. */
     public TestResult runTest(String promptName, Map<String, String> vars) {
         ResolvedPrompt prompt = promptRegistry.resolve(promptName, vars);
-        LlmResponse response = call(prompt.systemPrompt(), prompt.userPrompt(), prompt, prompt.jsonMode());
+        LlmResponse response = call(prompt.systemPrompt(), prompt.userPrompt(), prompt, prompt.jsonMode(), null);
         persistTestLog(prompt, response);
         return new TestResult(response.content(), response.model(),
                 response.promptTokens(), response.completionTokens(), response.latencyMs());
@@ -74,10 +83,10 @@ public class AiClient {
     }
 
     private <T> T generate(String promptName, Map<String, String> vars,
-                           JavaType javaType, UUID studentId, boolean isTest) {
+                           JavaType javaType, UUID studentId, boolean isTest, String tutorStyle) {
         ResolvedPrompt prompt = promptRegistry.resolve(promptName, vars);
 
-        LlmResponse response = call(prompt.systemPrompt(), prompt.userPrompt(), prompt, true);
+        LlmResponse response = call(prompt.systemPrompt(), prompt.userPrompt(), prompt, true, tutorStyle);
         String json = extractJson(response.content());
         try {
             T result = objectMapper.readValue(json, javaType);
@@ -91,7 +100,7 @@ public class AiClient {
                     + "Error: " + firstError.getMessage() + "\n\n"
                     + "Previous response:\n" + response.content() + "\n\n"
                     + "Return ONLY corrected, valid JSON. No prose, no markdown fences.";
-            LlmResponse repair = call(prompt.systemPrompt(), repairUser, prompt, true);
+            LlmResponse repair = call(prompt.systemPrompt(), repairUser, prompt, true, tutorStyle);
             String repairedJson = extractJson(repair.content());
             try {
                 T result = objectMapper.readValue(repairedJson, javaType);
@@ -105,8 +114,10 @@ public class AiClient {
         }
     }
 
-    private LlmResponse call(String system, String user, ResolvedPrompt prompt, boolean jsonMode) {
-        LlmRequest request = new LlmRequest(system, user, prompt.tier(),
+    private LlmResponse call(String system, String user, ResolvedPrompt prompt, boolean jsonMode, String tutorStyle) {
+        // The tutor persona is appended to the system prompt so it shapes tone without touching templates.
+        String sys = (tutorStyle == null || tutorStyle.isBlank()) ? system : system + "\n\n" + tutorStyle;
+        LlmRequest request = new LlmRequest(sys, user, prompt.tier(),
                 prompt.temperature(), prompt.maxTokens(), jsonMode && prompt.jsonMode());
         return provider.complete(request);
     }

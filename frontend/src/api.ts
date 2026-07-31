@@ -45,7 +45,10 @@ export interface KnowledgeView { topicId: string; topicName: string; content: Kn
 export interface StudentDto {
   id: string; username: string; displayName: string
   avatar: string | null; currentGradeId: string | null; birthYear: number | null
+  tutorModeCode: string
 }
+
+export interface TutorMode { code: string; name: string; emoji: string | null; description: string | null }
 
 export interface StudentProfile {
   id: string; displayName: string; currentGradeId: string | null; gradeName: string | null
@@ -270,6 +273,9 @@ export const api = {
   listStudents: () => request<StudentDto[]>('GET', '/parent/students'),
   createStudent: (b: { username: string; password: string; displayName: string; gradeId: string }) =>
     request<StudentDto>('POST', '/parent/students', b),
+  tutorModes: () => request<TutorMode[]>('GET', '/tutor-modes'),
+  setTutorMode: (studentId: string, code: string) =>
+    request<StudentDto>('PUT', `/parent/students/${studentId}/tutor-mode`, { code }),
 
   knowledge: (topicId: string) => request<KnowledgeView>('GET', `/topics/${topicId}/knowledge`),
   elaborate: (topicId: string) => request<KnowledgeView>('GET', `/topics/${topicId}/elaborate`),

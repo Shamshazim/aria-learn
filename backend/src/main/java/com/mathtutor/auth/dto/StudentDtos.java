@@ -20,12 +20,16 @@ public class StudentDtos {
             @NotBlank @Size(min = 6, message = "Password must be at least 6 characters") String newPassword) {
     }
 
+    public record SetTutorModeRequest(@NotBlank String code) {
+    }
+
     public record StudentResponse(
             UUID id,
             String username,
             String displayName,
             String avatar,
             UUID currentGradeId,
-            Integer birthYear) {
+            Integer birthYear,
+            String tutorModeCode) {
     }
 }

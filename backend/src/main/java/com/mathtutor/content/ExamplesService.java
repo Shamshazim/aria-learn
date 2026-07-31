@@ -50,7 +50,7 @@ public class ExamplesService {
         GenerationContext genCtx = new GenerationContext(
                 ctx.subjectName(), ctx.gradeName(), ctx.topicName(), ctx.objectives(),
                 learnerNote(studentId, topicId));
-        ExamplesContent content = generationService.generateExamples(genCtx);
+        ExamplesContent content = generationService.generateExamples(genCtx, studentId);
 
         ExampleSet set = new ExampleSet();
         set.setTopicId(topicId);

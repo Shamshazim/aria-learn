@@ -34,6 +34,10 @@ public class Student {
     @Column(name = "birth_year")
     private Integer birthYear;
 
+    /** Which tutor personality this child learns with (references tutor_modes.code). */
+    @Column(name = "tutor_mode_code", nullable = false)
+    private String tutorModeCode = "BALANCED";
+
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
@@ -56,6 +60,8 @@ public class Student {
     public void setCurrentGradeId(UUID currentGradeId) { this.currentGradeId = currentGradeId; }
     public Integer getBirthYear() { return birthYear; }
     public void setBirthYear(Integer birthYear) { this.birthYear = birthYear; }
+    public String getTutorModeCode() { return tutorModeCode; }
+    public void setTutorModeCode(String tutorModeCode) { this.tutorModeCode = tutorModeCode; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     public Instant getCreatedAt() { return createdAt; }

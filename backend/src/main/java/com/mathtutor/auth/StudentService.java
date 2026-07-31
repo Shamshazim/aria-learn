@@ -7,6 +7,7 @@ import com.mathtutor.common.BadRequestException;
 import com.mathtutor.common.ForbiddenException;
 import com.mathtutor.common.NotFoundException;
 import com.mathtutor.curriculum.GradeRepository;
+import com.mathtutor.tutor.TutorModeService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,15 +22,18 @@ public class StudentService {
     private final GradeRepository gradeRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.mathtutor.enrollment.EnrollmentService enrollmentService;
+    private final TutorModeService tutorModeService;
 
     public StudentService(StudentRepository studentRepository,
                           GradeRepository gradeRepository,
                           PasswordEncoder passwordEncoder,
-                          com.mathtutor.enrollment.EnrollmentService enrollmentService) {
+                          com.mathtutor.enrollment.EnrollmentService enrollmentService,
+                          TutorModeService tutorModeService) {
         this.studentRepository = studentRepository;
         this.gradeRepository = gradeRepository;
         this.passwordEncoder = passwordEncoder;
         this.enrollmentService = enrollmentService;
+        this.tutorModeService = tutorModeService;
     }
 
     @Transactional
@@ -66,6 +70,17 @@ public class StudentService {
         studentRepository.save(student);
     }
 
+    /** Parent sets one of their children's tutor personality; applies to future generations. */
+    @Transactional
+    public StudentResponse setTutorMode(AuthPrincipal parent, UUID studentId, String code) {
+        Student student = requireOwnedStudent(parent, studentId);
+        if (!tutorModeService.isSelectable(code)) {
+            throw new BadRequestException("Unknown tutor mode: " + code);
+        }
+        student.setTutorModeCode(code);
+        return toResponse(studentRepository.save(student));
+    }
+
     /**
      * Returns a student only if it belongs to the given parent — enforces data isolation.
      */
@@ -81,6 +96,6 @@ public class StudentService {
 
     private static StudentResponse toResponse(Student s) {
         return new StudentResponse(s.getId(), s.getUsername(), s.getDisplayName(),
-                s.getAvatar(), s.getCurrentGradeId(), s.getBirthYear());
+                s.getAvatar(), s.getCurrentGradeId(), s.getBirthYear(), s.getTutorModeCode());
     }
 }

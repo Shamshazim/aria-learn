@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { AdaptiveProfile, api, EnrolledSubject, Grade, ParentCharts, Report, StudentDto, Subject, TopicProgress } from '../api'
+import { AdaptiveProfile, api, EnrolledSubject, Grade, ParentCharts, Report, StudentDto, Subject, TopicProgress, TutorMode } from '../api'
 import { useAuth } from '../auth'
 import AdvicePanel from '../components/AdvicePanel'
 import InsightCharts from '../components/InsightCharts'
@@ -27,6 +27,49 @@ function ResetChildPassword({ studentId, name }: { studentId: string; name?: str
       <div className="report-controls">
         <input type="text" placeholder="New password" value={pwd} onChange={(e) => setPwd(e.target.value)} style={{ width: 'auto', flex: 1 }} />
         <button className="btn btn--primary" disabled={busy} onClick={reset}>{busy ? 'Saving...' : 'Reset password'}</button>
+      </div>
+      {err && <div className="error">{err}</div>}
+      {msg && <div className="success-note">{msg}</div>}
+    </section>
+  )
+}
+
+function TutorModeSection({ studentId, name, current }: { studentId: string; name?: string; current: string }) {
+  const [modes, setModes] = useState<TutorMode[]>([])
+  const [selected, setSelected] = useState(current)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+
+  useEffect(() => { api.tutorModes().then(setModes).catch(() => {}) }, [])
+
+  const choose = async (code: string) => {
+    if (code === selected || busy) return
+    setErr(null); setMsg(null); setBusy(true)
+    const prev = selected
+    setSelected(code) // optimistic
+    try { await api.setTutorMode(studentId, code); setMsg('Tutor mode updated ✓') }
+    catch (e) { setSelected(prev); setErr((e as Error).message) }
+    finally { setBusy(false) }
+  }
+
+  return (
+    <section className="card">
+      <h3>Tutor personality</h3>
+      <p className="muted">
+        Choose how Aria teaches {name ?? 'this child'}. It shapes every new lesson, quiz, hint, and piece of
+        feedback, and takes effect from the next lesson onward.
+      </p>
+      <div className="tutor-modes">
+        {modes.map((m) => (
+          <button key={m.code} type="button"
+                  className={`tutor-mode ${selected === m.code ? 'tutor-mode--on' : ''}`}
+                  disabled={busy} onClick={() => choose(m.code)}>
+            <span className="tutor-mode-emoji">{m.emoji}</span>
+            <span className="tutor-mode-name">{m.name}</span>
+            {m.description && <span className="tutor-mode-desc">{m.description}</span>}
+          </button>
+        ))}
       </div>
       {err && <div className="error">{err}</div>}
       {msg && <div className="success-note">{msg}</div>}
@@ -234,6 +277,7 @@ export default function ChildInsights() {
       <main className="container">
         <h2>Insights{child ? ` · ${child.displayName}` : ''}</h2>
         {error && <div className="error">{error}</div>}
+        {studentId && child && <TutorModeSection studentId={studentId} name={child.displayName} current={child.tutorModeCode} />}
         {studentId && <EnrollSection studentId={studentId} />}
 
         {subjects.length > 0 && (
