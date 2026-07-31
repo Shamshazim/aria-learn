@@ -1,0 +1,7 @@
+reports/*
+!reports/.gitkeep
+node_modules/
+package-lock.json
+
+# Screenshots from real runs show a real child's data — keep them local.
+*.png

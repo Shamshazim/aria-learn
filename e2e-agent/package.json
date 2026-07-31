@@ -1,0 +1,16 @@
+{
+  "name": "e2e-agent",
+  "version": "1.0.0",
+  "description": "An AI agent that logs into Aria Learn and does a hands-on, **human-like** end-to-end check, then reports whether your flows are stable — in plain English.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@playwright/mcp": "^0.0.78"
+  }
+}
