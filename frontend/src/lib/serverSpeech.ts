@@ -10,7 +10,21 @@ import { api } from '../api'
  * for platforms where it can't.
  */
 
-let cached: { available: boolean; defaultVoice: string; voices: string[] } | null = null
+/** A narrator the backend can actually render with. */
+export interface ServerVoice { name: string; locale: string }
+
+const VOICE_KEY = 'aria.serverVoice'
+
+let cached: { available: boolean; defaultVoice: string; voices: ServerVoice[] } | null = null
+
+/** The chosen macOS voice, remembered per family. */
+export function loadServerVoice(): string | null {
+  try { return localStorage.getItem(VOICE_KEY) } catch { return null }
+}
+
+export function saveServerVoice(name: string) {
+  try { localStorage.setItem(VOICE_KEY, name) } catch { /* private mode */ }
+}
 
 /** Whether the backend can render narration. Asked once per session. */
 export async function speechStatus() {

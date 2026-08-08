@@ -5,7 +5,11 @@ import AriaTutor from './AriaTutor'
 import AnimatedVisual, { usePrefersReducedMotion } from './AnimatedVisual'
 import VoicePicker from './VoicePicker'
 import { useVoices } from '../lib/useVoices'
-import { speakViaServer, speechStatus, SpeechHandle } from '../lib/serverSpeech'
+import {
+  loadServerVoice, saveServerVoice, speakViaServer, speechStatus,
+  ServerVoice, SpeechHandle,
+} from '../lib/serverSpeech'
+import ServerVoicePicker from './ServerVoicePicker'
 import { loadSavedVoiceURI, plainUtter, primeSpeech, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
 
 interface TutorLessonProps {
@@ -54,7 +58,18 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
    * has proved unreliable.
    */
   const [serverVoice, setServerVoice] = useState(false)
-  useEffect(() => { speechStatus().then((s) => setServerVoice(s.available)) }, [])
+  const [serverVoices, setServerVoices] = useState<ServerVoice[]>([])
+  const [chosenVoice, setChosenVoice] = useState<string>('')
+  useEffect(() => {
+    speechStatus().then((st) => {
+      setServerVoice(st.available)
+      setServerVoices(st.voices)
+      // A remembered voice only counts if the machine still has it installed.
+      const saved = loadServerVoice()
+      const ok = saved && st.voices.some((v) => v.name === saved)
+      setChosenVoice(ok ? saved! : st.defaultVoice)
+    })
+  }, [])
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -157,7 +172,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
         advance()
       }
       setSpeaking(true)
-      const handle = speakViaServer(beat.say, undefined, finish, () => {
+      const handle = speakViaServer(beat.say, chosenVoice || undefined, finish, () => {
         // Server audio unavailable for this beat — keep the lesson moving.
         if (!cancelled && !done) finish()
       })
@@ -210,7 +225,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     }
 
     return () => { cancelled = true; clearTimer(); if (ttsOk) window.speechSynthesis.cancel(); setSpeaking(false) }
-  }, [i, playing, muted, beat, last, reduced, ttsOk, voiceKey, serverVoice])
+  }, [i, playing, muted, beat, last, reduced, ttsOk, voiceKey, serverVoice, chosenVoice])
 
   /*
    * Chrome's speech engine goes quiet part-way through anything longer than roughly
@@ -239,6 +254,25 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
    * the new voice — one cancel, one speak. Only when nothing is playing does this speak
    * a sample itself, because then no other timer is touching the engine.
    */
+  /*
+   * Switching macOS voice. The playback effect keys off chosenVoice, so mid-lesson this
+   * simply re-renders the current beat in the new voice — the change is its own preview.
+   * When nothing is playing, a sample is spoken so the choice can still be heard.
+   */
+  const changeServerVoice = (name: string) => {
+    setChosenVoice(name)
+    saveServerVoice(name)
+    if (playing || muted) return
+    clearTimer()
+    setSpeaking(true)
+    serverHandle.current = speakViaServer(
+      "Hi! I'm Aria. Let's learn something together.",
+      name,
+      () => setSpeaking(false),
+      () => setSpeaking(false),
+    )
+  }
+
   const changeVoice = (uri: string) => {
     primeSpeech()
     setVoiceURI(uri)
@@ -324,6 +358,14 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
             </button>
             {last && <button className="btn btn--ghost" onClick={replay}>↺ Watch again</button>}
           </div>
+
+          {!muted && serverVoice && (
+            <ServerVoicePicker
+              voices={serverVoices}
+              value={chosenVoice}
+              onChange={changeServerVoice}
+            />
+          )}
 
           {!muted && !serverVoice && (
             <VoicePicker voices={voices} value={voice} onChange={changeVoice} />

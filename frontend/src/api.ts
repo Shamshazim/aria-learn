@@ -66,7 +66,8 @@ export interface StudentDto {
 
 export interface TutorMode { code: string; name: string; emoji: string | null; description: string | null }
 
-export interface SpeechStatus { available: boolean; defaultVoice: string; voices: string[] }
+export interface SpeechVoice { name: string; locale: string }
+export interface SpeechStatus { available: boolean; defaultVoice: string; voices: SpeechVoice[] }
 
 export interface StudentProfile {
   id: string; displayName: string; currentGradeId: string | null; gradeName: string | null

@@ -31,7 +31,7 @@ public class SpeechController {
     }
 
     public record SpeechRequest(@NotBlank String text, String voice) {}
-    public record SpeechStatus(boolean available, String defaultVoice, List<String> voices) {}
+    public record SpeechStatus(boolean available, String defaultVoice, List<SpeechService.Voice> voices) {}
 
     /** Lets the client decide whether to use server audio or fall back to browser speech. */
     @GetMapping("/status")
