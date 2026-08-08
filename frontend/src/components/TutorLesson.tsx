@@ -3,6 +3,9 @@ import { KnowledgeContent } from '../api'
 import { Beat, buildBeats, visualStepCount } from '../lib/lessonBeats'
 import AriaTutor from './AriaTutor'
 import AnimatedVisual, { usePrefersReducedMotion } from './AnimatedVisual'
+import VoicePicker from './VoicePicker'
+import { useVoices } from '../lib/useVoices'
+import { chooseVoice, saveVoiceURI, usableVoices, utter } from '../lib/voice'
 
 interface TutorLessonProps {
   content: KnowledgeContent
@@ -38,6 +41,14 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const timer = useRef<number | null>(null)
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
+
+  // Narration voice: the family's saved choice, else the best one installed.
+  const voices = useVoices()
+  const [voiceURI, setVoiceURI] = useState<string | null>(null)
+  const voice = useMemo(() => {
+    const saved = voiceURI ? usableVoices(voices).find((v) => v.voiceURI === voiceURI) : undefined
+    return saved ?? chooseVoice(voices)
+  }, [voices, voiceURI])
 
   const clearTimer = () => {
     if (timer.current !== null) { clearTimeout(timer.current); timer.current = null }
@@ -80,9 +91,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
 
     if (ttsOk && !muted) {
       window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(beat.say)
-      u.rate = 0.95
-      u.pitch = 1.15
+      const u = utter(beat.say, voice)
       u.onend = () => { if (!cancelled) { setSpeaking(false); advance() } }
       u.onerror = () => { if (!cancelled) { setSpeaking(false); advance() } }
       setSpeaking(true)
@@ -93,7 +102,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     }
 
     return () => { cancelled = true; clearTimer(); if (ttsOk) window.speechSynthesis.cancel(); setSpeaking(false) }
-  }, [i, playing, muted, beat, last, reduced, ttsOk])
+  }, [i, playing, muted, beat, last, reduced, ttsOk, voice])
 
   // Never leave speech running when the child navigates away.
   useEffect(() => () => { clearTimer(); if (ttsOk) window.speechSynthesis.cancel() }, [ttsOk])
@@ -152,6 +161,14 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
             </button>
             {last && <button className="btn btn--ghost" onClick={replay}>↺ Watch again</button>}
           </div>
+
+          {!muted && (
+            <VoicePicker
+              voices={voices}
+              value={voice}
+              onChange={(uri) => { setVoiceURI(uri); saveVoiceURI(uri) }}
+            />
+          )}
 
           <div className="tutor-track" role="group" aria-label="Lesson steps">
             {beats.map((b, n) => (

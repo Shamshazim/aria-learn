@@ -1195,3 +1195,13 @@ input:focus, select:focus, textarea:focus {
   .av-hopper, .av-seg { transition: none; }
   .tutor-tick { transition: none; }
 }
+
+/* ── Narration voice picker ────────────────────────────────────── */
+.voice-pick { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.7rem; flex-wrap: wrap; }
+.voice-pick__label { font-size: 0.82rem; color: var(--muted); font-weight: 700; }
+.voice-pick__select {
+  font-family: var(--font-body); font-size: 0.85rem; color: var(--ink);
+  background: var(--card); border: 2px solid var(--border); border-radius: 10px;
+  padding: 0.3rem 0.5rem; cursor: pointer; max-width: 15rem;
+}
+.voice-pick__select:hover { border-color: var(--indigo); }
