@@ -5,7 +5,7 @@ import AriaTutor from './AriaTutor'
 import AnimatedVisual, { usePrefersReducedMotion } from './AnimatedVisual'
 import VoicePicker from './VoicePicker'
 import { useVoices } from '../lib/useVoices'
-import { chooseVoice, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
+import { chooseVoice, plainUtter, primeSpeech, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
 
 interface TutorLessonProps {
   content: KnowledgeContent
@@ -42,6 +42,8 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const watchdog = useRef<number | null>(null)
   /** Abandons an utterance still waiting for the engine to go idle. */
   const abandon = useRef<(() => void) | null>(null)
+  /** Fires the default-voice retry when the chosen voice produces nothing. */
+  const retry = useRef<number | null>(null)
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -54,18 +56,17 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   }, [voices, voiceURI])
 
   /*
-   * getVoices() hands back a fresh array on every call, so anything derived from it can
-   * change identity without the chosen voice actually changing. The playback effect keys
-   * off the stable voiceURI and reads the object through a ref, so a voice-list refresh
-   * mid-sentence can't restart the effect and cancel Aria in the middle of a word.
+   * Only the URI is carried around. getVoices() hands back a fresh array on every call,
+   * so keying the playback effect on the stable URI stops a voice-list refresh from
+   * restarting it mid-sentence, and the voice object itself is resolved from the engine
+   * at the moment of speaking rather than held.
    */
-  const voiceRef = useRef<SpeechSynthesisVoice | undefined>(undefined)
-  voiceRef.current = voice
   const voiceKey = voice?.voiceURI ?? ''
 
   const clearTimer = () => {
     if (timer.current !== null) { clearTimeout(timer.current); timer.current = null }
     if (watchdog.current !== null) { clearTimeout(watchdog.current); watchdog.current = null }
+    if (retry.current !== null) { clearTimeout(retry.current); retry.current = null }
     if (abandon.current) { abandon.current(); abandon.current = null }
   }
 
@@ -92,6 +93,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   }, [beats, i])
 
   const go = useCallback((n: number) => {
+    primeSpeech()
     clearTimer()
     stopSpeech()
     setI(Math.max(0, Math.min(n, beats.length - 1)))
@@ -121,20 +123,36 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     if (ttsOk && !muted) {
       // No cancel() here: the cleanup of the previous run already issued one, and a
       // second cancel immediately before speaking is what wedges the engine.
-      const u = utter(beat.say, voiceRef.current)
+      const u = utter(beat.say, voiceKey)
 
       // onend must only ever take effect once, whichever path gets there first.
       let done = false
+      let heard = false
       const finish = () => {
         if (done || cancelled) return
         done = true
         setSpeaking(false)
         advance()
       }
+      u.onstart = () => { heard = true }
       u.onend = finish
       u.onerror = finish
       setSpeaking(true)
       abandon.current = speakSafely(u)
+
+      /*
+       * Last-resort recovery. If the engine neither started the utterance nor reports
+       * itself speaking, the chosen voice is the likeliest culprit — so try again with
+       * nothing configured but the pacing, which is how narration worked before voice
+       * selection existed. A child hearing the default voice beats hearing nothing.
+       */
+      retry.current = window.setTimeout(() => {
+        if (cancelled || done || heard || window.speechSynthesis.speaking) return
+        const plain = plainUtter(beat.say)
+        plain.onend = finish
+        plain.onerror = finish
+        abandon.current = speakSafely(plain)
+      }, 1300)
 
       /*
        * onend is not guaranteed: an engine that drops it would otherwise leave the
@@ -178,22 +196,33 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
    * a sample itself, because then no other timer is touching the engine.
    */
   const changeVoice = (uri: string) => {
+    primeSpeech()
     setVoiceURI(uri)
     saveVoiceURI(uri)
     if (playing || !ttsOk || muted) return
 
     clearTimer()
-    const picked = usableVoices(voices).find((v) => v.voiceURI === uri)
-    const u = utter("Hi! I'm Aria. Let's learn something together.", picked)
+    const u = utter("Hi! I'm Aria. Let's learn something together.", uri)
     u.onend = () => setSpeaking(false)
     u.onerror = () => setSpeaking(false)
     setSpeaking(true)
     abandon.current = speakSafely(u)
   }
 
-  const start = () => { setStarted(true); setPlaying(true); setI(0); finished.current = false }
-  const toggle = () => { if (playing) { clearTimer(); stopSpeech(); setPlaying(false) } else setPlaying(true) }
-  const replay = () => { finished.current = false; setStarted(true); go(0); setPlaying(true) }
+  // primeSpeech runs inside the click itself: the effect that actually narrates is a
+  // later task and carries no user activation, which Chrome requires before it speaks.
+  const start = () => {
+    primeSpeech()
+    setStarted(true); setPlaying(true); setI(0); finished.current = false
+  }
+  const toggle = () => {
+    primeSpeech()
+    if (playing) { clearTimer(); stopSpeech(); setPlaying(false) } else setPlaying(true)
+  }
+  const replay = () => {
+    primeSpeech()
+    finished.current = false; setStarted(true); go(0); setPlaying(true)
+  }
 
   if (!beat) return null
 

@@ -112,8 +112,20 @@ export function speakSafely(u: SpeechSynthesisUtterance): () => void {
   let timer = 0
   let waited = 0
 
-  if (s.speaking || s.pending) s.cancel()
+  /*
+   * Speak in this very tick when the engine is free. Chrome refuses speak() that isn't
+   * tied to a user gesture ("not allowed since M71"), and a gesture only carries through
+   * the current task — deferring every utterance into a timeout, as this used to, drops
+   * that activation and the engine simply stays silent.
+   */
+  if (!s.speaking && !s.pending) {
+    s.speak(u)
+    return () => { abandoned = true }
+  }
 
+  // Busy: the utterance in flight has to be stopped and the engine allowed to settle,
+  // which unavoidably costs us the current task. Priming on the gesture covers this.
+  s.cancel()
   const attempt = () => {
     if (abandoned) return
     if ((s.speaking || s.pending) && waited < 800) {
@@ -123,17 +135,62 @@ export function speakSafely(u: SpeechSynthesisUtterance): () => void {
     }
     s.speak(u)
   }
-
   timer = window.setTimeout(attempt, 60)
   return () => { abandoned = true; clearTimeout(timer) }
 }
 
-/** Builds a configured utterance. Callers attach their own onend/onerror. */
-export function utter(text: string, voice?: SpeechSynthesisVoice): SpeechSynthesisUtterance {
+/**
+ * Unlocks the speech engine from inside a real click.
+ *
+ * Aria's narration is started by an effect, which runs in a later task than the click
+ * that triggered it, so it carries no user activation of its own. Speaking a silent
+ * utterance synchronously in the handler marks the engine as user-activated for the
+ * rest of the session, after which the walkthrough can speak freely.
+ *
+ * Must be called directly inside an event handler — deferring it defeats the purpose.
+ */
+export function primeSpeech() {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+  try {
+    const silent = new SpeechSynthesisUtterance('')
+    silent.volume = 0
+    window.speechSynthesis.speak(silent)
+  } catch { /* nothing to do if the engine refuses; playback still tries */ }
+}
+
+/**
+ * Resolves a voice from the engine at the moment it's needed.
+ *
+ * Voice objects are looked up fresh rather than held, because a SpeechSynthesisVoice
+ * kept in React state across a voice-list refresh can stop being one the engine will
+ * accept, and an utterance carrying a voice the engine rejects simply makes no sound.
+ */
+export function resolveVoice(voiceURI?: string | null): SpeechSynthesisVoice | undefined {
+  if (!voiceURI || typeof window === 'undefined' || !('speechSynthesis' in window)) return undefined
+  return window.speechSynthesis.getVoices().find((v) => v.voiceURI === voiceURI)
+}
+
+/**
+ * Builds a configured utterance. Callers attach their own onend/onerror.
+ *
+ * Takes a voiceURI rather than a voice object. When it can't be resolved the utterance
+ * is left with no voice at all, which falls back to the browser default — silent
+ * narration is far worse than narration in the wrong voice.
+ */
+export function utter(text: string, voiceURI?: string | null): SpeechSynthesisUtterance {
   const u = new SpeechSynthesisUtterance(text)
-  if (voice) u.voice = voice
+  const v = resolveVoice(voiceURI)
+  if (v) u.voice = v
   u.rate = CALM.rate
   u.pitch = CALM.pitch
   u.volume = CALM.volume
+  return u
+}
+
+/** An utterance with nothing configured but the pacing — the most compatible form. */
+export function plainUtter(text: string): SpeechSynthesisUtterance {
+  const u = new SpeechSynthesisUtterance(text)
+  u.rate = CALM.rate
+  u.pitch = CALM.pitch
   return u
 }

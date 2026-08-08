@@ -18,7 +18,7 @@ export default function ReadAloud({ text, label = 'Read to me' }: { text: string
   const toggle = () => {
     if (!supported) return
     if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return }
-    const u = utter(text, chooseVoice(voices))
+    const u = utter(text, chooseVoice(voices)?.voiceURI)
     u.onend = () => setSpeaking(false)
     u.onerror = () => setSpeaking(false)
     setSpeaking(true)
