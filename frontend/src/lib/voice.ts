@@ -95,6 +95,39 @@ export function chooseVoice(all: SpeechSynthesisVoice[]): SpeechSynthesisVoice |
  */
 export const CALM = { rate: 0.9, pitch: 1.0, volume: 1.0 }
 
+/**
+ * Speaks an utterance without tripping over Chrome's teardown window.
+ *
+ * speak() issued while the engine is still winding down a cancel() is silently
+ * dropped, and the engine can stay wedged afterwards — which is what made Aria go
+ * quiet for the rest of a lesson once the voice was changed. Rather than guessing a
+ * fixed delay, this cancels only if something is actually in flight and then waits for
+ * the engine to report itself genuinely idle before speaking.
+ *
+ * Returns a canceller so callers can abandon a queued utterance.
+ */
+export function speakSafely(u: SpeechSynthesisUtterance): () => void {
+  const s = window.speechSynthesis
+  let abandoned = false
+  let timer = 0
+  let waited = 0
+
+  if (s.speaking || s.pending) s.cancel()
+
+  const attempt = () => {
+    if (abandoned) return
+    if ((s.speaking || s.pending) && waited < 800) {
+      waited += 50
+      timer = window.setTimeout(attempt, 50)
+      return
+    }
+    s.speak(u)
+  }
+
+  timer = window.setTimeout(attempt, 60)
+  return () => { abandoned = true; clearTimeout(timer) }
+}
+
 /** Builds a configured utterance. Callers attach their own onend/onerror. */
 export function utter(text: string, voice?: SpeechSynthesisVoice): SpeechSynthesisUtterance {
   const u = new SpeechSynthesisUtterance(text)

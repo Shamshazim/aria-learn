@@ -5,7 +5,7 @@ import AriaTutor from './AriaTutor'
 import AnimatedVisual, { usePrefersReducedMotion } from './AnimatedVisual'
 import VoicePicker from './VoicePicker'
 import { useVoices } from '../lib/useVoices'
-import { chooseVoice, saveVoiceURI, usableVoices, utter } from '../lib/voice'
+import { chooseVoice, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
 
 interface TutorLessonProps {
   content: KnowledgeContent
@@ -40,6 +40,8 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
 
   const timer = useRef<number | null>(null)
   const watchdog = useRef<number | null>(null)
+  /** Abandons an utterance still waiting for the engine to go idle. */
+  const abandon = useRef<(() => void) | null>(null)
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -64,6 +66,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const clearTimer = () => {
     if (timer.current !== null) { clearTimeout(timer.current); timer.current = null }
     if (watchdog.current !== null) { clearTimeout(watchdog.current); watchdog.current = null }
+    if (abandon.current) { abandon.current(); abandon.current = null }
   }
 
   const stopSpeech = useCallback(() => {
@@ -116,7 +119,8 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     }
 
     if (ttsOk && !muted) {
-      window.speechSynthesis.cancel()
+      // No cancel() here: the cleanup of the previous run already issued one, and a
+      // second cancel immediately before speaking is what wedges the engine.
       const u = utter(beat.say, voiceRef.current)
 
       // onend must only ever take effect once, whichever path gets there first.
@@ -130,15 +134,13 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
       u.onend = finish
       u.onerror = finish
       setSpeaking(true)
-      // Chrome occasionally drops an utterance queued in the same tick as a cancel().
-      timer.current = window.setTimeout(() => window.speechSynthesis.speak(u), 60)
+      abandon.current = speakSafely(u)
 
       /*
-       * Chrome regularly stops speaking without ever firing onend — reproducibly so on
-       * longer sentences. Waiting on that event alone froze the walkthrough on the beat
-       * with no voice and no way forward, which is what made Aria seem to go mute. If
-       * the utterance hasn't reported back well past its expected length, give up on it
-       * and carry on rather than stalling.
+       * onend is not guaranteed: an engine that drops it would otherwise leave the
+       * walkthrough parked on this beat forever, with no voice and no way forward. The
+       * deadline is generous — measured narration runs at about three words a second,
+       * so this only fires when the utterance really has been lost.
        */
       watchdog.current = window.setTimeout(finish, readingMs(beat.say) * 1.9 + 1500)
     } else {
@@ -181,15 +183,12 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     if (playing || !ttsOk || muted) return
 
     clearTimer()
-    window.speechSynthesis.cancel()
     const picked = usableVoices(voices).find((v) => v.voiceURI === uri)
-    timer.current = window.setTimeout(() => {
-      const u = utter("Hi! I'm Aria. Let's learn something together.", picked)
-      u.onend = () => setSpeaking(false)
-      u.onerror = () => setSpeaking(false)
-      setSpeaking(true)
-      window.speechSynthesis.speak(u)
-    }, 120)
+    const u = utter("Hi! I'm Aria. Let's learn something together.", picked)
+    u.onend = () => setSpeaking(false)
+    u.onerror = () => setSpeaking(false)
+    setSpeaking(true)
+    abandon.current = speakSafely(u)
   }
 
   const start = () => { setStarted(true); setPlaying(true); setI(0); finished.current = false }
