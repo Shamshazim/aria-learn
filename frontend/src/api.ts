@@ -66,6 +66,8 @@ export interface StudentDto {
 
 export interface TutorMode { code: string; name: string; emoji: string | null; description: string | null }
 
+export interface SpeechStatus { available: boolean; defaultVoice: string; voices: string[] }
+
 export interface StudentProfile {
   id: string; displayName: string; currentGradeId: string | null; gradeName: string | null
 }
@@ -243,6 +245,25 @@ async function request<T>(method: string, path: string, body?: unknown, retry = 
   return (text ? JSON.parse(text) : undefined) as T
 }
 
+/**
+ * Posts JSON and returns binary. Narration audio can't be fetched by pointing an audio
+ * element at the URL, because that request would carry no bearer token — so it comes
+ * back as a blob and is played from an object URL instead.
+ */
+async function requestBlob(path: string, body: unknown, retry = true): Promise<Blob> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (tokens.access) headers.Authorization = `Bearer ${tokens.access}`
+
+  const res = await fetch(`/api/v1${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
+
+  if (res.status === 401 && retry && tokens.refresh) {
+    const refreshed = await tryRefresh()
+    if (refreshed) return requestBlob(path, body, false)
+  }
+  if (!res.ok) throw new Error(`Speech request failed (${res.status})`)
+  return res.blob()
+}
+
 async function tryRefresh(): Promise<boolean> {
   try {
     const res = await fetch('/api/v1/auth/refresh', {
@@ -290,6 +311,8 @@ export const api = {
   createStudent: (b: { username: string; password: string; displayName: string; gradeId: string }) =>
     request<StudentDto>('POST', '/parent/students', b),
   tutorModes: () => request<TutorMode[]>('GET', '/tutor-modes'),
+  speechStatus: () => request<SpeechStatus>('GET', '/speech/status'),
+  speak: (text: string, voice?: string) => requestBlob('/speech', { text, voice }),
   setTutorMode: (studentId: string, code: string) =>
     request<StudentDto>('PUT', `/parent/students/${studentId}/tutor-mode`, { code }),
 

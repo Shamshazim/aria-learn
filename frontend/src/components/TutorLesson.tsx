@@ -5,6 +5,7 @@ import AriaTutor from './AriaTutor'
 import AnimatedVisual, { usePrefersReducedMotion } from './AnimatedVisual'
 import VoicePicker from './VoicePicker'
 import { useVoices } from '../lib/useVoices'
+import { speakViaServer, speechStatus, SpeechHandle } from '../lib/serverSpeech'
 import { loadSavedVoiceURI, plainUtter, primeSpeech, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
 
 interface TutorLessonProps {
@@ -44,6 +45,16 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const abandon = useRef<(() => void) | null>(null)
   /** Fires the default-voice retry when the chosen voice produces nothing. */
   const retry = useRef<number | null>(null)
+  /** Stops server-rendered audio that is still playing. */
+  const serverHandle = useRef<SpeechHandle | null>(null)
+
+  /*
+   * Whether the backend can render narration itself. Checked once: where it can, it is
+   * used in preference to the browser's speech synthesis, which is the component that
+   * has proved unreliable.
+   */
+  const [serverVoice, setServerVoice] = useState(false)
+  useEffect(() => { speechStatus().then((s) => setServerVoice(s.available)) }, [])
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -78,6 +89,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     if (watchdog.current !== null) { clearTimeout(watchdog.current); watchdog.current = null }
     if (retry.current !== null) { clearTimeout(retry.current); retry.current = null }
     if (abandon.current) { abandon.current(); abandon.current = null }
+    if (serverHandle.current) { serverHandle.current.stop(); serverHandle.current = null }
   }
 
   const stopSpeech = useCallback(() => {
@@ -130,7 +142,29 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
       }, wait)
     }
 
-    if (ttsOk && !muted) {
+    if (serverVoice && !muted) {
+      /*
+       * Preferred path: audio rendered by the backend and played as an ordinary media
+       * file. The Web Speech API proved capable of reporting itself as speaking while
+       * emitting nothing, which no amount of sequencing fixed; an audio element simply
+       * plays or reports an error.
+       */
+      let done = false
+      const finish = () => {
+        if (done || cancelled) return
+        done = true
+        setSpeaking(false)
+        advance()
+      }
+      setSpeaking(true)
+      const handle = speakViaServer(beat.say, undefined, finish, () => {
+        // Server audio unavailable for this beat — keep the lesson moving.
+        if (!cancelled && !done) finish()
+      })
+      serverHandle.current = handle
+      watchdog.current = window.setTimeout(finish, readingMs(beat.say) * 2.2 + 2500)
+
+    } else if (ttsOk && !muted) {
       // No cancel() here: the cleanup of the previous run already issued one, and a
       // second cancel immediately before speaking is what wedges the engine.
       const u = utter(beat.say, voiceKey)
@@ -176,7 +210,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     }
 
     return () => { cancelled = true; clearTimer(); if (ttsOk) window.speechSynthesis.cancel(); setSpeaking(false) }
-  }, [i, playing, muted, beat, last, reduced, ttsOk, voiceKey])
+  }, [i, playing, muted, beat, last, reduced, ttsOk, voiceKey, serverVoice])
 
   /*
    * Chrome's speech engine goes quiet part-way through anything longer than roughly
@@ -291,7 +325,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
             {last && <button className="btn btn--ghost" onClick={replay}>↺ Watch again</button>}
           </div>
 
-          {!muted && (
+          {!muted && !serverVoice && (
             <VoicePicker voices={voices} value={voice} onChange={changeVoice} />
           )}
 
