@@ -9,8 +9,12 @@ import { MathProblem } from '../lib/mathProblem'
 import ReadAloud from '../components/ReadAloud'
 import NextStepButton from '../components/NextStepButton'
 import FunLoader from '../components/FunLoader'
+import TutorLesson from '../components/TutorLesson'
 import { markStepDone } from '../lib/steps'
 import { useAuth } from '../auth'
+
+/** How the child takes the lesson in: Aria walks them through it, or they read it. */
+type LessonMode = 'watch' | 'read'
 
 function Section({ title, items, emoji }: { title: string; items: string[]; emoji: string }) {
   if (!items?.length) return null
@@ -28,6 +32,19 @@ function manipForTopic(topic: string | undefined): MathProblem | null {
   if (/divi|shar(e|ing)|equal group|split/.test(t)) return { op: '÷', a: 12, b: 3 }
   if (/multipl|times|array|repeated add|group/.test(t)) return { op: '×', a: 3, b: 4 }
   return null
+}
+
+function ModeToggle({ mode, onChange }: { mode: LessonMode; onChange: (m: LessonMode) => void }) {
+  return (
+    <div className="lesson-modes" role="group" aria-label="How to take this lesson">
+      <button type="button" aria-pressed={mode === 'watch'}
+              className={`lesson-mode ${mode === 'watch' ? 'lesson-mode--on' : ''}`}
+              onClick={() => onChange('watch')}>▶ Watch Aria</button>
+      <button type="button" aria-pressed={mode === 'read'}
+              className={`lesson-mode ${mode === 'read' ? 'lesson-mode--on' : ''}`}
+              onClick={() => onChange('read')}>📖 Read it</button>
+    </div>
+  )
 }
 
 function fullText(c: KnowledgeContent) {
@@ -72,6 +89,8 @@ export default function Knowledge() {
   const [error, setError] = useState<string | null>(null)
   const [elab, setElab] = useState<KnowledgeContent | null>(null)
   const [elabBusy, setElabBusy] = useState(false)
+  // Watching is the default — the walkthrough is the richer way in for most children.
+  const [mode, setMode] = useState<LessonMode>('watch')
 
   useEffect(() => {
     if (!topicId) return
@@ -110,9 +129,13 @@ export default function Knowledge() {
             <article className="card lesson">
               <div className="lesson-head">
                 <h1>{data.topicName}</h1>
-                <ReadAloud text={fullText(c)} label="Read the lesson" />
+                {/* In watch mode Aria narrates each beat, so the read-it-all button would fight her. */}
+                {mode === 'read' && <ReadAloud text={fullText(c)} label="Read the lesson" />}
               </div>
-              <LessonBody content={c} />
+              <ModeToggle mode={mode} onChange={setMode} />
+              {mode === 'watch'
+                ? <TutorLesson content={c} topicName={data.topicName} />
+                : <LessonBody content={c} />}
             </article>
 
             {manipForTopic(data.topicName) && (
@@ -136,9 +159,11 @@ export default function Knowledge() {
               <article className="card lesson elaborate-card">
                 <div className="lesson-head">
                   <h2>🌟 Another way to see it</h2>
-                  <ReadAloud text={fullText(elab)} label="Read this" />
+                  {mode === 'read' && <ReadAloud text={fullText(elab)} label="Read this" />}
                 </div>
-                <LessonBody content={elab} />
+                {mode === 'watch'
+                  ? <TutorLesson content={elab} topicName={data.topicName} />
+                  : <LessonBody content={elab} />}
               </article>
             )}
 

@@ -1053,3 +1053,145 @@ input:focus, select:focus, textarea:focus {
 .tutor-mode-emoji { font-size: 1.6rem; }
 .tutor-mode-name { font-family: var(--font-head); font-weight: 800; color: var(--ink); }
 .tutor-mode-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.3; }
+
+/* ══ Animated tutor walkthrough (learn step) ═══════════════════════
+   Aria is drawn as an SVG owl whose parts are animated purely in CSS, so the
+   character costs nothing per frame. Every motion here is switched off in the
+   reduced-motion block at the end of this section. */
+
+.tutor-stage {
+  background: linear-gradient(160deg, #eef1ff 0%, #fdf2ff 55%, #fff7ed 100%);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem;
+  margin-bottom: 1rem;
+}
+.tutor-stage__row { display: flex; align-items: center; gap: 0.9rem; }
+.tutor-stage__aria { flex: 0 0 auto; }
+.tutor-stage__visual { display: flex; justify-content: center; margin-top: 0.9rem; }
+
+/* ── Speech bubble ─────────────────────────────────────────────── */
+.tutor-bubble {
+  position: relative; flex: 1 1 auto; min-height: 92px;
+  display: flex; flex-direction: column; justify-content: center; gap: 0.6rem;
+  background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+  padding: 0.9rem 1rem;
+}
+/* Tail pointing back at Aria, drawn as two stacked triangles for the border. */
+.tutor-bubble::before, .tutor-bubble::after {
+  content: ''; position: absolute; left: -12px; top: 38px;
+  border: 12px solid transparent; border-right-color: var(--border); border-left: 0;
+}
+.tutor-bubble::after { left: -9px; border-right-color: var(--card); }
+.tutor-bubble__text { margin: 0; font-size: 1.06rem; line-height: 1.5; color: var(--ink); }
+.tutor-start { align-self: flex-start; }
+
+/* ── Controls and the step track ───────────────────────────────── */
+.tutor-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; }
+.tutor-play { min-width: 104px; }
+.tutor-track { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 0.75rem; }
+.tutor-tick {
+  width: 22px; height: 7px; padding: 0; border: 0; border-radius: 99px;
+  background: #dcd9f5; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+}
+.tutor-tick:hover { transform: scaleY(1.5); }
+.tutor-tick.is-done { background: var(--indigo); }
+.tutor-tick.is-now { background: var(--accent); transform: scaleY(1.7); }
+.tutor-count { margin: 0.4rem 0 0; font-size: 0.82rem; }
+
+/* ── The owl ───────────────────────────────────────────────────── */
+.aria-owl { display: block; overflow: visible; }
+.aria-owl * { transform-box: fill-box; transform-origin: center; }
+
+.owl-shell { fill: #7c6ce0; }
+.owl-belly { fill: #ede9ff; }
+.owl-tuft, .owl-wing { fill: #6455c4; }
+.owl-eye { fill: #fff; }
+.owl-pupil { fill: #232135; }
+.owl-glint { fill: #fff; }
+.owl-lid { fill: #7c6ce0; }
+.owl-beak { fill: var(--accent); }
+.owl-foot { stroke: var(--accent-dark); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.owl-brow { stroke: #4a3fa0; stroke-width: 3.5; stroke-linecap: round; opacity: 0; transition: opacity 0.2s ease; }
+
+/* Constant gentle life: she breathes, and blinks every few seconds. */
+.owl-body { animation: owl-bob 2.8s ease-in-out infinite alternate; }
+.owl-lid { animation: owl-blink 5s ease-in-out infinite; }
+.owl-pupil { animation: owl-look 6s ease-in-out infinite; }
+
+@keyframes owl-bob { from { transform: translateY(3px) } to { transform: translateY(-5px) } }
+@keyframes owl-blink { 0%, 92%, 100% { transform: scaleY(0) } 95%, 97% { transform: scaleY(1) } }
+@keyframes owl-look { 0%, 40%, 100% { transform: translateX(0) } 55%, 75% { transform: translateX(3px) } }
+
+/* Beak flaps only while speech is actually playing. */
+.aria-owl.is-speaking .owl-beak { animation: owl-talk 0.26s ease-in-out infinite alternate; }
+@keyframes owl-talk { from { transform: scaleY(1) } to { transform: scaleY(1.55) } }
+
+/* Pointing: she leans toward the picture and swings a wing out. */
+.aria-owl--pointing .owl-body { animation: owl-bob 2.8s ease-in-out infinite alternate, owl-lean 0.5s ease forwards; }
+.aria-owl--pointing .owl-wing--r { animation: owl-point 0.55s ease forwards; }
+@keyframes owl-lean { to { transform: rotate(-7deg) } }
+@keyframes owl-point { to { transform: rotate(-42deg) translateY(-10px) scaleX(1.35) } }
+
+/* Cheering: both wings up, with a bounce. */
+.aria-owl--cheering .owl-body { animation: owl-hop 0.65s ease-in-out infinite alternate; }
+.aria-owl--cheering .owl-wing--l { animation: owl-flap-l 0.4s ease-in-out infinite alternate; }
+.aria-owl--cheering .owl-wing--r { animation: owl-flap-r 0.4s ease-in-out infinite alternate; }
+@keyframes owl-hop { from { transform: translateY(2px) } to { transform: translateY(-10px) } }
+@keyframes owl-flap-l { from { transform: rotate(0) } to { transform: rotate(38deg) translateY(-8px) } }
+@keyframes owl-flap-r { from { transform: rotate(0) } to { transform: rotate(-38deg) translateY(-8px) } }
+
+/* Thinking: head tilt and a furrowed brow. */
+.aria-owl--thinking .owl-body { animation: owl-bob 2.8s ease-in-out infinite alternate, owl-tilt 0.6s ease forwards; }
+.aria-owl--thinking .owl-brow { opacity: 1; }
+@keyframes owl-tilt { to { transform: rotate(8deg) } }
+
+/* ── Pieces appearing as a visual is assembled ─────────────────── */
+.av-vis { margin: 0; }
+.av-item, .av-dot, .av-shape {
+  opacity: 0; transform: scale(0.35);
+  transition: opacity 0.26s ease, transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.av-item--in, .av-dot--in, .av-shape--in { opacity: 1; transform: scale(1); }
+.av-item { display: inline-block; }
+
+.av-arc { stroke-dasharray: 400; stroke-dashoffset: 400; transition: stroke-dashoffset 0.45s ease; }
+.av-arc--in { stroke-dashoffset: 0; }
+.av-stop { opacity: 0; transition: opacity 0.25s ease; }
+.av-stop--in { opacity: 1; }
+.av-seg { transition: fill 0.3s ease; }
+.av-hopper { transition: transform 0.42s cubic-bezier(0.34, 1.4, 0.64, 1); }
+
+/* ── Watch / Read toggle ───────────────────────────────────────── */
+.lesson-modes { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; }
+.lesson-mode {
+  border: 2px solid var(--border); background: var(--card); border-radius: 99px;
+  padding: 0.35rem 0.9rem; cursor: pointer; font-family: var(--font-head); font-weight: 600;
+  color: var(--muted); transition: all 0.15s ease;
+}
+.lesson-mode:hover { border-color: var(--indigo); }
+.lesson-mode--on { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+
+@media (max-width: 560px) {
+  .tutor-stage__row { flex-direction: column; align-items: stretch; }
+  .tutor-stage__aria { align-self: center; }
+  /* Tail flips to the top once Aria sits above the bubble. */
+  .tutor-bubble::before, .tutor-bubble::after {
+    left: 50%; top: -12px; border: 12px solid transparent;
+    border-bottom-color: var(--border); border-top: 0;
+  }
+  .tutor-bubble::after { top: -9px; border-bottom-color: var(--card); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .owl-body, .owl-lid, .owl-pupil, .owl-beak,
+  .owl-wing--l, .owl-wing--r,
+  .aria-owl.is-speaking .owl-beak { animation: none !important; }
+  .owl-lid { transform: scaleY(0); }
+  .av-item, .av-dot, .av-shape { opacity: 1; transform: none; transition: none; }
+  .av-arc { stroke-dashoffset: 0; transition: none; }
+  .av-stop { opacity: 1; transition: none; }
+  .av-hopper, .av-seg { transition: none; }
+  .tutor-tick { transition: none; }
+}
