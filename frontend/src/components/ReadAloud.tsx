@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useVoices } from '../lib/useVoices'
-import { chooseVoice, speakSafely, utter } from '../lib/voice'
+import { loadSavedVoiceURI, speakSafely, utter } from '../lib/voice'
 
 /**
  * Reads text aloud using the browser's built-in speech synthesis (offline, no backend).
@@ -11,14 +10,13 @@ import { chooseVoice, speakSafely, utter } from '../lib/voice'
 export default function ReadAloud({ text, label = 'Read to me' }: { text: string; label?: string }) {
   const [speaking, setSpeaking] = useState(false)
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
-  const voices = useVoices()
 
   useEffect(() => () => { if (supported) window.speechSynthesis.cancel() }, [supported])
 
   const toggle = () => {
     if (!supported) return
     if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return }
-    const u = utter(text, chooseVoice(voices)?.voiceURI)
+    const u = utter(text, loadSavedVoiceURI())
     u.onend = () => setSpeaking(false)
     u.onerror = () => setSpeaking(false)
     setSpeaking(true)

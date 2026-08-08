@@ -5,7 +5,7 @@ import AriaTutor from './AriaTutor'
 import AnimatedVisual, { usePrefersReducedMotion } from './AnimatedVisual'
 import VoicePicker from './VoicePicker'
 import { useVoices } from '../lib/useVoices'
-import { chooseVoice, plainUtter, primeSpeech, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
+import { loadSavedVoiceURI, plainUtter, primeSpeech, saveVoiceURI, speakSafely, usableVoices, utter } from '../lib/voice'
 
 interface TutorLessonProps {
   content: KnowledgeContent
@@ -47,13 +47,23 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-  // Narration voice: the family's saved choice, else the best one installed.
+  // Narration voice: whatever the family chose, or the browser's own default.
   const voices = useVoices()
-  const [voiceURI, setVoiceURI] = useState<string | null>(null)
-  const voice = useMemo(() => {
-    const saved = voiceURI ? usableVoices(voices).find((v) => v.voiceURI === voiceURI) : undefined
-    return saved ?? chooseVoice(voices)
-  }, [voices, voiceURI])
+  const [voiceURI, setVoiceURI] = useState<string | null>(() => loadSavedVoiceURI())
+
+  /*
+   * Nothing is assigned unless a voice was actually chosen.
+   *
+   * Narration worked before this component ever set utterance.voice and stopped the
+   * moment it started choosing one, so the browser's own default is the only setting
+   * known to produce sound on every machine. Auto-picking a "better" voice is what
+   * broke it, and no scoring heuristic is worth silence. The picker still overrides
+   * this whenever someone wants a different voice.
+   */
+  const voice = useMemo(
+    () => (voiceURI ? usableVoices(voices).find((v) => v.voiceURI === voiceURI) : undefined),
+    [voices, voiceURI],
+  )
 
   /*
    * Only the URI is carried around. getVoices() hands back a fresh array on every call,

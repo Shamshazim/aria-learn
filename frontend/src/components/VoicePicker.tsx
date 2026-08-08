@@ -39,6 +39,8 @@ export default function VoicePicker({ voices, value, onChange }: VoicePickerProp
         value={value?.voiceURI ?? ''}
         onChange={(e) => onChange(e.target.value)}
       >
+        {/* Default first: the browser's own choice is the one that always makes sound. */}
+        <option value="">Default voice</option>
         {options.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{label(v)}</option>)}
       </select>
     </label>

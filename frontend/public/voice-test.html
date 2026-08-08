@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aria voice test</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 40rem; margin: 2rem auto;
+         padding: 0 1rem; line-height: 1.5; color: #232135; }
+  h1 { font-size: 1.3rem; }
+  button { font-size: 1rem; padding: 0.6rem 1rem; margin: 0.25rem 0.4rem 0.25rem 0;
+           border-radius: 10px; border: 2px solid #6366f1; background: #6366f1; color: #fff;
+           cursor: pointer; }
+  button.alt { background: #fff; color: #4f46e5; }
+  #log { background: #0f172a; color: #d1fae5; padding: 0.9rem; border-radius: 10px;
+         white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size: 0.82rem;
+         min-height: 8rem; margin-top: 1rem; }
+  .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.7rem 0.9rem;
+          border-radius: 6px; font-size: 0.92rem; }
+</style>
+</head>
+<body>
+  <h1>Aria voice test</h1>
+  <p class="note">This page uses <strong>nothing</strong> from the Aria Learn app — just the browser's
+  own speech. If a button here is silent, the problem is Chrome or macOS, not the app.</p>
+
+  <p>Turn the volume up, then press the buttons in order.</p>
+
+  <button id="local">1 · Speak with a device voice</button>
+  <button id="default" class="alt">2 · Speak with the browser default</button>
+  <button id="cloud" class="alt">3 · Speak with a Google cloud voice</button>
+  <button id="reset" class="alt">Reset engine</button>
+
+  <div id="log">Ready. Press a button above.</div>
+
+<script>
+const out = document.getElementById('log')
+const s = window.speechSynthesis
+let lines = []
+const say = (m) => { lines.push(m); out.textContent = lines.slice(-22).join('\n') }
+
+function voices() { return s.getVoices() }
+function firstLocal() {
+  const v = voices().filter(v => v.lang.startsWith('en') && v.localService)
+  return v.find(x => x.name === 'Samantha') || v[0]
+}
+function firstCloud() {
+  return voices().find(v => v.lang.startsWith('en') && !v.localService)
+}
+
+function test(label, voice) {
+  lines = []
+  say(`▶ ${label}`)
+  say(`  voice: ${voice ? voice.name : '(browser default)'}${voice ? (voice.localService ? ' [on device]' : ' [CLOUD]') : ''}`)
+  s.cancel()
+  const u = new SpeechSynthesisUtterance('Hello! I am Aria. Can you hear me?')
+  u.rate = 0.9
+  if (voice) u.voice = voice
+  let started = false
+  u.onstart = () => { started = true; say('  ✓ onstart — audio has begun') }
+  u.onend   = () => say('  ✓ onend — finished cleanly')
+  u.onerror = (e) => say('  ✗ error: ' + e.error)
+  s.speak(u)
+  setTimeout(() => {
+    say(`  after 3s → speaking=${s.speaking} pending=${s.pending} paused=${s.paused}`)
+    if (!started && s.speaking) say('  ⚠ ENGINE WEDGED: claims to be speaking but never started.\n     Quit Chrome completely (Cmd+Q) and reopen — a reload will not clear this.')
+    else if (!started) say('  ⚠ Never started. This voice produced nothing.')
+    else say('  → If you heard it, this voice works.')
+  }, 3000)
+}
+
+document.getElementById('local').onclick   = () => test('Device voice', firstLocal())
+document.getElementById('default').onclick = () => test('Browser default', undefined)
+document.getElementById('cloud').onclick   = () => {
+  const c = firstCloud()
+  if (!c) return say('No cloud voices installed on this machine.')
+  test('Google cloud voice', c)
+}
+document.getElementById('reset').onclick = () => {
+  s.cancel(); s.resume()
+  lines = []
+  say(`Engine reset requested → speaking=${s.speaking} pending=${s.pending} paused=${s.paused}`)
+  const en = voices().filter(v => v.lang.startsWith('en'))
+  say(`English voices: ${en.length} (${en.filter(v => v.localService).length} on device, ${en.filter(v => !v.localService).length} cloud)`)
+}
+
+// Voice lists arrive asynchronously in Chrome.
+s.addEventListener('voiceschanged', () => {
+  const en = voices().filter(v => v.lang.startsWith('en'))
+  say(`Voices loaded: ${en.length} English (${en.filter(v => v.localService).length} on device)`)
+})
+</script>
+</body>
+</html>
