@@ -54,8 +54,15 @@ export function score(v: SpeechSynthesisVoice): number {
   const pi = PREFERRED.findIndex((p) => n.startsWith(p))
   if (pi >= 0) s += 70 - pi
 
-  // Network voices in Chrome ("Google …") are usually better than local compact ones.
-  if (!v.localService) s += 25
+  /*
+   * Never auto-pick a cloud voice. Chrome's "Google …" voices are synthesised on
+   * Google's servers, and when that service can't be reached they produce no audio and
+   * no error event — speechSynthesis just reports speaking:true forever. This scorer
+   * originally rewarded them for sounding better, which is how a working local voice
+   * got replaced by silence. They stay in the picker for anyone who wants them; they
+   * simply never win by default.
+   */
+  if (!v.localService) s -= 45
 
   const lang = (v.lang || '').toLowerCase()
   if (lang.startsWith('en-us')) s += 15
@@ -187,9 +194,25 @@ export function utter(text: string, voiceURI?: string | null): SpeechSynthesisUt
   return u
 }
 
-/** An utterance with nothing configured but the pacing — the most compatible form. */
+/**
+ * The most reliable voice available: the best one that synthesises on this device.
+ * Used for recovery, since a device voice can't fail for want of a network.
+ */
+export function bestLocalVoice(): SpeechSynthesisVoice | undefined {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return undefined
+  return usableVoices(window.speechSynthesis.getVoices()).find((v) => v.localService)
+}
+
+/**
+ * A recovery utterance: paced like the rest, but pinned to an on-device voice.
+ *
+ * Deliberately does not rely on the browser default, which on Chrome can itself be a
+ * cloud voice — the very thing being recovered from.
+ */
 export function plainUtter(text: string): SpeechSynthesisUtterance {
   const u = new SpeechSynthesisUtterance(text)
+  const local = bestLocalVoice()
+  if (local) u.voice = local
   u.rate = CALM.rate
   u.pitch = CALM.pitch
   return u

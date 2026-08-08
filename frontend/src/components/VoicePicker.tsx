@@ -11,7 +11,9 @@ interface VoicePickerProps {
 function label(v: SpeechSynthesisVoice): string {
   const name = v.name.replace(/\s*\((Enhanced|Premium)\)\s*/i, ' ✨').trim()
   const region = v.lang?.toUpperCase().split('-')[1]
-  return region && !name.includes(region) ? `${name} · ${region}` : name
+  const base = region && !name.includes(region) ? `${name} · ${region}` : name
+  // Cloud voices go quiet when the service can't be reached, so say so up front.
+  return v.localService ? base : `${base} (needs internet)`
 }
 
 /**
