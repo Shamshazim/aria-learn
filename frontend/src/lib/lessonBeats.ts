@@ -63,6 +63,9 @@ export function buildBeats(content: KnowledgeContent, topicName: string): Beat[]
   beats.push({
     kind: 'intro',
     say: `Let's learn about ${topicName}! Follow along with me.`,
+    // Seeding the opening from the topic name means the stage isn't blank through the
+    // first few sentences, which are usually scene-setting prose with nothing drawable.
+    visual: inferVisual(topicName) ?? undefined,
     mood: 'cheering',
     label: 'Hello',
   })

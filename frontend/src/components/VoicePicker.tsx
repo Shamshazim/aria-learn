@@ -1,4 +1,4 @@
-import { usableVoices, utter } from '../lib/voice'
+import { usableVoices } from '../lib/voice'
 
 interface VoicePickerProps {
   voices: SpeechSynthesisVoice[]
@@ -18,15 +18,16 @@ function label(v: SpeechSynthesisVoice): string {
  * Lets a family pick the narration voice. Which voices exist varies enormously by
  * machine and browser, and "pleasant" is a matter of taste, so the choice is theirs —
  * the app only guarantees the joke voices never appear and the best one is preselected.
+ *
+ * This component deliberately never calls speechSynthesis itself. It used to speak a
+ * preview here, which raced the lesson's own playback: both cancelled and re-queued the
+ * one global speech engine within milliseconds of each other, and that rapid
+ * cancel/speak churn is what left Aria silent after changing voice. The owning component
+ * drives all speech instead.
  */
 export default function VoicePicker({ voices, value, onChange }: VoicePickerProps) {
   const options = usableVoices(voices)
   if (options.length <= 1) return null
-
-  const preview = (v: SpeechSynthesisVoice) => {
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utter("Hi! I'm Aria. Let's learn something together.", v))
-  }
 
   return (
     <label className="voice-pick">
@@ -34,11 +35,7 @@ export default function VoicePicker({ voices, value, onChange }: VoicePickerProp
       <select
         className="voice-pick__select"
         value={value?.voiceURI ?? ''}
-        onChange={(e) => {
-          onChange(e.target.value)
-          const v = options.find((o) => o.voiceURI === e.target.value)
-          if (v) preview(v)
-        }}
+        onChange={(e) => onChange(e.target.value)}
       >
         {options.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{label(v)}</option>)}
       </select>

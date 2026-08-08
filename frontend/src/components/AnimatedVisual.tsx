@@ -377,7 +377,9 @@ function WordCards({ v, shown }: { v: Visual; shown: number }) {
  * Same five visual types the static MathVisual renders, but assembled piece by piece
  * while Aria narrates the beat they belong to.
  */
-export default function AnimatedVisual({ visual, playing }: { visual: Visual; playing: boolean }) {
+export default function AnimatedVisual(
+  { visual, playing, showCaption = true }: { visual: Visual; playing: boolean; showCaption?: boolean },
+) {
   const reduced = usePrefersReducedMotion()
   const total = visualStepCount(visual)
   const shown = useBuildUp(total, playing, reduced)
@@ -402,7 +404,7 @@ export default function AnimatedVisual({ visual, playing }: { visual: Visual; pl
   return (
     <figure className="vis av-vis">
       {body}
-      {visual.caption && <figcaption className="vis-cap av-cap">{visual.caption}</figcaption>}
+      {showCaption && visual.caption && <figcaption className="vis-cap av-cap">{visual.caption}</figcaption>}
     </figure>
   )
 }

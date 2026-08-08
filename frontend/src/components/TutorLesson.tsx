@@ -39,6 +39,7 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const [speaking, setSpeaking] = useState(false)
 
   const timer = useRef<number | null>(null)
+  const watchdog = useRef<number | null>(null)
   const finished = useRef(false)
   const ttsOk = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -50,8 +51,19 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
     return saved ?? chooseVoice(voices)
   }, [voices, voiceURI])
 
+  /*
+   * getVoices() hands back a fresh array on every call, so anything derived from it can
+   * change identity without the chosen voice actually changing. The playback effect keys
+   * off the stable voiceURI and reads the object through a ref, so a voice-list refresh
+   * mid-sentence can't restart the effect and cancel Aria in the middle of a word.
+   */
+  const voiceRef = useRef<SpeechSynthesisVoice | undefined>(undefined)
+  voiceRef.current = voice
+  const voiceKey = voice?.voiceURI ?? ''
+
   const clearTimer = () => {
     if (timer.current !== null) { clearTimeout(timer.current); timer.current = null }
+    if (watchdog.current !== null) { clearTimeout(watchdog.current); watchdog.current = null }
   }
 
   const stopSpeech = useCallback(() => {
@@ -105,18 +117,49 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
 
     if (ttsOk && !muted) {
       window.speechSynthesis.cancel()
-      const u = utter(beat.say, voice)
-      u.onend = () => { if (!cancelled) { setSpeaking(false); advance() } }
-      u.onerror = () => { if (!cancelled) { setSpeaking(false); advance() } }
+      const u = utter(beat.say, voiceRef.current)
+
+      // onend must only ever take effect once, whichever path gets there first.
+      let done = false
+      const finish = () => {
+        if (done || cancelled) return
+        done = true
+        setSpeaking(false)
+        advance()
+      }
+      u.onend = finish
+      u.onerror = finish
       setSpeaking(true)
       // Chrome occasionally drops an utterance queued in the same tick as a cancel().
       timer.current = window.setTimeout(() => window.speechSynthesis.speak(u), 60)
+
+      /*
+       * Chrome regularly stops speaking without ever firing onend — reproducibly so on
+       * longer sentences. Waiting on that event alone froze the walkthrough on the beat
+       * with no voice and no way forward, which is what made Aria seem to go mute. If
+       * the utterance hasn't reported back well past its expected length, give up on it
+       * and carry on rather than stalling.
+       */
+      watchdog.current = window.setTimeout(finish, readingMs(beat.say) * 1.9 + 1500)
     } else {
       timer.current = window.setTimeout(advance, readingMs(beat.say))
     }
 
     return () => { cancelled = true; clearTimer(); if (ttsOk) window.speechSynthesis.cancel(); setSpeaking(false) }
-  }, [i, playing, muted, beat, last, reduced, ttsOk, voice])
+  }, [i, playing, muted, beat, last, reduced, ttsOk, voiceKey])
+
+  /*
+   * Chrome's speech engine goes quiet part-way through anything longer than roughly
+   * fifteen seconds. Nudging resume() while it should be talking keeps it alive; it is
+   * a no-op when nothing is paused, so it's safe on engines without the bug.
+   */
+  useEffect(() => {
+    if (!ttsOk || !speaking) return
+    const id = window.setInterval(() => {
+      if (window.speechSynthesis.speaking) window.speechSynthesis.resume()
+    }, 9000)
+    return () => clearInterval(id)
+  }, [ttsOk, speaking])
 
   // Never leave speech running when the child navigates away.
   useEffect(() => () => { clearTimer(); if (ttsOk) window.speechSynthesis.cancel() }, [ttsOk])
@@ -124,6 +167,30 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   useEffect(() => {
     if (last && started && !finished.current) { finished.current = true; onFinish?.() }
   }, [last, started, onFinish])
+
+  /*
+   * Changing voice has exactly one audible path, never two competing ones.
+   *
+   * Mid-lesson, the playback effect keys off voiceKey and re-speaks the current beat in
+   * the new voice — one cancel, one speak. Only when nothing is playing does this speak
+   * a sample itself, because then no other timer is touching the engine.
+   */
+  const changeVoice = (uri: string) => {
+    setVoiceURI(uri)
+    saveVoiceURI(uri)
+    if (playing || !ttsOk || muted) return
+
+    clearTimer()
+    window.speechSynthesis.cancel()
+    const picked = usableVoices(voices).find((v) => v.voiceURI === uri)
+    timer.current = window.setTimeout(() => {
+      const u = utter("Hi! I'm Aria. Let's learn something together.", picked)
+      u.onend = () => setSpeaking(false)
+      u.onerror = () => setSpeaking(false)
+      setSpeaking(true)
+      window.speechSynthesis.speak(u)
+    }, 120)
+  }
 
   const start = () => { setStarted(true); setPlaying(true); setI(0); finished.current = false }
   const toggle = () => { if (playing) { clearTimer(); stopSpeech(); setPlaying(false) } else setPlaying(true) }
@@ -155,7 +222,13 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
       {started && stage && (
         <div className={`tutor-stage__visual ${stage.from === i ? '' : 'is-carried'}`}>
           {/* Keyed on the beat that owns the picture, so carrying it forward doesn't replay it. */}
-          <AnimatedVisual key={stage.from} visual={stage.visual} playing={playing && stage.from === i} />
+          {/* On a picture beat, Aria is already saying the caption — don't print it twice. */}
+          <AnimatedVisual
+            key={stage.from}
+            visual={stage.visual}
+            playing={playing && stage.from === i}
+            showCaption={stage.visual.caption !== beats[stage.from].say}
+          />
         </div>
       )}
 
@@ -167,22 +240,21 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
               {playing ? '⏸ Pause' : (last ? '↻ Again' : '▶ Play')}
             </button>
             <button className="btn btn--ghost" onClick={() => go(i + 1)} disabled={last}>Next ⏭</button>
+            {/* Labelled with what the click does, not with the current state — reading
+                "Voice on" as a status and clicking it to enable sound muted Aria instead. */}
             <button
-              className="btn btn--ghost"
+              className={`btn btn--ghost ${muted ? 'is-muted' : ''}`}
               onClick={() => { setMuted((m) => !m); stopSpeech() }}
-              title={muted ? 'Turn Aria’s voice on' : 'Turn Aria’s voice off'}
+              aria-pressed={muted}
+              title={muted ? 'Aria is silent — turn her voice back on' : 'Mute Aria’s voice'}
             >
-              {muted ? '🔇 Voice off' : '🔊 Voice on'}
+              {muted ? '🔇 Unmute Aria' : '🔊 Mute Aria'}
             </button>
             {last && <button className="btn btn--ghost" onClick={replay}>↺ Watch again</button>}
           </div>
 
           {!muted && (
-            <VoicePicker
-              voices={voices}
-              value={voice}
-              onChange={(uri) => { setVoiceURI(uri); saveVoiceURI(uri) }}
-            />
+            <VoicePicker voices={voices} value={voice} onChange={changeVoice} />
           )}
 
           <div className="tutor-track" role="group" aria-label="Lesson steps">

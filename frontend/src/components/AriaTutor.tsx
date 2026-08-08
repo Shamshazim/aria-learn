@@ -35,9 +35,11 @@ export default function AriaTutor({ mood = 'idle', speaking = false, size = 150 
         <path className="owl-foot" d="M46 112 v9 M40 121 h12" />
         <path className="owl-foot" d="M74 112 v9 M68 121 h12" />
 
-        {/* Wings — the right one is the pointer */}
-        <ellipse className="owl-wing owl-wing--l" cx="19" cy="76" rx="10" ry="23" />
-        <ellipse className="owl-wing owl-wing--r" cx="101" cy="76" rx="10" ry="23" />
+        {/* Wings — the right one is the pointer. They sit proud of the body (which spans
+            17–103) so the flap and point animations are actually visible; tucked any
+            further in, the body paints straight over them. */}
+        <ellipse className="owl-wing owl-wing--l" cx="12" cy="76" rx="12" ry="25" />
+        <ellipse className="owl-wing owl-wing--r" cx="108" cy="76" rx="12" ry="25" />
 
         {/* Head and body are one blobby shape, the way a cartoon owl reads best */}
         <ellipse className="owl-shell" cx="60" cy="68" rx="43" ry="47" />
