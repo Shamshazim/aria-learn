@@ -1,4 +1,5 @@
 import { KnowledgeContent, Visual } from '../api'
+import { inferVisual } from './inferVisual'
 
 /** How Aria is drawn and animated while a beat plays. */
 export type TutorMood = 'idle' | 'talking' | 'pointing' | 'thinking' | 'cheering'
@@ -74,7 +75,15 @@ export function buildBeats(content: KnowledgeContent, topicName: string): Beat[]
   let vi = 0
 
   parts.forEach((s, i) => {
-    beats.push({ kind: 'explain', say: s, mood: 'talking', label: `Step ${i + 1}` })
+    // Draw whatever this sentence describes, so the beat isn't just Aria talking.
+    const drawn = inferVisual(s)
+    beats.push({
+      kind: 'explain',
+      say: s,
+      visual: drawn ?? undefined,
+      mood: drawn ? 'pointing' : 'talking',
+      label: `Step ${i + 1}`,
+    })
     if (vi < visuals.length && gap && (i + 1) % gap === 0) {
       const v = visuals[vi++]
       beats.push({
@@ -99,14 +108,19 @@ export function buildBeats(content: KnowledgeContent, topicName: string): Beat[]
     })
   }
 
+  // Examples, mistakes and tips are just as often about a concrete quantity, so they
+  // get a drawn picture on the same terms as the explanation.
   ;(content.realWorldExamples ?? []).forEach((e) =>
-    beats.push({ kind: 'example', say: `Here's one from real life. ${e}`, mood: 'talking', label: 'Real life' }))
+    beats.push({ kind: 'example', say: `Here's one from real life. ${e}`,
+                 visual: inferVisual(e) ?? undefined, mood: 'talking', label: 'Real life' }))
 
   ;(content.commonMistakes ?? []).forEach((m) =>
-    beats.push({ kind: 'mistake', say: `Watch out for this. ${m}`, mood: 'thinking', label: 'Watch out' }))
+    beats.push({ kind: 'mistake', say: `Watch out for this. ${m}`,
+                 visual: inferVisual(m) ?? undefined, mood: 'thinking', label: 'Watch out' }))
 
   ;(content.tips ?? []).forEach((t) =>
-    beats.push({ kind: 'tip', say: `Here's a tip. ${t}`, mood: 'pointing', label: 'Tip' }))
+    beats.push({ kind: 'tip', say: `Here's a tip. ${t}`,
+                 visual: inferVisual(t) ?? undefined, mood: 'pointing', label: 'Tip' }))
 
   if (content.summary) {
     beats.push({ kind: 'recap', say: `Let's recap. ${content.summary}`, mood: 'cheering', label: 'Recap' })
@@ -131,5 +145,12 @@ export function visualStepCount(v: Visual | undefined): number {
   if (t === 'numberline') return (v.jumps ?? []).length
   if (t === 'fractionbar') return Math.max(0, Math.min(v.shaded ?? 0, v.parts ?? 0))
   if (t === 'shape') return 1
+  if (t === 'tenframe') return (v.filled ?? 0) + (v.ones ?? 0)
+  if (t === 'baseten') return (v.hundreds ?? 0) + (v.tens ?? 0) + (v.ones ?? 0)
+  if (t === 'numberbond') return 3
+  if (t === 'comparison') return 2
+  if (t === 'clock') return 2
+  if (t === 'tally') return Math.min(v.count ?? 0, 30)
+  if (t === 'equation' || t === 'wordcards') return (v.terms ?? []).length
   return 0
 }

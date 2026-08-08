@@ -31,6 +31,22 @@ export interface Visual {
   parts?: number | null
   shaded?: number | null
   shape?: string | null
+
+  /* Fields for visuals inferred client-side from lesson text (lib/inferVisual.ts).
+     The backend never produces or receives these. */
+  filled?: number | null                 // tenFrame
+  hundreds?: number | null               // baseTen
+  tens?: number | null
+  ones?: number | null
+  whole?: number | null                  // numberBond
+  partA?: number | null
+  partB?: number | null
+  left?: number | null                   // comparison
+  right?: number | null
+  hour?: number | null                   // clock
+  minute?: number | null
+  count?: number | null                  // tally
+  terms?: string[] | null                // equation
 }
 export interface KnowledgeContent {
   explanation: string

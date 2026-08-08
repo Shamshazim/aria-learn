@@ -62,6 +62,20 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
   const beat = beats[i]
   const last = i >= beats.length - 1
 
+  /*
+   * Not every sentence describes something drawable, and a stage that blanks out
+   * between pictures is what makes the walkthrough feel like plain reading. So the
+   * most recent picture stays up as context until a new one replaces it — shown
+   * complete and dimmed, since it belongs to an earlier beat.
+   */
+  const stage = useMemo(() => {
+    for (let n = i; n >= 0; n--) {
+      const v = beats[n].visual
+      if (v) return { visual: v, from: n }
+    }
+    return null
+  }, [beats, i])
+
   const go = useCallback((n: number) => {
     clearTimer()
     stopSpeech()
@@ -138,9 +152,10 @@ export default function TutorLesson({ content, topicName, onFinish }: TutorLesso
         </div>
       </div>
 
-      {started && beat.visual && (
-        <div className="tutor-stage__visual">
-          <AnimatedVisual key={i} visual={beat.visual} playing={playing} />
+      {started && stage && (
+        <div className={`tutor-stage__visual ${stage.from === i ? '' : 'is-carried'}`}>
+          {/* Keyed on the beat that owns the picture, so carrying it forward doesn't replay it. */}
+          <AnimatedVisual key={stage.from} visual={stage.visual} playing={playing && stage.from === i} />
         </div>
       )}
 
