@@ -20,6 +20,14 @@ npm run dev
 ```
 Runs on http://localhost:5173.
 
+### Desktop app
+```bash
+cd /Users/shams/aria-learn/desktop
+npm run dist          # build the macOS .dmg (see desktop/README.md)
+npm start             # run the packaged stack locally
+```
+Bundles its own JRE, PostgreSQL and Ollama — see `docs/desktop-architecture.md`.
+
 ## Key directories
 ```
 backend/src/main/java/com/mathtutor/
@@ -45,6 +53,11 @@ frontend/src/
 
 ## Architecture notes
 - Flyway migrations in `db/migration/` — always add new migrations as V(n+1)__description.sql
+- The `desktop` Spring profile changes behaviour meaningfully: it serves the frontend from
+  the classpath, denies all CORS, disables Swagger and the demo-account seeder, and refuses
+  to start without a per-install `JWT_SECRET`. Keep desktop-only beans behind `@Profile`.
+- Migrations must stay PostgreSQL-compatible — the desktop app bundles a real PostgreSQL
+  server precisely so partial unique indexes and `TIMESTAMPTZ` keep working
 - AI prompts are in `GenerationService.java` — structured JSON output with a repair loop
 - `MathAnswerChecker.java` does deterministic place-value checking before AI fallback
 - Tutor modes are DB-driven — adding a new mode = one SQL row in `tutor_modes`, zero code changes

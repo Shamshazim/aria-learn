@@ -1,0 +1,23 @@
+{
+  "name": "aria-learn-desktop",
+  "productName": "Aria Learn",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aria Learn — offline AI tutor for kids, packaged as a desktop app",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:runtime": "node scripts/build-runtime.mjs",
+    "dist": "npm run build:runtime && electron-builder --mac",
+    "dist:dir": "npm run build:runtime && electron-builder --mac --dir",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  }
+}

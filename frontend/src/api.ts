@@ -11,6 +11,9 @@ export interface TokenResponse {
   displayName: string
 }
 
+/** True once this installation has a parent account; setup is then permanently closed. */
+export interface SetupStatus { configured: boolean }
+
 export interface Subject { id: string; name: string; slug: string; description: string | null }
 export interface Grade { id: string; name: string; levelOrder: number; subjectId: string }
 export interface Topic { id: string; name: string; ordering: number; learningObjectives: string[] }
@@ -297,6 +300,12 @@ export interface FlagItem {
 export const api = {
   login: (usernameOrEmail: string, password: string) =>
     request<TokenResponse>('POST', '/auth/login', { usernameOrEmail, password }),
+
+  // First-run setup. The desktop build ships with an empty database, so the app asks the
+  // backend whether an account exists before deciding to show setup or sign-in.
+  setupStatus: () => request<SetupStatus>('GET', '/setup/status'),
+  createFirstParent: (username: string, password: string) =>
+    request<TokenResponse>('POST', '/setup/parent', { username, password }),
 
   changePassword: (currentPassword: string, newPassword: string) =>
     request<void>('POST', '/account/change-password', { currentPassword, newPassword }),

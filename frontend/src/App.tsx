@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth'
 import Login from './pages/Login'
+import Setup from './pages/Setup'
 import ParentDashboard from './pages/ParentDashboard'
 import MasteryConfigPage from './pages/MasteryConfigPage'
 import ChildInsights from './pages/ChildInsights'
@@ -19,8 +20,48 @@ import Examples from './pages/Examples'
 import GuidedPractice from './pages/GuidedPractice'
 import Quiz from './pages/Quiz'
 import Homework from './pages/Homework'
-import { ReactNode } from 'react'
-import { Role } from './api'
+import { ReactNode, useEffect, useState } from 'react'
+import { api, Role } from './api'
+
+/**
+ * Sends a brand-new installation to the setup wizard before anything else can render.
+ *
+ * Without this a parent opening the app for the first time would meet a sign-in form with
+ * no account to sign in to. The check runs once per app load and is skipped entirely once
+ * an account exists.
+ *
+ * If the status call fails we assume the app is configured and fall through to the normal
+ * routes: a transient error should surface as a normal sign-in failure, not trap someone
+ * with an existing account in a setup screen that will refuse them.
+ */
+function SetupGate({ children }: { children: ReactNode }) {
+  const [configured, setConfigured] = useState<boolean | null>(null)
+  const location = useLocation()
+
+  useEffect(() => {
+    let cancelled = false
+    api.setupStatus()
+      .then((s) => { if (!cancelled) setConfigured(s.configured) })
+      .catch(() => { if (!cancelled) setConfigured(true) })
+    return () => { cancelled = true }
+  }, [])
+
+  if (configured === null) {
+    return (
+      <div className="auth-screen">
+        <div className="card auth-card">
+          <div className="mascot">🦉</div>
+          <p className="muted">Waking Aria up...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!configured && location.pathname !== '/setup') {
+    return <Navigate to="/setup" replace />
+  }
+  return <>{children}</>
+}
 
 function Protected({ role, children }: { role: Role; children: ReactNode }) {
   const { user } = useAuth()
@@ -37,7 +78,9 @@ function Home() {
 
 export default function App() {
   return (
+    <SetupGate>
     <Routes>
+      <Route path="/setup" element={<Setup />} />
       <Route path="/login" element={<Login />} />
       <Route path="/parent" element={<Protected role="PARENT"><ParentDashboard /></Protected>} />
       <Route path="/parent/mastery-config" element={<Protected role="PARENT"><MasteryConfigPage /></Protected>} />
@@ -60,5 +103,6 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="*" element={<Home />} />
     </Routes>
+    </SetupGate>
   )
 }

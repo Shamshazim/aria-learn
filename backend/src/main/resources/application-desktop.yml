@@ -1,0 +1,46 @@
+# Desktop build profile.
+#
+# Activated by the Electron launcher, which supervises a private PostgreSQL instance and
+# generates per-install secrets before starting this process. Nothing here has a usable
+# default: every value below is injected by the launcher, and the app refuses to boot if a
+# secret is missing (see DesktopEnvironmentGuard). That is deliberate — a shipped binary
+# must never fall back to a well-known credential.
+
+server:
+  # Loopback only. Without this the family's tutor API would be reachable by anything else
+  # on the coffee-shop wifi.
+  address: 127.0.0.1
+  port: ${SERVER_PORT}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  # The bundled frontend is served from this process, so the whole app is one origin and
+  # CORS never enters the picture.
+  web:
+    resources:
+      static-locations: classpath:/static/
+  flyway:
+    enabled: true
+    # Never on a real install: the desktop database is created by us and always starts at V1,
+    # so an unexpected non-empty schema means something is wrong and should fail loudly.
+    baseline-on-migrate: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+
+# Swagger is a development affordance; shipping it to families only widens the surface.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# Only the console appender is configured: the launcher redirects this process's stdout and
+# stderr into logs/backend.log, so adding a file appender here would write every line twice.
+logging:
+  level:
+    com.mathtutor: INFO
