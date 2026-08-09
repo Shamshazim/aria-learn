@@ -3,6 +3,8 @@ backend/target/
 frontend/dist/
 frontend/node_modules/
 *.tsbuildinfo
+# The desktop build copies the compiled frontend in here; it is generated, never edited.
+backend/src/main/resources/static/
 
 # ── Logs ─────────────────────────────────────────────────────
 *.log

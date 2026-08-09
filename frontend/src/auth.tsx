@@ -10,6 +10,9 @@ interface AuthState {
 interface AuthContextValue {
   user: AuthState | null
   login: (usernameOrEmail: string, password: string) => Promise<Role>
+  /** Accepts tokens issued outside the login form, so first-run setup can sign the
+   *  parent in with the account they just created instead of asking for it twice. */
+  adoptSession: (res: TokenResponse) => void
   logout: () => void
 }
 
@@ -36,12 +39,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.role
   }
 
+  const adoptSession = (res: TokenResponse) => {
+    tokens.save(res)
+    setUser({ id: res.id, role: res.role, displayName: res.displayName })
+  }
+
   const logout = () => {
     tokens.clear()
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, login, adoptSession, logout }}>{children}</AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
