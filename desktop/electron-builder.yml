@@ -38,9 +38,12 @@ mac:
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  # Signing is opt-in: an unsigned build is still installable (right-click → Open), and
-  # electron-builder skips signing when no identity is configured.
-  identity: null
+  # Signing and notarization are on by default and pick up whatever Developer ID certificate
+  # is available, so a properly configured build needs no extra flags. Builds without a
+  # certificate must opt out explicitly — see the "dist:unsigned" script and the release
+  # workflow — because a silently unsigned release is one macOS refuses to open, and that
+  # should be a deliberate choice rather than something that happens by accident.
+  notarize: true
   gatekeeperAssess: false
 
 dmg:

@@ -114,5 +114,6 @@ Entitlements and hardened-runtime settings are already in place, and
 `.github/workflows/release-desktop.yml` builds, signs, notarizes and publishes to GitHub
 Releases as soon as the signing secrets exist.
 
-Full instructions, costs, workarounds, and the hardware the other person needs:
+Step-by-step certificate guide: [`../docs/apple-signing.md`](../docs/apple-signing.md).
+Costs, workarounds, and the hardware the other person needs:
 [`../docs/distributing.md`](../docs/distributing.md).

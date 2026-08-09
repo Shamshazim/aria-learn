@@ -83,9 +83,12 @@ jobs:
         shell: bash
         run: |
           if [ "${{ runner.os }}" = "macOS" ] && [ -z "$CSC_LINK" ]; then
-            echo "::warning::No signing certificate configured. This build is UNSIGNED:"
-            echo "::warning::macOS will refuse to open it on another machine."
-            npx electron-builder ${{ matrix.builder }} --publish always -c.mac.identity=null
+            echo "::warning::No signing certificate configured. This build is UNSIGNED and"
+            echo "::warning::macOS will refuse to open it. Add the MAC_CERTIFICATE_P12,"
+            echo "::warning::MAC_CERTIFICATE_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD"
+            echo "::warning::and APPLE_TEAM_ID secrets — see docs/apple-signing.md."
+            npx electron-builder ${{ matrix.builder }} --publish always \
+              -c.mac.identity=null -c.mac.notarize=false
           else
             npx electron-builder ${{ matrix.builder }} --publish always
           fi
