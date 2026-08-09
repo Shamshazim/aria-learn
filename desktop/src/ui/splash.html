@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <!-- No remote content is ever loaded here, and the CSP says so explicitly. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';" />
+  <title>Aria Learn</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 32px;
+      background: linear-gradient(160deg, #2a1b52 0%, #1b1035 100%);
+      color: #f4f1ff;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      text-align: center;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+    .owl { font-size: 68px; animation: bob 2.4s ease-in-out infinite; }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+    h1 { margin: 0; font-size: 25px; font-weight: 700; letter-spacing: -0.01em; }
+    #status { margin: 0; font-size: 14px; line-height: 1.55; color: #c4b8ec; min-height: 44px; max-width: 380px; }
+    .track { width: 320px; height: 8px; border-radius: 99px; background: rgba(255,255,255,0.14); overflow: hidden; display: none; }
+    .track.visible { display: block; }
+    #bar { height: 100%; width: 0%; border-radius: 99px; background: linear-gradient(90deg, #8b6df0, #d5a3ff); transition: width 0.25s ease; }
+    #detail { font-size: 12px; color: #9b8dc9; min-height: 16px; }
+    /* Shown only while the indeterminate phases run. */
+    .pulse { width: 320px; height: 8px; border-radius: 99px; background: rgba(255,255,255,0.14); overflow: hidden; position: relative; }
+    .pulse::after {
+      content: ""; position: absolute; inset: 0; width: 38%; border-radius: 99px;
+      background: linear-gradient(90deg, transparent, #8b6df0, transparent);
+      animation: sweep 1.5s ease-in-out infinite;
+    }
+    .pulse.hidden { display: none; }
+    @keyframes sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+  </style>
+</head>
+<body>
+  <div class="owl">🦉</div>
+  <h1>Aria Learn</h1>
+  <p id="status">Starting up...</p>
+  <div class="pulse" id="pulse"></div>
+  <div class="track" id="track"><div id="bar"></div></div>
+  <div id="detail"></div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const detailEl = document.getElementById('detail');
+    const trackEl = document.getElementById('track');
+    const pulseEl = document.getElementById('pulse');
+    const barEl = document.getElementById('bar');
+
+    window.ariaBoot.onStatus((message) => { statusEl.textContent = message; });
+
+    window.ariaBoot.onProgress((payload) => {
+      if (!payload) {
+        trackEl.classList.remove('visible');
+        pulseEl.classList.remove('hidden');
+        detailEl.textContent = '';
+        return;
+      }
+      // A determinate bar replaces the pulse only once we have real byte counts.
+      trackEl.classList.add('visible');
+      pulseEl.classList.add('hidden');
+      barEl.style.width = `${Math.round(payload.fraction * 100)}%`;
+      detailEl.textContent =
+        `${payload.model} — part ${payload.index} of ${payload.of} (${Math.round(payload.fraction * 100)}%)`;
+    });
+  </script>
+</body>
+</html>

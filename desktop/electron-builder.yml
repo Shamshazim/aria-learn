@@ -1,0 +1,73 @@
+appId: com.mathtutor.arialearn
+productName: Aria Learn
+copyright: Aria Learn contributors
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - src/**/*
+  - package.json
+
+# The staged runtime (JRE, PostgreSQL, Ollama, backend jar) ships as an unpacked resource
+# tree rather than inside the asar archive: these are executables that must be spawned, and
+# a process cannot be launched from inside an archive.
+extraResources:
+  - from: resources
+    to: runtime
+
+asar: true
+
+mac:
+  category: public.app-category.education
+  # No arch is pinned, so electron-builder builds for whichever machine is running it.
+  # That is deliberate rather than lazy: the staged runtime is native code — the jlink'd JRE,
+  # the PostgreSQL server and the Ollama binary are all built for the host — so an arm64 host
+  # cannot produce a working Intel installer. Covering both architectures means running the
+  # build on both, which is what the release workflow's runner matrix does.
+  target:
+    - dmg
+  # Hardened runtime is required for notarization. The entitlements below are the minimum
+  # that lets a signed build still spawn the JVM, PostgreSQL and Ollama.
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Signing is opt-in: an unsigned build is still installable (right-click → Open), and
+  # electron-builder skips signing when no identity is configured.
+  identity: null
+  gatekeeperAssess: false
+
+dmg:
+  title: Aria Learn
+  # The familiar drag-to-Applications window; nothing for a parent to decide.
+  contents:
+    - x: 140
+      y: 190
+      type: file
+    - x: 400
+      y: 190
+      type: link
+      path: /Applications
+
+# Windows is deliberately configured but not yet built or verified from this repo's
+# toolchain. NSIS gives the few-clicks installer and a Start Menu entry.
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+# Release channel and auto-update feed: GitHub Releases serves both. electron-updater
+# verifies a build's signature before applying it; see src/updater.js for why updates stay
+# disabled until the app is signed.
+publish:
+  - provider: github
+    owner: Shamshazim
+    repo: aria-learn

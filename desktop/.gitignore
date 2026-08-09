@@ -1,0 +1,5 @@
+# Staged runtime payload: multi-hundred-megabyte binaries fetched by scripts/build-runtime.mjs.
+resources/
+.build-cache/
+dist/
+node_modules/
