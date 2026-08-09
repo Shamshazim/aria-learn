@@ -58,9 +58,17 @@ to run software macOS could not verify, on your word alone.
 
 ### Windows
 
-Configured in `electron-builder.yml` (NSIS) but **never built or tested**. It also needs its
-own code-signing certificate (typically $200–500/year) or SmartScreen will warn on download.
-Treat Windows as unstarted work rather than nearly done.
+The release workflow now builds a Windows installer on a Windows runner, so a release
+produces one — but **nobody has ever installed and run it**. Treat it as unverified until
+someone does. Two things to expect:
+
+- The installer is much larger than the Mac one (roughly 1.5–2 GB). Ollama's Windows package
+  carries the CUDA and ROCm runners, and unlike macOS — where Metal is built in — those are
+  the only way a Windows machine uses its GPU. They are deliberately not stripped, because
+  removing them would make every lesson slow on exactly the hardware most Windows families
+  have.
+- It needs its own code-signing certificate (typically $200–500/year), or SmartScreen warns
+  on download in much the same way Gatekeeper does on macOS.
 
 ## What the other person's machine needs
 

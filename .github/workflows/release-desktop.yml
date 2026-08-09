@@ -23,8 +23,13 @@ jobs:
           # arm64 runner cannot produce a working Intel build.
           - runner: macos-14      # Apple Silicon
             label: macOS (Apple Silicon)
+            builder: --mac
           - runner: macos-13      # Intel
             label: macOS (Intel)
+            builder: --mac
+          - runner: windows-latest
+            label: Windows (x64)
+            builder: --win
 
     runs-on: ${{ matrix.runner }}
 
@@ -46,10 +51,19 @@ jobs:
         working-directory: desktop
         run: npm ci
 
-      - name: Run tests
+      - name: Run tests (macOS)
+        if: runner.os == 'macOS'
         run: |
           cd backend && ./mvnw --batch-mode test
           cd ../desktop && npm test
+
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd backend
+          .\mvnw.cmd --batch-mode test
+          cd ..\desktop
+          npm test
 
       - name: Stage the bundled runtime
         working-directory: desktop
@@ -66,14 +80,14 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        shell: bash
         run: |
-          if [ -n "$CSC_LINK" ]; then
-            echo "Signing identity present — building a signed, notarized release."
-            npx electron-builder --mac --publish always
-          else
+          if [ "${{ runner.os }}" = "macOS" ] && [ -z "$CSC_LINK" ]; then
             echo "::warning::No signing certificate configured. This build is UNSIGNED:"
             echo "::warning::macOS will refuse to open it on another machine."
-            npx electron-builder --mac --publish always -c.mac.identity=null
+            npx electron-builder ${{ matrix.builder }} --publish always -c.mac.identity=null
+          else
+            npx electron-builder ${{ matrix.builder }} --publish always
           fi
 
       - name: Keep the installer even if publishing failed
@@ -81,6 +95,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.runner }}
-          path: desktop/dist/*.dmg
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.exe
           if-no-files-found: warn
           retention-days: 14

@@ -178,7 +178,7 @@ async function fetchOllama() {
 }
 
 /**
- * Drops runner libraries this build will never load — 463 MB down to 96 MB.
+ * Drops runner libraries this build will never load. On macOS that is 463 MB down to 96 MB.
  *
  * Upstream ships one archive covering every accelerator and CPU generation:
  *
@@ -186,6 +186,13 @@ async function fetchOllama() {
  *  - mlx_metal_* are runners for models in MLX format. Aria teaches with qwen2.5 in GGUF
  *    format, which goes through the llama.cpp path instead, so these are never opened.
  *    Verified by serving qwen2.5 from a pruned tree and generating successfully.
+ *
+ * Windows is deliberately left alone, even though its archive is far larger. The bulk of it
+ * is the CUDA and ROCm runners, and unlike macOS — where Metal support is built in — those
+ * are the only way a Windows machine uses its GPU. Stripping them would shrink the installer
+ * to a few hundred megabytes and make every lesson painfully slow on the NVIDIA and AMD
+ * hardware most Windows families have. A larger download that works beats a small one that
+ * frustrates.
  *
  * If a future model ships as MLX, this is the first place to look.
  */
