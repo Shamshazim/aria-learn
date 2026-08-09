@@ -81,4 +81,10 @@ frontend/src/
 ## Git
 - Main branch: `main`
 - Remote: origin (GitHub)
+- **Never push directly to `main` — always branch, push, and open a PR.** `main` requires a
+  pull request with one approving review. Admin pushes are not blocked by it (`enforce_admins`
+  is off), so the protection relies on the rule being respected rather than enforced: a direct
+  push succeeds and merely reports "Bypassed rule violations". Treat that message as a mistake
+  to undo, not a warning to ignore.
+- PRs need an approval from the repo owner, so hand the PR over rather than trying to merge it.
 - No API keys or secrets should be committed — `.env` is gitignored
