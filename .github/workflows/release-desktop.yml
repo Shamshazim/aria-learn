@@ -1,0 +1,86 @@
+name: Release desktop app
+
+# Publishing is deliberately manual: a release ships a 267 MB binary that installs a database
+# and an AI engine on a family's computer, so it should be a decision, not a side effect of
+# merging. Push a tag (v0.1.0) or run the workflow by hand.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write        # required to create the release and upload installers
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # One job per architecture, because the payload is native code: the jlink'd JRE,
+          # the PostgreSQL server and the Ollama binary are all built for the host. An
+          # arm64 runner cannot produce a working Intel build.
+          - runner: macos-14      # Apple Silicon
+            label: macOS (Apple Silicon)
+          - runner: macos-13      # Intel
+            label: macOS (Intel)
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # jlink comes from the JDK, so a full JDK is needed here even though the shipped
+      # runtime is a trimmed one.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          cd backend && ./mvnw --batch-mode test
+          cd ../desktop && npm test
+
+      - name: Stage the bundled runtime
+        working-directory: desktop
+        run: npm run build:runtime
+
+      - name: Build and publish the installer
+        working-directory: desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing and notarization activate only when the secrets exist, so the workflow
+          # still produces an (unsigned) build for a fork or a contributor without them.
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE_P12 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -n "$CSC_LINK" ]; then
+            echo "Signing identity present — building a signed, notarized release."
+            npx electron-builder --mac --publish always
+          else
+            echo "::warning::No signing certificate configured. This build is UNSIGNED:"
+            echo "::warning::macOS will refuse to open it on another machine."
+            npx electron-builder --mac --publish always -c.mac.identity=null
+          fi
+
+      - name: Keep the installer even if publishing failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.runner }}
+          path: desktop/dist/*.dmg
+          if-no-files-found: warn
+          retention-days: 14

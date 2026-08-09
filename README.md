@@ -46,7 +46,20 @@ grade, adapts to each child, and motivates with XP, streaks, and badges — all 
 
 ---
 
-## ✅ Prerequisites
+## 🖥️ Two ways to run it
+
+**If you just want to use it with your children — download the desktop app.** It installs in
+a couple of clicks and brings its own database, Java runtime and AI engine; you don't install
+anything else. First launch downloads the AI models once, then it works offline forever.
+See [`desktop/README.md`](desktop/README.md).
+
+> Download → Install → Create parent account → Add kids → Start learning.
+
+**If you want to develop on it**, the rest of this README sets up the stack from source.
+
+---
+
+## ✅ Prerequisites *(source setup only — not needed for the desktop app)*
 
 Install these once. Versions are minimums.
 
@@ -241,6 +254,11 @@ aria-learn/
 │   └── mvnw / mvnw.cmd        Maven wrapper (no global Maven needed)
 ├── frontend/                React + TypeScript + Vite app
 │   └── src/                  pages, components, api client
+├── desktop/                 Electron packaging: bundles a JRE, PostgreSQL and Ollama
+│   ├── src/                  launcher — supervises the three local services
+│   └── scripts/              build-runtime.mjs stages the shipped payload
+├── docs/
+│   └── desktop-architecture.md   investigation, decisions, security model
 └── README.md
 ```
 
