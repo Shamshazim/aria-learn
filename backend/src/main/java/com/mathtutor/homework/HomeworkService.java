@@ -215,6 +215,16 @@ public class HomeworkService {
                 hw.getStatus(), hw.getScore(), questions);
     }
 
+    /**
+     * The stored key rewritten as the exact option text it names, so the answer shown in the
+     * review matches an option the child can actually see. Left as stored when it names none.
+     */
+    private String answerKeyOf(QuestionBank q) {
+        String resolved = com.mathtutor.ai.QuestionSanitizer.resolveKeyToOption(
+                q.getCorrectAnswer(), questionStore.readChoices(q.getChoices()));
+        return resolved == null ? q.getCorrectAnswer() : resolved;
+    }
+
     private HomeworkResultDto result(HomeworkAssignment hw) {
         if (!"EVALUATED".equals(hw.getStatus())) {
             return new HomeworkResultDto(hw.getId(), topicName(hw.getTopicId()), hw.getStatus(),
@@ -226,7 +236,7 @@ public class HomeworkService {
                     QuestionBank q = questionRepository.findById(a.getQuestionId()).orElseThrow();
                     return new AnswerResultDto(a.getQuestionId(), q.getPromptText(), a.getResponse(),
                             a.isCorrect(), a.getPartialCredit(), a.getFeedback(), a.getMisconception(),
-                            q.getCorrectAnswer(), q.getSolution());
+                            answerKeyOf(q), q.getSolution());
                 })
                 .toList();
         return new HomeworkResultDto(hw.getId(), topicName(hw.getTopicId()), hw.getStatus(),

@@ -80,7 +80,7 @@ public class PracticeService {
         AnswerGrader.GradeResult g = answerGrader.grade(q, req.response(), student.id());
         masteryService.recordPracticeResult(student.id(), q.getTopicId(), g.correct());
         gamificationService.onPracticeAnswered(student.id(), g.correct());
-        return new AnswerResult(g.correct(), q.getCorrectAnswer(), q.getSolution(), g.feedback());
+        return new AnswerResult(g.correct(), g.correctAnswer(), q.getSolution(), g.feedback());
     }
 
     /** Resolves the requested difficulty; "AUTO" (or blank) adapts to the student's recent accuracy. */

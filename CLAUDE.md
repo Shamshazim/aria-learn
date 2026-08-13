@@ -59,16 +59,37 @@ frontend/src/
 - Migrations must stay PostgreSQL-compatible — the desktop app bundles a real PostgreSQL
   server precisely so partial unique indexes and `TIMESTAMPTZ` keep working
 - AI prompts are in `GenerationService.java` — structured JSON output with a repair loop
-- `MathAnswerChecker.java` does deterministic place-value checking before AI fallback
+- `QuestionSanitizer.java` is the structural gate every generated question passes before a child
+  sees it: it repairs mechanical defects (options crammed into one string, a key that differs from
+  its option only by a label, leaked "(Correct)" markers, options duplicated into the prompt) and
+  rejects what stays unanswerable (key naming no option or several at once, duplicate options).
+  It is pure and deterministic — no model call — and only ever resolves a key onto an option that
+  already exists, so it can fix or drop a question but never give it a wrong answer.
+- `MathAnswerChecker.java` does deterministic place-value and plain-arithmetic checking before the
+  AI fallback. It defers (returns UNKNOWN) on negated questions ("which is NOT…") and comparative
+  ones ("how many times greater… than…"), where solving the phrase would answer a *different*
+  question and could overwrite a correct key. Widen its families only with that guard in mind.
+- Verification drops broken questions, so `GenerationService.generateQuestions()` regenerates once
+  to top the set back up — a child still gets five questions, not three.
 - Tutor modes are DB-driven — adding a new mode = one SQL row in `tutor_modes`, zero code changes
-- `AnswerMatcher.java` normalizes answer strings for MC grading — must strip option labels (A), B., (C), d:)
+- `AnswerMatcher.java` normalizes answer strings. `matches()` is strict; `matchesChoice()` is the
+  one to use for multiple choice — it ignores option labels ("B) 19" vs "19") and compares numbers
+  by value ("0.50" vs "0.5"), which is what rescues questions already stored with a cosmetically
+  different key. All four activities (practice, guided, quiz, homework) grade through it.
 - Student pages use `KidHeader` component for consistent fun animated header
 - Math manipulatives (drag-and-drop shapes) in `MathManipulative.tsx` — triggered by `parseMathProblem()` for ×/÷ questions
 
 ## Common gotchas
 - Always `cd backend/` before running `./mvnw` — running from repo root fails
 - `position: sticky` on `.topbar` — don't add `position: relative` to child wrappers or it breaks stickiness
-- MC grading bug (fixed in AnswerMatcher): stored `correct_answer` may have label prefix ("B) 19") or be letter-only ("A") — normalize by stripping labels before comparison
+- Stored `correct_answer` may carry a label prefix ("B) 19"), be letter-only ("A"), or name no
+  option at all. Never compare it to a child's answer with plain string equality — go through
+  `AnswerMatcher.matchesChoice()`, and resolve it for display with
+  `QuestionSanitizer.resolveKeyToOption()` so the revealed answer is an option the child can see.
+- Questions are **never re-served** from `question_bank` — every practice set, guided question,
+  quiz, and homework is freshly generated, and the bank is grade-time storage. So a fix to
+  generated-question quality must go in the generation path; back-filling old rows changes only
+  reports and flagged-question views.
 - Test constructor for `GenerationService` needs `mock(TutorModeService.class)` as third argument
 - `noUnusedLocals: true` in tsconfig — remove unused imports or build fails
 

@@ -145,4 +145,77 @@ class MathAnswerCheckerTest {
         assertThat(MathAnswerChecker.numericEquals("0.05", "5 hundredths")).isFalse();
         assertThat(MathAnswerChecker.numericEquals("3", "300")).isFalse();
     }
+
+    // ── Family D: a plainly-stated binary operation ───────────────────────────
+
+    @Test
+    void solvesPlainArithmetic() {
+        assertThat(MathAnswerChecker.solveNumeric("What is 789 multiplied by 4?"))
+                .hasValueSatisfying(v -> assertThat(v.intValueExact()).isEqualTo(3156));
+        assertThat(MathAnswerChecker.solveNumeric("Find the product of 632 and 8."))
+                .hasValueSatisfying(v -> assertThat(v.intValueExact()).isEqualTo(5056));
+        assertThat(MathAnswerChecker.solveNumeric("What is 567 - 289?"))
+                .hasValueSatisfying(v -> assertThat(v.intValueExact()).isEqualTo(278));
+        assertThat(MathAnswerChecker.solveNumeric("What is the sum of 1,200 and 350?"))
+                .hasValueSatisfying(v -> assertThat(v.intValueExact()).isEqualTo(1550));
+        assertThat(MathAnswerChecker.solveNumeric("What is 144 divided by 12?"))
+                .hasValueSatisfying(v -> assertThat(v.intValueExact()).isEqualTo(12));
+        // Phrasing the local model actually produced, which left the right answer off the options.
+        assertThat(MathAnswerChecker.solveNumeric(
+                "Which of the following is the correct product when 234 is multiplied by 5?"))
+                .hasValueSatisfying(v -> assertThat(v.intValueExact()).isEqualTo(1170));
+    }
+
+    @Test
+    void dropsAMultipleChoiceQuestionWhoseRealAnswerIsMissingFromTheOptions() {
+        // 789 × 4 = 3156, which is not among the options — the question is unwinnable.
+        MathAnswerChecker.Verdict v = MathAnswerChecker.checkMultipleChoice(
+                "What is 789 multiplied by 4?", List.of("3150", "3160", "3140", "3170"));
+
+        assertThat(v.outcome()).isEqualTo(MathAnswerChecker.Outcome.NO_CORRECT_OPTION);
+    }
+
+    @Test
+    void picksTheCorrectArithmeticOption() {
+        MathAnswerChecker.Verdict v = MathAnswerChecker.checkMultipleChoice(
+                "What is 789 multiplied by 4?", List.of("A) 3150", "B) 3156", "C) 3140", "D) 3170"));
+
+        assertThat(v.outcome()).isEqualTo(MathAnswerChecker.Outcome.CORRECT);
+        assertThat(v.correctChoice()).isEqualTo("B) 3156");
+    }
+
+    @Test
+    void defersOnNegatedQuestionsRatherThanInvertingTheAnswer() {
+        // 57 × 6 = 342, so 342 is the one option that is definitely NOT the answer here. Solving
+        // this the plain way would overwrite a correct key with the wrong one.
+        assertThat(MathAnswerChecker.checkMultipleChoice(
+                "Which of the following is not a correct product of 57 * 6?",
+                List.of("340", "342", "344", "346")).outcome())
+                .isEqualTo(MathAnswerChecker.Outcome.UNKNOWN);
+        assertThat(MathAnswerChecker.checkMultipleChoice(
+                "Which of these numbers does NOT have a 6 in the tens place?",
+                List.of("A) 167", "B) 264", "C) 365", "D) 412")).outcome())
+                .isEqualTo(MathAnswerChecker.Outcome.UNKNOWN);
+        assertThat(MathAnswerChecker.solveNumeric("Which value is not equal to 12 times 3?")).isEmpty();
+    }
+
+    @Test
+    void defersOnComparativeQuestionsThatOnlyLookLikePlaceValue() {
+        // A place-value phrase sits inside this, but the question asks for a ratio (0.2 ÷ 2 = 0.1),
+        // not the place value (0.2) — solving the phrase would answer a different question.
+        assertThat(MathAnswerChecker.checkMultipleChoice(
+                "How many times greater is the value of the digit 2 in the number 456.231 "
+                        + "than its face value?", List.of("A) 0.1", "B) 1", "C) 10", "D) 100")).outcome())
+                .isEqualTo(MathAnswerChecker.Outcome.UNKNOWN);
+    }
+
+    @Test
+    void defersOnAnythingItCouldMisread() {
+        // Word problems and multi-step questions mention more than two numbers, or state no
+        // operation plainly — the checker must defer rather than answer them confidently.
+        assertThat(MathAnswerChecker.solveNumeric(
+                "If you have $920 and spend $485 on a toy and $30 on a book, how much is left?")).isEmpty();
+        assertThat(MathAnswerChecker.solveNumeric("Sam has 4 bags with 6 marbles in each.")).isEmpty();
+        assertThat(MathAnswerChecker.solveNumeric("What is 10 divided by 3?")).isEmpty(); // not exact
+    }
 }

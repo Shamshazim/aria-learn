@@ -24,7 +24,8 @@ class GuidedPracticeServiceTest {
     private final GenerationService generation = mock(GenerationService.class);
 
     private final GuidedPracticeService service =
-            new GuidedPracticeService(questionRepo, curriculum, generation, null, null);
+            new GuidedPracticeService(questionRepo, curriculum, generation,
+                    new QuestionStore(questionRepo, new com.fasterxml.jackson.databind.ObjectMapper()), null);
 
     private final AuthPrincipal student = new AuthPrincipal(UUID.randomUUID(), Role.STUDENT, "Test Student");
 

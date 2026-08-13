@@ -41,7 +41,7 @@ class PracticeServiceTest {
     void returnsGraderVerdictAndRecordsResult() {
         QuestionBank q = question();
         when(questionRepo.findById(q.getId())).thenReturn(Optional.of(q));
-        when(answerGrader.grade(eq(q), eq("30"), any())).thenReturn(new GradeResult(true, "Nice!"));
+        when(answerGrader.grade(eq(q), eq("30"), any())).thenReturn(new GradeResult(true, "Nice!", "30"));
 
         AnswerResult r = service.checkAnswer(student, new AnswerRequest(q.getId(), "30"));
 
@@ -56,7 +56,7 @@ class PracticeServiceTest {
     void wrongAnswerRecordsIncorrect() {
         QuestionBank q = question();
         when(questionRepo.findById(q.getId())).thenReturn(Optional.of(q));
-        when(answerGrader.grade(eq(q), eq("25"), any())).thenReturn(new GradeResult(false, "Not quite."));
+        when(answerGrader.grade(eq(q), eq("25"), any())).thenReturn(new GradeResult(false, "Not quite.", "30"));
 
         AnswerResult r = service.checkAnswer(student, new AnswerRequest(q.getId(), "25"));
 

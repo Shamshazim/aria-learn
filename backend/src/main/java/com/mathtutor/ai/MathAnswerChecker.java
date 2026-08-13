@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
  *   A. "What is the value of the digit D in (the number) N?"        -> D's place value
  *   B. "Which digit is in the ⟨place⟩ place of N?"                  -> the digit at that place
  *   C. "Which number has (a) D in the ⟨place⟩ place?" (numeric MC)  -> the matching choice
+ *   D. "What is A multiplied by B?" / "the product of A and B" etc. -> the arithmetic result
  */
 public final class MathAnswerChecker {
 
@@ -66,7 +67,7 @@ public final class MathAnswerChecker {
      * and none matches, or UNKNOWN when the question cannot be computed with certainty.
      */
     public static Verdict checkMultipleChoice(String prompt, List<String> choices) {
-        if (prompt == null || choices == null || choices.isEmpty()) {
+        if (prompt == null || choices == null || choices.isEmpty() || isNegated(prompt)) {
             return Verdict.UNKNOWN;
         }
 
@@ -89,8 +90,28 @@ public final class MathAnswerChecker {
      * Returns the canonical numeric answer, or empty when it cannot be computed with certainty.
      */
     public static Optional<BigDecimal> solveNumeric(String prompt) {
-        return computeNumericAnswer(prompt);
+        return prompt == null || isNegated(prompt) ? Optional.empty() : computeNumericAnswer(prompt);
     }
+
+    /**
+     * Questions this class must not answer even when one of its patterns matches part of them.
+     *
+     * <p><b>Negated</b> ("which is NOT a correct product of 57 × 6?", "all of these except…"):
+     * solving it plainly yields the one option that is definitely <em>not</em> the key, so
+     * answering would confidently invert a correct answer.
+     *
+     * <p><b>Comparative</b> ("how many times greater is the value of the digit 2 in 456.231 than
+     * its face value?"): a place-value pattern matches the phrase in the middle, but the question
+     * asks for a ratio, not the place value — a different question from the one we would solve.
+     */
+    static boolean isNegated(String prompt) {
+        return DEFER.matcher(prompt).find();
+    }
+
+    private static final Pattern DEFER = Pattern.compile(
+            "\\b(?:not|isn't|aren't|doesn't|don't|except|none|never|incorrect|false|untrue"
+                    + "|than|how\\s+many\\s+times|compared\\s+(?:to|with))\\b",
+            Pattern.CASE_INSENSITIVE);
 
     /** Families A and B: a single numeric answer computed directly from the prompt. */
     private static Optional<BigDecimal> computeNumericAnswer(String prompt) {
@@ -113,7 +134,70 @@ public final class MathAnswerChecker {
                 }
             }
         }
+        return computeArithmetic(prompt);
+    }
+
+    // D: a single binary operation stated plainly ("789 multiplied by 4", "the product of 632 and 8").
+    private static final String N = "(\\d[\\d,]*(?:\\.\\d+)?)";
+
+    /** Optional filler between the first number and the operator: "234 is multiplied by 5". */
+    private static final String IS = "\\s*(?:is\\s+)?";
+
+    private static final List<Op> OPERATIONS = List.of(
+            new Op(Pattern.compile("product\\s+of\\s+" + N + "\\s+and\\s+" + N, Pattern.CASE_INSENSITIVE), '*'),
+            new Op(Pattern.compile("sum\\s+of\\s+" + N + "\\s+and\\s+" + N, Pattern.CASE_INSENSITIVE), '+'),
+            new Op(Pattern.compile("difference\\s+between\\s+" + N + "\\s+and\\s+" + N, Pattern.CASE_INSENSITIVE), '-'),
+            new Op(Pattern.compile("quotient\\s+of\\s+" + N + "\\s+and\\s+" + N, Pattern.CASE_INSENSITIVE), '/'),
+            new Op(Pattern.compile(N + IS + "(?:×|\\*|multiplied\\s+by|times)\\s*" + N, Pattern.CASE_INSENSITIVE), '*'),
+            new Op(Pattern.compile(N + IS + "(?:\\+|plus|added\\s+to)\\s*" + N, Pattern.CASE_INSENSITIVE), '+'),
+            new Op(Pattern.compile(N + IS + "(?:-|−|minus)\\s*" + N, Pattern.CASE_INSENSITIVE), '-'),
+            new Op(Pattern.compile(N + IS + "(?:÷|/|divided\\s+by)\\s*" + N, Pattern.CASE_INSENSITIVE), '/'));
+
+    private record Op(Pattern pattern, char operator) {
+    }
+
+    /**
+     * Family D: one plainly-stated binary operation. Deliberately narrow — it fires only when the
+     * prompt mentions exactly two numbers, so multi-step and word problems (whose wording it could
+     * misread) fall through to the model rather than being answered wrongly with confidence.
+     */
+    private static Optional<BigDecimal> computeArithmetic(String prompt) {
+        if (numbersIn(prompt).size() != 2) {
+            return Optional.empty();
+        }
+        for (Op op : OPERATIONS) {
+            Matcher m = op.pattern().matcher(prompt);
+            if (!m.find()) {
+                continue;
+            }
+            Optional<BigDecimal> left = parseDecimal(m.group(1));
+            Optional<BigDecimal> right = parseDecimal(m.group(2));
+            if (left.isEmpty() || right.isEmpty()) {
+                return Optional.empty();
+            }
+            return apply(op.operator(), left.get(), right.get());
+        }
         return Optional.empty();
+    }
+
+    private static Optional<BigDecimal> apply(char operator, BigDecimal left, BigDecimal right) {
+        switch (operator) {
+            case '*': return Optional.of(left.multiply(right));
+            case '+': return Optional.of(left.add(right));
+            case '-': return Optional.of(left.subtract(right));
+            case '/':
+                if (right.signum() == 0) {
+                    return Optional.empty();
+                }
+                try {
+                    // Only an exact quotient is certain; a repeating decimal is left to the model.
+                    return Optional.of(left.divideToIntegralValue(right)).filter(
+                            q -> q.multiply(right).compareTo(left) == 0);
+                } catch (ArithmeticException e) {
+                    return Optional.empty();
+                }
+            default: return Optional.empty();
+        }
     }
 
     private static boolean looksLikeWhichNumber(String prompt) {

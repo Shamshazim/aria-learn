@@ -39,6 +39,7 @@ public class EvaluationService {
     private final MasteryService masteryService;
     private final com.mathtutor.gamification.GamificationService gamificationService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final com.mathtutor.practice.AnswerGrader answerGrader;
 
     public EvaluationService(HomeworkAssignmentRepository homeworkRepository,
                              HomeworkAnswerRepository answerRepository,
@@ -48,7 +49,9 @@ public class EvaluationService {
                              CurriculumService curriculumService,
                              MasteryService masteryService,
                              com.mathtutor.gamification.GamificationService gamificationService,
-                             org.springframework.context.ApplicationEventPublisher eventPublisher) {
+                             org.springframework.context.ApplicationEventPublisher eventPublisher,
+                             com.mathtutor.practice.AnswerGrader answerGrader) {
+        this.answerGrader = answerGrader;
         this.homeworkRepository = homeworkRepository;
         this.answerRepository = answerRepository;
         this.evaluationRepository = evaluationRepository;
@@ -122,11 +125,12 @@ public class EvaluationService {
 
     private void gradeAnswer(HomeworkAnswer ans, QuestionBank q, String subjectName, UUID studentId) {
         if ("MULTIPLE_CHOICE".equalsIgnoreCase(q.getType())) {
-            boolean correct = AnswerMatcher.matches(ans.getResponse(), q.getCorrectAnswer());
+            String key = answerGrader.resolveKey(q);
+            boolean correct = AnswerMatcher.matchesChoice(ans.getResponse(), key);
             ans.setCorrect(correct);
             ans.setPartialCredit(correct ? 100 : 0);
             ans.setFeedback(correct ? "Correct — nice work!"
-                    : "Not quite. The correct answer is " + q.getCorrectAnswer() + ".");
+                    : "Not quite. The correct answer is " + key + ".");
             ans.setMisconception(null);
             return;
         }

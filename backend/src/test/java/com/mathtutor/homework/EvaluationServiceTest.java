@@ -30,9 +30,13 @@ class EvaluationServiceTest {
     private final com.mathtutor.gamification.GamificationService gamification =
             mock(com.mathtutor.gamification.GamificationService.class);
 
+    private final com.mathtutor.practice.QuestionStore questionStore = new com.mathtutor.practice.QuestionStore(
+            questionRepo, new com.fasterxml.jackson.databind.ObjectMapper());
+
     private final EvaluationService service = new EvaluationService(
             hwRepo, answerRepo, evalRepo, questionRepo, generation, curriculum, mastery, gamification,
-            mock(org.springframework.context.ApplicationEventPublisher.class));
+            mock(org.springframework.context.ApplicationEventPublisher.class),
+            new com.mathtutor.practice.AnswerGrader(generation, curriculum, questionStore));
 
     private QuestionBank q(String type, String correct) {
         QuestionBank q = new QuestionBank();

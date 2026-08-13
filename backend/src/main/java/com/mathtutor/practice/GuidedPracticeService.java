@@ -64,8 +64,9 @@ public class GuidedPracticeService {
         QuestionBank q = questionRepository.findById(req.questionId())
                 .orElseThrow(() -> new NotFoundException("Question not found"));
 
-        if (AnswerMatcher.matches(req.response(), q.getCorrectAnswer())) {
-            return new GuidedFeedback(true, null, q.getSolution(), q.getCorrectAnswer());
+        String key = answerKeyOf(q);
+        if (AnswerMatcher.matchesChoice(req.response(), key)) {
+            return new GuidedFeedback(true, null, q.getSolution(), key);
         }
 
         TopicContext ctx = curriculumService.resolveTopicContext(q.getTopicId());
@@ -78,6 +79,17 @@ public class GuidedPracticeService {
     public GuidedFeedback reveal(UUID questionId) {
         QuestionBank q = questionRepository.findById(questionId)
                 .orElseThrow(() -> new NotFoundException("Question not found"));
-        return new GuidedFeedback(false, null, q.getSolution(), q.getCorrectAnswer());
+        return new GuidedFeedback(false, null, q.getSolution(), answerKeyOf(q));
+    }
+
+    /**
+     * The stored key rewritten as the exact option text it names, so a key that differs from its
+     * option only by a label ("B) 19" vs "19") neither marks a correct child wrong nor reveals an
+     * answer the child cannot see among the choices. Left as stored when it names no option.
+     */
+    private String answerKeyOf(QuestionBank q) {
+        String resolved = com.mathtutor.ai.QuestionSanitizer.resolveKeyToOption(
+                q.getCorrectAnswer(), questionStore.readChoices(q.getChoices()));
+        return resolved == null ? q.getCorrectAnswer() : resolved;
     }
 }

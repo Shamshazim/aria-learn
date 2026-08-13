@@ -79,30 +79,85 @@ public class GenerationService {
     public PracticeBatch generatePractice(GenerationContext ctx, String difficulty, int count, UUID studentId) {
         Map<String, String> vars = baseVars(ctx);
         vars.put("difficulty", difficulty);
-        vars.put("count", String.valueOf(count));
-        PracticeBatch batch = aiClient.generateStructured(PROMPT_PRACTICE, vars, PracticeBatch.class, studentId, style(studentId));
-        return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
+        return generateQuestions(PROMPT_PRACTICE, vars, ctx.subjectName(), count, studentId);
     }
 
     public PracticeBatch generateQuiz(GenerationContext ctx, int count, UUID studentId) {
-        Map<String, String> vars = baseVars(ctx);
-        vars.put("count", String.valueOf(count));
-        PracticeBatch batch = aiClient.generateStructured(PROMPT_QUIZ, vars, PracticeBatch.class, studentId, style(studentId));
-        return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
+        return generateQuestions(PROMPT_QUIZ, baseVars(ctx), ctx.subjectName(), count, studentId);
     }
 
     public PracticeBatch generateHomework(GenerationContext ctx, int count, UUID studentId) {
-        Map<String, String> vars = baseVars(ctx);
-        vars.put("count", String.valueOf(count));
-        PracticeBatch batch = aiClient.generateStructured(PROMPT_HOMEWORK, vars, PracticeBatch.class, studentId, style(studentId));
-        return verifyAnswerKeys(batch, ctx.subjectName(), studentId);
+        return generateQuestions(PROMPT_HOMEWORK, baseVars(ctx), ctx.subjectName(), count, studentId);
     }
 
     /**
-     * Re-checks the answer key of every multiple-choice question with a focused, low-temperature
-     * solver and corrects any that were mislabeled at generation time. Only ever moves the key to
-     * an option the verifier picks that already exists among the choices; if verification fails or
-     * returns something unrecognizable, the original key is kept (never made worse).
+     * Generates a batch of questions and returns only those that survive verification. Because
+     * verification drops broken items, a first pass can come back short; when it does we generate
+     * once more to top the set back up rather than hand the child a three-question "quiz". A
+     * short set is still returned if the top-up also falls short — fewer good questions beats
+     * padding the set with ones that cannot be answered correctly.
+     */
+    private PracticeBatch generateQuestions(String promptName, Map<String, String> vars,
+                                            String subjectName, int count, UUID studentId) {
+        vars.put("count", String.valueOf(count));
+        List<GeneratedQuestion> kept = new ArrayList<>(askAndVerify(promptName, vars, subjectName, studentId));
+
+        if (kept.size() < count) {
+            int missing = count - kept.size();
+            log.info("{} returned {} usable question(s) of {}; generating {} more.",
+                    promptName, kept.size(), count, missing);
+            try {
+                Map<String, String> topUpVars = new HashMap<>(vars);
+                topUpVars.put("count", String.valueOf(missing));
+                for (GeneratedQuestion q : askAndVerify(promptName, topUpVars, subjectName, studentId)) {
+                    if (kept.size() >= count) {
+                        break;
+                    }
+                    if (!isDuplicatePrompt(kept, q)) {
+                        kept.add(q);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Top-up generation for {} failed; returning {} question(s): {}",
+                        promptName, kept.size(), e.getMessage());
+            }
+        }
+        return new PracticeBatch(kept);
+    }
+
+    private List<GeneratedQuestion> askAndVerify(String promptName, Map<String, String> vars,
+                                                 String subjectName, UUID studentId) {
+        PracticeBatch batch =
+                aiClient.generateStructured(promptName, vars, PracticeBatch.class, studentId, style(studentId));
+        PracticeBatch verified = verifyAnswerKeys(batch, subjectName, studentId);
+        return (verified == null || verified.questions() == null) ? List.of() : verified.questions();
+    }
+
+    /** Guards against the top-up handing the child the same question twice. */
+    private static boolean isDuplicatePrompt(List<GeneratedQuestion> kept, GeneratedQuestion candidate) {
+        for (GeneratedQuestion q : kept) {
+            if (AnswerMatcher.matches(q.prompt(), candidate.prompt())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Makes a generated batch safe to show a child, in three passes:
+     *
+     * <ol>
+     *   <li>{@link QuestionSanitizer} repairs structural defects (run-together options, keys that
+     *       differ from their option only by a label, leaked "(Correct)" markers) and rejects
+     *       items that remain unanswerable — the defect class that marks a child wrong whatever
+     *       they click, and that no amount of prompt tuning has eliminated;</li>
+     *   <li>a deterministic solver settles the question families it can compute with certainty,
+     *       correcting the key or dropping the question when no option holds the real answer;</li>
+     *   <li>a focused, low-temperature model pass re-checks whatever is left.</li>
+     * </ol>
+     *
+     * The key only ever moves to an option that already exists, so a question can be fixed or
+     * dropped but never given a wrong answer it did not already have.
      */
     PracticeBatch verifyAnswerKeys(PracticeBatch batch, String subjectName, UUID studentId) {
         if (batch == null || batch.questions() == null || batch.questions().isEmpty()) {
@@ -112,11 +167,26 @@ public class GenerationService {
         boolean[] drop = new boolean[result.length];      // question is broken — remove it
         boolean[] resolved = new boolean[result.length];   // deterministically settled — skip the model pass
 
+        // ── Pass 0: structural repair and validation (deterministic, no model involved) ──
+        int rejected = 0;
+        for (int i = 0; i < result.length; i++) {
+            QuestionSanitizer.Result sanitized = QuestionSanitizer.sanitize(result[i]);
+            if (sanitized.rejected()) {
+                drop[i] = true;
+                resolved[i] = true;
+                rejected++;
+                log.info("Dropping unanswerable question ({}): {}", sanitized.rejection(),
+                        result[i] == null ? "<null>" : result[i].prompt());
+            } else {
+                result[i] = sanitized.question();
+            }
+        }
+
         // ── Pass 1: deterministic math check (authoritative; the model is not trusted for these) ──
         int detFixed = 0, detDropped = 0, detShort = 0;
         for (int i = 0; i < result.length; i++) {
             GeneratedQuestion q = result[i];
-            if (q == null) {
+            if (q == null || drop[i]) {
                 continue;
             }
             if (isMultipleChoice(q) && q.choices() != null && !q.choices().isEmpty()) {
@@ -204,9 +274,10 @@ public class GenerationService {
             }
         }
 
-        if (detFixed + detDropped + detShort + modelCorrected > 0) {
-            log.info("Answer-key verification: deterministic fixed {}, dropped {}, short-answer fixed {}; model fixed {}.",
-                    detFixed, detDropped, detShort, modelCorrected);
+        if (rejected + detFixed + detDropped + detShort + modelCorrected > 0) {
+            log.info("Question verification of {}: structurally rejected {}; deterministic fixed {}, dropped {}, "
+                            + "short-answer fixed {}; model fixed {}.",
+                    result.length, rejected, detFixed, detDropped, detShort, modelCorrected);
         }
 
         // ── Remove dropped questions and return ──
