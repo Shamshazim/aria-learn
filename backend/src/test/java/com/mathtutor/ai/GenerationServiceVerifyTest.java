@@ -101,6 +101,49 @@ class GenerationServiceVerifyTest {
     }
 
     @Test
+    void structurallyBrokenQuestionsNeverReachTheChild() {
+        // Each of these was marked wrong however the child answered: the options arrived as one
+        // string, the key named two options at once, and the key named no option at all.
+        GeneratedQuestion blob = new GeneratedQuestion("MULTIPLE_CHOICE", "MEDIUM",
+                "Which one has 4 in the tens place?", List.of("A) 23 B) 41 C) 45 D) 67"), "C) 45", "");
+        GeneratedQuestion twoKeys = new GeneratedQuestion("MULTIPLE_CHOICE", "MEDIUM",
+                "Which of these numbers rounds to 300?", List.of("A) 256", "B) 347", "C) 289", "D) 314"),
+                "A) 256 and C) 289", "");
+        GeneratedQuestion noOption = new GeneratedQuestion("MULTIPLE_CHOICE", "MEDIUM",
+                "What is 789 multiplied by 4?", List.of("3150", "3160", "3140", "3170"), "3156", "");
+
+        PracticeBatch out = deterministicOnly()
+                .verifyAnswerKeys(new PracticeBatch(List.of(blob, twoKeys, noOption)), "Mathematics", null);
+
+        // The blob is repaired into four real options; the other two are unanswerable and dropped.
+        assertThat(out.questions()).hasSize(1);
+        assertThat(out.questions().get(0).choices()).containsExactly("A) 23", "B) 41", "C) 45", "D) 67");
+    }
+
+    @Test
+    void topsTheSetBackUpWhenVerificationDropsQuestions() {
+        GeneratedQuestion good = new GeneratedQuestion("SHORT_ANSWER", "EASY",
+                "What is 2 + 2?", List.of(), "4", "");
+        GeneratedQuestion alsoGood = new GeneratedQuestion("SHORT_ANSWER", "EASY",
+                "What is 3 + 3?", List.of(), "6", "");
+        GeneratedQuestion broken = new GeneratedQuestion("MULTIPLE_CHOICE", "MEDIUM",
+                "Pick one.", List.of("A) 1", "B) 2", "C) 3"), "D", "");
+
+        AiClient ai = mock(AiClient.class);
+        when(ai.generateStructured(eq(GenerationService.PROMPT_PRACTICE), any(),
+                eq(PracticeBatch.class), any(), any()))
+                .thenReturn(new PracticeBatch(List.of(good, broken)))   // first pass: one survives
+                .thenReturn(new PracticeBatch(List.of(alsoGood)));      // top-up fills the gap
+        GenerationService svc = new GenerationService(ai, mapper, mock(TutorModeService.class));
+
+        PracticeBatch out = svc.generatePractice(
+                new GenerationContext("Mathematics", "Grade 4", "Addition", ""), "EASY", 2, null);
+
+        assertThat(out.questions()).extracting(GeneratedQuestion::prompt)
+                .containsExactly("What is 2 + 2?", "What is 3 + 3?");
+    }
+
+    @Test
     void deterministicallyFixesWrongShortAnswerKey() {
         // DB had "300"; 3 is in the ones place of 123.456 → 3.
         GeneratedQuestion q = new GeneratedQuestion("SHORT_ANSWER", "MEDIUM",

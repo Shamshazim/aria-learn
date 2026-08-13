@@ -158,7 +158,7 @@ public class QuizService {
             studentAnswerRepository.save(sa);
 
             results.add(new QuestionResult(q.getId(), q.getPromptText(), response,
-                    correct, q.getCorrectAnswer(), q.getSolution(), g.feedback()));
+                    correct, g.correctAnswer(), q.getSolution(), g.feedback()));
         }
 
         int total = links.size();

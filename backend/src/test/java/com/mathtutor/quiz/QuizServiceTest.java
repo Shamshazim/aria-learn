@@ -67,7 +67,7 @@ class QuizServiceTest {
             QuestionBank q = inv.getArgument(0);
             String resp = inv.getArgument(1);
             return new com.mathtutor.practice.AnswerGrader.GradeResult(
-                    com.mathtutor.practice.AnswerMatcher.matches(resp, q.getCorrectAnswer()), "ok");
+                    com.mathtutor.practice.AnswerMatcher.matchesChoice(resp, q.getCorrectAnswer()), "ok", q.getCorrectAnswer());
         });
     }
 
