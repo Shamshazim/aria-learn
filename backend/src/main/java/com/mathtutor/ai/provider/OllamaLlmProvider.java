@@ -24,9 +24,12 @@ public class OllamaLlmProvider implements LlmProvider {
 
     private final OllamaProperties props;
     private final RestClient restClient;
+    private final boolean desktop;
 
-    public OllamaLlmProvider(OllamaProperties props) {
+    public OllamaLlmProvider(OllamaProperties props, org.springframework.core.env.Environment environment) {
         this.props = props;
+        this.desktop = environment.acceptsProfiles(
+                org.springframework.core.env.Profiles.of("desktop"));
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(10));
         factory.setReadTimeout(Duration.ofSeconds(props.getTimeoutSeconds()));
@@ -76,9 +79,22 @@ public class OllamaLlmProvider implements LlmProvider {
             throw e;
         } catch (Exception e) {
             log.error("Ollama call failed: {}", e.getMessage());
-            throw new AiException("Local AI model is unavailable. Ensure Ollama is running and the model '"
-                    + model + "' is pulled.", e);
+            throw new AiException(unavailableMessage(model), e);
         }
+    }
+
+    /**
+     * What to tell whoever is looking at the screen. This message reaches the child directly, so
+     * on the desktop app it must not name Ollama or a model file: the engine is bundled, a parent
+     * cannot install or start it, and the app restarts it on its own. In development the operator
+     * is the developer, who can act on the specific detail — so there it stays specific.
+     */
+    private String unavailableMessage(String model) {
+        if (desktop) {
+            return "Aria's thinking engine is starting back up. Please wait a moment and try again.";
+        }
+        return "Local AI model is unavailable. Ensure Ollama is running and the model '"
+                + model + "' is pulled.";
     }
 
     @Override

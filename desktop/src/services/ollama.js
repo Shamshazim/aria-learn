@@ -26,6 +26,19 @@ const REQUIRED_MODELS = [TEACH_MODEL, FAST_MODEL];
 
 let child = null;
 let baseUrl = null;
+let port = null;
+let report = () => {};
+let stopping = false;
+let restarting = false;
+
+/**
+ * How long to wait before each restart attempt. The engine is respawned on the *same* port it
+ * was given at startup: the backend is handed its URL once, in its environment, and has no way
+ * to learn a new one — so a restart that moved ports would leave the app just as broken.
+ */
+const RESTART_DELAYS_MS = [1_000, 2_000, 5_000, 15_000, 30_000];
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function isUp() {
   try {
@@ -52,13 +65,10 @@ async function missingModels() {
   return REQUIRED_MODELS.filter((m) => !have.has(normalise(m)));
 }
 
-/** Starts the server. Cheap and fast — it does not load a model until asked to generate. */
-async function start(log) {
-  const port = await findFreePort();
-  baseUrl = `http://127.0.0.1:${port}`;
-
+/** Spawns the server process on the current port and supervises its exit. */
+function spawnServer() {
   const logFd = openLog(paths.ollamaLog);
-  child = spawn(paths.ollamaBin, ['serve'], {
+  const proc = spawn(paths.ollamaBin, ['serve'], {
     env: {
       ...process.env,
       OLLAMA_HOST: `127.0.0.1:${port}`,
@@ -70,10 +80,53 @@ async function start(log) {
     stdio: ['ignore', logFd, logFd],
   });
 
-  child.on('exit', (code) => {
-    if (code !== 0 && code !== null) log(`The AI engine stopped unexpectedly (code ${code}).`);
+  proc.on('exit', (code) => {
     child = null;
+    if (stopping) return;
+    report(`The AI engine stopped unexpectedly (code ${code}). Restarting it...`);
+    void restart();
   });
+  return proc;
+}
+
+/**
+ * Brings the engine back after it dies, retrying with a widening delay.
+ *
+ * Without this the app stays running with its database and backend healthy but no AI at all,
+ * and every lesson fails with a message a parent cannot act on. That is not hypothetical: a
+ * stray `pkill -f "ollama serve"` on the host matches this very process, and the app then sat
+ * broken for two days because nothing ever tried to start it again.
+ */
+async function restart() {
+  if (restarting || stopping) return;
+  restarting = true;
+  try {
+    for (let attempt = 1; attempt <= RESTART_DELAYS_MS.length; attempt++) {
+      await sleep(RESTART_DELAYS_MS[attempt - 1]);
+      if (stopping) return;
+      try {
+        child = spawnServer();
+        await waitFor(isUp, { timeoutMs: 60_000, label: "Aria's AI engine" });
+        report("Aria's AI engine is back.");
+        return;
+      } catch (err) {
+        report(`Could not restart the AI engine (attempt ${attempt} of ${RESTART_DELAYS_MS.length}).`);
+      }
+    }
+    report('Aria\'s AI engine could not be restarted. Please quit and reopen Aria Learn.');
+  } finally {
+    restarting = false;
+  }
+}
+
+/** Starts the server. Cheap and fast — it does not load a model until asked to generate. */
+async function start(log) {
+  report = typeof log === 'function' ? log : () => {};
+  stopping = false;
+  port = await findFreePort();
+  baseUrl = `http://127.0.0.1:${port}`;
+
+  child = spawnServer();
 
   await waitFor(isUp, { timeoutMs: 60_000, label: "Aria's AI engine" });
   return { baseUrl, teachModel: TEACH_MODEL, fastModel: FAST_MODEL };
@@ -115,6 +168,8 @@ async function ensureModels(onProgress) {
 }
 
 async function stop() {
+  // Set before killing, so the exit handler treats this as intentional and does not restart it.
+  stopping = true;
   if (!child) return;
   const exited = new Promise((resolve) => child.once('exit', resolve));
   child.kill('SIGTERM');
