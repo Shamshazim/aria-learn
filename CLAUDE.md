@@ -53,6 +53,17 @@ frontend/src/
 
 ## Architecture notes
 - Flyway migrations in `db/migration/` — always add new migrations as V(n+1)__description.sql
+- The desktop app supervises its bundled Ollama: if the engine exits unexpectedly,
+  `desktop/src/services/ollama.js` respawns it **on the same port**, with a widening delay. The
+  same port is not incidental — the backend is handed `OLLAMA_URL` once in its environment and
+  cannot learn a new one, so a restart that moved ports would leave the app just as broken.
+  `stop()` sets a flag first so a deliberate shutdown is not mistaken for a crash.
+- Beware host-wide `pkill -f "ollama serve"`: it matches the app's *bundled* engine, not just a
+  developer's own. The bundled one runs on a private dynamic port, so checking `localhost:11434`
+  does not tell you whether the app's engine is alive.
+- User-facing AI errors reach the child directly. `OllamaLlmProvider` varies the message by
+  profile: under `desktop` it never names Ollama or a model file (a parent cannot act on either),
+  and in development it keeps the specific, actionable detail.
 - The `desktop` Spring profile changes behaviour meaningfully: it serves the frontend from
   the classpath, denies all CORS, disables Swagger and the demo-account seeder, and refuses
   to start without a per-install `JWT_SECRET`. Keep desktop-only beans behind `@Profile`.
