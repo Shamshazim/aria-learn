@@ -33,9 +33,12 @@ parent.
    | `APPLE_APP_SPECIFIC_PASSWORD` | an app-specific password from appleid.apple.com |
    | `APPLE_TEAM_ID` | the 10-character team identifier |
 
-3. Remove `identity: null` from `desktop/electron-builder.yml` and set
-   `notarize: true` under `mac`.
-4. Push a tag: `git tag v0.1.0 && git push origin v0.1.0`.
+3. Nothing to change in the build. `desktop/electron-builder.yml` already signs and notarizes
+   by default; the release workflow opts out only when `MAC_CERTIFICATE_P12` is absent, so
+   adding the secrets is the whole switch.
+4. Set `UNSIGNED_BUILD = false` in the site's `downloads.html`, so it stops printing `xattr`
+   instructions that are wrong once builds are signed.
+5. Push a tag: `git tag v0.1.0 && git push origin v0.1.0`.
 
 The release workflow builds on both an Apple Silicon and an Intel runner, signs, notarizes,
 and publishes both installers to GitHub Releases. The download page is then the repository's
