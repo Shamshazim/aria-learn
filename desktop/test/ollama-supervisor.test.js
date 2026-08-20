@@ -19,7 +19,18 @@ const { paths } = require('../src/paths');
  *
  * These tests stand a fake engine in place of the real binary: a tiny HTTP server that answers
  * /api/tags like Ollama does, and exits on demand so a crash can be simulated.
+ *
+ * They do not run on Windows. The fake engine is a script made executable by its shebang, which
+ * Windows has no equivalent for — spawning it fails with `spawn UNKNOWN`, and the workarounds
+ * (a .cmd shim) need `shell: true`, which the production code rightly does not use. What differs
+ * there is the harness's ability to impersonate a binary, not the behaviour being tested: the
+ * restart logic is plain JavaScript and identical on every platform.
  */
+
+/** Windows cannot spawn a shebang script, so the fake engine has no stand-in there. */
+const SKIP_ON_WINDOWS = process.platform === 'win32'
+  ? 'needs a spawnable fake engine; Windows has no shebang equivalent'
+  : false;
 
 const FAKE_ENGINE = `#!/usr/bin/env node
 const http = require('node:http');
@@ -61,7 +72,8 @@ async function waitUntilUp(baseUrl, timeoutMs) {
   return false;
 }
 
-test('the engine restarts itself on the same port after an unexpected exit', async (t) => {
+test('the engine restarts itself on the same port after an unexpected exit',
+  { skip: SKIP_ON_WINDOWS }, async (t) => {
   useFakeEngine();
   const ollama = require('../src/services/ollama');
   t.after(() => ollama.stop().catch(() => {}));
@@ -79,7 +91,8 @@ test('the engine restarts itself on the same port after an unexpected exit', asy
   );
 });
 
-test('a deliberate stop is not treated as a crash and does not restart', async () => {
+test('a deliberate stop is not treated as a crash and does not restart',
+  { skip: SKIP_ON_WINDOWS }, async () => {
   useFakeEngine();
   // A fresh module instance so state from the previous test does not leak in.
   delete require.cache[require.resolve('../src/services/ollama')];
