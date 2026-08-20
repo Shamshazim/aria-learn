@@ -24,12 +24,19 @@ jobs:
           - runner: macos-14      # Apple Silicon
             label: macOS (Apple Silicon)
             builder: --mac
-          - runner: macos-13      # Intel
-            label: macOS (Intel)
-            builder: --mac
           - runner: windows-latest
             label: Windows (x64)
             builder: --win
+          # Intel macOS is temporarily out of the matrix. GitHub's macos-13 runners are scarce
+          # enough that the job sat queued for over half an hour while the other two finished,
+          # holding up the whole release. Intel Macs also run the 7B model slowly enough that
+          # they are the least urgent audience. Restore by putting this back:
+          #
+          #   - runner: macos-13    # Intel
+          #     label: macOS (Intel)
+          #     builder: --mac
+          #
+          # Nothing else needs changing — the build is already per-architecture.
 
     runs-on: ${{ matrix.runner }}
 
