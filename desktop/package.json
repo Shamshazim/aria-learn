@@ -12,7 +12,7 @@
     "dist": "npm run build:runtime && electron-builder --mac",
     "dist:unsigned": "npm run build:runtime && electron-builder --mac -c.mac.identity=null -c.mac.notarize=false",
     "dist:dir": "npm run build:runtime && electron-builder --mac --dir -c.mac.identity=null -c.mac.notarize=false",
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test"
   },
   "dependencies": {
     "electron-updater": "^6.3.9"
