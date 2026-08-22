@@ -145,7 +145,15 @@ APPLE_APP_SPECIFIC_PASSWORD
 APPLE_TEAM_ID
 ```
 
-Or from the terminal:
+Or let the script do all five, prompting for each and echoing none of them back:
+
+```bash
+./scripts/setup-signing-secrets.sh ~/Desktop/aria-signing.p12
+```
+
+It base64-encodes the `.p12` for you, warns if no *Developer ID Application* certificate is in
+your keychain (usually a sign the wrong file is about to be uploaded), and prints what to do
+next. The equivalent by hand:
 
 ```bash
 gh secret set MAC_CERTIFICATE_P12 --repo Shamshazim/aria-learn < <(base64 -i aria-signing.p12)
