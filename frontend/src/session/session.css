@@ -1,0 +1,415 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   The agent-led student session.
+
+   One screen, three age bands. Every class here is prefixed `sx-` because the
+   app's global styles.css owns short names like .card, .topbar and .btn, and a
+   collision would be invisible until a child met it.
+
+   The bands differ only in these tokens plus a handful of layout rules. The
+   teaching engine, the state machine and the components are identical across
+   all three — a grade 8 student who meets the TK layout stops trusting the app,
+   and a TK child who meets the grade 8 layout cannot read it, so the whole
+   difference is deliberately confined to what you can see below.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.sx-app{
+  --sx-violet:#6366F1;
+  --sx-violet-deep:#4F46E5;
+  --sx-violet-ink:#312E81;
+  --sx-blue:#2F73F0;
+  --sx-green:#57A94A;
+  --sx-amber:#F2B233;
+  --sx-purple:#7C5CE0;
+  --sx-red:#E23B3B;
+
+  --sx-ground:#F1EFFC;
+  --sx-card:#FFFFFF;
+  --sx-line:#E6E2F7;
+  --sx-ink:#221E3D;
+  --sx-ink-soft:#6B6790;
+  --sx-ink-faint:#9A96B8;
+
+  --sx-r-lg:24px; --sx-r-md:16px; --sx-r-sm:10px;
+  --sx-shadow:0 8px 28px rgba(56,42,120,.10);
+
+  --sx-font-ui:'Nunito',system-ui,sans-serif;
+  --sx-font-display:'Fredoka','Nunito',system-ui,sans-serif;
+  --sx-font-math:Georgia,'Source Serif 4',serif;
+
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  background:var(--sx-ground); color:var(--sx-ink);
+  font-family:var(--sx-font-ui); -webkit-font-smoothing:antialiased;
+}
+
+/* The senior band is the same system, matured: whiter ground, sharper corners,
+   quieter accents, a UI face instead of a rounded display face. */
+.sx-app[data-band="senior"]{
+  --sx-ground:#FAFAFC;
+  --sx-line:#E7E7EE;
+  --sx-ink:#1B1B23;
+  --sx-ink-soft:#63636F;
+  --sx-ink-faint:#9B9BA6;
+  --sx-r-lg:12px; --sx-r-md:10px; --sx-r-sm:8px;
+  --sx-shadow:0 1px 2px rgba(20,20,40,.05);
+  --sx-font-ui:system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+
+.sx-app *{box-sizing:border-box}
+
+/* The reset is wrapped in :where() so it adds no specificity of its own. Written as
+   `.sx-app button` it would score higher than every single-class rule below it and
+   quietly strip the background off every styled button on the page. */
+.sx-app :where(button){font:inherit; color:inherit; cursor:pointer; border:0; background:none}
+.sx-app :where(button[disabled]){cursor:default}
+.sx-app :where(button, input, textarea):focus-visible{
+  outline:3px solid var(--sx-violet); outline-offset:2px; border-radius:6px;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sx-app *{animation:none!important; transition:none!important}
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+.sx-topbar{
+  display:flex; align-items:center; gap:16px; padding:14px 26px;
+  background:#fff; border-bottom:1px solid var(--sx-line);
+}
+.sx-brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; color:var(--sx-violet-ink)}
+.sx-app[data-band="senior"] .sx-brand{font-size:17px; font-weight:700}
+.sx-brand svg{flex:none}
+.sx-topbar-mid{margin:0 auto; display:flex; align-items:center; gap:10px}
+.sx-who{display:flex; align-items:center; gap:10px; font-weight:700}
+.sx-avatar{width:38px; height:38px; border-radius:50%; background:#DED9FA; display:grid; place-items:center; font-size:20px}
+.sx-app[data-band="senior"] .sx-avatar{width:30px; height:30px; font-size:16px}
+.sx-focus{color:var(--sx-ink-soft); font-weight:500; font-size:14px}
+.sx-topbar-right{display:flex; align-items:center; gap:14px; margin-left:auto; font-weight:700}
+.sx-flame{display:flex; align-items:center; gap:6px}
+.sx-chip{border:1.5px solid var(--sx-violet); color:var(--sx-violet-deep); border-radius:999px; padding:3px 12px; font-size:13px}
+.sx-xp{width:150px; height:9px; border-radius:999px; background:#E4E1F5; overflow:hidden}
+.sx-xp i{display:block; height:100%; background:var(--sx-violet); border-radius:999px}
+.sx-linkbtn{color:var(--sx-ink); font-weight:700; padding:6px 4px; font-size:14px; text-decoration:none}
+.sx-rule{width:1px; height:24px; background:var(--sx-line)}
+
+/* ── Stage ───────────────────────────────────────────────────────────────── */
+.sx-stage{flex:1; display:grid; gap:26px; padding:26px; align-content:start}
+.sx-app[data-band="early"] .sx-stage{grid-template-columns:minmax(220px,1fr) minmax(0,2.1fr) 90px}
+.sx-app[data-band="middle"] .sx-stage{grid-template-columns:minmax(0,1fr) 340px; justify-items:center}
+.sx-app[data-band="middle"] .sx-main{width:100%; max-width:760px}
+.sx-app[data-band="senior"] .sx-stage{grid-template-columns:minmax(0,1fr) 380px; padding:22px 26px}
+/* Loading, error and the finish card get the whole stage and sit in the middle of it.
+   Left at the top of a tall empty page they read as a page that failed to finish. */
+.sx-stage--single{grid-template-columns:1fr!important; align-content:center; justify-items:center}
+.sx-stage--single > *{width:100%; max-width:560px}
+
+.sx-owlcol{display:flex; align-items:center; justify-content:center}
+.sx-main{display:flex; flex-direction:column; gap:18px; min-width:0}
+.sx-side{min-width:0}
+.sx-jarcol{display:flex; justify-content:center; align-items:flex-start; padding-top:6px}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.sx-card{background:var(--sx-card); border-radius:var(--sx-r-lg); box-shadow:var(--sx-shadow); padding:26px}
+.sx-app[data-band="senior"] .sx-card{border:1px solid var(--sx-line); padding:0}
+
+/* ── Aria speech ─────────────────────────────────────────────────────────── */
+.sx-sayrow{display:flex; align-items:flex-start; gap:14px}
+.sx-say{
+  flex:1; background:#EFECFD; border-radius:20px; padding:16px 22px;
+  font-weight:700; line-height:1.35; position:relative;
+}
+.sx-app[data-band="early"] .sx-say{font-family:var(--sx-font-display); font-size:34px; text-align:center}
+.sx-app[data-band="middle"] .sx-say{font-size:19px}
+.sx-say::after{
+  content:""; position:absolute; left:-9px; top:22px; width:18px; height:18px;
+  background:#EFECFD; transform:rotate(45deg); border-radius:3px;
+}
+.sx-app[data-band="early"] .sx-say::after{display:none}
+.sx-speak{
+  flex:none; width:52px; height:52px; border-radius:50%; background:var(--sx-violet);
+  color:#fff; display:grid; place-items:center; box-shadow:var(--sx-shadow);
+}
+.sx-speak.is-on{animation:sx-pulse 1s ease-in-out infinite}
+@keyframes sx-pulse{50%{transform:scale(1.09)}}
+.sx-owl-inline{flex:none}
+
+/* ── Countables ──────────────────────────────────────────────────────────── */
+.sx-items{display:flex; justify-content:center; align-items:center; gap:46px; flex-wrap:wrap; padding:22px 0 8px}
+.sx-groups{display:flex; justify-content:center; gap:16px; flex-wrap:wrap; padding:14px 0 4px}
+.sx-tray{
+  border:2px solid #D9D5EE; border-radius:12px; padding:12px;
+  display:grid; grid-template-columns:repeat(3,20px); gap:9px; justify-content:center;
+}
+.sx-tray span{width:20px; height:20px; border-radius:50%; border:2px solid #C9C4E6}
+.sx-hintline{
+  display:flex; align-items:center; justify-content:center; gap:8px; text-align:center;
+  color:var(--sx-ink-soft); font-weight:700; font-size:15px; margin-top:8px;
+}
+
+/* ── Answer: tap tiles (early) ───────────────────────────────────────────── */
+.sx-tiles{display:flex; gap:22px; justify-content:center; flex-wrap:wrap}
+.sx-tile{
+  width:150px; height:150px; border-radius:22px; color:#fff;
+  font-family:var(--sx-font-display); font-size:64px; font-weight:700;
+  box-shadow:0 6px 0 rgba(0,0,0,.13); transition:transform .12s ease;
+  display:grid; place-items:center; padding:6px; line-height:1;
+}
+.sx-tile:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.13)}
+.sx-tile--t0{background:var(--sx-green)}
+.sx-tile--t1{background:#4A90D9}
+.sx-tile--t2{background:var(--sx-amber)}
+.sx-tile--t3{background:var(--sx-purple)}
+.sx-tile.is-chosen{outline:6px solid var(--sx-violet-ink); outline-offset:4px}
+.sx-tile.is-right{background:var(--sx-green)}
+.sx-tile.is-wrong{background:#D6605A}
+/* Every tile the child did not touch goes grey, so the one green "correct" state
+   can never be confused with the tile that is merely green by position. */
+.sx-tile.is-muted{background:#D8D4E8}
+.sx-tile--long{font-family:var(--sx-font-ui); font-size:28px}
+
+/* ── Answer: word cards (middle) ─────────────────────────────────────────── */
+.sx-choices{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+.sx-choice{
+  background:#fff; border:2px solid var(--sx-line); border-radius:var(--sx-r-md);
+  padding:18px 20px; font-size:17px; font-weight:700; text-align:left;
+  box-shadow:var(--sx-shadow); transition:border-color .12s ease;
+}
+.sx-choice:hover:not([disabled]){border-color:var(--sx-violet)}
+.sx-choice.is-chosen{border-color:var(--sx-violet); background:#F4F2FE}
+.sx-choice.is-right{border-color:var(--sx-green); background:#EFF8ED}
+.sx-choice.is-wrong{border-color:var(--sx-red); background:#FDF0F0}
+
+/* ── Answer: number pad ──────────────────────────────────────────────────── */
+.sx-padwrap{display:flex; flex-direction:column; gap:12px; align-items:center}
+.sx-padvalue{
+  width:100%; max-width:420px; background:#fff; border:1.5px solid var(--sx-line);
+  border-radius:var(--sx-r-md); padding:16px; text-align:center;
+  font-size:30px; font-weight:800; font-variant-numeric:tabular-nums; min-height:66px;
+}
+.sx-padvalue .sx-ph{color:var(--sx-ink-faint)}
+.sx-caret{display:inline-block; width:2px; height:28px; background:var(--sx-ink); vertical-align:-5px; animation:sx-blink 1s step-end infinite}
+@keyframes sx-blink{50%{opacity:0}}
+.sx-pad{display:grid; grid-template-columns:repeat(3,132px); gap:10px}
+.sx-key{
+  height:62px; background:#fff; border:1.5px solid var(--sx-line); border-radius:var(--sx-r-md);
+  font-size:22px; font-weight:700; display:grid; place-items:center;
+}
+.sx-key:hover:not([disabled]){border-color:var(--sx-violet); color:var(--sx-violet-deep)}
+.sx-key--enter{background:var(--sx-violet); color:#fff; border-color:var(--sx-violet)}
+.sx-key[disabled]{opacity:.5}
+
+/* ── Answer: work rows (senior) ──────────────────────────────────────────── */
+.sx-pane{padding:22px 26px}
+.sx-pane + .sx-pane{border-top:1px solid var(--sx-line)}
+.sx-pane--flush{padding-top:0; border-top:0}
+.sx-problem{font-family:var(--sx-font-math); font-size:26px; line-height:1.35}
+.sx-panehead{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+.sx-panehead h3{margin:0; font-size:15px; font-weight:600}
+.sx-rows{border:1px solid var(--sx-line); border-radius:var(--sx-r-sm); overflow:hidden}
+.sx-row{display:flex; align-items:center; border-bottom:1px solid var(--sx-line)}
+.sx-row:last-child{border-bottom:0}
+.sx-row .sx-n{width:46px; text-align:center; color:var(--sx-ink-faint); font-size:14px; flex:none}
+.sx-row input{
+  flex:1; border:0; padding:16px 8px; font-family:var(--sx-font-math); font-size:20px;
+  background:transparent; color:var(--sx-ink); min-width:0;
+}
+.sx-row input::placeholder{color:var(--sx-ink-faint); font-style:italic}
+.sx-row--locked input{color:var(--sx-ink-soft)}
+.sx-final{margin-top:18px}
+.sx-final label{display:block; font-size:14px; font-weight:600; margin-bottom:8px}
+.sx-final input{
+  width:100%; border:1px solid var(--sx-line); border-radius:var(--sx-r-sm); padding:14px 16px;
+  font-family:var(--sx-font-math); font-size:20px; background:#fff; color:var(--sx-ink);
+}
+.sx-actions{display:flex; align-items:center; gap:18px; margin-top:20px; flex-wrap:wrap}
+
+/* ── Answer: long text ───────────────────────────────────────────────────── */
+.sx-longtext{
+  width:100%; min-height:120px; border:1px solid var(--sx-line); border-radius:var(--sx-r-sm);
+  padding:14px 16px; font:inherit; font-size:16px; line-height:1.5; resize:vertical;
+  background:#fff; color:var(--sx-ink);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.sx-btn{border-radius:999px; font-weight:800; display:inline-flex; align-items:center; gap:10px; justify-content:center}
+.sx-btn--go{background:var(--sx-blue); color:#fff; padding:20px 64px; font-size:26px; box-shadow:0 6px 0 #1F55BD}
+.sx-btn--go:active:not([disabled]){transform:translateY(3px); box-shadow:0 3px 0 #1F55BD}
+.sx-btn--go[disabled]{opacity:.45; box-shadow:0 6px 0 #1F55BD}
+.sx-btn--next{background:var(--sx-blue); color:#fff; padding:14px 44px; font-size:20px; box-shadow:0 6px 0 #1F55BD}
+.sx-btn--next[disabled]{opacity:.45}
+.sx-btn--check{background:var(--sx-violet-deep); color:#fff; padding:14px 30px; font-size:16px}
+.sx-app[data-band="senior"] .sx-btn--check{border-radius:8px; padding:12px 22px; font-weight:600}
+.sx-btn--check[disabled]{opacity:.45}
+.sx-btn--ghost{color:var(--sx-violet-deep); font-weight:700; padding:12px 8px}
+.sx-btn--hint{background:#FDF4E3; color:#B8791A; border:1.5px solid #F2D9A8; padding:11px 22px; font-size:15px}
+
+/* ── Feedback ────────────────────────────────────────────────────────────── */
+.sx-verdict{
+  display:flex; align-items:center; gap:12px; border-radius:var(--sx-r-md);
+  padding:16px 20px; font-weight:800; font-size:18px; animation:sx-pop .28s ease;
+}
+.sx-app[data-band="early"] .sx-verdict{font-family:var(--sx-font-display); font-size:26px; justify-content:center}
+.sx-verdict--ok{background:#EAF7E7; color:#2F6B24}
+.sx-verdict--no{background:#FCF0EE; color:#A93A2C}
+@keyframes sx-pop{from{transform:scale(.94); opacity:0}}
+
+/* ── Progress and reward ─────────────────────────────────────────────────── */
+.sx-dots{display:flex; gap:14px; justify-content:center}
+.sx-dot{width:18px; height:18px; border-radius:50%; border:2.5px solid var(--sx-violet); background:#fff}
+.sx-dot.is-done{background:var(--sx-violet)}
+.sx-bar{display:flex; align-items:center; gap:14px; color:var(--sx-ink-soft); font-size:13px}
+.sx-bar .sx-segs{display:flex; gap:6px}
+.sx-bar i{width:56px; height:6px; border-radius:3px; background:#E5E5EC}
+.sx-bar i.is-done{background:var(--sx-violet-deep)}
+.sx-jar{position:relative; width:76px; height:104px}
+.sx-jar-count{position:absolute; inset:auto 0 -26px 0; text-align:center; font-weight:800; color:var(--sx-violet-deep); font-size:15px}
+
+/* ── Bottom bar ──────────────────────────────────────────────────────────── */
+.sx-bottom{display:flex; align-items:center; gap:16px; justify-content:center; padding-top:6px; flex-wrap:wrap}
+.sx-mic{width:64px; height:64px; border-radius:50%; background:var(--sx-violet); color:#fff; display:grid; place-items:center; box-shadow:var(--sx-shadow)}
+.sx-app[data-band="middle"] .sx-mic{width:52px; height:52px}
+.sx-askpill{
+  background:#fff; border:1.5px solid var(--sx-line); border-radius:999px;
+  padding:14px 24px; font-weight:800; color:var(--sx-violet-deep);
+  display:inline-flex; align-items:center; gap:10px; box-shadow:var(--sx-shadow);
+}
+
+/* ── Ask Aria ────────────────────────────────────────────────────────────── */
+.sx-chat{
+  background:#fff; border-radius:var(--sx-r-lg); box-shadow:var(--sx-shadow);
+  display:flex; flex-direction:column; height:100%; min-height:420px; overflow:hidden;
+}
+.sx-app[data-band="senior"] .sx-chat{border:1px solid var(--sx-line)}
+.sx-chat-head{display:flex; align-items:center; justify-content:space-between; padding:18px 20px; font-weight:800}
+.sx-app[data-band="senior"] .sx-chat-head{border-bottom:1px solid var(--sx-line); font-weight:600}
+.sx-chat-body{flex:1; overflow-y:auto; padding:6px 20px 16px; display:flex; flex-direction:column; gap:14px}
+.sx-turn{display:flex; gap:10px; align-items:flex-start; max-width:92%}
+.sx-turn--child{align-self:flex-end; flex-direction:row-reverse}
+.sx-bub{background:#EFECFD; border-radius:16px; padding:12px 16px; font-size:15px; line-height:1.4}
+.sx-turn--child .sx-bub{background:#E4E9FB}
+.sx-stamp{font-size:11px; color:var(--sx-ink-faint); margin-top:6px}
+.sx-chat-input{display:flex; align-items:center; gap:10px; padding:14px 16px; border-top:1px solid var(--sx-line)}
+.sx-chat-input input{flex:1; border:1.5px solid var(--sx-line); border-radius:999px; padding:12px 18px; font:inherit; background:#fff; color:var(--sx-ink); min-width:0}
+.sx-app[data-band="senior"] .sx-chat-input input{border-radius:8px}
+.sx-iconbtn{width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:var(--sx-violet-deep); flex:none}
+
+/* Shown only when the docked conversation column is not on screen. Above that width it
+   would offer a second way into a panel the child can already see. */
+.sx-ask-mobile{display:none}
+@media (max-width:1080px){ .sx-ask-mobile{display:inline-flex} }
+/* The early band opens the conversation as a full overlay. A docked panel is one
+   more thing on screen for a child who cannot read the rest of it yet. */
+.sx-overlay{position:fixed; inset:0; background:rgba(30,26,60,.5); display:grid; place-items:center; z-index:50; padding:24px}
+.sx-overlay .sx-chat{width:min(560px,100%); height:min(620px,86vh)}
+
+/* ── Session complete, loading, error ────────────────────────────────────── */
+.sx-done{text-align:center; display:flex; flex-direction:column; align-items:center; gap:16px; padding:44px 26px}
+.sx-done h2{margin:0; font-family:var(--sx-font-display); font-size:38px}
+.sx-app[data-band="senior"] .sx-done h2{font-family:var(--sx-font-ui); font-size:26px; font-weight:600}
+.sx-done p{margin:0; color:var(--sx-ink-soft); font-size:17px; max-width:46ch; line-height:1.5}
+.sx-note{color:var(--sx-ink-soft); font-size:14px; line-height:1.5; max-width:52ch; margin:0}
+.sx-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; color:var(--sx-ink-soft); word-break:break-word}
+
+/* ── The owl ─────────────────────────────────────────────────────────────── */
+.sx-owl{overflow:visible}
+.sx-owl .sx-owl-body{animation:sx-bob 3.4s ease-in-out infinite; transform-origin:100px 170px}
+@keyframes sx-bob{50%{transform:translateY(-7px)}}
+.sx-owl .sx-lid{transform-origin:center; transform:scaleY(0); animation:sx-blinkeye 5s infinite}
+@keyframes sx-blinkeye{0%,94%,100%{transform:scaleY(0)} 96%,98%{transform:scaleY(1)}}
+.sx-owl.is-speaking .sx-beak{animation:sx-talk .28s ease-in-out infinite alternate; transform-origin:100px 108px}
+@keyframes sx-talk{to{transform:scaleY(1.5)}}
+.sx-owl--cheer .sx-wing-l{animation:sx-flapl .4s ease-in-out infinite alternate; transform-origin:56px 110px}
+.sx-owl--cheer .sx-wing-r{animation:sx-flapr .4s ease-in-out infinite alternate; transform-origin:144px 110px}
+@keyframes sx-flapl{to{transform:rotate(-24deg)}}
+@keyframes sx-flapr{to{transform:rotate(24deg)}}
+.sx-owl .sx-brow{opacity:0; transition:opacity .2s}
+.sx-owl--think .sx-brow{opacity:1}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width:1080px){
+  .sx-app[data-band="early"] .sx-stage{grid-template-columns:1fr}
+  .sx-app[data-band="early"] .sx-owlcol{order:-1}
+  .sx-app[data-band="early"] .sx-jarcol{position:fixed; right:14px; top:120px; z-index:5}
+  .sx-app[data-band="middle"] .sx-stage,
+  .sx-app[data-band="senior"] .sx-stage{grid-template-columns:1fr}
+  .sx-side{display:none}
+  .sx-pad{grid-template-columns:repeat(3,100px)}
+}
+@media (max-width:560px){
+  .sx-tile{width:120px; height:120px; font-size:52px}
+  .sx-items{gap:24px}
+  .sx-topbar{padding:12px 14px; gap:10px}
+  .sx-xp,.sx-focus{display:none}
+  .sx-stage{padding:16px}
+  .sx-choices{grid-template-columns:1fr}
+  .sx-app[data-band="early"] .sx-say{font-size:26px}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Subject picker
+
+   The one screen where the child chooses. It reuses the session's tokens on
+   purpose: a child who taps a green Science card should arrive somewhere that
+   is plainly the same app, not a second product with its own colours.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* The picker owns the full width; there is no owl column and no star jar. */
+.sx-stage--pick{grid-template-columns:1fr!important; justify-items:center; align-content:start}
+.sx-pick{width:100%; max-width:900px; display:flex; flex-direction:column; gap:28px}
+.sx-app[data-band="senior"] .sx-pick{max-width:720px; gap:22px}
+
+.sx-pick-head{display:flex; align-items:center; gap:22px}
+.sx-pick-title{margin:0; font-family:var(--sx-font-display); font-size:40px; line-height:1.1}
+.sx-app[data-band="middle"] .sx-pick-title{font-size:32px}
+.sx-app[data-band="senior"] .sx-pick-title{font-family:var(--sx-font-ui); font-size:24px; font-weight:700}
+.sx-pick-sub{margin:8px 0 0; color:var(--sx-ink-soft); font-size:20px; font-weight:600}
+.sx-app[data-band="senior"] .sx-pick-sub{font-size:15px; font-weight:400}
+
+.sx-pick-grid{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+/* Bigger cards for a child who is aiming with a whole hand, not a cursor. */
+.sx-app[data-band="early"] .sx-pick-grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:26px}
+/* The senior band gets rows, not tiles: the face stops being the point once the name
+   is readable at a glance, and a list scans faster than a grid. */
+.sx-app[data-band="senior"] .sx-pick-grid{grid-template-columns:1fr; gap:10px}
+
+.sx-subject{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding:30px 22px; border-radius:var(--sx-r-lg);
+  background:var(--face-tint); border:2px solid var(--face-edge);
+  color:var(--sx-ink); text-decoration:none; text-align:center;
+  box-shadow:var(--sx-shadow);
+  transition:transform .16s ease, box-shadow .16s ease;
+}
+.sx-subject:hover{transform:translateY(-4px); box-shadow:0 14px 34px rgba(56,42,120,.16)}
+.sx-subject:active{transform:translateY(-1px)}
+/* The senior band keeps the card white and spends the subject colour on a single edge.
+   A wash of pink behind an eighth-grader's writing class reads as an app for infants. */
+.sx-app[data-band="senior"] .sx-subject{
+  flex-direction:row; align-items:center; gap:16px; text-align:left;
+  padding:14px 18px; box-shadow:none;
+  background:var(--sx-card); border:1px solid var(--sx-line);
+  border-left:3px solid var(--face-edge);
+}
+.sx-app[data-band="senior"] .sx-subject:hover{transform:none; box-shadow:var(--sx-shadow)}
+
+.sx-subject-face{font-size:64px; line-height:1}
+.sx-app[data-band="early"] .sx-subject-face{font-size:86px}
+.sx-app[data-band="senior"] .sx-subject-face{font-size:28px; flex:none}
+
+.sx-subject-name{font-family:var(--sx-font-display); font-size:28px; font-weight:800}
+.sx-app[data-band="early"] .sx-subject-name{font-size:34px}
+.sx-app[data-band="senior"] .sx-subject-name{font-family:var(--sx-font-ui); font-size:16px; font-weight:600}
+
+.sx-subject-note{color:var(--sx-ink-soft); font-size:15px; font-weight:600; line-height:1.35}
+.sx-app[data-band="senior"] .sx-subject-note{font-weight:400; font-size:14px}
+/* The grade is for the parent leaning in, so it stays the quietest thing on the card. */
+.sx-subject-grade{color:var(--sx-ink-faint); font-size:13px; font-weight:700; letter-spacing:.02em}
+.sx-app[data-band="senior"] .sx-subject-grade{margin-left:auto; font-weight:500}
+
+@media (max-width:640px){
+  .sx-pick-head{flex-direction:column; text-align:center; gap:12px}
+  .sx-pick-grid{grid-template-columns:1fr!important}
+}
+
+/* The way back to the class list. It sits with the quiet links, not with the answer
+   controls, so it never competes with the button the child is meant to press. */
+.sx-linkbtn--back{display:inline-flex; align-items:center; gap:6px}

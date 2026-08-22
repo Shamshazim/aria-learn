@@ -173,6 +173,80 @@ class QuestionSanitizerTest {
         assertThat(why).contains("identical");
     }
 
+    // ── HTML markup ──────────────────────────────────────────────────────────
+
+    @Test
+    void stripsBreakTagsAndTheOptionsTheySeparateOutOfThePrompt() {
+        // Verbatim from a Grade 7 English Writing question a child was shown: the model wrote its
+        // line breaks as "<br>", so the prompt carried no newline, the option-stripping never ran,
+        // and the child read the question, then all four options twice, tags and all.
+        GeneratedQuestion q = sanitized(mc(
+                "Which of the following uses a gerund as the main verb of the sentence? <br> <br> "
+                        + "A) Running in the park makes me feel alive. <br> "
+                        + "B) After running for an hour, I felt tired. <br> "
+                        + "C) The fastest way to improve fitness is by running regularly. <br> "
+                        + "D) I enjoy running more than swimming.",
+                List.of("A) Running in the park makes me feel alive.",
+                        "B) After running for an hour, I felt tired.",
+                        "C) The fastest way to improve fitness is by running regularly.",
+                        "D) I enjoy running more than swimming."),
+                "A"));
+
+        assertThat(q.prompt())
+                .isEqualTo("Which of the following uses a gerund as the main verb of the sentence?");
+        assertThat(q.choices()).hasSize(4);
+        assertThat(q.correctAnswer()).isEqualTo("A) Running in the park makes me feel alive.");
+    }
+
+    @Test
+    void stripsMarkupFromOptionsTheKeyAndTheSolution() {
+        GeneratedQuestion q = sanitized(new GeneratedQuestion(
+                "MULTIPLE_CHOICE", "MEDIUM", "<p>What is 12 + 7?</p>",
+                List.of("A) <b>17</b>", "B) 19", "C) 21", "D) 23"),
+                "B) <b>19</b>", "Add the <strong>ones</strong> first.<br>Then the tens."));
+
+        assertThat(q.prompt()).isEqualTo("What is 12 + 7?");
+        assertThat(q.choices()).containsExactly("A) 17", "B) 19", "C) 21", "D) 23");
+        assertThat(q.correctAnswer()).isEqualTo("B) 19");
+        assertThat(q.solution()).isEqualTo("Add the ones first. Then the tens.");
+    }
+
+    @Test
+    void splitsAChoiceBlobJoinedByBreakTagsRatherThanSpaces() {
+        GeneratedQuestion q = sanitized(mc("What is 12 + 7?",
+                List.of("A) 17<br>B) 19<br>C) 21<br>D) 23"), "19"));
+
+        assertThat(q.choices()).containsExactly("A) 17", "B) 19", "C) 21", "D) 23");
+        assertThat(q.correctAnswer()).isEqualTo("B) 19");
+    }
+
+    @Test
+    void decodesEscapedTagsAndEntities() {
+        GeneratedQuestion q = sanitized(mc(
+                "Which sign is right?&lt;br&gt;A) 3 &lt; 5&lt;br&gt;B) 3 &gt; 5&lt;br&gt;C) 3 = 5",
+                List.of("A) 3 &lt; 5", "B) 3 &gt; 5", "C) 3 = 5"), "A"));
+
+        assertThat(q.prompt()).isEqualTo("Which sign is right?");
+        assertThat(q.choices()).containsExactly("A) 3 < 5", "B) 3 > 5", "C) 3 = 5");
+    }
+
+    @Test
+    void leavesArithmeticComparisonsAlone() {
+        // "< 5" and "> 2" are not markup. A generic <tag> pattern would eat half the question.
+        GeneratedQuestion q = sanitized(mc("Is 3 < 5 and 9 > 2?",
+                List.of("A) Yes", "B) No", "C) Only the first"), "A"));
+
+        assertThat(q.prompt()).isEqualTo("Is 3 < 5 and 9 > 2?");
+    }
+
+    @Test
+    void turnsADoubleEscapedNewlineBackIntoALineBreak() {
+        GeneratedQuestion q = sanitized(mc("Pick the even number.\\nA) 3\\nB) 4\\nC) 5",
+                List.of("A) 3", "B) 4", "C) 5"), "B"));
+
+        assertThat(q.prompt()).isEqualTo("Pick the even number.");
+    }
+
     // ── Short answer ─────────────────────────────────────────────────────────
 
     @Test

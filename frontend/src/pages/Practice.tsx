@@ -65,7 +65,7 @@ export default function Practice() {
 
   return (
     <div className="app-shell student-theme">
-      <KidHeader right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
+      <KidHeader right={<Link className="btn btn--ghost" to="/student/dashboard"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container narrow">
         {!set && !error && (
@@ -122,7 +122,7 @@ export default function Practice() {
                     <h3>You scored {score} / {set.questions.length} <Star size={20} className="star-inline" /></h3>
                     <NextStepButton topicId={topicId!} current="practice" />
                     <button className="btn btn--ghost" onClick={load}><RotateCcw size={16} /> Practice again</button>
-                    <Link className="btn btn--ghost" to="/student">Back to lessons</Link>
+                    <Link className="btn btn--ghost" to="/student/dashboard">Back to lessons</Link>
                   </div>
                 )}
               </div>

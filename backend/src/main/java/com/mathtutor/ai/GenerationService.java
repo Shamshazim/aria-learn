@@ -456,7 +456,11 @@ public class GenerationService {
         vars.put("question", question);
         vars.put("student_answer", studentAnswer);
         vars.put("attempt", String.valueOf(attempt));
-        return aiClient.generateStructured(PROMPT_HINT, vars, Hint.class, studentId, style(studentId));
+        Hint hint = aiClient.generateStructured(PROMPT_HINT, vars, Hint.class, studentId, style(studentId));
+        // The hint skips sanitize() because it is not a question, but it lands on the same screen
+        // and the model marks it up the same way — "<br>" and all. Strip it here or the child
+        // reads the tags.
+        return hint == null ? null : new Hint(QuestionSanitizer.plainText(hint.hint()));
     }
 
     private Map<String, String> baseVars(GenerationContext ctx) {

@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
  *   <li>all four options arrive crammed into a single string, rendering as one button;</li>
  *   <li>an option is annotated "(Correct)", both giving away the answer and breaking the match;</li>
  *   <li>the options are duplicated into the prompt text;</li>
+ *   <li>the text carries HTML markup — {@code <br>} between the options instead of a newline;</li>
  *   <li>two options are identical, so the "wrong" one is indistinguishable;</li>
  *   <li>the key names several options at once ("A) 256 and C) 289").</li>
  * </ul>
@@ -72,6 +73,26 @@ public final class QuestionSanitizer {
     private static final Pattern OPTION_LINE =
             Pattern.compile("^\\s*\\(?[A-Da-d][).:\\-]\\s*.*$");
 
+    /**
+     * Markup the model uses in place of a line break: {@code <br>}, {@code <br/>}, {@code </p>},
+     * {@code <li>} and the HTML-escaped spellings of the same.
+     */
+    private static final Pattern BREAK_TAG = Pattern.compile(
+            "(?i)(?:<|&lt;)/?(?:br|p|div|li|tr)\\s*/?\\s*(?:>|&gt;)");
+
+    /**
+     * The remaining inline tags, removed rather than turned into a break.
+     *
+     * <p>The tag names are listed rather than matched with a generic {@code <[a-z]...>} because a
+     * maths prompt legitimately contains "&lt;" — "is 3 &lt; 5?" — and a generic pattern would eat
+     * part of the question it was meant to clean.
+     */
+    private static final Pattern INLINE_TAG = Pattern.compile(
+            "(?i)(?:<|&lt;)/?(?:span|b|i|u|em|strong|ul|ol|table|td|th|code|pre|h[1-6])\\s*/?\\s*(?:>|&gt;)");
+
+    /** A backslash-n that survived as two literal characters through a double-escaped JSON string. */
+    private static final Pattern LITERAL_NEWLINE = Pattern.compile("(?:\\\\r)?\\\\n");
+
     /** Annotations the model leaks into option text that reveal the answer: "(Correct)", "✓". */
     private static final Pattern CORRECTNESS_MARKER = Pattern.compile(
             "\\s*(?:[\\(\\[]\\s*(?:correct(?:\\s+answer)?|right(?:\\s+answer)?|answer|true)\\s*[\\)\\]]|[✓✔☑])\\s*",
@@ -88,18 +109,19 @@ public final class QuestionSanitizer {
         if (q == null) {
             return Result.reject("question was null");
         }
-        String prompt = collapse(q.prompt());
+        String prompt = collapse(unmarkup(q.prompt()));
         if (prompt.isEmpty()) {
             return Result.reject("prompt is empty");
         }
         String type = q.type() == null ? "SHORT_ANSWER" : q.type().trim().toUpperCase(Locale.ROOT);
 
         if (!"MULTIPLE_CHOICE".equals(type)) {
-            String key = collapse(stripMarkers(q.correctAnswer()));
+            String key = collapse(stripMarkers(unmarkup(q.correctAnswer())));
             if (key.isEmpty()) {
                 return Result.reject("short answer has no correct answer");
             }
-            return Result.ok(new GeneratedQuestion(type, q.difficulty(), prompt, q.choices(), key, q.solution()));
+            return Result.ok(new GeneratedQuestion(
+                    type, q.difficulty(), prompt, q.choices(), key, plainSolution(q.solution())));
         }
 
         // ── Multiple choice ──────────────────────────────────────────────────
@@ -111,13 +133,15 @@ public final class QuestionSanitizer {
         // before anything else, otherwise they render as a single unclickable button.
         List<String> options = new ArrayList<>();
         for (String raw : q.choices()) {
-            options.addAll(explode(raw));
+            // Normalize first: a blob joined by "<br>" carries no whitespace before its labels,
+            // and explode() splits on a label only when whitespace precedes it.
+            options.addAll(explode(unmarkup(raw)));
         }
 
         // Clean each option: drop answer-revealing annotations and normalize whitespace.
         List<String> cleaned = new ArrayList<>();
         for (String option : options) {
-            String c = collapse(stripMarkers(option));
+            String c = collapse(stripMarkers(unmarkup(option)));
             if (!c.isEmpty() && !stripLabel(c).isEmpty()) {
                 cleaned.add(c);
             }
@@ -137,7 +161,7 @@ public final class QuestionSanitizer {
         }
 
         // Resolve the key onto exactly one option, or reject.
-        String rawKey = collapse(stripMarkers(q.correctAnswer()));
+        String rawKey = collapse(stripMarkers(unmarkup(q.correctAnswer())));
         if (rawKey.isEmpty()) {
             return Result.reject("no correct answer given");
         }
@@ -149,7 +173,8 @@ public final class QuestionSanitizer {
         if (resolved == null) {
             return Result.reject("answer key '" + rawKey + "' is not one of the options");
         }
-        return Result.ok(new GeneratedQuestion(type, q.difficulty(), cleanPrompt, cleaned, resolved, q.solution()));
+        return Result.ok(new GeneratedQuestion(
+                type, q.difficulty(), cleanPrompt, cleaned, resolved, plainSolution(q.solution())));
     }
 
     /**
@@ -271,13 +296,21 @@ public final class QuestionSanitizer {
         return count;
     }
 
-    /** Removes whole lines that merely restate the options, so the prompt asks the question once. */
+    /**
+     * Removes whole lines that merely restate the options, so the prompt asks the question once.
+     *
+     * <p>The markup normalization is load-bearing, not cosmetic. A model that writes its options as
+     * "…sentence? &lt;br&gt; A) … &lt;br&gt; B) …" produces a prompt with no newline in it at all,
+     * so without this the method returned at the first line and the options stayed in the prompt —
+     * the child read the question, then read all four options twice, with the tags still showing.
+     */
     static String stripEmbeddedOptions(String prompt) {
-        if (prompt == null || !prompt.contains("\n")) {
-            return prompt == null ? "" : prompt.trim();
+        String text = unmarkup(prompt);
+        if (text.isEmpty() || !text.contains("\n")) {
+            return text;
         }
         StringBuilder kept = new StringBuilder();
-        for (String line : prompt.split("\n")) {
+        for (String line : text.split("\n")) {
             if (OPTION_LINE.matcher(line).matches()) {
                 continue;
             }
@@ -337,6 +370,49 @@ public final class QuestionSanitizer {
     /** Removes a leading option label such as "A)", "B.", "(C)", "d:". */
     static String stripLabel(String s) {
         return s == null ? "" : LABEL_AT_START.matcher(s.trim()).replaceFirst("").trim();
+    }
+
+    /**
+     * Any single line of model text, ready to show a child: markup removed, whitespace collapsed.
+     *
+     * <p>{@link #sanitize} covers everything on a generated question, but a hint is written by a
+     * separate call at grade time and reaches the same screen, so it needs the same treatment.
+     */
+    public static String plainText(String s) {
+        return collapse(unmarkup(s));
+    }
+
+    /**
+     * The worked solution with its markup removed. A missing solution stays missing: turning null
+     * into an empty string would make "no explanation was generated" indistinguishable downstream
+     * from "the explanation is blank".
+     */
+    private static String plainSolution(String solution) {
+        return solution == null ? null : collapse(unmarkup(solution));
+    }
+
+    /**
+     * Turns model markup into plain text: break tags become newlines, inline tags are dropped, and
+     * the handful of HTML entities the model emits are decoded.
+     *
+     * <p>Break tags become newlines rather than spaces because {@link #stripEmbeddedOptions} works
+     * line by line — the tag is the only thing marking where one option ends and the next begins.
+     */
+    static String unmarkup(String s) {
+        if (s == null) {
+            return "";
+        }
+        String out = LITERAL_NEWLINE.matcher(s).replaceAll("\n");
+        out = BREAK_TAG.matcher(out).replaceAll("\n");
+        out = INLINE_TAG.matcher(out).replaceAll("");
+        // Entities last, so a decoded "&lt;" is never re-read as the start of a tag.
+        out = out.replace("&nbsp;", " ")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("&amp;", "&");
+        return out.trim();
     }
 
     /** Collapses runs of whitespace (including newlines) to single spaces and trims. */

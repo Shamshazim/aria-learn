@@ -25,7 +25,7 @@ export default function Examples() {
 
   return (
     <div className="app-shell student-theme">
-      <KidHeader right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
+      <KidHeader right={<Link className="btn btn--ghost" to="/student/dashboard"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container narrow">
         {!data && !error && (

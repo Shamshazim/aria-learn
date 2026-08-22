@@ -13,7 +13,7 @@ export default function Resources() {
 
   return (
     <div className="app-shell student-theme">
-      <KidHeader right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
+      <KidHeader right={<Link className="btn btn--ghost" to="/student/dashboard"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container">
         <div className="greeting card card--hero">
