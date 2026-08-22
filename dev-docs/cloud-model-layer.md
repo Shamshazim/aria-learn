@@ -1,15 +1,14 @@
 # The Model Layer — Cloud Only
 
 **Status:** design agreed, not yet implemented. Revised 2026-08-22 for the rewrite.
-**Phase:** 0 (Foundation) of [`master-plan.md`](master-plan.md). Nothing else starts until
-this ships.
+**Phase:** 0 (Foundation) of [`master-plan.md`](master-plan.md). Phase 1 does not start until
+this and the rest of the Phase 0 exit test pass.
 **Owner decision, 2026-08-21:** *"We only support cloud models for now. No local models."*
 
-**Read first:** [`rewrite.md`](rewrite.md). This document was written against the Java code
-base, which is now frozen under `legacy/`. The design below is unchanged and correct — the
-port, the two adapters, the tier routing, the cost and failure handling. What changed is
-that it gets **built, not migrated**: every Java class named here is a TypeScript module to
-write in `apps/api`, and every "delete this" instruction is now simply "never write it".
+**Read first:** [`rewrite.md`](rewrite.md). This model layer is built fresh for the tutor
+behaviour in [`master-plan.md`](master-plan.md). Legacy provider code is not carried forward.
+The requirements below — configurable routing, quality, streaming capability, cost,
+privacy and failure handling — are authoritative; historical class shapes are not.
 
 ---
 
@@ -22,8 +21,8 @@ to do it. A tutor that is sometimes wrong about 7 + 8 is not a tutor. We would r
 a product that needs internet and is genuinely good than one that works on a plane and
 teaches a child the wrong thing.
 
-We still keep the **provider port** we already have. Being cloud-only is not the same as
-being locked to one vendor. Any hosted model must plug in through configuration alone.
+We build a **provider port** so cloud-only does not mean vendor lock-in. Any hosted model
+that uses a supported wire format must plug in through configuration alone.
 
 ---
 
@@ -34,7 +33,7 @@ being locked to one vendor. Any hosted model must plug in through configuration 
 | Engine | Bundled Ollama, private dynamic port | HTTPS call to a hosted API |
 | Offline | Full offline promise | **Gone.** Aria needs internet |
 | Packaging | Electron bundling JRE + PostgreSQL + Ollama (~5 GB) | A web app calling a hosted API. See [`rewrite.md`](rewrite.md) §6. |
-| Data location | Nothing left the machine | Prompt text leaves the machine |
+| Data location | Nothing left the machine | Account data lives in Aria's service; scrubbed prompt context crosses the model-vendor boundary |
 | Cost | Zero marginal | Per token, per child, per session |
 | Latency | 6–38 s | 0.5–4 s typical, plus network |
 | Failure mode | Engine crash, app respawns it | Network down, rate limit, vendor outage |
@@ -55,26 +54,25 @@ is nothing to delete — these things are on the list of code we never write:
 - No "hide the word Ollama from the child" special case. Section 8 is the replacement, and
   it is a real design rather than a workaround.
 
-Everything under `legacy/` that implements the above — `ai/provider/OllamaLlmProvider.java`,
-`OllamaProperties.java`, `desktop/src/services/ollama.js` — stays frozen and unread.
+Everything under `legacy/` that implements the above stays frozen. It is not a module map or
+implementation checklist for the new model layer.
 
 ---
 
 ## 3. The design
 
-The shape below is the design, written originally in Java names. **Build it in TypeScript
-in `apps/api`.** `AiClient` is the only module outside the provider folder that touches
-`LlmProvider` — everything else in the codebase talks to `AiClient`. That single seam is
-what makes the vendor a configuration detail.
+Build the following design in TypeScript in `apps/api`. `AiClient` is the only module
+outside the provider folder that touches `LlmProvider`; everything else talks to `AiClient`.
+That single seam makes the vendor a configuration detail.
 
 ```
 AiClient
    │  provider.complete(LlmRequest)
    ▼
-RoutingLlmProvider          ← the single Spring bean of type LlmProvider
+RoutingLlmProvider          ← the single routed provider used by AiClient
    │  picks an endpoint by ModelTier, with fallback
    ▼
-LlmProviderFactory          ← builds one adapter per configured endpoint, at startup
+LlmProviderFactory          ← builds one adapter per configured endpoint at startup
    │
    ├── OpenAiCompatibleProvider   (api: openai)
    ├── AnthropicProvider          (api: anthropic)
@@ -102,8 +100,8 @@ apps/api/src/ai/provider/
     anthropic.ts
 ```
 
-The Java names in the diagram above map one-to-one onto these. Where this document says
-`RoutingLlmProvider`, read `routing.ts`.
+The diagram names describe responsibilities. They do not require class-for-class translation
+from any previous implementation.
 
 ---
 
@@ -112,10 +110,9 @@ The Java names in the diagram above map one-to-one onto these. Where this docume
 One block. Adding a vendor is a config change and an API key. It is never a code change,
 unless the vendor speaks a wire format we do not have an adapter for.
 
-The YAML below is the *shape*, carried over from the Spring design. In the Node rewrite it
-becomes a checked-in `apps/api/config/ai.yaml` (or the equivalent TypeScript module) parsed
-and validated at boot by `config.ts`, with `${VAR}` resolved from the environment. The
-structure, the rules under it, and the startup-failure behaviour are unchanged.
+The YAML below defines the required shape for the new Node service. It becomes a checked-in
+`apps/api/config/ai.yaml` (or an equivalent TypeScript module), parsed and validated at boot
+by `config.ts`, with `${VAR}` resolved from the environment.
 
 ```yaml
 app:
@@ -188,7 +185,7 @@ app:
 1 and want `max_completion_tokens` instead of `max_tokens`. Put a boolean
 `reasoning: true` on the endpoint config and branch on it. Second: some compatible vendors
 do not support `response_format`. When a vendor rejects it, fall back to prompt-only JSON
-and rely on `AiClient.extractJson()`, which already strips fences.
+and use a new defensive JSON extractor that strips fences and rejects ambiguous output.
 
 ### 5.2 `AnthropicProvider`
 
@@ -212,11 +209,11 @@ handing it to `AiClient`. This is reliable and costs nothing.
 
 ## 6. Tier routing
 
-`ModelTier` stays a two-value enum, and it is the whole cost-control lever.
+Start `ModelTier` as a two-value enum. It is the main model cost-and-quality routing lever.
 
 | Tier | Used for | Wants |
 |---|---|---|
-| `TEACH` | explanation, lesson generation, evaluation, the quality gate, the learner model | Accuracy. This is where a wrong answer harms a child. |
+| `TEACH` | explanation, lesson generation, evaluation, the quality gate, memory consolidation and learner briefs | Accuracy. This is where a wrong answer harms a child. |
 | `FAST` | hints, grading a short answer, chat turns, classification | Latency. A child is waiting. |
 
 A single `TEACH` call that is right beats three `FAST` calls that are wrong. Do not move a
@@ -253,7 +250,7 @@ This is now a normal condition, not an exception. Four layers, in order.
 2. **Fallback endpoint.** If the primary endpoint for a tier fails after retries, use the
    `fallback` named in `routing`. Log the switch. Do not fall back on a content error —
    only on a transport or availability error.
-3. **Cache.** The content cache from `master-plan.md` §4.4 already holds verified,
+3. **Cache.** The initial content cache from `master-plan.md` Phase 0 holds verified,
    non-personalised items. A child can keep working through a short outage on cached
    content. Pre-generation makes this real rather than theoretical.
 4. **Say it plainly.** If all of the above fail, the child sees:
@@ -304,7 +301,7 @@ three levers, in order of effect:
    for every Grade 2 child. Personalised content — a word problem about Ali's dog — is not
    cached. Most content is not personalised.
 2. **Route to `FAST` wherever accuracy allows.**
-3. **Keep the learner-model paragraph short.** It is prepended to every turn, so its length
+3. **Keep the retrieved learner context short.** It is prepended to every turn, so its length
    is multiplied by every call the child makes.
 
 Add a **per-student daily spend cap**. When it trips, Aria moves to cached content and
@@ -314,55 +311,65 @@ alerts us, not the child.
 
 ## 10. Latency
 
-The hard rule from `master-plan.md` §4.1 stands: **the child never waits for a model.**
-Cloud is faster than the old local engine, but the network is not free.
+The rule from `master-plan.md` §4.1 stands: **the child never watches a model work.** Cloud
+latency still exists, especially for an arbitrary child question, so the system hides work
+where it can and acknowledges honestly where it cannot.
 
 - **Pre-generate.** While the child works on question *n*, generate *n+1*. The wait is
   hidden behind their thinking time.
-- **Stream the `SAY` moves.** Aria's speech should start playing as tokens arrive, not
-  after the whole paragraph completes. This needs a streaming path through the adapters —
-  design `LlmProvider` to allow it now, even if we implement it in Phase 3 with voice.
+- **Design streaming now.** `LlmProvider` exposes an internal stream in Phase 0; the live
+  voice runtime consumes it in Phase 2. Raw tokens never go to the browser. The tutor service
+  assembles sentence-sized segments and releases each segment only after its applicable
+  safety, level and correctness checks pass. Whole-item checks still buffer the full item.
 - **Budget:** `FAST` under 1.5 s to first token; `TEACH` under 4 s total, always
-  pre-generated so the child never sees it.
+  pre-generated when possible. Arrival acknowledgement is served without a model.
 
 ---
 
-## 11. Privacy — what now leaves the machine
+## 11. Privacy — what crosses the model-vendor boundary
 
-The old promise was "no child data leaves the machine". That promise is gone and we must
-not pretend otherwise. The new rules:
+Aria is a cloud product. Its own service holds account and learner data; configured model
+vendors receive only the minimum scrubbed context required for a call. The rules are:
 
 1. **Say it plainly at signup.** What is sent, to which vendor, and why. Not buried in a
    terms page.
-2. **Never send identifying data.** The prompt carries a skill, a grade band, recent errors,
-   and the learner-model paragraph. It does not carry the child's full name, their school,
-   their address, or their parent's email. A pseudonymous first name only, and only where
-   it changes the teaching.
-3. **The learner model is scrubbed before it is sent.** It is written for teaching, and it
-   is the most sensitive text we hold. Strip anything a stranger could use to find the
-   child.
+2. **Never send identifying data to a model vendor.** The prompt carries a skill, grade
+   band, recent evidence and the smallest relevant slice of learner memory. It does not
+   carry the child's full name, school, address or parent email. A pseudonymous first name
+   is allowed only when it materially changes the teaching.
+3. **Retrieved learner context is scrubbed before it is sent.** Durable relationship memory
+   is among the most sensitive data we hold. Strip anything a stranger could use to find
+   the child and omit facts the parent has excluded from model personalisation.
 4. **Use zero-retention API terms where the vendor offers them.** Contract for it. Record
    which endpoints have it in the config comments.
-5. **The parent can read every prompt we sent.** Full transcript, unedited.
+5. **The parent can inspect what was shared.** Provide the child-facing transcript and an
+   understandable record of the learner context categories sent for each call; do not claim
+   that a transcript alone is the complete internal prompt.
 6. **Rules 4 to 9 of `master-plan.md` §12 are unchanged** — no advertising, no data sales,
    describe never label, delete means delete, crisis routing never depends on the model.
 
 ---
 
-## 12. The golden set — the reason this phase exists
+## 12. The golden sets — the reason this phase exists
 
 Swapping providers is worthless if we cannot tell whether the new one is better. The
-provider registry and the golden set ship together, in this phase.
+provider registry and both golden sets ship together in this phase.
 
-- **500 items**, human-graded, checked into the repository under `dev-docs/golden/`.
-- Spread across subject, grade band and prompt name. Weighted toward arithmetic facts and
-  decodable text, where a wrong answer does the most harm.
+- **Content set: 500 initial items**, human-graded, checked into the repository under
+  `dev-docs/golden/content/`.
+- Spread across subject, every grade band and representative skill families in the initial
+  release scope. It grows before any new skill ships and is weighted toward arithmetic facts
+  and decodable text, where a wrong answer does the most harm.
 - Each item: input variables, the prompt name, and the graded expectation.
 - **The harness runs the whole set against any endpoint** and reports: correctness,
   reading-level violations, markup leakage, safety flags, mean latency, and total cost.
+- **Tutoring set: multi-turn scenarios**, under `dev-docs/golden/tutoring/`: arrival,
+  confusion, interruption, fatigue, changed preferences, relevant recall, session resume
+  and safety. Human tutors grade warmth, age fit, pedagogical choice and factual support.
 - It runs on every prompt change and every model change. A regression blocks the change.
 
-This is what turns "the model is not good enough" from an opinion into a number.
+Together they prevent a model that writes good questions but conducts a bad conversation
+from being called good enough.
 
 ---
 
@@ -370,25 +377,28 @@ This is what turns "the model is not good enough" from an opinion into a number.
 
 Each step is small and independently shippable. Do not batch them.
 
-0. **The workspace exists and the session UI runs on mocks.** See
-   [`rewrite.md`](rewrite.md) §5, steps 1 and 2. This work has no home until then.
-1. **`types.ts` and `config.ts`** — the port, and the config block parsed and validated at
-   boot. No calls yet.
+0. **The workspace exists and the carried-forward UI runs the new scripted event/move
+   protocol.** See [`rewrite.md`](rewrite.md) §5, steps 1 to 3.
+1. **`types.ts` and `config.ts`** — a new provider port with complete and internal-stream
+   methods, plus config parsed and validated at boot. No calls yet.
 2. **`adapters/openaiCompatible.ts`.** Point the config at one endpoint and make a real
    call.
 3. **`adapters/anthropic.ts`**, with the prefill trick.
 4. **`routing.ts`** — tier routing, retry, fallback, circuit breaker. It becomes the only
    `LlmProvider` the app sees. Everything else talks to `AiClient`.
 5. **The `ai_cost` migration** and cost accounting in the adapters.
-6. **The golden set and harness.** Run it against every configured endpoint. Read the table.
-   Pick the default.
-7. **`health.ts`** — one cheap call per routed endpoint at boot, failing loudly.
+6. **Sentence-segment gating and the small verified cache.** Prove that streamed tokens are
+   not released directly to a child-facing consumer.
+7. **Both golden sets and harnesses.** Run them against every configured endpoint. Read the
+   results and pick the defaults.
+8. **`health.ts`** — one cheap call per routed endpoint at boot, failing loudly.
 
 ### Exit test for Phase 0
 
-> Changing which model teaches is one line of configuration. Running the golden set against
-> a new endpoint produces a correctness, latency and cost number without any code change.
-> No file outside `legacy/` mentions Ollama, and none ever will.
+> Changing which model teaches is one line of configuration. Running both golden sets
+> against a new endpoint produces content, tutoring, latency and cost results without code
+> changes. A test proves that no raw streamed token reaches a child-facing consumer. No
+> runtime or configuration outside `legacy/` depends on Ollama.
 
 ---
 
@@ -396,12 +406,11 @@ Each step is small and independently shippable. Do not batch them.
 
 | Question | Why it matters | Who decides |
 |---|---|---|
-| Proxy or bring-your-own-key? | Section 7 says proxy. It makes an account mandatory. | Product |
 | Which vendor is the `TEACH` default? | Answer with the golden set, not with a preference. | Data |
 | Do we build a desktop app at all, if it needs internet? | A web app may now be the better shape. Also tracked in [`rewrite.md`](rewrite.md) §6. | Product |
-| Streaming in Phase 0 or Phase 3? | The adapter shape depends on the answer. | Engineering |
+| Which speech and real-time providers sit behind the product-owned live protocol? | Phase 0 fixes the interface and gating rules; Phase 2 chooses providers from measured latency, interruption, accuracy, safety and cost. | Data + Engineering |
 
-The third question is the important one. The whole argument for an Electron app that bundles
+The desktop question is the important platform decision. The whole argument for an Electron app that bundles
 its own runtime was that it worked offline with no account. Cloud-only removes that
 argument, and the rewrite means nothing is carried forward by default. Decide deliberately,
 rather than rebuilding the desktop shell from habit.

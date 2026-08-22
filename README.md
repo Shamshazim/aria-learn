@@ -4,8 +4,9 @@ An AI tutor for children, TK through grade 8.
 
 ## Status
 
-The project is being rebuilt from scratch. The first version is frozen under
-[`legacy/`](legacy/LEGACY.md) and is no longer built or run.
+The product is being rebuilt around the existing student session UI, which carries forward
+as a changeable visual starting point. Everything else is built fresh. The first version is
+frozen under [`legacy/`](legacy/LEGACY.md) and is no longer built or run.
 
 ## Target stack
 
@@ -26,6 +27,9 @@ The project is being rebuilt from scratch. The first version is frozen under
 - [`dev-docs/cloud-model-layer.md`](dev-docs/cloud-model-layer.md) — the model
   layer: cloud-only, pluggable by config, with cost, failure and privacy
   handled as first-class concerns.
+- [`dev-docs/tickets/`](dev-docs/tickets/README.md) — the plans turned into work:
+  self-contained tickets for Phase 0 and Phase 1, the code standards every
+  ticket is bound by, and the backlog for later phases.
 
 ## Running it
 

@@ -37,6 +37,11 @@ The new tree does not exist yet. Ask before scaffolding a directory layout.
   what gets rebuilt, the proposed repo layout, and the order of work.
 - `dev-docs/master-plan.md` — the product.
 - `dev-docs/cloud-model-layer.md` — the model layer, cloud-only.
+- `dev-docs/tickets/` — the plans broken into self-contained tickets.
+  `dev-docs/tickets/CODE-STANDARDS.md` is binding on all new code: TypeScript
+  only, no file over 300 lines, strict separation of concerns (routers,
+  controllers, services, repositories, schemas, types are separate files; UI
+  logic is separate from business logic).
 
 The last two were written against the old code base. The *decisions* in them
 hold; the Java class names in them are targets to reimplement in TypeScript, and

@@ -1,4 +1,4 @@
-# The Rewrite — what carries forward, what gets rebuilt
+# The Rewrite — one UI carries forward, everything else starts fresh
 
 Companion to [`master-plan.md`](master-plan.md) (the product) and
 [`cloud-model-layer.md`](cloud-model-layer.md) (the model layer). Those two say *what*
@@ -19,17 +19,28 @@ or imported from. The new product is:
 | Database | PostgreSQL |
 | Models | Hosted only. No Ollama, no local weights, no offline mode. |
 
-This is a rewrite, not a port. Nothing in `legacy/` is a starting point except the one
-thing named in section 2.
+This is a rewrite, not a port. The authority order is:
+
+1. The required tutor behaviour in [`master-plan.md`](master-plan.md).
+2. The stack and delivery decisions in this document and
+   [`cloud-model-layer.md`](cloud-model-layer.md).
+3. The existing student session UI as a changeable design starting point.
+4. Everything else under `legacy/`, which is historical evidence and optional inspiration.
+
+Legacy code never wins a disagreement with the new product requirements.
 
 ---
 
 ## 2. The one thing that carries forward: the student session UI
 
-`legacy/frontend/src/session/` is already React + TypeScript. It is the only part of the
-old tree on the target stack, it is the part that took the most design work, and it is
-the part the product argument in `master-plan.md` §5 is built on. **We copy it into the
-new frontend and keep going from there.** We do not redraw it.
+`legacy/frontend/src/session/` is already React + TypeScript. It is the only implementation
+that carries forward, because its age-band design, simplicity and class-first entry were
+created deliberately for the new child experience. Bring it into the new frontend as the
+visual and experiential starting point.
+
+"Carries forward" does **not** mean frozen. We do not redraw it without reason, but its
+components, controls, layout, state machine and API contract may change whenever the tutor
+behaviour in `master-plan.md` requires it.
 
 ### What it is — four screens
 
@@ -44,65 +55,60 @@ new frontend and keep going from there.** We do not redraw it.
 fifteen components (`components/`), `session.css`, and the shared vocabulary in
 `types.ts`, `subjects.ts` and `text.ts`.
 
-### Why it survives the rewrite intact
+### What survives and what does not
 
-The UI was written against an interface, not against the Java backend:
+Preserve by default:
 
-```ts
-export interface SessionSource {
-  start(): Promise<SessionState>
-  answer(stepId: string, response: string): Promise<StepResult>
-  hint(stepId: string): Promise<{ hint: string | null; teach: string | null }>
-  next(): Promise<SessionState | null>
-  ask(text: string): Promise<string>
-}
-```
+- The class picker as the child's one meaningful choice.
+- The distinct early, middle and senior visual languages.
+- One focused stage rather than a child-facing dashboard or topic menu.
+- Large, accessible controls and the existing design tokens where they still work.
+- Aria's visual presence for younger children and the quieter senior treatment.
 
-No component knows what is behind it. Two implementations already exist:
-`sources/apiSession.ts` (the old backend) and `sources/mockSession.ts` (a scripted session,
-so the three layouts can be reviewed with no backend at all).
+Replace or change as required:
 
-That seam is worth more than the pixels. `master-plan.md` §10 replaces seven per-question
-endpoints with one `POST /student/session/turn`. That change lands entirely inside a new
-`SessionSource` implementation — **no layout and no component changes.** It also means the
-new frontend runs against `mockSession.ts` from day one, before the Node API exists.
+- The old `start/answer/hint/next/ask` `SessionSource` contract. It is shaped like a quiz and
+  cannot express arrival, proactive moves, streaming speech, silence or interruption.
+- The fixed `SessionStep`/`StepResult` state machine and hard-coded two-attempt policy.
+- Browser speech as the primary voice system.
+- The separate "Ask Aria" interaction if the live conversation makes it redundant.
+- Any component that cannot render the new event/move protocol or multimodal content.
 
-### What to copy, and what to fix while copying
+### How to bring it forward
 
-Copy `legacy/frontend/src/session/` wholesale. It touches the outside world in exactly
-four places, and each is a small, deliberate rewrite:
+Move the UI into `apps/web` in a reviewable commit so its visual baseline can be compared in
+all three bands. Then replace the behaviour beneath it before connecting a real backend:
 
-| File | Reaches out to | Do this |
-|---|---|---|
-| `SubjectPicker.tsx` | `../api`, `../auth` | Repoint at the new API client and auth. |
-| `SessionPage.tsx` | `../auth` | Same. |
-| `sources/apiSession.ts` | `../../api`, `../../lib/steps` | **Do not port.** Write a new source against `POST /session/turn`. |
-| `useSpeech.ts` | `../../lib/voice` | Browser speech synthesis stub. Keep until Phase 3 replaces it. |
+1. Keep a screenshot or visual test of the existing class picker and three layouts.
+2. Define new shared `TutorInputEvent` and `TutorMove` unions from `master-plan.md` §4.1.
+3. Drive arrival, welcome, recommendation, conversation, listening, interruption and ending
+   through a new scripted tutor source.
+4. Refactor or replace components until every required move renders accessibly in each band.
+5. Connect the same protocol to the real backend in Phase 1 and live voice in Phase 2.
 
-`sources/mockSession.ts` and `sources/mockContent.ts` copy with no change and should be
-the first thing running in the new tree.
-
-`sources/replies.ts` is the `localReply()` regex that fakes Aria talking in the browser.
-**Delete it on the way in.** `master-plan.md` gap 2 exists because of this file; copying
-it forward would carry the exact defect the rewrite is meant to end.
+The old mock content can inspire the new scripted scenarios, but it is not copied as the new
+contract. The regex reply system, old API session source and old voice plumbing do not carry
+forward.
 
 ---
 
-## 3. What gets reimplemented from reasoning, not copied
+## 3. How legacy material may be used
 
-These are Java and do not port. Read them, take the reasoning, write TypeScript.
-`legacy/LEGACY.md` says where they are.
+Nothing else is reimplemented by translation. Engineers may inspect legacy material when it
+answers a specific question or supplies a real defect case. They then design the new module
+from the current requirements.
 
-| Legacy source | What to take from it |
+| Legacy source | Permitted use |
 |---|---|
-| `QuestionSanitizer.java` | The catalogue of defects a generated question can carry, and the repair or rejection for each. Every one of them was found in production output. |
-| `AnswerMatcher.java` | Why a stored answer key can never be compared with `==`. |
-| `MathAnswerChecker.java` | The deterministic checks that must run *before* any model call, and the two question families it deliberately refuses. |
-| `db/migration/V1..V24` | The data model that worked. New migrations start at `001`, not `V25`. |
-| `resources/curriculum/*.json` | The curriculum content. Data, so it moves as-is. |
+| `QuestionSanitizer.java` | Seed regression cases for structural failures found previously. |
+| `AnswerMatcher.java` | Seed comparison edge cases for new tests. |
+| `MathAnswerChecker.java` | Seed accepted and deliberately refused arithmetic examples. |
+| `db/migration/V1..V24` | Historical evidence when designing new tables; never a schema to continue. |
+| `resources/curriculum/*.json` | Reference during authoring and review of the new skill graph; never assumed correct or moved automatically. |
 
-Everything else — auth, enrolment, progress, gamification, generation, prompts, the
-Electron shell — is rebuilt to the plan in `master-plan.md`, not translated.
+Auth, enrolment, memory, curriculum, quality gates, generation, prompts, voice, progress,
+reporting and the runtime are all built fresh. Copying a legacy module requires a new owner
+decision recorded in these documents; there are no implied exceptions.
 
 ---
 
@@ -110,16 +116,16 @@ Electron shell — is rebuilt to the plan in `master-plan.md`, not translated.
 
 ```
 apps/
-  web/        React + TypeScript + Vite. src/session/ arrives here first.
+  web/        React + TypeScript + Vite. The carried-forward session UI starts here.
   api/        Node + Express + TypeScript.
 packages/
-  shared/     Types both sides need: SessionStep, StepResult, Band, curriculum shapes.
+  shared/     TutorInputEvent, TutorMove, Band and other shared protocol types.
 dev-docs/     These plans.
 legacy/       Frozen. Reference only.
 ```
 
-npm workspaces. `packages/shared` matters more here than it looks: `types.ts` in the
-session UI *is* the API contract, and it should live in one place that both apps import.
+npm workspaces. `packages/shared` holds the new protocol defined from `master-plan.md`; no
+legacy UI type becomes an API contract merely because it already exists.
 
 Migrations run from `apps/api`, numbered from `001`. PostgreSQL only — the old plan's
 partial unique indexes and `TIMESTAMPTZ` assumptions still hold.
@@ -128,19 +134,19 @@ partial unique indexes and `TIMESTAMPTZ` assumptions still hold.
 
 ## 5. Order of work
 
-1. **Scaffold** the workspace, TypeScript config, lint, and `.env.example`.
-2. **Copy the session UI** into `apps/web`, running against `mockSession.ts`. The four
-   screens must render in all three bands before any backend exists. This is the fastest
-   proof the rewrite has not lost anything.
-3. **The model layer** — [`cloud-model-layer.md`](cloud-model-layer.md), built fresh in
-   TypeScript. Provider registry, tier routing, retry and fallback, cost accounting.
-4. **The golden set** and the harness. Nothing downstream is trustworthy without a number.
-5. **The tutor loop** — `session` and `session_event` tables, `POST /session/turn`, and a
-   real `SessionSource` in the web app. This is where the copied UI stops being a mock.
-6. Then `master-plan.md` §13, Phase 2 onward: memory, voice, reading and writing.
+1. **Scaffold** the workspace, TypeScript config, lint and `.env.example`.
+2. **Bring the session UI forward** and capture its visual baseline in all three bands.
+3. **Define the new shared event/move protocol** and run the UI against scripted arrival,
+   tutoring, voice-state and interruption scenarios. Change components as required.
+4. **Build the model layer and both golden sets** — content plus multi-turn tutoring — with
+   retry, fallback, cost accounting, streaming capability and a small verified cache.
+5. **Build Phase 1 of `master-plan.md`**: proactive text-first arrival, minimal supported
+   memory and skill state, and the real tutor loop.
+6. Continue through real-time voice, durable relationship memory, teaching and scale in the
+   phase order of `master-plan.md` §13.
 
-Steps 1 and 2 are the whole scope of "get back to where we were, on the new stack".
-Everything from step 3 is new product.
+Only the visual starting point in step 2 is carried-forward product work. Every behavioural
+contract from step 3 onward is new product.
 
 ---
 
@@ -149,5 +155,5 @@ Everything from step 3 is new product.
 | Question | Why it matters now |
 |---|---|
 | Does the desktop app survive? | Cloud-only removed the offline-with-no-account argument. A web app may be the right shape. Nothing in `legacy/desktop/` is being ported until this is answered. |
-| Auth: rebuild JWT as-is, or use a hosted identity provider? | The old one worked. It is also not our product. |
-| Does the curriculum stay JSON in the repo, or move into the database? | `master-plan.md` §4.3 wants a skill graph, which is a database shape, not a file shape. |
+| Auth: build it ourselves or use a hosted identity provider? | Identity is required but not our differentiator; choose from current security and child-account requirements, not the old implementation. |
+| Does the authored curriculum live in versioned files, the database, or both? | `master-plan.md` §4.4 requires a reviewable skill graph and runtime queries; storage must support both without making legacy JSON authoritative. |
