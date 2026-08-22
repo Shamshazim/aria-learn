@@ -1,23 +1,26 @@
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
 # ── Build output ─────────────────────────────────────────────
-backend/target/
-frontend/dist/
-frontend/node_modules/
+dist/
+build/
+coverage/
+.vite/
 *.tsbuildinfo
-# The desktop build copies the compiled frontend in here; it is generated, never edited.
-backend/src/main/resources/static/
 
 # ── Logs ─────────────────────────────────────────────────────
 *.log
+npm-debug.log*
 logs/
 
 # ── Local environment / secrets (never commit) ───────────────
 .env
 .env.*
+!.env.example
 *.local
-backend/src/main/resources/application-local.yml
-backend/src/main/resources/application-prod.yml
 
-# ── Database dumps / data (your children's data stays local) ─
+# ── Database dumps / data ────────────────────────────────────
 *.sql.bak
 *.dump
 *.sqlite
@@ -38,3 +41,11 @@ desktop.ini
 # ── Misc ─────────────────────────────────────────────────────
 *.pid
 .cache/
+
+# ── Legacy tree (Java/Spring + Vite app, kept for reference) ─
+legacy/backend/target/
+legacy/frontend/dist/
+legacy/frontend/node_modules/
+legacy/backend/src/main/resources/static/
+legacy/backend/src/main/resources/application-local.yml
+legacy/backend/src/main/resources/application-prod.yml
