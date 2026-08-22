@@ -9,6 +9,8 @@ import CurriculumAdminPage from './pages/CurriculumAdminPage'
 import PromptAdminPage from './pages/PromptAdminPage'
 import FlaggedQuestions from './pages/FlaggedQuestions'
 import StudentDashboard from './pages/StudentDashboard'
+import SessionPage from './session/SessionPage'
+import SubjectPicker from './session/SubjectPicker'
 import Resources from './pages/Resources'
 import MultiplicationChart from './pages/MultiplicationChart'
 import AdditionChart from './pages/AdditionChart'
@@ -88,7 +90,13 @@ export default function App() {
       <Route path="/parent/curriculum" element={<Protected role="PARENT"><CurriculumAdminPage /></Protected>} />
       <Route path="/parent/prompts" element={<Protected role="PARENT"><PromptAdminPage /></Protected>} />
       <Route path="/parent/flags" element={<Protected role="PARENT"><FlaggedQuestions /></Protected>} />
-      <Route path="/student" element={<Protected role="STUDENT"><StudentDashboard /></Protected>} />
+      {/* The child lands on their class list and picks one. That is the only choice they
+          make: inside the session Aria decides the topic, the difficulty and the order —
+          see session/SubjectPicker.tsx and session/SessionPage.tsx. The dashboard stays
+          reachable for a parent sitting alongside, one deliberate step off the child's path. */}
+      <Route path="/student" element={<Protected role="STUDENT"><SubjectPicker /></Protected>} />
+      <Route path="/student/session" element={<Protected role="STUDENT"><SessionPage /></Protected>} />
+      <Route path="/student/dashboard" element={<Protected role="STUDENT"><StudentDashboard /></Protected>} />
       <Route path="/student/resources" element={<Protected role="STUDENT"><Resources /></Protected>} />
       <Route path="/student/resources/multiplication" element={<Protected role="STUDENT"><MultiplicationChart /></Protected>} />
       <Route path="/student/resources/addition" element={<Protected role="STUDENT"><AdditionChart /></Protected>} />

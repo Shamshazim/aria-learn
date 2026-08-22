@@ -70,7 +70,7 @@ export default function Homework() {
 
   return (
     <div className="app-shell student-theme">
-      <KidHeader subtitle="Homework" right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
+      <KidHeader subtitle="Homework" right={<Link className="btn btn--ghost" to="/student/dashboard"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container narrow">
         {!hw && !error && (
@@ -129,7 +129,7 @@ export default function Homework() {
             ))}
             <div className="done">
               <NextStepButton topicId={topicId!} current="homework" />
-              <Link className="btn btn--ghost" to="/student">Back to lessons</Link>
+              <Link className="btn btn--ghost" to="/student/dashboard">Back to lessons</Link>
             </div>
           </>
         )}

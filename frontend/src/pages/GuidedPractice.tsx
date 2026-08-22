@@ -65,7 +65,7 @@ export default function GuidedPractice() {
 
   return (
     <div className="app-shell student-theme">
-      <KidHeader subtitle="Guided" right={<Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>} />
+      <KidHeader subtitle="Guided" right={<Link className="btn btn--ghost" to="/student/dashboard"><ArrowLeft size={16} /> Back</Link>} />
 
       <main className="container narrow">
         {!question && !error && (

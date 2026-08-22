@@ -8,7 +8,7 @@ export default function NextStepButton({ topicId, current }: { topicId: string; 
   const next = nextStep(current)
   if (!next) {
     return (
-      <Link className="btn btn--primary btn--block step-next" to="/student">
+      <Link className="btn btn--primary btn--block step-next" to="/student/dashboard">
         <PartyPopper size={16} /> All done — back to lessons
       </Link>
     )

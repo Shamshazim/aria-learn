@@ -50,7 +50,7 @@ export default function Quiz() {
     <div className="app-shell student-theme">
       <KidHeader subtitle="Quiz" right={<>
         {quiz && !result && <Timer seconds={quiz.timeLimitSec} onExpire={submit} />}
-        <Link className="btn btn--ghost" to="/student"><ArrowLeft size={16} /> Back</Link>
+        <Link className="btn btn--ghost" to="/student/dashboard"><ArrowLeft size={16} /> Back</Link>
       </>} />
 
       <main className="container narrow">
@@ -108,7 +108,7 @@ export default function Quiz() {
             ))}
             <div className="done">
               <button className="btn btn--primary" onClick={load}>Try a new quiz</button>
-              <Link className="btn btn--ghost" to="/student">Back to lessons</Link>
+              <Link className="btn btn--ghost" to="/student/dashboard">Back to lessons</Link>
             </div>
           </>
         )}

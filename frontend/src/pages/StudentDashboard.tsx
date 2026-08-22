@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Check, Library, Lock, LogOut, Sparkles, TrendingUp, Trophy,
+  Check, Library, Lock, LogOut, Play, Sparkles, TrendingUp, Trophy,
 } from 'lucide-react'
 import {
   AdaptiveProfile, api, EnrolledSubject, GamificationSummary, HomeworkSummary, StudentProfile, TopicProgress,
@@ -124,6 +124,9 @@ export default function StudentDashboard() {
   return (
     <div className="app-shell student-theme">
       <KidHeader right={<>
+        {/* The way back to the child's own screen. The dashboard is the adult's view of
+            a child's progress; the class list is where the child actually starts. */}
+        <Link className="btn btn--primary" to="/student"><Play size={16} /> My classes</Link>
         <Link className="btn btn--ghost" to="/student/resources"><Library size={16} /> Resources</Link>
         <NotificationBell />
         <button className="btn btn--ghost" onClick={() => { localStorage.removeItem(subjectKey); logout() }}><LogOut size={16} /> Sign out</button>
