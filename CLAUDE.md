@@ -10,9 +10,17 @@ An AI tutor for children, TK through grade 8. The project is in a **rewrite**.
 Electron desktop shell with a bundled Ollama. It is **frozen**.
 
 - Never edit, build, run or test anything under `legacy/`.
-- Never import from it or call into it.
+- Never import from it or call into it at runtime.
 - Read it for reference, then reimplement. See `legacy/LEGACY.md` for what is
   worth reading and why.
+
+**One exception.** `legacy/frontend/src/session/` is already React + TypeScript
+and is the student session UI: the class picker plus three band layouts. It gets
+**copied once** into the new frontend when the tree is scaffolded, then owned
+there. That is a copy at scaffold time, not an import. Four of its files reach
+outside the folder and each needs rewriting on the way in;
+`dev-docs/rewrite.md` §2 names them. `sources/replies.ts` is deliberately left
+behind.
 
 ## Target stack
 
@@ -25,11 +33,14 @@ The new tree does not exist yet. Ask before scaffolding a directory layout.
 
 ## The plans are the spec
 
+- `dev-docs/rewrite.md` — **read first.** What carries forward from `legacy/`,
+  what gets rebuilt, the proposed repo layout, and the order of work.
 - `dev-docs/master-plan.md` — the product.
 - `dev-docs/cloud-model-layer.md` — the model layer, cloud-only.
 
-Both were written against the old code base. The *decisions* in them hold; the
-Java class names in them are now targets to reimplement in TypeScript.
+The last two were written against the old code base. The *decisions* in them
+hold; the Java class names in them are targets to reimplement in TypeScript, and
+every "delete this" instruction now reads as "never write it".
 
 ## Git
 

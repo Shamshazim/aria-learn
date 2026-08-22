@@ -5,7 +5,12 @@ generator into a real tutor. It is written in plain words on purpose. Anyone on 
 engineer, teacher, parent, investor — should be able to read it end to end and know what we
 are building and why.
 
-**Status:** draft 1. Written 2026-08-21.
+**Status:** draft 2. Written 2026-08-21, revised 2026-08-22 for the rewrite.
+
+**Read first:** [`rewrite.md`](rewrite.md) — the first version is frozen under `legacy/` and
+the product is being rebuilt on React + TypeScript, Node + Express and PostgreSQL. This
+document says what to build; `rewrite.md` says what we start from. The decisions here all
+hold; the Java class names in them are targets to reimplement, not code to edit.
 
 ---
 
@@ -69,67 +74,63 @@ the child wins.
 
 Be honest about this, because the plan depends on it.
 
-### What is built and works
+**The first version is frozen and the tree is empty.** Everything described below as
+"built" was built in Java/Spring and now lives under `legacy/`. It runs nowhere, it is
+never edited, and it is not a starting point. What we carry forward and what we rebuild is
+set out in [`rewrite.md`](rewrite.md). Read that first.
 
-- **Student session UI** (`frontend/src/session/`). One screen, three age bands
-  (`band.ts`: early TK–2, middle 3–5, senior 6–8). The child picks a class, then Aria runs
-  the session. There is no topic list, no mastery percentage, no menu of six activities.
-  This is right and we keep it.
-- **Curriculum** as JSON (`backend/src/main/resources/curriculum/`), math and English,
-  with units, topics and objectives.
-- **Auth**, parents, students, enrolment, JWT.
-- **Question generation** with structural repair. `QuestionSanitizer.java` is a pure,
-  deterministic gate: it fixes mechanical defects and rejects questions that stay
-  unanswerable. `MathAnswerChecker.java` checks place value and plain arithmetic without
-  the model.
-- **Tutor personalities**, database-driven (`tutor_modes`). A new persona is one SQL row.
-- **Desktop app.** Electron, with a bundled Java runtime, PostgreSQL, and Ollama. It runs
-  fully offline. *(The bundled Ollama is being removed — see
-  [`cloud-model-layer.md`](cloud-model-layer.md).)*
-- **Progress, mastery, gamification, homework** — all present.
+### What exists, and what it is worth to us
 
-### What is not built, and the honest name for it
+| Built in the first version | Where it stands now |
+|---|---|
+| **Student session UI** — four screens, three age bands, class picker then Aria runs the session. No topic list, no mastery percentage, no menu. | **Carries forward.** Already React + TypeScript. Copied into the new frontend as-is. See [`rewrite.md`](rewrite.md) §2. This is right and we keep it. |
+| **Question generation with structural repair** — `QuestionSanitizer`, `MathAnswerChecker`, `AnswerMatcher`. | **Reasoning carries forward, code does not.** Each encodes a defect class found in real model output. Rewritten in TypeScript. |
+| **Curriculum JSON** — math and English, units, topics, objectives. | Data. Moves as-is. |
+| **The data model** — 24 migrations that worked. | Read as a reference. New migrations start at `001`. |
+| **Auth, parents, students, enrolment, JWT.** | Rebuilt. It worked, but it is not our product. |
+| **Tutor personalities**, database-driven. A new persona is one SQL row. | The idea carries forward. |
+| **Progress, mastery, gamification, homework.** | Rebuilt to the plan below, not translated. |
+| **Desktop app** — Electron, bundled JRE, PostgreSQL and Ollama, fully offline. | **On hold.** Cloud-only removed the offline argument. See [`rewrite.md`](rewrite.md) §6. |
 
-**There is no agent.** What we have is twelve one-shot JSON generators
-(`GenerationService.java`: `PROMPT_KNOWLEDGE`, `PROMPT_PRACTICE`, `PROMPT_HINT`, and so on).
-Each call is stateless. The context object passed to the model is:
+### What was never built, and the honest name for it
 
-```java
-GenerationContext(subjectName, gradeName, topicName, objectives)
-```
+These are the gaps the rewrite exists to close. Every one of them was true of the first
+version and is still true today.
 
-There is nothing about the child in it. Not their age band, not their reading level, not
-what they got wrong an hour ago. The only per-child input the model ever receives is a
-personality string from `TutorModeService.styleForStudent()`.
+**There was no agent.** What we had was twelve one-shot JSON generators — knowledge,
+practice, hint, and so on. Each call was stateless, and the context handed to the model was
+subject, grade, topic and objectives. There was nothing about the child in it. Not their
+age band, not their reading level, not what they got wrong an hour ago. The only per-child
+input the model ever received was a personality string.
 
-**A session is one question.** `GuidedPracticeService.start()` generates exactly one
-`MEDIUM` question. That is the whole lesson.
+**A session was one question.** Guided practice generated exactly one `MEDIUM` question.
+That was the whole lesson.
 
-**Aria does not speak.** "Ask Aria" is answered by
-`frontend/src/session/sources/replies.ts::localReply()` — a regular expression running in
-the browser that matches words like "stuck" and returns the hint the grader already sent.
+**Aria did not speak.** "Ask Aria" was answered by `sources/replies.ts::localReply()` — a
+regular expression running in the browser that matched words like "stuck" and returned the
+hint the grader had already sent. That file does not get copied into the new tree.
 
-**Nothing is remembered.** There is no table that records what happened in a session. When
-the child closes the tab, everything except a score is gone.
+**Nothing was remembered.** No table recorded what happened in a session. When the child
+closed the tab, everything except a score was gone.
 
-**The model is not good enough.** `qwen2.5:7b` and `qwen2.5:3b` on Ollama. It takes 6 to 38
-seconds per question. It writes arithmetic that is wrong. It writes HTML tags into the
-question text. It writes Grade 7 vocabulary for a Grade 1 child, because it is never told
-the child is in Grade 1. **This is why we are moving to hosted models and dropping local
-ones entirely** — a tutor that is sometimes wrong about 7 + 8 is not a tutor.
+**The model was not good enough.** `qwen2.5:7b` and `qwen2.5:3b` on Ollama, 6 to 38 seconds
+per question. It wrote arithmetic that was wrong. It wrote HTML tags into question text. It
+wrote Grade 7 vocabulary for a Grade 1 child, because it was never told the child was in
+Grade 1. **This is why the new stack is hosted models only** — a tutor that is sometimes
+wrong about 7 + 8 is not a tutor. See [`cloud-model-layer.md`](cloud-model-layer.md).
 
-**A child who cannot read cannot use it.** The whole product is text on a screen. Our
+**A child who cannot read could not use it.** The whole product was text on a screen. Our
 youngest and most important user — the five-year-old learning to read — cannot use a
 reading tutor that requires them to read.
 
 ### The nine gaps
 
-| # | Gap | Today | Needed |
+| # | Gap | First version | Needed |
 |---|---|---|---|
 | 1 | **Model quality** | `qwen2.5:7b`, wrong math, HTML, 6–38s | Hosted models, pluggable by config; a quality gate that blocks bad output |
 | 2 | **No conversation** | `localReply()` regex in the browser | A server turn where Aria actually talks |
 | 3 | **No memory** | nothing recorded | Three memory layers, from this turn to this year |
-| 4 | **No plan** | `chooseTopic()` picks the first unlocked topic | A skill graph and a scheduler that decides what is next |
+| 4 | **No plan** | `chooseTopic()` picked the first unlocked topic | A skill graph and a scheduler that decides what is next |
 | 5 | **No voice** | text only | Aria speaks; the child speaks back |
 | 6 | **No real reading instruction** | multiple choice about text | Phonics ladder, decodable text, oral reading |
 | 7 | **No real writing instruction** | multiple choice about grammar | The child writes; Aria coaches |
@@ -220,9 +221,12 @@ questions 5 and 6 are already being made. If nothing is cached and generation is
 fills the gap with something real to do (a fluency drill, a review item) rather than a
 spinner.
 
-**What this deletes:** `chooseTopic()` in `sources/apiSession.ts`, and
-`sources/replies.ts::localReply()`. The frontend `SessionSource` contract stays — that was
-designed for exactly this swap.
+**What this replaces:** the old per-question client — `chooseTopic()` in
+`sources/apiSession.ts` — and the browser-side fake conversation in
+`sources/replies.ts::localReply()`. Neither is copied into the new frontend. The
+`SessionSource` contract in `session/types.ts` stays exactly as it is: it was designed for
+this swap, and it is why the carried-forward UI needs no change when the turn API lands.
+See [`rewrite.md`](rewrite.md) §2.
 
 ### 4.2 Memory — the thing that makes it a Primer
 
@@ -324,8 +328,9 @@ When Aria sees the signature twice, she does not hint. She reteaches with the fi
 ### 4.4 Content and the quality gate
 
 Every piece of content a child sees — a problem, an explanation, a story, a passage — passes
-through the same gate before it reaches the screen. `QuestionSanitizer.java` is the first
-version of this and it should grow into the full gate.
+through the same gate before it reaches the screen. `legacy/.../QuestionSanitizer.java` is
+the first version of this. Reimplement its defect catalogue in TypeScript, then grow it into
+the full gate.
 
 **Four checks, in order. Any failure sends the item back or drops it.**
 
@@ -377,8 +382,9 @@ model for teaching and for the quality gate. This is where most of the cost cont
 
 **What being cloud-only costs us**, and what we must therefore build in the same phase:
 
-- **The offline promise is gone.** Aria needs internet. The desktop app stops bundling
-  Ollama, and an Aria account becomes mandatory so we can hold the vendor key.
+- **The offline promise is gone.** Aria needs internet, and an Aria account becomes
+  mandatory so we can hold the vendor key. Whether a desktop app survives at all is now an
+  open question — see [`rewrite.md`](rewrite.md) §6.
 - **Network failure is now normal.** Retry, a fallback endpoint, a circuit breaker, cached
   content, and one plain sentence for the child.
 - **Tokens cost money.** Every call is priced and logged. Cost per child per month is a
@@ -407,8 +413,10 @@ senior band it is the reverse.
 
 ## 5. What the child actually sees
 
-The rule from the current UI holds and gets stronger: **the child makes one choice — which
-class. Everything after that is Aria's job.**
+The rule the session UI was built on holds and gets stronger: **the child makes one choice
+— which class. Everything after that is Aria's job.** Those four screens carry forward into
+the new frontend unchanged; what follows is what they must grow into, not a redesign of
+them. See [`rewrite.md`](rewrite.md) §2.
 
 ### Early band (TK–2)
 
@@ -498,9 +506,10 @@ parent will ever see, and it is the best raw material for the learner model.
    the problem *with* the child, one step at a time, and never gives the whole answer.
 
 **Every arithmetic fact a child sees is verified by code, not by a model.**
-`MathAnswerChecker.java` already does this for place value and plain arithmetic. It must be
-widened to cover every skill in the graph, and where it cannot solve something it must defer
-rather than guess — as it already correctly does for negated and comparative questions.
+`legacy/.../MathAnswerChecker.java` did this for place value and plain arithmetic. Rebuild
+it in TypeScript and widen it to cover every skill in the graph. Where it cannot solve
+something it must defer rather than guess — as the original correctly did for negated and
+comparative questions.
 
 ---
 
@@ -582,12 +591,14 @@ teacher_directive  id, teacher_id, class_id, student_ids, instruction,
                    active_from, active_until
 ```
 
-Flyway migrations continue from V25. All PostgreSQL — the desktop app bundles a real
-PostgreSQL server so partial unique indexes and `TIMESTAMPTZ` keep working.
+These are new tables in a new database. Migrations start at `001` — the 24 Flyway
+migrations under `legacy/` are a reference for the shapes that worked, not a sequence to
+continue. PostgreSQL throughout, so partial unique indexes and `TIMESTAMPTZ` are available
+and used.
 
 ---
 
-## 10. API surface to add
+## 10. API surface to build
 
 ```
 POST   /api/v1/student/session/turn          the whole tutor loop
@@ -685,21 +696,24 @@ Each phase has an exit test. Do not start the next one until it passes.
 ### Phase 0 — Foundation *(now)*
 Full plan: [`cloud-model-layer.md`](cloud-model-layer.md).
 
-- Provider registry, cloud only: any hosted model plugs in by config. Delete Ollama, the
-  desktop supervisor, and every mention of it in the docs.
+- Scaffold the workspace and copy the session UI across, running against
+  `mockSession.ts`. See [`rewrite.md`](rewrite.md) §5.
+- Provider registry, cloud only: any hosted model plugs in by config. Built fresh in
+  TypeScript — there is nothing to delete, because nothing local is ever written.
 - Retry, fallback endpoint, circuit breaker, and one plain failure sentence for the child.
-- Cost accounting: `V25__ai_cost.sql`, price per call, a per-child daily cap.
+- Cost accounting: an `ai_cost` migration, price per call, a per-child daily cap.
 - The golden set: 500 human-graded items, and the harness that runs them.
-- Widen `MathAnswerChecker` to cover every arithmetic skill in the graph.
+- Reimplement `MathAnswerChecker` in TypeScript and widen it to cover every arithmetic
+  skill in the graph.
 
-> **Exit:** switching model providers is a one-line config change; running the golden set
-> against a new endpoint reports correctness, latency and cost with no code change; and no
-> file in the repository mentions Ollama.
+> **Exit:** the four session screens render in all three bands in the new frontend;
+> switching model providers is a one-line config change; and running the golden set against
+> a new endpoint reports correctness, latency and cost with no code change.
 
 ### Phase 1 — The tutor loop
 - `session` and `session_event` tables.
 - `POST /student/session/turn`, with the eleven moves.
-- Delete `chooseTopic()` and `localReply()` from the frontend.
+- A real `SessionSource` against the turn endpoint, replacing `mockSession.ts`.
 - Aria talks: real explanation, real hints, real reteaching.
 
 > **Exit:** a session is a conversation, not a quiz. A child can say "I don't get it" and

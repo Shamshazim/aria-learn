@@ -1,8 +1,15 @@
 # The Model Layer — Cloud Only
 
-**Status:** design agreed, not yet implemented.
-**Phase:** 0 (Foundation) of `master-plan.md`. Nothing else starts until this ships.
+**Status:** design agreed, not yet implemented. Revised 2026-08-22 for the rewrite.
+**Phase:** 0 (Foundation) of [`master-plan.md`](master-plan.md). Nothing else starts until
+this ships.
 **Owner decision, 2026-08-21:** *"We only support cloud models for now. No local models."*
+
+**Read first:** [`rewrite.md`](rewrite.md). This document was written against the Java code
+base, which is now frozen under `legacy/`. The design below is unchanged and correct — the
+port, the two adapters, the tier routing, the cost and failure handling. What changed is
+that it gets **built, not migrated**: every Java class named here is a TypeScript module to
+write in `apps/api`, and every "delete this" instruction is now simply "never write it".
 
 ---
 
@@ -26,7 +33,7 @@ being locked to one vendor. Any hosted model must plug in through configuration 
 |---|---|---|
 | Engine | Bundled Ollama, private dynamic port | HTTPS call to a hosted API |
 | Offline | Full offline promise | **Gone.** Aria needs internet |
-| Desktop bundle | JRE + PostgreSQL + Ollama (~5 GB) | JRE + PostgreSQL (~300 MB) |
+| Packaging | Electron bundling JRE + PostgreSQL + Ollama (~5 GB) | A web app calling a hosted API. See [`rewrite.md`](rewrite.md) §6. |
 | Data location | Nothing left the machine | Prompt text leaves the machine |
 | Cost | Zero marginal | Per token, per child, per session |
 | Latency | 6–38 s | 0.5–4 s typical, plus network |
@@ -36,31 +43,29 @@ Four of these are new problems we did not have. Sections 7, 8, 9 and 10 exist be
 them. Do not skip them: **cost control, key handling, failure handling and privacy are part
 of Phase 0**, not follow-up work.
 
-### Code that goes away
+### What we simply never build
 
-- `ai/provider/OllamaLlmProvider.java` — delete.
-- `ai/provider/OllamaProperties.java` — delete.
-- `@EnableConfigurationProperties(OllamaProperties.class)` in `MathTutorApplication.java`.
-- `desktop/src/services/ollama.js` — the supervisor, the respawn logic, the widening delay,
-  the same-port rule. All of it.
-- The Ollama download and bundling steps in the desktop build.
-- The `OLLAMA_URL` environment variable handed to the backend.
-- The `unavailableMessage()` special case that hides the word "Ollama" from a child. The
-  new equivalent is section 8.
+The first version bundled Ollama and supervised it as a child process. In the rewrite there
+is nothing to delete — these things are on the list of code we never write:
 
-### Documentation that must be corrected in the same change
+- No local provider, no `OLLAMA_URL`, no bundled model weights.
+- No engine supervisor: no respawn loop, no widening retry delay, no same-port rule, no
+  `pkill -f "ollama serve"` hazard.
+- No download-and-bundle step in any build.
+- No "hide the word Ollama from the child" special case. Section 8 is the replacement, and
+  it is a real design rather than a workaround.
 
-`CLAUDE.md` describes the Ollama supervisor, the same-port rule, and the
-`pkill -f "ollama serve"` warning as load-bearing architecture. When the supervisor goes,
-those paragraphs become wrong and misleading. Remove them in the same commit.
-`docs/desktop-architecture.md` needs the same treatment.
+Everything under `legacy/` that implements the above — `ai/provider/OllamaLlmProvider.java`,
+`OllamaProperties.java`, `desktop/src/services/ollama.js` — stays frozen and unread.
 
 ---
 
 ## 3. The design
 
-The port stays exactly as it is. `AiClient` is the only class outside `ai/provider/` that
-touches `LlmProvider`, and it does not change at all.
+The shape below is the design, written originally in Java names. **Build it in TypeScript
+in `apps/api`.** `AiClient` is the only module outside the provider folder that touches
+`LlmProvider` — everything else in the codebase talks to `AiClient`. That single seam is
+what makes the vendor a configuration detail.
 
 ```
 AiClient
@@ -81,22 +86,24 @@ chat-completions wire format. One adapter plus a different `base-url` covers Ope
 Together, Fireworks, Mistral, DeepSeek, xAI, OpenRouter, Azure OpenAI, and Gemini's
 compatibility endpoint. Anthropic's Messages API differs enough to need its own adapter.
 
-### New files
+### The modules to write
 
 ```
-backend/src/main/java/com/mathtutor/ai/provider/
-  LlmProvider.java              (unchanged — the port)
-  LlmRequest.java               (unchanged)
-  LlmResponse.java              (+ cost fields, see 9)
-  ModelTier.java                (unchanged)
-  AiProviderProperties.java     NEW  @ConfigurationProperties("app.ai")
-  LlmProviderFactory.java       NEW  Endpoint -> adapter
-  RoutingLlmProvider.java       NEW  tier -> endpoint, retry, fallback
-  ProviderHealth.java           NEW  startup check + /actuator-style status
+apps/api/src/ai/provider/
+  types.ts            LlmProvider (the port), LlmRequest, LlmResponse (+ cost, see 9),
+                      ModelTier
+  config.ts           Parses and validates the config in section 4. Fails at startup.
+  factory.ts          Endpoint -> adapter, one per configured endpoint, at boot
+  routing.ts          Tier -> endpoint, retry, fallback, circuit breaker.
+                      The only LlmProvider the rest of the app ever sees.
+  health.ts           Startup check per routed endpoint, and a status route
   adapters/
-    OpenAiCompatibleProvider.java  NEW
-    AnthropicProvider.java         NEW
+    openaiCompatible.ts
+    anthropic.ts
 ```
+
+The Java names in the diagram above map one-to-one onto these. Where this document says
+`RoutingLlmProvider`, read `routing.ts`.
 
 ---
 
@@ -104,6 +111,11 @@ backend/src/main/java/com/mathtutor/ai/provider/
 
 One block. Adding a vendor is a config change and an API key. It is never a code change,
 unless the vendor speaks a wire format we do not have an adapter for.
+
+The YAML below is the *shape*, carried over from the Spring design. In the Node rewrite it
+becomes a checked-in `apps/api/config/ai.yaml` (or the equivalent TypeScript module) parsed
+and validated at boot by `config.ts`, with `${VAR}` resolved from the environment. The
+structure, the rules under it, and the startup-failure behaviour are unchanged.
 
 ```yaml
 app:
@@ -156,7 +168,7 @@ app:
    without demanding every key.
 2. **A missing key for a routed endpoint fails at startup**, with the name of the endpoint
    and the name of the environment variable. It does not fail later, in front of a child.
-3. **Keys come from the environment only.** Never a literal in `application.yml`. `.env`
+3. **Keys come from the environment only.** Never a literal in the config file. `.env`
    stays gitignored. A key is never written to a log, an error message, or the database.
 4. **Both tiers may point at the same endpoint.** That is the simplest working setup.
 
@@ -260,17 +272,28 @@ child waits the full timeout on every turn.
 Every token is now money. Instrument this from day one, not after the first surprising
 invoice.
 
-**Migration `V25__ai_cost.sql`** — the table is `ai_generation_logs`, and it already has
-`model`, `tokens_in`, `tokens_out`, `latency_ms`, `student_id`.
+**The `ai_generation_logs` table**, created with the cost columns present rather than added
+to it later — this is a new database, so there is no `ALTER` to write:
 
 ```sql
-ALTER TABLE ai_generation_logs ADD COLUMN endpoint_name VARCHAR(64);
-ALTER TABLE ai_generation_logs ADD COLUMN cost_usd NUMERIC(10,6) NOT NULL DEFAULT 0;
-ALTER TABLE ai_generation_logs ADD COLUMN cached BOOLEAN NOT NULL DEFAULT FALSE;
-CREATE INDEX idx_ai_logs_student_day ON ai_generation_logs (student_id, created_at);
+CREATE TABLE ai_generation_log (
+  id            UUID PRIMARY KEY,
+  student_id    UUID REFERENCES student(id),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  endpoint_name VARCHAR(64) NOT NULL,
+  model         VARCHAR(128) NOT NULL,
+  tier          VARCHAR(16)  NOT NULL,
+  tokens_in     INTEGER NOT NULL,
+  tokens_out    INTEGER NOT NULL,
+  latency_ms    INTEGER NOT NULL,
+  cost_usd      NUMERIC(10,6) NOT NULL DEFAULT 0,
+  cached        BOOLEAN NOT NULL DEFAULT FALSE,
+  ok            BOOLEAN NOT NULL
+);
+CREATE INDEX idx_ai_log_student_day ON ai_generation_log (student_id, created_at);
 ```
 
-`LlmResponse` gains `endpointName` and `costUsd`, computed by the adapter from the
+`LlmResponse` carries `endpointName` and `costUsd`, computed by the adapter from the
 `cost-per-mtok-*` values on the endpoint config.
 
 **The number that matters is cost per child per month.** Track it from the first day. If a
@@ -347,24 +370,25 @@ This is what turns "the model is not good enough" from an opinion into a number.
 
 Each step is small and independently shippable. Do not batch them.
 
-1. **`AiProviderProperties`** and the config block. No behaviour change yet.
-2. **`OpenAiCompatibleProvider`.** Point `app.ai` at one endpoint. Delete nothing yet — keep
-   Ollama behind its existing `@ConditionalOnProperty` so a rollback is one line.
-3. **`AnthropicProvider`**, with the prefill trick.
-4. **`RoutingLlmProvider`** — tier routing, retry, fallback, circuit breaker. It becomes the
-   only `LlmProvider` bean. `AiClient` still does not change.
-5. **`V25__ai_cost.sql`** and cost accounting in the adapters.
+0. **The workspace exists and the session UI runs on mocks.** See
+   [`rewrite.md`](rewrite.md) §5, steps 1 and 2. This work has no home until then.
+1. **`types.ts` and `config.ts`** — the port, and the config block parsed and validated at
+   boot. No calls yet.
+2. **`adapters/openaiCompatible.ts`.** Point the config at one endpoint and make a real
+   call.
+3. **`adapters/anthropic.ts`**, with the prefill trick.
+4. **`routing.ts`** — tier routing, retry, fallback, circuit breaker. It becomes the only
+   `LlmProvider` the app sees. Everything else talks to `AiClient`.
+5. **The `ai_cost` migration** and cost accounting in the adapters.
 6. **The golden set and harness.** Run it against every configured endpoint. Read the table.
    Pick the default.
-7. **Delete Ollama** — provider, properties, the desktop supervisor, the bundling step, and
-   the paragraphs in `CLAUDE.md` and `docs/desktop-architecture.md`.
-8. **Startup health check** — one cheap call per routed endpoint at boot, failing loudly.
+7. **`health.ts`** — one cheap call per routed endpoint at boot, failing loudly.
 
 ### Exit test for Phase 0
 
 > Changing which model teaches is one line of configuration. Running the golden set against
 > a new endpoint produces a correctness, latency and cost number without any code change.
-> No file in the repository mentions Ollama.
+> No file outside `legacy/` mentions Ollama, and none ever will.
 
 ---
 
@@ -372,11 +396,12 @@ Each step is small and independently shippable. Do not batch them.
 
 | Question | Why it matters | Who decides |
 |---|---|---|
-| Proxy or bring-your-own-key for desktop? | Section 7 says proxy. It makes an account mandatory. | Product |
+| Proxy or bring-your-own-key? | Section 7 says proxy. It makes an account mandatory. | Product |
 | Which vendor is the `TEACH` default? | Answer with the golden set, not with a preference. | Data |
-| Do we keep the desktop app at all, if it needs internet? | A web app may now be the better shape. | Product |
+| Do we build a desktop app at all, if it needs internet? | A web app may now be the better shape. Also tracked in [`rewrite.md`](rewrite.md) §6. | Product |
 | Streaming in Phase 0 or Phase 3? | The adapter shape depends on the answer. | Engineering |
 
 The third question is the important one. The whole argument for an Electron app that bundles
 its own runtime was that it worked offline with no account. Cloud-only removes that
-argument. Decide deliberately, rather than carrying the desktop shell forward from habit.
+argument, and the rewrite means nothing is carried forward by default. Decide deliberately,
+rather than rebuilding the desktop shell from habit.

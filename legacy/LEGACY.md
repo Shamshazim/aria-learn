@@ -25,6 +25,14 @@ The rewrite changes both the runtime and the product shape:
 - The product becomes an agentic tutor, not twelve stateless generators.
   See `dev-docs/master-plan.md`.
 
+## The one part that is copied, not just read
+
+`frontend/src/session/` is the student session UI — the class picker and the three age-band
+layouts. It is already React + TypeScript, so it is copied into the new frontend rather than
+rewritten. `dev-docs/rewrite.md` §2 says exactly what to change on the way in, and what to
+leave behind. Copying is a one-time move at scaffold time. Nothing in the new tree ever
+imports from this folder.
+
 ## What is still worth reading
 
 - `backend/src/main/java/com/mathtutor/ai/QuestionSanitizer.java` — every

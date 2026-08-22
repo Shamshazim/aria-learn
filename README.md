@@ -18,6 +18,9 @@ The project is being rebuilt from scratch. The first version is frozen under
 
 ## Plans
 
+- [`dev-docs/rewrite.md`](dev-docs/rewrite.md) — the rewrite: what carries
+  forward from the first version, what gets rebuilt, and in what order. Start
+  here.
 - [`dev-docs/master-plan.md`](dev-docs/master-plan.md) — the product: what an
   agentic tutor has to do that a question generator does not.
 - [`dev-docs/cloud-model-layer.md`](dev-docs/cloud-model-layer.md) — the model
