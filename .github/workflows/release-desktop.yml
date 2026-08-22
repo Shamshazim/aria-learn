@@ -100,6 +100,39 @@ jobs:
             npx electron-builder ${{ matrix.builder }} --publish always
           fi
 
+      # electron-builder signs and notarizes the .app and then wraps it in a DMG, leaving the
+      # disk image itself bare — and macOS assesses the disk image first, so a parent is stopped
+      # before ever reaching the signed app inside. Sign, notarize and staple the DMG too, then
+      # re-upload it over the one already published. The release is a draft until we choose
+      # otherwise, so the unverified copy is never visible to anyone.
+      - name: Notarize and staple the disk image
+        if: runner.os == 'macOS'
+        working-directory: desktop
+        env:
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE_P12 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          chmod +x scripts/notarize-dmg.sh
+          ./scripts/notarize-dmg.sh dist
+          node scripts/refresh-update-manifest.mjs dist
+
+      # Only meaningful for a tagged release, which is the only case where a release exists to
+      # upload over. Re-uploading an unchanged file is harmless, so this needs no other guard.
+      - name: Publish the notarized disk image over the unsigned one
+        if: runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/')
+        working-directory: desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for f in dist/*.dmg dist/latest-mac.yml; do
+            [ -f "$f" ] || continue
+            echo "  • re-uploading $(basename "$f")"
+            gh release upload "${GITHUB_REF_NAME}" "$f" --repo "${GITHUB_REPOSITORY}" --clobber
+          done
+
       - name: Keep the installer even if publishing failed
         if: always()
         uses: actions/upload-artifact@v4
