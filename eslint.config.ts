@@ -128,7 +128,15 @@ export default defineConfig([
       },
     },
     settings: {
-      'import-x/resolver-next': [createTypeScriptImportResolver({ alwaysTryTypes: true })],
+      // Every workspace tsconfig, so the `@/*` alias each app declares actually resolves.
+      // Without the project list the resolver only sees the root config and reports every
+      // aliased import as unresolved.
+      'import-x/resolver-next': [
+        createTypeScriptImportResolver({
+          alwaysTryTypes: true,
+          project: ['tsconfig.json', 'apps/*/tsconfig.json', 'packages/*/tsconfig.json'],
+        }),
+      ],
     },
     rules: { ...typeAwareRules, ...structuralRules },
   },
