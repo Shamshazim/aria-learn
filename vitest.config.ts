@@ -44,6 +44,21 @@ export default defineConfig({
       },
       {
         test: {
+          // Everything that needs a real PostgreSQL, kept in its own project and its own
+          // directory. `src/**` tests touch no I/O and run anywhere; these need a database,
+          // take longer, and skip themselves when DATABASE_URL is absent outside CI.
+          name: 'api-db',
+          root: './apps/api',
+          environment: 'node',
+          include: ['test/**/*.test.ts'],
+          exclude: EXCLUDED,
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+        },
+        resolve: { alias: { '@': apiSrc } },
+      },
+      {
+        test: {
           name: 'web',
           root: './apps/web',
           environment: 'jsdom',

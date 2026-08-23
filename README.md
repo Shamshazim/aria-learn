@@ -38,6 +38,7 @@ npm workspaces, TypeScript everywhere, one command that checks the whole repo.
 ```
 apps/
   api/        Node + Express + TypeScript          @aria/api
+              routes → controllers → services → repositories, and raw SQL under db/
   web/        React + TypeScript + Vite            @aria/web
 packages/
   shared/     Tutor protocol types and schemas     @aria/shared
@@ -58,6 +59,26 @@ cp .env.example .env
 npm run check   # typecheck + lint + test — the same gate CI runs
 ```
 
+### The database
+
+PostgreSQL 16, and it is not optional: the API refuses to start without a reachable
+`DATABASE_URL`, rather than discovering it on a request. Create the role and database once —
+
+```bash
+createuser --createdb --pwprompt aria      # password: aria, to match .env.example
+createdb -O aria aria_dev
+npm run db:migrate -w @aria/api            # applies migrations; a no-op the second time
+```
+
+The database tests create and drop a throwaway database per test file, which is why the role
+needs `CREATEDB`. They skip themselves when `DATABASE_URL` is unset — but never on CI, where
+an unset variable is a misconfiguration and skipping would turn them into no-ops.
+
+Migrations are raw SQL in `apps/api/src/db/migrations`, numbered `NNN_snake_case.sql`, and
+**forward-only**: once merged a migration is never edited. The runner checksums each one and
+refuses to start if a file it already applied has changed, or if a migration turns up numbered
+behind one that has already run.
+
 | Script | What it does |
 |---|---|
 | `npm run dev` | Starts each app that has a dev server |
@@ -67,9 +88,10 @@ npm run check   # typecheck + lint + test — the same gate CI runs
 | `npm run format` / `format:fix` | Prettier check / write |
 | `npm test` / `test:watch` | Vitest across the `shared`, `api` and `web` projects |
 | `npm run check` | typecheck, then lint, then test |
+| `npm run db:migrate -w @aria/api` | Applies pending migrations. Idempotent. |
 
-There is no application code yet: P0-03 builds the API, P0-05 the web app, and P0-02 the
-shared protocol. What exists is the ground they stand on.
+The API shell, the shared tutor protocol and the database foundation are in place (P0-02 to
+P0-04). The web app is next (P0-05); there are no product endpoints yet — Phase 1 adds them.
 
 ### The rules are enforced, not remembered
 

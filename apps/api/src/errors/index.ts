@@ -4,6 +4,7 @@ export {
   AppError,
   ValidationError,
   NotFoundError,
+  ConflictError,
   ServiceUnavailableError,
   isAppError,
 } from './app-error';
