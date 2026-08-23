@@ -43,6 +43,16 @@ export class NotFoundError extends AppError {
   }
 }
 
+/**
+ * A uniqueness or invariant the store already holds. The safe message names nothing about
+ * which row collided: the colliding value is usually the very thing we must not disclose.
+ */
+export class ConflictError extends AppError {
+  constructor(logMessage: string, cause?: unknown) {
+    super(ERROR_CODES.CONFLICT, 409, 'That already exists.', { cause, logMessage });
+  }
+}
+
 /** A dependency is down. Distinct from INTERNAL so a caller can sensibly retry. */
 export class ServiceUnavailableError extends AppError {
   constructor(logMessage: string, cause?: unknown) {

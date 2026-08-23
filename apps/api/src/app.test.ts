@@ -19,7 +19,15 @@ import type { Express } from 'express';
  * The integration tests for the shell. They cover the three paths every later router
  * inherits: a successful resource, an unknown route, and an unhandled rejection.
  */
-const config = loadConfig({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }, '9.9.9');
+const config = loadConfig(
+  {
+    NODE_ENV: 'test',
+    LOG_LEVEL: 'silent',
+    // The shell under test never queries; the value only has to satisfy the boot contract.
+    DATABASE_URL: 'postgresql://aria:aria@localhost:5432/aria_test',
+  },
+  '9.9.9',
+);
 
 function buildApp(): Express {
   return createApp({

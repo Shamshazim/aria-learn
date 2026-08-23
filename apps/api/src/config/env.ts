@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+import { databaseEnvSchema, toDatabaseConfig } from './database';
+
+import type { DatabaseConfig } from './database';
+
 /**
  * Configuration is parsed once, at boot, and never read from `process.env` again.
  *
@@ -19,6 +23,8 @@ export const envSchema = z.object({
   /** Bounds the JSON body so a large payload cannot become a denial of service (§8). */
   JSON_BODY_LIMIT: z.string().default('100kb'),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(120_000).default(10_000),
+
+  ...databaseEnvSchema.shape,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -32,6 +38,7 @@ export type AppConfig = {
   shutdownTimeoutMs: number;
   version: string;
   isProduction: boolean;
+  database: DatabaseConfig;
 };
 
 /**
@@ -68,5 +75,6 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
     shutdownTimeoutMs: env.SHUTDOWN_TIMEOUT_MS,
     version,
     isProduction: env.NODE_ENV === 'production',
+    database: toDatabaseConfig(env),
   };
 }

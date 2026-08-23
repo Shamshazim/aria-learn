@@ -8,6 +8,8 @@
 export const ERROR_CODES = {
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   NOT_FOUND: 'NOT_FOUND',
+  /** The request was well formed but conflicts with what is already stored (P0-04). */
+  CONFLICT: 'CONFLICT',
   INTERNAL: 'INTERNAL',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 } as const;
