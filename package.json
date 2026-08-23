@@ -2,7 +2,7 @@
   "name": "aria-learn",
   "version": "0.0.0",
   "private": true,
-  "description": "Aria Learn — an AI tutor for children. npm workspace root.",
+  "description": "Aria Learn \u2014 an AI tutor for children. npm workspace root.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "engines": {
@@ -18,8 +18,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint apps packages eslint.config.ts vitest.config.ts",
     "lint:fix": "eslint apps packages eslint.config.ts vitest.config.ts --fix",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
+    "format": "prettier --check \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json}\"",
+    "format:fix": "prettier --write \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run test"
