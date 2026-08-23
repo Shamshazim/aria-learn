@@ -1,0 +1,14 @@
+{
+  "name": "@aria/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Protocol types and schemas shared by @aria/api and @aria/web. No runtime dependency on either.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}
