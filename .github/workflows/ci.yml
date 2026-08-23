@@ -1,8 +1,10 @@
 name: CI
 
 on:
+  # Every pull request, not only those targeting main: a stacked PR (one ticket based on the
+  # branch of the ticket it depends on) must be checked too, or the dependent work is unverified
+  # until the day it retargets.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
