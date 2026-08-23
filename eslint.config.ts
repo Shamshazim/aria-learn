@@ -27,8 +27,11 @@ const FORBIDDEN_IMPORT_PATTERNS = [
     message: 'legacy/ is frozen: never import from it (AGENT-INSTRUCTIONS §2).',
   },
   {
-    group: ['../../*', '../../../*', '../../../../*'],
-    message: 'No relative import may leave its own package. Use @/* or @aria/shared (§7).',
+    // Reaching into another package by path bypasses its public entry point, and with it the
+    // module boundary (§4). Traversing *inside* your own package is fine, so this matches the
+    // workspace layout rather than counting `../` segments.
+    group: ['**/apps/*/src/**', '**/packages/*/src/**'],
+    message: 'Import another package through @aria/<name>, never by path (§4, §7).',
   },
 ];
 
