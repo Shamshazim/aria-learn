@@ -22,6 +22,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # A real PostgreSQL, because the repository tests assert things only Postgres can settle:
+    # that a cascade fires, that a partial unique index bites, that a CHECK becomes a 400.
+    # Without it those suites would skip and the schema would go unchecked (P0-04).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: aria
+          POSTGRES_PASSWORD: aria
+          POSTGRES_DB: aria_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aria"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Each test file creates and drops its own database from this connection, so the role
+      # needs CREATEDB — which the image's superuser already has.
+      DATABASE_URL: postgresql://aria:aria@localhost:5432/aria_test
+
     steps:
       - uses: actions/checkout@v4
 
