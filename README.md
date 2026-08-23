@@ -31,7 +31,49 @@ frozen under [`legacy/`](legacy/LEGACY.md) and is no longer built or run.
   self-contained tickets for Phase 0 and Phase 1, the code standards every
   ticket is bound by, and the backlog for later phases.
 
+## The workspace
+
+npm workspaces, TypeScript everywhere, one command that checks the whole repo.
+
+```
+apps/
+  api/        Node + Express + TypeScript          @aria/api
+  web/        React + TypeScript + Vite            @aria/web
+packages/
+  shared/     Tutor protocol types and schemas     @aria/shared
+dev-docs/     The plans and the tickets
+legacy/       The frozen first version. Reference only — never built, run or imported.
+```
+
+Imports use path aliases, never a relative path that leaves its own package: `@aria/shared`
+for the protocol, and `@/*` for a file inside the same app.
+
 ## Running it
 
-Nothing to run yet. This section gets written with the first commit that has
-something to start.
+Requires **Node 22 or newer** (`.nvmrc` pins the version; run `nvm use`).
+
+```bash
+npm ci          # install every workspace
+cp .env.example .env
+npm run check   # typecheck + lint + test — the same gate CI runs
+```
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Starts each app that has a dev server |
+| `npm run build` | Builds each app that has a build |
+| `npm run typecheck` | `tsc --noEmit` across the root config and every workspace |
+| `npm run lint` / `lint:fix` | ESLint over `apps/`, `packages/` and the root configs |
+| `npm run format` / `format:fix` | Prettier check / write |
+| `npm test` / `test:watch` | Vitest across the `shared`, `api` and `web` projects |
+| `npm run check` | typecheck, then lint, then test |
+
+There is no application code yet: P0-03 builds the API, P0-05 the web app, and P0-02 the
+shared protocol. What exists is the ground they stand on.
+
+### The rules are enforced, not remembered
+
+[`CODE-STANDARDS.md`](dev-docs/tickets/CODE-STANDARDS.md) is binding, and the parts a person
+would otherwise have to police are wired into the toolchain. Lint fails the build on a file
+over 300 lines, on `any`, on a circular import, on a relative import that escapes its
+package, and on any import from `legacy/`.
