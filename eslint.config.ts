@@ -148,6 +148,16 @@ export default defineConfig([
     rules: { 'no-restricted-imports': 'off' },
   },
 
+  {
+    // Attaching per-request context to `req` is how Express middleware works — it is the
+    // framework's mechanism, not an accidental mutation of a caller's object. The rule still
+    // applies to every other parameter (P0-03).
+    files: ['apps/api/**/*.ts'],
+    rules: {
+      'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['req'] }],
+    },
+  },
+
   // Last, so formatting never fights the rules above (§7).
   prettier,
 ]);
