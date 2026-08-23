@@ -1,7 +1,7 @@
+import { start } from '@/server';
+
 /**
- * Entry point for `@aria/api`.
- *
- * The Express application, its layering and its routes are built in P0-03; this file exists
- * so the package typechecks as part of the workspace.
+ * The executable entry point. It does one thing, so `server.ts` stays importable by a test
+ * without a socket being opened as a side effect.
  */
-export {};
+start();
