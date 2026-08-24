@@ -31,7 +31,8 @@ export function start(): void {
 
 function readConfigOrExit(): AppConfig {
   try {
-    loadAiConfig();
+    // Loaded for its boot-time check only until P0-13 wires the model layer into the app.
+    loadAiConfig(process.env);
     return loadConfig(process.env, VERSION);
   } catch (error) {
     if (error instanceof ConfigError || error instanceof AiConfigError) {

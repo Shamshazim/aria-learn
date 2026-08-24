@@ -1,3 +1,7 @@
+/**
+ * The port every hosted-model adapter implements (P0-11, P0-12). Nothing outside `ai/provider/`
+ * imports it until P0-13 wires routing; the types are the ticket P0-10 design, verbatim.
+ */
 export type ModelTier = 'TEACH' | 'FAST';
 
 export type LlmRequest = {

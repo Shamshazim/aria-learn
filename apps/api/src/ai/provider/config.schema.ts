@@ -1,6 +1,16 @@
 import { z } from 'zod';
 
-const ENVIRONMENT_REFERENCE = /^\$\{[A-Z_][A-Z0-9_]*\}$/;
+/**
+ * The shape of `config/ai.yaml`, verbatim from cloud-model-layer.md §4.
+ *
+ * Keys are references (`${VAR}`), never literals: a literal key fails the schema so a secret
+ * cannot be committed by accident (CODE-STANDARDS §8). `api-key` is optional because an
+ * endpoint nobody routes to is inert and may stay in the file without one (§4 rule 1);
+ * `config.ts` is what insists on a key for the endpoints that are actually routed.
+ */
+
+/** One regex owns the reference format; the capture group is the variable name. */
+export const ENVIRONMENT_REFERENCE = /^\$\{([A-Z_][A-Z0-9_]*)\}$/;
 const MAX_ENDPOINTS = 32;
 const MAX_MODEL_NAME_LENGTH = 128;
 const MAX_REFERENCE_LENGTH = 128;
@@ -19,7 +29,8 @@ const endpointSchema = z.strictObject({
   'api-key': z
     .string()
     .max(MAX_REFERENCE_LENGTH)
-    .regex(ENVIRONMENT_REFERENCE, 'must be an environment reference such as ${OPENAI_API_KEY}'),
+    .regex(ENVIRONMENT_REFERENCE, 'must be an environment reference such as ${OPENAI_API_KEY}')
+    .optional(),
   model: z.string().trim().min(1).max(MAX_MODEL_NAME_LENGTH),
   'max-tokens': z.number().int().positive().max(MAX_TOKENS),
   'timeout-seconds': z.number().positive().max(MAX_TIMEOUT_SECONDS),

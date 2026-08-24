@@ -37,4 +37,3 @@ app:
         timeout-seconds: 20
         cost-per-mtok-in: 0.15
         cost-per-mtok-out: 0.6
-        reasoning: true

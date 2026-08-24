@@ -3,31 +3,39 @@ import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
 
-import { aiConfigSchema, providerApiKeySchema } from '@/ai/provider/config.schema';
-import type { AiConfig } from '@/ai/provider/config.schema';
+import { ENVIRONMENT_REFERENCE, aiConfigSchema, providerApiKeySchema } from './config.schema';
 
+import type { AiConfig } from './config.schema';
+
+/**
+ * Loads `config/ai.yaml` once, at boot, and resolves keys for the endpoints that are routed.
+ *
+ * Only routed endpoints need a key (cloud-model-layer.md §4 rule 1), and a routed endpoint
+ * without one stops the process here, naming the endpoint and the variable — never later, in
+ * front of a child (rule 2). The resolved key lives only in the returned config; it is never
+ * placed in an error message (rule 3).
+ */
 const DEFAULT_CONFIG_PATH = fileURLToPath(new URL('../../../config/ai.yaml', import.meta.url));
-const ENVIRONMENT_REFERENCE = /^\$\{([A-Z_][A-Z0-9_]*)\}$/;
 const MAX_CONFIG_BYTES = 64 * 1_024;
 const CONFIG_SIZE_ERROR = `AI configuration must not exceed ${String(MAX_CONFIG_BYTES)} bytes`;
 
 export type LoadAiConfigOptions = {
   filePath?: string;
-  env?: NodeJS.ProcessEnv;
 };
 
+/** Boot-time only, like `ConfigError`: it never reaches a client, so it is not an AppError. */
 export class AiConfigError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, cause?: unknown) {
+    super(message, { cause });
     this.name = 'AiConfigError';
   }
 }
 
-export function loadAiConfig(options: LoadAiConfigOptions = {}): AiConfig {
-  const source = readConfigFile(options.filePath ?? DEFAULT_CONFIG_PATH);
-  const config = parseConfig(source);
+export function loadAiConfig(env: NodeJS.ProcessEnv, options: LoadAiConfigOptions = {}): AiConfig {
+  const filePath = options.filePath ?? DEFAULT_CONFIG_PATH;
+  const config = parseConfig(readConfigFile(filePath));
 
-  return resolveRoutedKeys(config, options.env ?? process.env);
+  return resolveRoutedKeys(config, env);
 }
 
 function readConfigFile(filePath: string): string {
@@ -42,7 +50,7 @@ function readConfigFile(filePath: string): string {
     return source;
   } catch (error) {
     if (error instanceof AiConfigError) throw error;
-    throw new AiConfigError('AI configuration file could not be read');
+    throw new AiConfigError(`AI configuration file could not be read: ${filePath}`, error);
   }
 }
 
@@ -50,8 +58,8 @@ function parseConfig(source: string): AiConfig {
   let input: unknown;
   try {
     input = parse(source);
-  } catch {
-    throw new AiConfigError('AI configuration YAML could not be parsed');
+  } catch (error) {
+    throw new AiConfigError('AI configuration YAML could not be parsed', error);
   }
 
   const parsed = aiConfigSchema.safeParse(input);
@@ -76,8 +84,10 @@ function resolveRoutedKeys(config: AiConfig, env: NodeJS.ProcessEnv): AiConfig {
     const endpoint = endpoints[endpointName];
     if (endpoint === undefined) continue;
 
-    const variableName = ENVIRONMENT_REFERENCE.exec(endpoint['api-key'])?.[1];
-    if (variableName === undefined) continue;
+    const variableName = ENVIRONMENT_REFERENCE.exec(endpoint['api-key'] ?? '')?.[1];
+    if (variableName === undefined) {
+      throw new AiConfigError(`AI endpoint "${endpointName}" is routed but has no api-key`);
+    }
 
     const keyResult = providerApiKeySchema.safeParse(env[variableName]);
     if (!keyResult.success) {

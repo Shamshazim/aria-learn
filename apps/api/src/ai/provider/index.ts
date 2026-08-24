@@ -1,11 +1,5 @@
-export { AiConfigError, loadAiConfig } from '@/ai/provider/config';
-export type { LoadAiConfigOptions } from '@/ai/provider/config';
-export { aiConfigSchema } from '@/ai/provider/config.schema';
-export type { AiConfig } from '@/ai/provider/config.schema';
-export type {
-  LlmProvider,
-  LlmRequest,
-  LlmResponse,
-  ModelTier,
-  StreamChunk,
-} from '@/ai/provider/types';
+export { AiConfigError, loadAiConfig } from './config';
+export type { LoadAiConfigOptions } from './config';
+export { aiConfigSchema } from './config.schema';
+export type { AiConfig } from './config.schema';
+export type { LlmProvider, LlmRequest, LlmResponse, ModelTier, StreamChunk } from './types';

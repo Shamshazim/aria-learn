@@ -5,25 +5,13 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AiConfigError, loadAiConfig } from '@/ai/provider';
+import {
+  KEYLESS_OPENAI_ENDPOINT,
+  VALID_AI_CONFIG,
+} from '@/ai/provider/__fixtures__/ai-config.fixtures';
 
 const tempDirectories: string[] = [];
-const VALID_AI_CONFIG = `
-app:
-  ai:
-    routing:
-      TEACH: { endpoint: primary }
-      FAST: { endpoint: primary }
-    endpoints:
-      primary:
-        api: anthropic
-        base-url: https://api.anthropic.com
-        api-key: \${ANTHROPIC_API_KEY}
-        model: claude-sonnet
-        max-tokens: 2048
-        timeout-seconds: 60
-        cost-per-mtok-in: 3
-        cost-per-mtok-out: 15
-`;
+const TEST_ENV = { ANTHROPIC_API_KEY: 'test-key' };
 
 function writeConfig(contents: string): string {
   const directory = mkdtempSync(join(tmpdir(), 'aria-ai-config-'));
@@ -44,13 +32,14 @@ describe('loadAiConfig loading', () => {
     const directory = mkdtempSync(join(tmpdir(), 'aria-ai-config-'));
     tempDirectories.push(directory);
 
-    expect(() => loadAiConfig({ filePath: join(directory, 'missing.yaml'), env: {} })).toThrow(
-      AiConfigError,
-    );
+    const act = (): unknown => loadAiConfig({}, { filePath: join(directory, 'missing.yaml') });
+
+    expect(act).toThrow(AiConfigError);
+    expect(act).toThrow(/missing\.yaml/);
   });
 
   it('loads the checked-in Anthropic, OpenAI, and Groq-compatible endpoints', () => {
-    const config = loadAiConfig({ env: { ANTHROPIC_API_KEY: 'test-key' } });
+    const config = loadAiConfig(TEST_ENV);
 
     expect(config.app.ai.endpoints['anthropic-sonnet']?.api).toBe('anthropic');
     expect(config.app.ai.endpoints['openai-gpt']?.api).toBe('openai');
@@ -62,33 +51,23 @@ describe('loadAiConfig loading', () => {
   it('loads valid YAML and resolves routed endpoint keys from the environment', () => {
     const filePath = writeConfig(VALID_AI_CONFIG);
 
-    const config = loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } });
+    const config = loadAiConfig(TEST_ENV, { filePath });
 
     expect(config.app.ai.endpoints.primary?.['api-key']).toBe('test-key');
   });
 
   it('rejects a missing routed key and names the endpoint and environment variable', () => {
     const filePath = writeConfig(VALID_AI_CONFIG);
-    const act = (): unknown => loadAiConfig({ filePath, env: {} });
+    const act = (): unknown => loadAiConfig({}, { filePath });
 
     expect(act).toThrow(AiConfigError);
     expect(act).toThrow(/primary.*ANTHROPIC_API_KEY/);
   });
 
   it('does not require the key for an unreferenced endpoint', () => {
-    const filePath = writeConfig(`${VALID_AI_CONFIG}
-      dormant:
-        api: openai
-        base-url: https://api.openai.com/v1
-        api-key: \${OPENAI_API_KEY}
-        model: gpt-5
-        max-tokens: 2048
-        timeout-seconds: 60
-        cost-per-mtok-in: 1.25
-        cost-per-mtok-out: 10
-`);
+    const filePath = writeConfig(`${VALID_AI_CONFIG}${KEYLESS_OPENAI_ENDPOINT}`);
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).not.toThrow();
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).not.toThrow();
   });
 });
 
@@ -110,9 +89,27 @@ describe('loadAiConfig routed endpoints', () => {
         cost-per-mtok-out: 10
 `);
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).toThrow(
-      /fallback.*OPENAI_API_KEY/,
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(/fallback.*OPENAI_API_KEY/);
+  });
+
+  it('rejects a routed endpoint that has no api-key, naming the endpoint', () => {
+    const filePath = writeConfig(
+      `${VALID_AI_CONFIG.replace('FAST: { endpoint: primary }', 'FAST: { endpoint: dormant }')}${KEYLESS_OPENAI_ENDPOINT}`,
     );
+
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(
+      /"dormant" is routed but has no api-key/,
+    );
+  });
+
+  it('never puts the resolved key into an error message', () => {
+    const filePath = writeConfig(
+      VALID_AI_CONFIG.replace('cost-per-mtok-out: 15', 'cost-per-mtok-out: -1'),
+    );
+    const env = { ANTHROPIC_API_KEY: 'sk-super-secret' };
+
+    expect(() => loadAiConfig(env, { filePath })).toThrow(AiConfigError);
+    expect(() => loadAiConfig(env, { filePath })).not.toThrow(/sk-super-secret/);
   });
 
   it('rejects a route that names an endpoint which is not configured', () => {
@@ -120,19 +117,17 @@ describe('loadAiConfig routed endpoints', () => {
       VALID_AI_CONFIG.replaceAll('endpoint: primary', 'endpoint: missing'),
     );
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).toThrow(
-      /routing\.TEACH\.endpoint.*missing/,
-    );
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(/routing\.TEACH\.endpoint.*missing/);
   });
 });
 
 describe('loadAiConfig schema validation', () => {
   it('rejects an unknown endpoint API with a readable path', () => {
     const filePath = writeConfig(VALID_AI_CONFIG.replace('api: anthropic', 'api: unknown'));
-    const act = (): unknown => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } });
+    const act = (): unknown => loadAiConfig(TEST_ENV, { filePath });
 
     expect(act).toThrow(AiConfigError);
-    expect(act).toThrow(/app\.ai\.endpoints\.primary\.api/);
+    expect(act).toThrow(/app\.ai\.endpoints\.primary\.api: Invalid option/);
   });
 
   it('rejects a negative input-token cost', () => {
@@ -140,7 +135,7 @@ describe('loadAiConfig schema validation', () => {
       VALID_AI_CONFIG.replace('cost-per-mtok-in: 3', 'cost-per-mtok-in: -1'),
     );
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).toThrow(
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(
       /app\.ai\.endpoints\.primary\.cost-per-mtok-in/,
     );
   });
@@ -148,7 +143,7 @@ describe('loadAiConfig schema validation', () => {
   it('rejects an endpoint with no model', () => {
     const filePath = writeConfig(VALID_AI_CONFIG.replace('        model: claude-sonnet\n', ''));
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).toThrow(
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(
       /app\.ai\.endpoints\.primary\.model/,
     );
   });
@@ -156,7 +151,7 @@ describe('loadAiConfig schema validation', () => {
   it('rejects a malformed endpoint URL', () => {
     const filePath = writeConfig(VALID_AI_CONFIG.replace('https://api.anthropic.com', 'not-a-url'));
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).toThrow(
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(
       /app\.ai\.endpoints\.primary\.base-url/,
     );
   });
@@ -164,8 +159,8 @@ describe('loadAiConfig schema validation', () => {
   it('rejects a literal API key in the YAML file', () => {
     const filePath = writeConfig(VALID_AI_CONFIG.replace('${ANTHROPIC_API_KEY}', 'secret-in-file'));
 
-    expect(() => loadAiConfig({ filePath, env: { ANTHROPIC_API_KEY: 'test-key' } })).toThrow(
-      /app\.ai\.endpoints\.primary\.api-key/,
+    expect(() => loadAiConfig(TEST_ENV, { filePath })).toThrow(
+      /app\.ai\.endpoints\.primary\.api-key: must be an environment reference/,
     );
   });
 });
