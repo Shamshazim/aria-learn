@@ -14,18 +14,32 @@ Ids are reserved here so the numbering stays stable.
 
 Non-negotiable for TK–2: a five-year-old cannot read the interface of a reading tutor.
 
+The design is in [`realtime-agent-harness.md`](../realtime-agent-harness.md); its "Phase 2
+ticket delta" section is the authority for what each ticket below contains. Rows amended
+2026-08-23 after that document's design review.
+
 | Id | Track | Scope |
 |---|---|---|
 | P2-01 | Decision | Speech and real-time provider selection, judged on measured latency, interruption, accuracy, safety and cost (`cloud-model-layer.md` §14). |
-| P2-02 | Backend | The product-owned live protocol: WebRTC preferred for audio, WebSocket for events or fallback. Vendor APIs stay behind the speech and model ports. |
-| P2-03 | Backend | `POST /session/{id}/realtime` negotiation and short-lived credentials. |
-| P2-04 | Backend | Streaming TTS through P0-19's segment gate. Reusable audio cached by content hash; personalised dialogue streamed. |
-| P2-05 | Backend | Streaming ASR: partial transcripts, voice activity, end-of-turn detection (bar: ≥98% on the voice test set). |
-| P2-06 | Frontend | Barge-in: interruption stops Aria's speech in <250ms p95. |
+| P2-02 | Backend | SFU (LiveKit) + `apps/voice-worker` + `packages/tutor` extraction. Week 1 is a five-point spike (gated segments as the LLM stage; browser-verified cancel; preemptive generation cannot bypass the gate; ordered de-duplicated reconnect; Node turn detector on the child set) plus the end-to-end latency measurement that sets the SLOs. Interfaces lock after it passes. Vendor APIs stay behind the ports. |
+| P2-03 | Backend | `POST /session/{id}/realtime` negotiation and short-lived credentials, gated on verified parental **voice** consent; region selection; processor list / deletion map; vendor retention terms recorded per endpoint. |
+| P2-04 | Backend | Streaming TTS through P0-19's segment gate and `spokenForm()`. Reusable audio cached by content hash; personalised dialogue streamed; pre-synthesis of next move / hint / welcome with a speculative-waste meter; reviewed audio set for the initial reading and arithmetic scope. |
+| P2-05 | Backend | Streaming ASR: partial transcripts, voice activity, `TurnDetector` port (LiveKit's detector first; Smart Turn only if measured necessary), per-band endpointing table, false-interrupt resume, server-confirmed interrupt cancelling by `generationId`. End-of-turn accuracy is reported with confidence intervals; ≥98% is a target, not an exit bar, until the set can support it. |
+| P2-06 | Frontend | Barge-in: client *ducks* on local VAD, server confirms and cancels; silence at the speaker in <250ms p95; visible stop button; echo cancellation and noise suppression on. |
 | P2-07 | Frontend | Microphone permission, device selection, parent-friendly sound check, captions, mute, device recovery, text/tap fallback. |
 | P2-08 | Frontend | Autoplay reality: visible welcome immediately, speech when the browser permits, unlocked by the child's natural class selection — **never** "press Aria's face". |
-| P2-09 | Backend | Oral-reading timing events captured, ahead of the full reading curriculum. |
-| P2-10 | QA | Phase 2 exit: a five-year-old who cannot read completes a full session alone. |
+| P2-09 | Backend | Oral-reading timing events captured, ahead of the full reading curriculum. WCPM is an estimate with a confidence band; miscues are unconfirmed observations; `ReadingStt` is never prompted with the passage; uncertain-speaker audio never becomes durable evidence. |
+| P2-10 | QA | Phase 2 exit: a five-year-old who cannot read completes a full session alone, **and** no false praise or reteach on the human-labelled core set, **and** no low-confidence reading result updates durable skill state, **and** human review finds no materially incorrect spoken teaching in the initial curriculum scope. |
+| P2-11 | Backend | The bridge system, v1: a hand-reviewed library of a few dozen clips per band and voice in `speech_asset`; `IntentClassifier` port that picks a bucket and nothing else; skip rules; seam quality. Personalised bridges, preloading and bulk generation are P2-11b, only on evidence of audible repetition. |
+| P2-12 | QA | Voice golden set (`dev-docs/golden/voice/`), `voice:golden` bot-to-bot runner, a small real-browser suite, per-turn latency spans. Blocks P2-10. |
+| P2-13 | Backend | Reconnect and worker-restart resume via the move outbox (`serverSeq` / `acknowledgedSeq` / `connectionEpoch`; at-least-once + de-dup by move id). No lost or duplicated move across `MEDIA_LOST` or a worker crash. |
+| P2-14 | Backend + Frontend | Child-audio privacy: transient audio, opt-in purpose-bound retention job, no-voiceprint assertion, parent transcript flags, consent-withdrawal deletion across the processor map, counsel sign-off before launch. |
+
+Explicitly deferred out of Phase 2 (do not build by accident): thousands of bridge
+recordings, personalised speculative bridges, speculative TTS, custom child-ASR training, a
+custom turn-detection model, speaker recognition or voiceprints, prosody scoring,
+multi-region workers, event sourcing or a streaming platform, custom WebRTC infrastructure,
+automated diagnosis from reading miscues.
 
 ## Phase 3 — Durable relationship memory and engagement
 

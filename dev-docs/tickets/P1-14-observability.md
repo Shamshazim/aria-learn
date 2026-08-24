@@ -48,6 +48,13 @@ Bars to report:
 | Durable fact has supporting evidence | 100% | `learner_fact_evidence` |
 | Parent corrections reflected next session | 100% | supersede + next-turn retrieval |
 
+**Amendment 2026-08-23** (from the `realtime-agent-harness.md` design review): every turn
+also records the per-stage spans `eou_ms`, `llm_ttft_ms`, `gate_ms`, `tts_ttfa_ms`,
+`transport_ms`, `e2e_ms`, `interrupt_stop_ms` (those that apply on the text path now; the
+rest arrive with Phase 2). They are **tracked targets, not blocking bars**, with the target
+values from the harness doc's latency table; the blocking SLO values are filled in from the
+Phase 2 week-1 measurement (P2-02) and only then join the table above.
+
 - Every log line and metric carries the session id and request id; **never** a name, an
   email, prompt text or response text.
 - Deriving from `session_event` keeps one source of truth — if the transcript and the metric
@@ -60,6 +67,8 @@ Bars to report:
 - [ ] No metric label or log field contains identifying data.
 - [ ] Metrics are injected; no module-level mutable singleton.
 - [ ] The report distinguishes "bar not met" from "not enough data".
+- [ ] Per-turn spans are recorded on the text path and printed as p50/p95 with the label
+      "target" until an SLO is set.
 
 ## Verification
 
@@ -71,3 +80,4 @@ npm run report:phase1 -w @aria/api
 ## References
 
 - `master-plan.md` §11
+- `realtime-agent-harness.md` — "The latency budget"
