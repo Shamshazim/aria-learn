@@ -1,15 +1,11 @@
 import { AriaOwl } from '@/features/session/components/AriaOwl';
-import type { MockSessionView } from '@/features/session/hooks/useMockSession';
+import type { TutorSession } from '@/features/session/hooks/useTutorSession';
 import { LayoutContent } from '@/features/session/layouts/LayoutContent';
-import type { MockSession } from '@/features/session/model/mock-session';
 
-export function MiddleLayout(props: {
-  session: MockSession;
-  view: MockSessionView;
-}): React.JSX.Element {
+export function MiddleLayout(props: { session: TutorSession }): React.JSX.Element {
   return (
     <div className="session-layout session-layout--middle">
-      <LayoutContent {...props} allowWriting={false} />
+      <LayoutContent session={props.session} allowWriting={false} />
       <aside className="aria-companion">
         <AriaOwl />
         <h2>Ask Aria</h2>

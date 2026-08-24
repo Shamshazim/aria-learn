@@ -8,13 +8,18 @@ export const BAND_ROUTES = {
 
 export async function answerWrong(page: Page): Promise<void> {
   await page.getByRole('button', { name: '6' }).click();
-  await page.getByText(/Hint:/u).waitFor();
+  await page.getByText('Try four plus three again.').waitFor();
 }
 
 export async function finishSession(page: Page): Promise<void> {
-  for (const answer of ['7', 'Triangle', '20']) {
-    await page.getByRole('button', { name: answer, exact: true }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
+  const input = page.getByRole('textbox', { name: 'Your answer' });
+  if (await input.isVisible()) {
+    await input.fill('7');
+    await page.getByRole('button', { name: 'Answer' }).click();
+  } else {
+    await page.getByRole('button', { name: '7', exact: true }).click();
   }
+  await page.getByText('Yes. You counted on from four.').waitFor();
+  await page.getByRole('button', { name: 'End session' }).click();
   await page.getByRole('heading', { name: 'You did it.' }).waitFor();
 }

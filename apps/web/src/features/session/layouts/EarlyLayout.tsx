@@ -1,16 +1,12 @@
 import { AriaOwl } from '@/features/session/components/AriaOwl';
-import type { MockSessionView } from '@/features/session/hooks/useMockSession';
+import type { TutorSession } from '@/features/session/hooks/useTutorSession';
 import { LayoutContent } from '@/features/session/layouts/LayoutContent';
-import type { MockSession } from '@/features/session/model/mock-session';
 
-export function EarlyLayout(props: {
-  session: MockSession;
-  view: MockSessionView;
-}): React.JSX.Element {
+export function EarlyLayout(props: { session: TutorSession }): React.JSX.Element {
   return (
     <div className="session-layout session-layout--early">
       <AriaOwl large />
-      <LayoutContent {...props} allowWriting={false} />
+      <LayoutContent session={props.session} allowWriting={false} />
       <div className="star-jar" aria-label="Three stars earned" role="img">
         ⭐ ⭐ ⭐
       </div>
