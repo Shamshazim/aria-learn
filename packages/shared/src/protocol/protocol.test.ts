@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { PROTOCOL_VERSION } from '../version';
 
-import { EVENT_FIXTURES, MOVE_FIXTURES } from './__fixtures__/protocol.fixtures';
+import {
+  EVENT_FIXTURES,
+  MOVE_FIXTURES,
+  PREVIOUS_VERSION_EVENT_FIXTURE,
+} from './__fixtures__/protocol.fixtures';
 import { EVENT_KINDS, tutorInputEventSchema } from './events';
 import { MOVE_KINDS, tutorMoveSchema } from './moves';
 import { turnResponseSchema } from './session';
@@ -16,9 +20,9 @@ const eventEntries = EVENT_KINDS.map((kind) => [kind, EVENT_FIXTURES[kind]] as c
 const moveEntries = MOVE_KINDS.map((kind) => [kind, MOVE_FIXTURES[kind]] as const);
 
 describe('the event union', () => {
-  it('declares all twelve kinds from master-plan §4.1', () => {
-    expect(EVENT_KINDS).toHaveLength(12);
-    expect(new Set(EVENT_KINDS).size).toBe(12);
+  it('declares the sixteen text and realtime event kinds', () => {
+    expect(EVENT_KINDS).toHaveLength(16);
+    expect(new Set(EVENT_KINDS).size).toBe(16);
   });
 
   it.each(eventEntries)('parses a valid %s', (kind, fixture) => {
@@ -64,6 +68,84 @@ describe('round trip', () => {
     const once = tutorMoveSchema.parse(fixture);
     const twice = tutorMoveSchema.parse(JSON.parse(JSON.stringify(once)));
     expect(twice).toEqual(once);
+  });
+});
+
+describe('realtime envelope fields', () => {
+  it('round-trips client ordering state on events', () => {
+    const parsed = tutorInputEventSchema.parse(EVENT_FIXTURES.SPEECH_STARTED);
+    const roundTripped = tutorInputEventSchema.parse(JSON.parse(JSON.stringify(parsed)));
+
+    expect(roundTripped).toMatchObject({
+      turnId: 'turn_01',
+      connectionEpoch: 2,
+      acknowledgedSeq: 17,
+    });
+  });
+
+  it('round-trips server ordering and causation state on moves', () => {
+    const parsed = tutorMoveSchema.parse(MOVE_FIXTURES.SAY);
+    const roundTripped = tutorMoveSchema.parse(JSON.parse(JSON.stringify(parsed)));
+
+    expect(roundTripped).toMatchObject({
+      turnId: 'turn_01',
+      connectionEpoch: 2,
+      serverSeq: 18,
+      causationId: 'evt_final',
+    });
+  });
+});
+
+describe('protocol compatibility', () => {
+  it('bumps the current protocol minor version', () => {
+    expect(PROTOCOL_VERSION).toBe('1.1.0');
+  });
+
+  it('still parses a P0-02 fixture without the optional realtime fields', () => {
+    const parsed = tutorInputEventSchema.parse(PREVIOUS_VERSION_EVENT_FIXTURE);
+
+    expect(parsed.protocolVersion).toBe('1.0.0');
+    expect(parsed).not.toHaveProperty('turnId');
+  });
+});
+
+describe('realtime move controls', () => {
+  it('round-trips resumable audio identity and the client duck reflex', () => {
+    const parsed = tutorMoveSchema.parse(MOVE_FIXTURES.SAY);
+    const roundTripped = tutorMoveSchema.parse(JSON.parse(JSON.stringify(parsed)));
+
+    expect(roundTripped).toMatchObject({
+      resumeOf: 'mov_interrupted',
+      generationId: 'gen_01',
+      reflexes: { duckOnSpeech: true },
+      speech: { assetId: 'speech_ready_01' },
+    });
+  });
+
+  it('round-trips bounded vocabulary hints on ASK', () => {
+    const parsed = tutorMoveSchema.parse(MOVE_FIXTURES.ASK);
+
+    expect(parsed).toMatchObject({ vocabularyHint: ['quarters', 'whole'] });
+  });
+
+  it('rejects vocabulary hints on LISTEN so a passage cannot bias reading ASR', () => {
+    const result = tutorMoveSchema.safeParse({
+      ...(MOVE_FIXTURES.LISTEN as Record<string, unknown>),
+      vocabularyHint: ['The', 'cat', 'sat', 'on', 'the', 'mat'],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['vocabularyHint']);
+  });
+
+  it('rejects a client reflex that can cancel speech', () => {
+    const result = tutorMoveSchema.safeParse({
+      ...(MOVE_FIXTURES.SAY as Record<string, unknown>),
+      reflexes: { duckOnSpeech: true, stopOnSpeech: true },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['reflexes']);
   });
 });
 

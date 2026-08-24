@@ -1,7 +1,19 @@
 import { z } from 'zod';
 
-import { envelopeShape, expectsSchema, speechSchema } from '../common.schema';
+import {
+  envelopeShape,
+  expectsSchema,
+  messageIdSchema,
+  sequenceSchema,
+  speechSchema,
+} from '../common.schema';
 import { displaySchema } from '../content.schema';
+
+const reflexesSchema = z
+  .object({
+    duckOnSpeech: z.boolean(),
+  })
+  .strict();
 
 /**
  * The shape every move shares, in one place so the four kind groups cannot drift apart.
@@ -15,6 +27,11 @@ export const moveShape = {
   speech: speechSchema,
   display: displaySchema,
   expects: expectsSchema,
+  serverSeq: sequenceSchema.optional(),
+  causationId: messageIdSchema.optional(),
+  resumeOf: messageIdSchema.optional(),
+  generationId: messageIdSchema.optional(),
+  reflexes: reflexesSchema.optional(),
 } as const;
 
 export function move<K extends string, T extends z.ZodRawShape>(

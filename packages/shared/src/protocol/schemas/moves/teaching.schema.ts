@@ -11,6 +11,7 @@ import { MAX_REF, move } from './move-base';
  */
 
 const skillRef = z.string().min(1).max(MAX_REF).optional();
+const vocabularyHintSchema = z.array(z.string().min(1).max(64)).max(32).optional();
 
 /** "A fraction is just a number of equal pieces. Watch." */
 export const sayMoveSchema = move('SAY', { skillId: skillRef });
@@ -29,12 +30,14 @@ export const askMoveSchema = move('ASK', {
   /** Identifies the item this question came from, so the answer can be graded against it. */
   itemId: z.string().min(1).max(MAX_REF).optional(),
   attempt: z.number().int().min(1).max(10).default(1),
+  vocabularyHint: vocabularyHintSchema,
 });
 
 /** "Read this sentence out loud to me." Phase 4 measures the reading; the move already exists. */
 export const listenMoveSchema = move('LISTEN', {
   skillId: skillRef,
   purpose: z.enum(['read_aloud', 'explain', 'answer']).default('answer'),
+  vocabularyHint: z.never().optional(),
 });
 
 export const TEACHING_MOVE_SCHEMAS = [

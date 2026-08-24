@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { bandSchema, gradeSchema } from '../../band/band';
 
-import { envelopeShape } from './common.schema';
+import { envelopeShape, sequenceSchema } from './common.schema';
 
 /**
- * The twelve events Aria receives (`master-plan.md` §4.1).
+ * The sixteen events Aria receives (`master-plan.md` §4.1 plus P0-27 realtime signals).
  *
  * One schema per kind, then a discriminated union over `kind`. Discriminated rather than a
  * plain union so an unknown kind fails with a readable error naming the field, and so
@@ -16,7 +16,12 @@ const MAX_TEXT = 2000;
 
 /** Every event schema starts from the same envelope; only the payload differs. */
 function event<K extends string, T extends z.ZodRawShape>(kind: K, payload: T) {
-  return z.object({ ...envelopeShape, kind: z.literal(kind), ...payload });
+  return z.object({
+    ...envelopeShape,
+    acknowledgedSeq: sequenceSchema.optional(),
+    kind: z.literal(kind),
+    ...payload,
+  });
 }
 
 /** The student home became active. No session yet — this is what creates one. */
@@ -83,6 +88,16 @@ export const interruptEventSchema = event('INTERRUPT', {
   interruptedMoveId: z.string().min(1).max(128).optional(),
 });
 
+/** A child sound during Aria's speech that did not become an interruption. */
+export const backchannelEventSchema = event('BACKCHANNEL', {});
+
+/** Client-side VAD onset. Advisory until the server confirms an interruption. */
+export const speechStartedEventSchema = event('SPEECH_STARTED', {});
+
+/** Media connectivity changed while the logical session remained alive. */
+export const mediaLostEventSchema = event('MEDIA_LOST', {});
+export const mediaRestoredEventSchema = event('MEDIA_RESTORED', {});
+
 export const pauseEventSchema = event('PAUSE', {});
 export const resumeEventSchema = event('RESUME', {});
 
@@ -101,6 +116,10 @@ export const tutorInputEventSchema = z.discriminatedUnion('kind', [
   speechFinalEventSchema,
   silenceEventSchema,
   interruptEventSchema,
+  backchannelEventSchema,
+  speechStartedEventSchema,
+  mediaLostEventSchema,
+  mediaRestoredEventSchema,
   pauseEventSchema,
   resumeEventSchema,
   leaveEventSchema,
@@ -118,6 +137,10 @@ export const EVENT_KINDS = [
   'SPEECH_FINAL',
   'SILENCE',
   'INTERRUPT',
+  'BACKCHANNEL',
+  'SPEECH_STARTED',
+  'MEDIA_LOST',
+  'MEDIA_RESTORED',
   'PAUSE',
   'RESUME',
   'LEAVE',

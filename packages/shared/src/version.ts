@@ -7,6 +7,11 @@
  *
  * Bump the minor when a field is added and the major when an existing one changes meaning.
  */
-export const PROTOCOL_VERSION = '1.0.0';
+export const PROTOCOL_VERSION = '1.1.0';
 
-export type ProtocolVersion = typeof PROTOCOL_VERSION;
+const PREVIOUS_PROTOCOL_VERSION = '1.0.0';
+
+/** P0-27 keeps one prior wire version readable while its fields remain optional. */
+export const SUPPORTED_PROTOCOL_VERSIONS = [PREVIOUS_PROTOCOL_VERSION, PROTOCOL_VERSION] as const;
+
+export type ProtocolVersion = (typeof SUPPORTED_PROTOCOL_VERSIONS)[number];

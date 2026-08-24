@@ -7,7 +7,7 @@ import type { MoveKind } from '../moves';
  * One valid raw instance of every event and every move.
  *
  * Typed as `Record<EventKind, unknown>` and `Record<MoveKind, unknown>` on purpose: adding a
- * kind to either union without adding a fixture here is a compile error, so "all twelve
+ * kind to either union without adding a fixture here is a compile error, so "all sixteen
  * events and all fourteen moves exist" is checked by the compiler rather than by counting.
  *
  * The values are `unknown` because a fixture is *input* to a schema. Typing them as the
@@ -18,50 +18,92 @@ const base = {
   at: '2026-08-22T10:00:00Z',
   protocolVersion: PROTOCOL_VERSION,
   sessionId: 'ses_01',
+  turnId: 'turn_01',
+  connectionEpoch: 2,
 } as const;
 
-const speech = { text: 'Ready when you are.' } as const;
+const eventBase = { ...base, acknowledgedSeq: 17 } as const;
 
-const moveBase = { ...base, speech, display: [], expects: 'none' } as const;
+const speech = { text: 'Ready when you are.', assetId: 'speech_ready_01' } as const;
+
+const moveBase = {
+  ...base,
+  speech,
+  display: [],
+  expects: 'none',
+  serverSeq: 18,
+  causationId: 'evt_final',
+  generationId: 'gen_01',
+} as const;
+
+/** P0-02 payload: proves the one-version compatibility window stays open after P0-27. */
+export const PREVIOUS_VERSION_EVENT_FIXTURE = {
+  id: 'evt_previous_pause',
+  at: '2026-08-22T10:00:00Z',
+  sessionId: 'ses_01',
+  protocolVersion: '1.0.0',
+  kind: 'PAUSE',
+} as const;
 
 export const EVENT_FIXTURES: Record<EventKind, unknown> = {
-  ARRIVED: { ...base, sessionId: undefined, id: 'evt_arrived', kind: 'ARRIVED', grade: '3' },
+  ARRIVED: {
+    ...eventBase,
+    sessionId: undefined,
+    id: 'evt_arrived',
+    kind: 'ARRIVED',
+    grade: '3',
+  },
   SUBJECT_CHOSEN: {
-    ...base,
+    ...eventBase,
     id: 'evt_subject',
     kind: 'SUBJECT_CHOSEN',
     subjectId: 'math',
     grade: '3',
   },
   ANSWER: {
-    ...base,
+    ...eventBase,
     id: 'evt_answer',
     kind: 'ANSWER',
     respondsTo: 'mov_ask',
     choiceId: 'opt_b',
     elapsedMs: 4200,
   },
-  QUESTION: { ...base, id: 'evt_question', kind: 'QUESTION', text: 'Why is it four?' },
-  CONFUSED: { ...base, id: 'evt_confused', kind: 'CONFUSED', aboutMoveId: 'mov_say' },
+  QUESTION: { ...eventBase, id: 'evt_question', kind: 'QUESTION', text: 'Why is it four?' },
+  CONFUSED: { ...eventBase, id: 'evt_confused', kind: 'CONFUSED', aboutMoveId: 'mov_say' },
   SPEECH_PARTIAL: {
-    ...base,
+    ...eventBase,
     id: 'evt_partial',
     kind: 'SPEECH_PARTIAL',
     text: 'I think it is',
     confidence: 0.6,
   },
   SPEECH_FINAL: {
-    ...base,
+    ...eventBase,
     id: 'evt_final',
     kind: 'SPEECH_FINAL',
     text: 'I think it is four',
     confidence: 0.95,
   },
-  SILENCE: { ...base, id: 'evt_silence', kind: 'SILENCE', waitedMs: 8000, afterMoveId: 'mov_ask' },
-  INTERRUPT: { ...base, id: 'evt_interrupt', kind: 'INTERRUPT', interruptedMoveId: 'mov_say' },
-  PAUSE: { ...base, id: 'evt_pause', kind: 'PAUSE' },
-  RESUME: { ...base, id: 'evt_resume', kind: 'RESUME' },
-  LEAVE: { ...base, id: 'evt_leave', kind: 'LEAVE', reason: 'done' },
+  SILENCE: {
+    ...eventBase,
+    id: 'evt_silence',
+    kind: 'SILENCE',
+    waitedMs: 8000,
+    afterMoveId: 'mov_ask',
+  },
+  INTERRUPT: {
+    ...eventBase,
+    id: 'evt_interrupt',
+    kind: 'INTERRUPT',
+    interruptedMoveId: 'mov_say',
+  },
+  BACKCHANNEL: { ...eventBase, id: 'evt_backchannel', kind: 'BACKCHANNEL' },
+  SPEECH_STARTED: { ...eventBase, id: 'evt_speech_started', kind: 'SPEECH_STARTED' },
+  MEDIA_LOST: { ...eventBase, id: 'evt_media_lost', kind: 'MEDIA_LOST' },
+  MEDIA_RESTORED: { ...eventBase, id: 'evt_media_restored', kind: 'MEDIA_RESTORED' },
+  PAUSE: { ...eventBase, id: 'evt_pause', kind: 'PAUSE' },
+  RESUME: { ...eventBase, id: 'evt_resume', kind: 'RESUME' },
+  LEAVE: { ...eventBase, id: 'evt_leave', kind: 'LEAVE', reason: 'done' },
 };
 
 export const MOVE_FIXTURES: Record<MoveKind, unknown> = {
@@ -87,6 +129,8 @@ export const MOVE_FIXTURES: Record<MoveKind, unknown> = {
     id: 'mov_say',
     kind: 'SAY',
     skillId: 'fractions.equal_parts',
+    resumeOf: 'mov_interrupted',
+    reflexes: { duckOnSpeech: true },
     display: [{ type: 'text', body: 'A fraction is a number of equal pieces.' }],
   },
   SHOW: {
@@ -100,6 +144,7 @@ export const MOVE_FIXTURES: Record<MoveKind, unknown> = {
     id: 'mov_ask',
     kind: 'ASK',
     itemId: 'item_01',
+    vocabularyHint: ['quarters', 'whole'],
     expects: 'choice',
     display: [
       {
