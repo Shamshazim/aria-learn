@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createFallbackService, createReliableContentService } from '@/content';
 import type { ContentCacheService } from '@/content';
 import { createInventoryService } from '@/curriculum';
+import { ERROR_CODES } from '@/errors';
 import { createQualityGate } from '@/quality';
 
 const LOOKUP = {
@@ -61,5 +62,26 @@ describe('reliable content path', () => {
 
     await expect(service.resolve(LOOKUP)).resolves.toEqual({ source: 'cache', body: hit.body });
     expect(generate).not.toHaveBeenCalled();
+  });
+
+  it('raises a typed exhaustion error only when cache, generation and fallback are empty', async () => {
+    const gate = createQualityGate(() => ({ safe: true, categories: [] }));
+    const service = createReliableContentService({
+      cache: cache(null),
+      fallback: {
+        get: () => {
+          throw new Error('empty fallback bank');
+        },
+      },
+      gate,
+      generate: () => Promise.reject(new Error('provider down')),
+      recordFailure: vi.fn(() => Promise.resolve()),
+    });
+
+    await expect(service.resolve(LOOKUP)).rejects.toMatchObject({
+      code: ERROR_CODES.SERVICE_UNAVAILABLE,
+      safeMessage: 'Temporarily unavailable.',
+      status: 503,
+    });
   });
 });

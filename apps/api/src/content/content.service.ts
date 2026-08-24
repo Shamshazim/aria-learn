@@ -1,6 +1,7 @@
 import type { ContentCacheService } from '@/content/cache/content-cache.service';
 import type { FallbackService } from '@/content/fallback/fallback.service';
 import type { ContentDraft, ContentLookup, JsonValue } from '@/content/types';
+import { ServiceUnavailableError } from '@/errors';
 import type { GateInput, GateVerdict, QualityGate } from '@/quality';
 
 export type GeneratedContent = Readonly<{ gateInput: GateInput; draft: ContentDraft }>;
@@ -44,6 +45,10 @@ async function resolve(
     // Provider exhaustion and cap trips both move directly to the already verified bank.
   }
 
-  const fallback = dependencies.fallback.get(input.skillCode);
-  return { source: 'fallback', body: fallback.definition.body };
+  try {
+    const fallback = dependencies.fallback.get(input.skillCode);
+    return { source: 'fallback', body: fallback.definition.body };
+  } catch (error) {
+    throw new ServiceUnavailableError('No verified content source remained available', error);
+  }
 }

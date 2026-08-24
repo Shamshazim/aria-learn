@@ -10,7 +10,9 @@ import {
   createScriptedSource,
   useTutorSession,
 } from '@/features/session';
+import { ConnectionNotice } from '@/features/session/components/ConnectionNotice';
 import { SessionTopbar } from '@/features/session/components/SessionTopbar';
+import { useConnectionState } from '@/features/session/hooks/useConnectionState';
 import '@/features/session/styles/session.css';
 
 export default function SessionPage(): React.JSX.Element {
@@ -32,9 +34,11 @@ function SessionForGrade(props: {
     grade: props.grade,
     subjectId: props.subject,
   });
+  const connection = useConnectionState();
   return (
     <div className="session-app" data-band={band}>
       <SessionTopbar subject={props.subject} />
+      <ConnectionNotice band={band} status={connection.status} />
       <main>
         <h1 className="visually-hidden">{props.subject} learning session</h1>
         {band === 'early' ? (
