@@ -29,13 +29,16 @@ function SessionForGrade(props: {
   return (
     <div className="session-app" data-band={band}>
       <SessionTopbar subject={props.subject} />
-      {band === 'early' ? (
-        <EarlyLayout session={session} view={view} />
-      ) : band === 'middle' ? (
-        <MiddleLayout session={session} view={view} />
-      ) : (
-        <SeniorLayout session={session} view={view} />
-      )}
+      <main>
+        <h1 className="visually-hidden">{props.subject} learning session</h1>
+        {band === 'early' ? (
+          <EarlyLayout session={session} view={view} />
+        ) : band === 'middle' ? (
+          <MiddleLayout session={session} view={view} />
+        ) : (
+          <SeniorLayout session={session} view={view} />
+        )}
+      </main>
     </div>
   );
 }

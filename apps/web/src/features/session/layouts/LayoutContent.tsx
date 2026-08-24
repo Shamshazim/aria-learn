@@ -14,7 +14,7 @@ export function LayoutContent(props: {
   if (step === undefined) return <DoneCard />;
   const correct = props.view.selected === step.answer;
   return (
-    <main className="session-main">
+    <div className="session-main">
       <section className="session-card">
         <p className="session-speech">{step.prompt}</p>
         <ChoiceButtons
@@ -38,6 +38,6 @@ export function LayoutContent(props: {
       >
         Next
       </button>
-    </main>
+    </div>
   );
 }

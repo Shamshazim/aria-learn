@@ -11,7 +11,7 @@ export function EarlyLayout(props: {
     <div className="session-layout session-layout--early">
       <AriaOwl large />
       <LayoutContent {...props} allowWriting={false} />
-      <div className="star-jar" aria-label="Three stars earned">
+      <div className="star-jar" aria-label="Three stars earned" role="img">
         ⭐ ⭐ ⭐
       </div>
     </div>

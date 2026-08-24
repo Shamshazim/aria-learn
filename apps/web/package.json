@@ -7,6 +7,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "e2e": "playwright test",
+    "e2e:baseline": "playwright test e2e/baseline",
     "test": "cd ../.. && vitest run --project web",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
@@ -19,6 +21,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.6",
