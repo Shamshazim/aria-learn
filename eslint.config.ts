@@ -256,6 +256,14 @@ export default defineConfig([
     },
   },
 
+  {
+    // `describe` and `it` read as blocks, not as functions, and the 60-line ceiling exists to
+    // stop a function doing several jobs — which a suite is supposed to do. The 300-line file
+    // rule still applies, so a suite that grows past that still has to be split (P0-04).
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: { 'max-lines-per-function': 'off' },
+  },
+
   // Last, so formatting never fights the rules above (§7).
   prettier,
 ]);

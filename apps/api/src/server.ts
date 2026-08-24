@@ -1,46 +1,50 @@
 import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createApp } from '@/app';
-import { ConfigError, loadConfig } from '@/config';
-import type { AppConfig } from '@/config';
+import { readConfigOrExit } from '@/config';
 import { createInventoryService } from '@/curriculum';
+import { closePool, createPool, verifyConnection } from '@/db';
 import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
 
 import type { Server } from 'node:http';
+import type { Pool } from 'pg';
 
 /**
- * Owns the socket and the process lifecycle. `app.ts` owns the application.
+ * Owns the socket, the pool and the process lifecycle. `app.ts` owns the application.
  *
- * Configuration is loaded before anything else so a missing variable stops the process here,
- * with a message naming it — never later, in front of a child.
+ * Configuration is loaded before anything else, and the database is proven reachable before
+ * the port opens, so a broken deployment stops here — never later, in front of a child.
  */
-const VERSION = process.env.npm_package_version ?? '0.0.0';
-
-export function start(): void {
+export async function start(): Promise<void> {
+  readAiConfigOrExit();
   const config = readConfigOrExit();
   // Authored graph defects must stop boot before the API can serve curriculum.
   createInventoryService();
   const logger = createLogger({ level: config.logLevel });
+
+  const pool = createPool(config.database, logger);
+  await verifyConnectionOrExit(pool, logger);
 
   const app = createApp({ config, logger, clock: systemClock, ids: uuidGenerator });
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
   });
 
-  installShutdownHandlers({ server, logger, timeoutMs: config.shutdownTimeoutMs });
+  installShutdownHandlers({
+    server,
+    logger,
+    timeoutMs: config.shutdownTimeoutMs,
+    onDrained: () => closePool(pool, logger),
+  });
 }
 
-function readConfigOrExit(): AppConfig {
+function readAiConfigOrExit(): void {
   try {
-    // Loaded for its boot-time check only until P0-13 wires the model layer into the app.
     loadAiConfig(process.env);
-    return loadConfig(process.env, VERSION);
   } catch (error) {
-    if (error instanceof ConfigError || error instanceof AiConfigError) {
-      // Deliberately not the logger: configuration failed, so the logger's own settings are
-      // exactly what we cannot trust yet.
+    if (error instanceof AiConfigError) {
       process.stderr.write(`${error.message}\n`);
       process.exit(1);
     }
@@ -48,19 +52,39 @@ function readConfigOrExit(): AppConfig {
   }
 }
 
+/** A database the process cannot reach is a failed boot, not a degraded service. */
+async function verifyConnectionOrExit(pool: Pool, logger: Logger): Promise<void> {
+  try {
+    await verifyConnection(pool);
+    logger.info('Database reachable');
+  } catch (error) {
+    logger.fatal({ err: error }, 'Cannot reach the database; refusing to start');
+    await closePool(pool, logger);
+    process.exit(1);
+  }
+}
+
 type ShutdownDeps = {
   server: Server;
   logger: Logger;
   timeoutMs: number;
+  /** Runs once the socket has drained, before the process exits. Must not throw. */
+  onDrained: () => Promise<void>;
 };
 
 /**
- * SIGTERM stops new connections, lets in-flight requests finish, then exits 0.
+ * SIGTERM stops new connections, lets in-flight requests finish, releases the pool, then
+ * exits 0.
  *
  * The timer is the safety net: a request that never completes must not hold a deploy open
  * forever, so a drain that overruns exits non-zero rather than hanging.
  */
-export function installShutdownHandlers({ server, logger, timeoutMs }: ShutdownDeps): void {
+export function installShutdownHandlers({
+  server,
+  logger,
+  timeoutMs,
+  onDrained,
+}: ShutdownDeps): void {
   let shuttingDown = false;
 
   const shutdown = (signal: NodeJS.Signals): void => {
@@ -76,15 +100,26 @@ export function installShutdownHandlers({ server, logger, timeoutMs }: ShutdownD
 
     server.close((error) => {
       clearTimeout(timer);
-      if (error) {
-        logger.error({ err: error }, 'Shutdown failed');
-        process.exit(1);
-      }
-      logger.info('Shutdown complete');
-      process.exit(0);
+      void finish(error, logger, onDrained);
     });
   };
 
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
+}
+
+async function finish(
+  error: Error | undefined,
+  logger: Logger,
+  onDrained: () => Promise<void>,
+): Promise<void> {
+  await onDrained();
+
+  if (error) {
+    logger.error({ err: error }, 'Shutdown failed');
+    process.exit(1);
+  }
+
+  logger.info('Shutdown complete');
+  process.exit(0);
 }

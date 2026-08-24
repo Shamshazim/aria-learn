@@ -5,6 +5,7 @@
   "description": "Aria Learn API \u2014 Node + Express + TypeScript.",
   "type": "module",
   "scripts": {
+    "db:migrate": "tsx src/scripts/migrate.ts",
     "dev": "tsx watch src/index.ts",
     "golden:tutoring": "tsx src/testing/tutoring/run-cli.ts",
     "start": "tsx src/index.ts",
@@ -16,6 +17,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "pg": "^8.23.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "yaml": "^2.9.0",
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "supertest": "^7.2.2",
     "tsx": "^4.23.12"
