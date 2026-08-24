@@ -1,0 +1,9 @@
+/** Public model-generation seam; provider and prompt internals stay private to this module. */
+export {
+  AiPromptParseError,
+  createAiClient,
+  UnscrubbedLearnerContextError,
+} from '@/ai/client/ai-client';
+export type { AiClientDependencies } from '@/ai/client/ai-client';
+export type { AiClient, AiResult, AiRunOptions } from '@/ai/client/ai-client.types';
+export type { PromptInput, PromptName, PromptOutput } from '@/ai/prompts/types';

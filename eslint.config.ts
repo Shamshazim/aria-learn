@@ -40,6 +40,25 @@ const PROVIDER_INTERNAL_IMPORT_PATTERN = {
   message: 'Vendor adapters are internal; depend on the routed provider entry point (P0-13).',
 };
 
+const PROVIDER_PUBLIC_IMPORT_RESTRICTION = {
+  name: '@/ai/provider',
+  allowImportNames: [
+    'AiConfig',
+    'AiConfigError',
+    'LoadAiConfigOptions',
+    'LlmResponse',
+    'ModelTier',
+    'aiConfigSchema',
+    'loadAiConfig',
+  ],
+  message: 'Only ai-client.ts may construct or call the routed provider (P0-14).',
+};
+
+const PROVIDER_PRIVATE_IMPORT_PATTERN = {
+  group: ['@/ai/provider/**', '**/ai/provider/**'],
+  message: 'Provider internals are private to ai/provider and ai-client.ts (P0-14).',
+};
+
 const typeAwareRules: Linter.RulesRecord = {
   // §1 — `any` is banned in committed code; use `unknown` and narrow.
   '@typescript-eslint/no-explicit-any': 'error',
@@ -165,11 +184,34 @@ export default defineConfig([
 
   {
     files: ['apps/api/src/**/*.ts'],
-    ignores: ['apps/api/src/ai/provider/**/*.ts'],
+    ignores: ['apps/api/src/ai/provider/**/*.ts', 'apps/api/src/ai/client/ai-client.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
-        { patterns: [...FORBIDDEN_IMPORT_PATTERNS, PROVIDER_INTERNAL_IMPORT_PATTERN] },
+        {
+          paths: [PROVIDER_PUBLIC_IMPORT_RESTRICTION],
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: ['apps/api/src/ai/client/ai-client.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
       ],
     },
   },

@@ -11,6 +11,10 @@ import type {
   ScrubOptions,
 } from '@/privacy/types';
 
+const contextRules: unique symbol = Symbol('scrubbed-context-rules');
+type RuntimeScrubbedContext = ScrubbedContext &
+  Readonly<{ [contextRules]: readonly IdentifierRule[] }>;
+
 function scrubOptional(
   value: string | undefined,
   rules: readonly IdentifierRule[],
@@ -85,5 +89,27 @@ export function scrubLearnerContext(
   });
 
   // The assertion is intentionally confined to this constructor; lint rejects the same cast elsewhere.
-  return Object.freeze({ value, categories: contextCategories(value) }) as ScrubbedContext;
+  const context = Object.freeze({
+    value,
+    categories: contextCategories(value),
+    [contextRules]: Object.freeze([...rules]),
+  }) as RuntimeScrubbedContext;
+  return context;
+}
+
+/** Runtime provenance check: only this module can register a model-safe context. */
+export function isScrubbedContext(value: unknown): value is ScrubbedContext {
+  return isRuntimeScrubbedContext(value);
+}
+
+/** Redacts model-bound text with the identifier rules that produced its safe context. */
+export function scrubTextForModel(context: ScrubbedContext, value: string): string {
+  if (!isRuntimeScrubbedContext(context)) {
+    throw new TypeError('Learner context was not produced by the scrubber');
+  }
+  return redactText(value, context[contextRules]);
+}
+
+function isRuntimeScrubbedContext(value: unknown): value is RuntimeScrubbedContext {
+  return typeof value === 'object' && value !== null && contextRules in value;
 }
