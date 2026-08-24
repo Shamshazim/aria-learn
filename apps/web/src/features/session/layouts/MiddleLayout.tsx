@@ -5,7 +5,7 @@ import { LayoutContent } from '@/features/session/layouts/LayoutContent';
 export function MiddleLayout(props: { session: TutorSession }): React.JSX.Element {
   return (
     <div className="session-layout session-layout--middle">
-      <LayoutContent session={props.session} allowWriting={false} />
+      <LayoutContent session={props.session} />
       <aside className="aria-companion">
         <AriaOwl />
         <h2>Ask Aria</h2>

@@ -99,6 +99,70 @@
   padding: var(--space-4);
 }
 
+.move-card,
+.move-card p {
+  margin-top: 0;
+}
+
+.move-region {
+  min-height: 6rem;
+}
+
+.move-visual,
+.early-listen {
+  color: var(--color-primary);
+  font-size: 3rem;
+  letter-spacing: 0.35em;
+  padding: var(--space-3);
+  text-align: center;
+}
+
+.early-listen {
+  font-size: 7rem;
+  letter-spacing: normal;
+}
+
+.recommendation-card,
+.break-card {
+  border: 0.15rem solid var(--session-line);
+  border-radius: var(--radius-medium);
+  padding: var(--space-2);
+}
+
+.tutor-status {
+  align-items: center;
+  display: flex;
+  font-weight: 700;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.tutor-status__mark {
+  background: var(--color-primary);
+  border-radius: 50%;
+  height: 0.8rem;
+  width: 0.8rem;
+}
+
+.speak-button,
+.session-card form button,
+.session-card form input {
+  font: inherit;
+  min-height: 3rem;
+  padding: var(--space-2);
+}
+
+.session-card form {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.session-card form input {
+  border: 0.0625rem solid var(--session-line);
+  flex: 1;
+  min-width: 0;
+}
+
 .session-layout--senior .session-card,
 .session-layout--senior .aria-thread {
   border: 0.0625rem solid var(--session-line);

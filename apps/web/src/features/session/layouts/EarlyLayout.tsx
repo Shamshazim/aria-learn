@@ -6,7 +6,7 @@ export function EarlyLayout(props: { session: TutorSession }): React.JSX.Element
   return (
     <div className="session-layout session-layout--early">
       <AriaOwl large />
-      <LayoutContent session={props.session} allowWriting={false} />
+      <LayoutContent session={props.session} />
       <div className="star-jar" aria-label="Three stars earned" role="img">
         ⭐ ⭐ ⭐
       </div>
