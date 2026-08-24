@@ -1,5 +1,8 @@
-/** Bounded body readers for the OpenAI-compatible adapter: SSE framing and response size caps. */
-import type { OpenAiCompatibleEndpoint } from '@/ai/provider/adapters/openai-compatible.types';
+/**
+ * Bounded body readers shared by every LLM adapter: SSE framing, response size caps and the
+ * per-request byte budget derived from `max-tokens`. Vendor-neutral so peer adapters do not
+ * couple to each other (CODE-STANDARDS §3/§4).
+ */
 import { AiError } from '@/ai/provider/errors';
 import type { LlmRequest } from '@/ai/provider/types';
 
@@ -39,7 +42,8 @@ export async function readResponseText(
   return text + decoder.decode();
 }
 
-export function responseByteLimit(endpoint: OpenAiCompatibleEndpoint, request: LlmRequest): number {
+/** Bytes any adapter may read for one request; the limit follows the token budget. */
+export function responseByteLimit(endpoint: { 'max-tokens': number }, request: LlmRequest): number {
   const requested = request.maxTokens;
   const maxTokens =
     requested !== undefined && Number.isFinite(requested) && requested > 0

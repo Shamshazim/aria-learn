@@ -63,18 +63,3 @@ export const openAiStreamResponseSchema = z.object({
 });
 
 export type OpenAiStreamResponse = z.infer<typeof openAiStreamResponseSchema>;
-
-export type StreamAccumulator = {
-  text: string;
-  tokensIn: number | undefined;
-  tokensOut: number | undefined;
-  finishReason: string | null;
-};
-
-export type ResponseValues = {
-  text: string;
-  tokensIn: number;
-  tokensOut: number;
-  finishReason: string | null;
-  latencyMs: number;
-};

@@ -9,11 +9,11 @@ import {
   type OpenAiCompatibleProviderOptions,
 } from '@/ai/provider/adapters/openai-compatible.request';
 import { createOpenAiLlmResponse } from '@/ai/provider/adapters/openai-compatible.response';
-import { readResponseText, responseByteLimit } from '@/ai/provider/adapters/openai-compatible.sse';
 import { stream } from '@/ai/provider/adapters/openai-compatible.stream';
 import { openAiChatResponseSchema } from '@/ai/provider/adapters/openai-compatible.types';
 import type { OpenAiChatResponse } from '@/ai/provider/adapters/openai-compatible.types';
 import { createRequestTimeout } from '@/ai/provider/adapters/request-timeout';
+import { readResponseText, responseByteLimit } from '@/ai/provider/adapters/sse';
 import { AiError } from '@/ai/provider/errors';
 import type { LlmProvider, LlmRequest, LlmResponse } from '@/ai/provider/types';
 

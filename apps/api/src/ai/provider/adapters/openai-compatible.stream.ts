@@ -3,6 +3,7 @@
  * usage record (requested via `stream_options`) closes with one `complete` chunk. On the
  * prompt-only JSON path deltas are withheld and the extracted object is yielded once at the end.
  */
+import { completeStreamValues, type StreamAccumulator } from '@/ai/provider/adapters/llm-response';
 import {
   extractJson,
   mapError,
@@ -10,14 +11,12 @@ import {
   type OpenAiCompatibleProviderOptions,
 } from '@/ai/provider/adapters/openai-compatible.request';
 import { createOpenAiLlmResponse } from '@/ai/provider/adapters/openai-compatible.response';
-import { readSseData, responseByteLimit } from '@/ai/provider/adapters/openai-compatible.sse';
-import { openAiStreamResponseSchema } from '@/ai/provider/adapters/openai-compatible.types';
-import type {
-  OpenAiStreamResponse,
-  ResponseValues,
-  StreamAccumulator,
+import {
+  openAiStreamResponseSchema,
+  type OpenAiStreamResponse,
 } from '@/ai/provider/adapters/openai-compatible.types';
 import { createRequestTimeout } from '@/ai/provider/adapters/request-timeout';
+import { readSseData, responseByteLimit } from '@/ai/provider/adapters/sse';
 import { AiError } from '@/ai/provider/errors';
 import type { LlmRequest, StreamChunk } from '@/ai/provider/types';
 
@@ -80,11 +79,6 @@ function appendStreamResponse(
       finishReason: choice?.finish_reason ?? state.finishReason,
     },
   };
-}
-
-function completeStreamValues(state: StreamAccumulator, latencyMs: number): ResponseValues {
-  if (state.tokensIn === undefined || state.tokensOut === undefined) throw new AiError('content');
-  return { ...state, tokensIn: state.tokensIn, tokensOut: state.tokensOut, latencyMs };
 }
 
 function parseStreamResponse(data: string): OpenAiStreamResponse {

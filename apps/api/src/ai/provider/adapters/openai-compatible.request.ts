@@ -5,11 +5,11 @@
  */
 import { createProviderHttpError } from '@/ai/provider/adapters/http-error';
 import { extractJsonObject } from '@/ai/provider/adapters/json-extract';
-import { readResponseText } from '@/ai/provider/adapters/openai-compatible.sse';
 import type {
   OpenAiChatRequest,
   OpenAiCompatibleEndpoint,
 } from '@/ai/provider/adapters/openai-compatible.types';
+import { readResponseText } from '@/ai/provider/adapters/sse';
 import { AiError } from '@/ai/provider/errors';
 import type { LlmRequest } from '@/ai/provider/types';
 

@@ -68,18 +68,3 @@ export type AnthropicStreamEvent =
   | z.infer<typeof anthropicTextDeltaSchema>
   | z.infer<typeof anthropicMessageDeltaSchema>
   | z.infer<typeof anthropicStreamErrorSchema>;
-
-export type AnthropicResponseValues = {
-  text: string;
-  tokensIn: number;
-  tokensOut: number;
-  finishReason: string | null;
-  latencyMs: number;
-};
-
-export type AnthropicStreamState = {
-  text: string;
-  tokensIn: number | undefined;
-  tokensOut: number | undefined;
-  finishReason: string | null;
-};
