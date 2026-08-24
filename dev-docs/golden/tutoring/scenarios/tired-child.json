@@ -1,0 +1,91 @@
+{
+  "id": "tired-child",
+  "title": "Tired child",
+  "grade": "2",
+  "description": "Aria treats weak fatigue evidence as a question, then offers a smaller task after the learner confirms low energy.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [],
+    "affectObservations": [
+      {
+        "id": "affect_possible_fatigue",
+        "claim": "The learner may have low energy.",
+        "confidence": "low"
+      }
+    ],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_tired_arrival",
+        "at": "2026-08-23T11:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "2"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_energy_check",
+            "at": "2026-08-23T11:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": { "text": "How is your energy: ready to go, or a little tired?" },
+            "display": [],
+            "expects": "choice",
+            "about": "energy"
+          }
+        ],
+        "evidence": {
+          "affectClaims": [
+            {
+              "observationId": "affect_possible_fatigue",
+              "moveId": "mov_energy_check"
+            }
+          ],
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_tired_confirmed",
+        "at": "2026-08-23T11:00:04Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_energy_check",
+        "text": "A little tired."
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_small_start",
+            "at": "2026-08-23T11:00:04Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": { "text": "Thanks for telling me. We'll do one small thing together." },
+            "display": [],
+            "expects": "none",
+            "skillId": "reading.blending"
+          },
+          {
+            "id": "mov_small_question",
+            "at": "2026-08-23T11:00:04Z",
+            "protocolVersion": "1.1.0",
+            "kind": "ASK",
+            "speech": { "text": "What word do these sounds make: m, a, p?" },
+            "display": [],
+            "expects": "speech",
+            "skillId": "reading.blending",
+            "attempt": 1
+          }
+        ],
+        "evidence": {
+          "approachId": "one-small-guided-task",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

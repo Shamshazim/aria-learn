@@ -1,0 +1,77 @@
+{
+  "id": "resumed-session",
+  "title": "Resumed session",
+  "grade": "5",
+  "description": "A paused session resumes at the prior question without replaying the whole lesson or losing the pending answer.",
+  "context": {
+    "answerOutcomes": [
+      { "eventId": "evt_resumed_answer", "outcome": "correct" }
+    ],
+    "learnerFacts": [],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_session_resume",
+        "at": "2026-08-23T17:00:00Z",
+        "protocolVersion": "1.1.0",
+        "sessionId": "session_resumed_01",
+        "kind": "RESUME"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_resume_prompt",
+            "at": "2026-08-23T17:00:00Z",
+            "protocolVersion": "1.1.0",
+            "sessionId": "session_resumed_01",
+            "kind": "ASK",
+            "speech": { "text": "We were finding three quarters of eight. What did you get?" },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.fraction_of_quantity",
+            "itemId": "item_three_quarters_of_eight",
+            "attempt": 1
+          }
+        ],
+        "evidence": {
+          "approachId": "resume-pending-question",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_resumed_answer",
+        "at": "2026-08-23T17:00:05Z",
+        "protocolVersion": "1.1.0",
+        "sessionId": "session_resumed_01",
+        "kind": "ANSWER",
+        "respondsTo": "mov_resume_prompt",
+        "text": "6"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_resumed_praise",
+            "at": "2026-08-23T17:00:05Z",
+            "protocolVersion": "1.1.0",
+            "sessionId": "session_resumed_01",
+            "kind": "PRAISE",
+            "speech": { "text": "Yes. You found one quarter first, then counted three of them." },
+            "display": [],
+            "expects": "none",
+            "skillId": "math.fraction_of_quantity",
+            "because": "you used one quarter as a step"
+          }
+        ],
+        "evidence": {
+          "approachId": "one-quarter-step",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

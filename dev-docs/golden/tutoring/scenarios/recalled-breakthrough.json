@@ -1,0 +1,76 @@
+{
+  "id": "recalled-breakthrough",
+  "title": "Recalled breakthrough",
+  "grade": "1",
+  "description": "Aria recalls a real prior breakthrough and cites the evidence behind the durable fact.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_blending_breakthrough",
+        "claim": "The learner blended a word without help in the prior session.",
+        "evidenceIds": ["session_2026_08_22_event_31"]
+      }
+    ],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_breakthrough_arrival",
+        "at": "2026-08-23T15:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "1"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_breakthrough_welcome",
+            "at": "2026-08-23T15:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "WELCOME",
+            "speech": { "text": "Yesterday you put the sounds together and read a word all by yourself." },
+            "display": [],
+            "expects": "none",
+            "basedOn": ["session_2026_08_22_event_31"]
+          }
+        ],
+        "evidence": {
+          "assertedFactIds": ["fact_blending_breakthrough"],
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_breakthrough_subject",
+        "at": "2026-08-23T15:00:04Z",
+        "protocolVersion": "1.1.0",
+        "kind": "SUBJECT_CHOSEN",
+        "subjectId": "reading",
+        "grade": "1",
+        "fromRecommendation": false
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_build_on_breakthrough",
+            "at": "2026-08-23T15:00:04Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": { "text": "Let's use that same sound-by-sound trick on a new word." },
+            "display": [],
+            "expects": "none",
+            "skillId": "reading.blending"
+          }
+        ],
+        "evidence": {
+          "approachId": "reuse-supported-breakthrough",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

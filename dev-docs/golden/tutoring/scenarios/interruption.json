@@ -1,0 +1,69 @@
+{
+  "id": "interruption",
+  "title": "Interruption",
+  "grade": "4",
+  "description": "The learner interrupts an explanation and the active move is stopped before Aria yields the floor.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_fraction_question",
+        "at": "2026-08-23T12:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "QUESTION",
+        "text": "Why are the pieces equal?"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_fraction_explanation",
+            "at": "2026-08-23T12:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": {
+              "text": "Equal pieces make sure every person gets the same amount of the whole."
+            },
+            "display": [],
+            "expects": "none",
+            "skillId": "math.equal_fractions"
+          }
+        ],
+        "evidence": {
+          "approachId": "equal-sharing-explanation",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_interrupt_explanation",
+        "at": "2026-08-23T12:00:01Z",
+        "protocolVersion": "1.1.0",
+        "kind": "INTERRUPT",
+        "interruptedMoveId": "mov_fraction_explanation"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_yield_after_interrupt",
+            "at": "2026-08-23T12:00:01Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": { "text": "Go ahead." },
+            "display": [],
+            "expects": "speech"
+          }
+        ],
+        "evidence": {
+          "stoppedMoveIds": ["mov_fraction_explanation"],
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}
