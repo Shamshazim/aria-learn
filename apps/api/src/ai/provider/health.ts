@@ -59,7 +59,26 @@ export async function bootstrapRoutedProvider(
     fetch: dependencies.fetch,
     now: dependencies.now,
   });
-  const provider = createRoutingLlmProvider({ config, providers, ...dependencies });
+  const provider = createRoutingLlmProvider({
+    config,
+    providers,
+    ...dependencies,
+    recordEndpointFailure: (failure) =>
+      dependencies.accounting.record({
+        studentId: failure.request.accounting?.studentId ?? null,
+        endpointName: failure.endpointName,
+        model: 'unavailable',
+        tier: failure.request.tier,
+        promptName: failure.request.accounting?.promptName ?? null,
+        promptVersion: failure.request.accounting?.promptVersion ?? null,
+        tokensIn: 0,
+        tokensOut: 0,
+        latencyMs: failure.latencyMs,
+        costUsd: 0,
+        cached: false,
+        ok: false,
+      }),
+  });
   const health = createEndpointHealthMonitor();
   await probeRoutedEndpoints({
     config,

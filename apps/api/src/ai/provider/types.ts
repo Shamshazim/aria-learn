@@ -13,6 +13,11 @@ export type LlmRequest = {
   jsonMode?: boolean;
   timeoutMs?: number;
   signal?: AbortSignal;
+  accounting?: Readonly<{
+    studentId: string | undefined;
+    promptName: string;
+    promptVersion: string;
+  }>;
 };
 
 export type LlmResponse = {

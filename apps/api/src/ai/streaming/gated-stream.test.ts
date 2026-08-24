@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { AiAccounting, GenerationLogEntry } from '@/ai/cost';
 import type { LlmProvider, StreamChunk } from '@/ai/provider';
 import {
   createGatedStreamer,
@@ -66,6 +67,14 @@ function gate(unsafeWord?: string) {
   }));
 }
 
+function accounting(record = vi.fn<(entry: GenerationLogEntry) => Promise<void>>()): AiAccounting {
+  return {
+    assertWithinCap: () => Promise.resolve(),
+    record,
+    recordCachedHit: () => Promise.resolve(),
+  };
+}
+
 async function collect(stream: AsyncIterable<unknown>): Promise<readonly unknown[]> {
   const values: unknown[] = [];
   for await (const value of stream) values.push(value);
@@ -84,6 +93,8 @@ describe('gated streaming', () => {
       provider: provider(['One and one ', 'make two. What is next?']),
       gate: gate(),
       now,
+      callNow: () => 0,
+      accounting: accounting(),
     });
 
     const released = await collect(streamer.stream(input()));
@@ -102,6 +113,8 @@ describe('gated streaming', () => {
       provider: provider(['One and one make two. Dog.']),
       gate: gate('dog'),
       now: () => 0,
+      callNow: () => 0,
+      accounting: accounting(),
     });
 
     await expect(collect(streamer.stream(input()))).resolves.toEqual([
@@ -117,9 +130,21 @@ describe('gated streaming', () => {
         provider: provider(['One and ', 'one make two.']),
         gate: gate(),
         now: () => 0,
+        callNow: () => 0,
+        accounting: accounting(),
       });
 
-      await expect(collect(streamer.stream(input({ contentKind })))).resolves.toEqual([
+      const plan =
+        contentKind === 'arithmetic'
+          ? {
+              ...PLAN,
+              arithmetic: {
+                problem: { skillCode: 'ADD.FACT.10', kind: 'addition', left: '1', right: '1' },
+                candidate: '2',
+              } as const,
+            }
+          : PLAN;
+      await expect(collect(streamer.stream(input({ contentKind, plan })))).resolves.toEqual([
         { written: 'One and one make two.', spoken: 'One and one make two.', gateMs: 0 },
       ]);
     },
@@ -135,6 +160,8 @@ describe('gated streaming', () => {
       provider: { ...provider([]), stream },
       gate: gate(),
       now: () => 0,
+      callNow: () => 0,
+      accounting: accounting(),
     });
     const invalid = input({ plan: { ...PLAN, responseType: 'text' } });
 
@@ -153,6 +180,8 @@ describe('gated streaming', () => {
       }),
       gate: gate(),
       now: () => 0,
+      callNow: () => 0,
+      accounting: accounting(),
     });
     const iterator = streamer.stream(input())[Symbol.asyncIterator]();
 
@@ -161,5 +190,60 @@ describe('gated streaming', () => {
 
     expect(finished).toHaveBeenCalledTimes(1);
     expect(vendorSignal?.aborted).toBe(true);
+  });
+
+  it('records one row from the terminal streaming response', async () => {
+    const record = vi.fn<(entry: GenerationLogEntry) => Promise<void>>(() => Promise.resolve());
+    const response = {
+      text: 'One and one make two.',
+      endpointName: 'fast-endpoint',
+      model: 'fast-model',
+      tokensIn: 4,
+      tokensOut: 6,
+      costUsd: 0.000_01,
+      latencyMs: 25,
+      finishReason: 'stop',
+    } as const;
+    const streamingProvider: LlmProvider = {
+      complete: () => Promise.resolve(response),
+      stream: async function* () {
+        yield await Promise.resolve({ kind: 'text', text: response.text } as const);
+        yield { kind: 'complete', response };
+      },
+    };
+    const streamer = createGatedStreamer({
+      provider: streamingProvider,
+      gate: gate(),
+      now: () => 0,
+      callNow: () => 0,
+      accounting: accounting(record),
+    });
+
+    await collect(
+      streamer.stream(
+        input({
+          request: {
+            ...REQUEST,
+            accounting: {
+              studentId: 'student-1',
+              promptName: 'content-generation',
+              promptVersion: 'v1',
+            },
+          },
+        }),
+      ),
+    );
+
+    expect(record).toHaveBeenCalledOnce();
+    expect(record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        studentId: 'student-1',
+        endpointName: 'fast-endpoint',
+        tokensIn: 4,
+        tokensOut: 6,
+        costUsd: 0.000_01,
+        ok: true,
+      }),
+    );
   });
 });

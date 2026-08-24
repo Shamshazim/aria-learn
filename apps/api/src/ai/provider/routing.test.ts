@@ -132,6 +132,26 @@ it('falls back after primary retries are exhausted and logs the switch', async (
   );
 });
 
+it('records an exhausted primary before a successful fallback', async () => {
+  const failures: string[] = [];
+  const provider = createRoutingLlmProvider({
+    config: configWithRoutes('teach-endpoint', 'fast-endpoint', 'fast-endpoint'),
+    providers: new Map([
+      ['teach-endpoint', providerFromComplete(() => Promise.reject(new AiError('transport')))],
+      ['fast-endpoint', fakeProvider('fast-endpoint', [])],
+    ]),
+    ...dependencies(),
+    recordEndpointFailure: (failure) => {
+      failures.push(failure.endpointName);
+      return Promise.resolve();
+    },
+  });
+
+  await provider.complete({ tier: 'TEACH', system: 'Teach.', user: 'Try.' });
+
+  expect(failures).toEqual(['teach-endpoint']);
+});
+
 it('does not retry or fall back after a content error', async () => {
   let primaryAttempts = 0;
   let fallbackAttempts = 0;

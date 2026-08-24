@@ -11,7 +11,14 @@ import {
 import { isAvailabilityCategory } from '@/ai/provider/resilience/policy';
 import type { LlmProvider, LlmRequest, LlmResponse, StreamChunk } from '@/ai/provider/types';
 
-export type RoutingProviderOptions = { config: AiConfig } & EndpointRunnerOptions;
+type EndpointFailure = Readonly<{
+  endpointName: string;
+  request: LlmRequest;
+  latencyMs: number;
+}>;
+
+export type RoutingProviderOptions = { config: AiConfig } & EndpointRunnerOptions &
+  Readonly<{ recordEndpointFailure?: (failure: EndpointFailure) => Promise<void> }>;
 
 export type RoutedProviderDependencies = EndpointProviderDependencies &
   Omit<RoutingProviderOptions, 'config' | 'providers'>;
@@ -23,6 +30,7 @@ type RoutingRuntime = {
   endpointRunner: EndpointRunner;
   now: () => number;
   logger: EndpointRunnerOptions['logger'];
+  recordEndpointFailure: ((failure: EndpointFailure) => Promise<void>) | undefined;
 };
 
 export type RoutedLlmProvider = LlmProvider &
@@ -49,6 +57,7 @@ export function createRoutingLlmProvider(options: RoutingProviderOptions): Route
     endpointRunner: createEndpointRunner(options),
     now: options.now,
     logger: options.logger,
+    recordEndpointFailure: options.recordEndpointFailure,
   };
   return {
     complete: (request) => complete(runtime, request),
@@ -64,13 +73,14 @@ async function complete(options: RoutingRuntime, request: LlmRequest): Promise<L
     return await options.endpointRunner.complete(route.endpoint, request);
   } catch (error) {
     if (isAborted(request) || !isAvailabilityError(error)) throw error;
-    if (route.fallback === undefined) throw new AiExhaustionError(error);
+    if (route.fallback === undefined) throw new AiExhaustionError(error, route.endpoint);
+    await recordFailedEndpoint(options, route.endpoint, request, startedAt);
     logFallback(options, { endpoint: route.endpoint, fallback: route.fallback }, error, startedAt);
     try {
       return await options.endpointRunner.complete(route.fallback, request);
     } catch (fallbackError) {
       if (isAborted(request) || !isAvailabilityError(fallbackError)) throw fallbackError;
-      throw new AiExhaustionError(fallbackError);
+      throw new AiExhaustionError(fallbackError, route.fallback);
     }
   }
 }
@@ -87,7 +97,9 @@ async function* stream(options: RoutingRuntime, request: LlmRequest): AsyncItera
     return;
   } catch (error) {
     const failure = availabilityStreamFailure(request, error);
-    if (emitted || route.fallback === undefined) throw new AiExhaustionError(failure);
+    if (emitted || route.fallback === undefined)
+      throw new AiExhaustionError(failure, route.endpoint);
+    await recordFailedEndpoint(options, route.endpoint, request, startedAt);
     logFallback(
       options,
       { endpoint: route.endpoint, fallback: route.fallback },
@@ -101,8 +113,21 @@ async function* stream(options: RoutingRuntime, request: LlmRequest): AsyncItera
       yield chunk;
     }
   } catch (error) {
-    throw new AiExhaustionError(availabilityStreamFailure(request, error));
+    throw new AiExhaustionError(availabilityStreamFailure(request, error), route.fallback);
   }
+}
+
+async function recordFailedEndpoint(
+  options: RoutingRuntime,
+  endpointName: string,
+  request: LlmRequest,
+  startedAt: number,
+): Promise<void> {
+  await options.recordEndpointFailure?.({
+    endpointName,
+    request,
+    latencyMs: Math.max(0, options.now() - startedAt),
+  });
 }
 
 function routeFor(options: RoutingRuntime, request: LlmRequest): Route {

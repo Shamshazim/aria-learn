@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { bandForGrade, type Grade } from '@aria/shared';
 
-import { AriaOwl } from '@/features/session/components/AriaOwl';
+import { AriaOwl } from '@/features/session';
 import '@/features/session/styles/session.css';
 
 const CLASSES: readonly Readonly<{

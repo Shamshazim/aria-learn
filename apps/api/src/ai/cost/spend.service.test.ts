@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createSpendService, SpendCapExceededError } from '@/ai/cost/spend.service';
+import { createSpendService } from '@/ai/cost/spend.service';
+import { SpendCapExceededError } from '@/errors';
 import { fixedClock } from '@/lib/clock';
 import type { AiGenerationLogRepository } from '@/repositories/ai-generation-log.repository';
 

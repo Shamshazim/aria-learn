@@ -30,4 +30,22 @@ describe('validateMovePlan', () => {
       }),
     ).toMatchObject({ valid: false });
   });
+
+  it('cannot bypass arithmetic checking by omitting the arithmetic evidence', () => {
+    expect(
+      validateMovePlan(
+        {
+          moveKind: 'SAY',
+          band: 'middle',
+          answerJudgement: 'not-applicable',
+          teachingClaim: 'Two plus two is five.',
+          responseType: 'none',
+        },
+        'arithmetic',
+      ),
+    ).toMatchObject({
+      valid: false,
+      reasons: ['Arithmetic content requires a deterministic arithmetic check.'],
+    });
+  });
 });

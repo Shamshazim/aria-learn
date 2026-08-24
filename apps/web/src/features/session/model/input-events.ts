@@ -30,6 +30,22 @@ export type EventPayload =
 
 export type EventFactory = (payload: EventPayload) => TutorInputEvent;
 
+export function questionEvent(text?: string): EventPayload {
+  return { kind: 'QUESTION', text: text ?? 'I have a question.' };
+}
+
+export function completedDragEvent(moveId: string): EventPayload {
+  return { kind: 'ANSWER', respondsTo: moveId, text: 'done' };
+}
+
+export const SESSION_ENDED_EVENT: EventPayload = { kind: 'LEAVE', reason: 'done' };
+
+export const SCRIPTED_SPEECH_EVENTS: readonly EventPayload[] = [
+  { kind: 'SPEECH_STARTED' },
+  { kind: 'SPEECH_PARTIAL', text: 'sev' },
+  { kind: 'SPEECH_FINAL', text: 'seven' },
+];
+
 export function createEventFactory(dependencies: { nextId(): string; now(): Date }): EventFactory {
   return (payload) =>
     tutorInputEventSchema.parse({

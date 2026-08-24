@@ -42,6 +42,7 @@ describe.each(['early', 'middle', 'senior'] as const)('%s protocol session', (ba
     const typedAnswer = screen.queryByRole('textbox', { name: 'Your answer' });
     if (typedAnswer === null) {
       await user.click(screen.getByRole('button', { name: '7' }));
+      await user.click(screen.getByRole('button', { name: 'Answer' }));
     } else {
       await user.type(typedAnswer, '7');
       await user.click(screen.getByRole('button', { name: 'Answer' }));

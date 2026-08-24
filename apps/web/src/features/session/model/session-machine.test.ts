@@ -18,7 +18,7 @@ describe('session reducer', () => {
     expect(finalState.paused).toBe(true);
   });
 
-  it('stops the active move and ignores a stale delivery completion', async () => {
+  it('stops the active move without leaving orphaned state', async () => {
     const active = (await allMoves()).find((move) => move.kind === 'SAY');
     expect(active).toBeDefined();
     if (active === undefined) return;
@@ -27,22 +27,30 @@ describe('session reducer', () => {
 
     expect(stopped.currentMove).toBeNull();
     expect(stopped.stoppedMoveIds).toEqual([active.id]);
-    expect(reduceSession(stopped, { kind: 'DELIVERY_FINISHED', moveId: active.id })).toBe(stopped);
     expect(reduceSession(stopped, { kind: 'STOP_ACTIVE' })).toBe(stopped);
   });
 
-  it('keeps a draft and only completes delivery for the active move', async () => {
+  it('shows pending work and settles an empty response', async () => {
     const active = (await allMoves()).find((move) => move.kind === 'SAY');
     expect(active).toBeDefined();
     if (active === undefined) return;
-    const speaking = reduceSession(initialSessionState('senior'), active);
-    const drafted = reduceSession(speaking, { kind: 'DRAFT_CHANGED', value: 'my work' });
+    const speaking = reduceSession(initialSessionState('early'), active);
+    const pending = reduceSession(speaking, { kind: 'SOURCE_PENDING' });
+    const settled = reduceSession(pending, { kind: 'SOURCE_SETTLED' });
 
-    expect(drafted.draft).toBe('my work');
-    expect(reduceSession(drafted, { kind: 'DELIVERY_FINISHED', moveId: 'other' })).toBe(drafted);
-    expect(reduceSession(drafted, { kind: 'DELIVERY_FINISHED', moveId: active.id }).status).toBe(
-      'waiting',
-    );
+    expect(pending.status).toBe('thinking');
+    expect(settled.status).toBe('waiting');
+    expect(reduceSession(speaking, { kind: 'SOURCE_SETTLED' })).toBe(speaking);
+  });
+
+  it('waits when a move deliberately has no speech', async () => {
+    const active = (await allMoves()).find((move) => move.kind === 'SAY');
+    expect(active).toBeDefined();
+    if (active === undefined) return;
+
+    const silent = reduceSession(initialSessionState('middle'), { ...active, speech: null });
+
+    expect(silent.status).toBe('waiting');
   });
 
   it('uses a longer silence window as learners get older', () => {

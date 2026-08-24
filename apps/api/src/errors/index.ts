@@ -8,3 +8,4 @@ export {
   ServiceUnavailableError,
   isAppError,
 } from './app-error';
+export { MovePlanValidationError, SpendCapExceededError, StreamGateError } from './ai-errors';

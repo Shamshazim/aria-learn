@@ -23,7 +23,10 @@ export class AiError extends Error {
 export class AiExhaustionError extends ServiceUnavailableError {
   readonly category: AiErrorCategory;
 
-  constructor(cause: AiError) {
+  constructor(
+    cause: AiError,
+    readonly endpointName: string,
+  ) {
     super('AI routes exhausted', cause);
     this.category = cause.category;
   }

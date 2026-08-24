@@ -1,0 +1,168 @@
+.connection-notice {
+  background: color-mix(in srgb, var(--color-danger) 10%, white);
+  border: 0.0625rem solid var(--color-danger);
+  margin: var(--space-2) auto 0;
+  max-width: 48rem;
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+}
+
+.move-card,
+.move-card p {
+  margin-top: 0;
+}
+
+.move-region {
+  min-height: 6rem;
+}
+
+.band-move {
+  position: relative;
+}
+
+.band-move__marker {
+  color: var(--color-primary);
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+}
+
+.band-move--early {
+  text-align: center;
+}
+
+.band-move--early .band-move__marker {
+  font-size: 3rem;
+}
+
+.band-move--middle {
+  border-left: 0.25rem solid var(--color-primary);
+  padding-left: var(--space-2);
+}
+
+.band-move--senior {
+  font-family: var(--font-family);
+  line-height: 1.55;
+}
+
+.move-visual,
+.early-listen {
+  color: var(--color-primary);
+  font-size: 3rem;
+  letter-spacing: 0.35em;
+  padding: var(--space-3);
+  text-align: center;
+}
+
+.early-listen {
+  font-size: 7rem;
+  letter-spacing: normal;
+}
+
+.recommendation-card,
+.break-card {
+  border: 0.15rem solid var(--session-line);
+  border-radius: var(--radius-medium);
+  padding: var(--space-2);
+}
+
+.tutor-status {
+  align-items: center;
+  display: flex;
+  font-weight: 700;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.tutor-status__mark {
+  background: var(--color-primary);
+  border-radius: 50%;
+  height: 0.8rem;
+  width: 0.8rem;
+}
+
+.speak-button,
+.session-card form button,
+.session-card form input {
+  font: inherit;
+  min-height: 3rem;
+  padding: var(--space-2);
+}
+
+.session-card form {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.session-card form input {
+  border: 0.0625rem solid var(--session-line);
+  flex: 1;
+  min-width: 0;
+}
+
+.session-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+.session-controls form {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.session-controls input {
+  border: 0.0625rem solid var(--session-line);
+  font: inherit;
+  min-width: 10rem;
+  padding: var(--space-1);
+}
+
+.session-controls button {
+  background: var(--color-surface);
+  border: 0.0625rem solid var(--session-line);
+  color: var(--color-text);
+  font: inherit;
+  min-height: 2.75rem;
+  padding: var(--space-1) var(--space-2);
+}
+
+.tap-number-input {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.tap-number-input output {
+  font-size: 2rem;
+  font-weight: 800;
+  min-height: 2.5rem;
+  text-align: center;
+}
+
+.tap-number-input > button {
+  background: var(--color-primary);
+  border: 0;
+  color: var(--color-surface);
+  font: inherit;
+  font-weight: 800;
+  min-height: 3.5rem;
+}
+
+.tap-number-input > button:disabled {
+  opacity: 0.45;
+}
+
+.session-layout--early .tap-number-input .session-choices button {
+  min-height: 4rem;
+}
+
+.session-layout--early .session-controls button {
+  font-size: 1.8rem;
+}
+
+.session-layout--early .session-controls span {
+  display: none;
+}

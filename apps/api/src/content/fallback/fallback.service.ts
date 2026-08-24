@@ -8,7 +8,7 @@ export type VerifiedFallback = Readonly<{
 }>;
 
 export type FallbackService = Readonly<{
-  get(skillCode: string): VerifiedFallback;
+  get(skillCode: string): VerifiedFallback | null;
 }>;
 
 /** Verifies the checked-in bank and its complete skill coverage before serving any item. */
@@ -31,9 +31,7 @@ export function createFallbackService(dependencies: {
   }
   return {
     get(skillCode) {
-      const item = verified.get(skillCode);
-      if (item === undefined) throw new Error(`No verified fallback for ${skillCode}`);
-      return item;
+      return verified.get(skillCode) ?? null;
     },
   };
 }

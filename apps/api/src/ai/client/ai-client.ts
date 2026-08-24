@@ -2,7 +2,13 @@ import type { AiClient, AiResult, AiRunOptions } from '@/ai/client/ai-client.typ
 import type { AiAccounting, GenerationLogEntry } from '@/ai/cost/cost.types';
 import { promptRegistry } from '@/ai/prompts/registry';
 import type { PromptInput, PromptName, PromptOutput } from '@/ai/prompts/types';
-import type { LlmProvider, LlmRequest, LlmResponse, ModelTier } from '@/ai/provider';
+import {
+  AiExhaustionError,
+  type LlmProvider,
+  type LlmRequest,
+  type LlmResponse,
+  type ModelTier,
+} from '@/ai/provider';
 import { ServiceUnavailableError, ValidationError } from '@/errors';
 import { isScrubbedContext } from '@/privacy';
 
@@ -58,6 +64,11 @@ async function runPrompt<Name extends PromptName>(
       jsonMode: definition.jsonMode,
       ...(options?.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
       ...(options?.signal === undefined ? {} : { signal: options.signal }),
+      accounting: {
+        studentId: options?.studentId,
+        promptName,
+        promptVersion: definition.version,
+      },
     },
     promptName,
     promptVersion: definition.version,
@@ -91,7 +102,7 @@ async function completeProvider(
   } catch (error) {
     await dependencies.accounting.record({
       studentId: context.studentId ?? null,
-      endpointName: 'routed-provider',
+      endpointName: error instanceof AiExhaustionError ? error.endpointName : 'routed-provider',
       model: 'unavailable',
       tier: context.request.tier,
       promptName: context.promptName,

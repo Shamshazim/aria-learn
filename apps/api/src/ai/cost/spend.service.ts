@@ -1,13 +1,7 @@
 import type { AiAccounting, GenerationLogEntry, SpendReport } from '@/ai/cost/cost.types';
+import { SpendCapExceededError } from '@/errors';
 import type { Clock } from '@/lib/clock';
 import type { AiGenerationLogRepository } from '@/repositories/ai-generation-log.repository';
-
-export class SpendCapExceededError extends Error {
-  constructor(readonly studentId: string) {
-    super('Student daily AI spend cap reached');
-    this.name = 'SpendCapExceededError';
-  }
-}
 
 export type SpendAlert = (
   event: Readonly<{

@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { run as axeRun } from 'axe-core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { MOVE_KINDS, type Band, type TutorMove } from '@aria/shared';
 
@@ -44,16 +44,60 @@ describe('move renderer registry', () => {
     expect(view.container.querySelector('[role="progressbar"]')).not.toBeInTheDocument();
   });
 
+  it('gives a reteach a distinct visual expression in every band', async () => {
+    const reteach = (await allMoveKinds()).find((move) => move.kind === 'RETEACH');
+    expect(reteach).toBeDefined();
+    if (reteach === undefined) return;
+
+    for (const band of BANDS) {
+      const view = render(<MoveView band={band} move={reteach} />);
+      expect(view.container.querySelector(`.band-move--${band}`)).toBeInTheDocument();
+      view.unmount();
+    }
+  });
+
   it('uses speech instead of typed text for an early learner', async () => {
     const ask = (await allMoveKinds()).find((move) => move.kind === 'ASK');
     expect(ask).toBeDefined();
     if (ask === undefined) return;
     const textMove: TutorMove = { ...ask, display: [], expects: 'text' };
 
-    render(<InputSurface band="early" move={textMove} onAnswer={() => undefined} />);
+    render(
+      <InputSurface
+        band="early"
+        move={textMove}
+        onAnswer={() => undefined}
+        onDrag={() => undefined}
+        onSpeech={() => undefined}
+      />,
+    );
 
     expect(screen.getByRole('button', { name: /Talk to Aria/u })).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('lets an early learner tap a complete multi-character number before answering', async () => {
+    const ask = (await allMoveKinds()).find((move) => move.kind === 'ASK');
+    expect(ask).toBeDefined();
+    if (ask === undefined) return;
+    const answer = vi.fn();
+
+    render(
+      <InputSurface
+        band="early"
+        move={{ ...ask, display: [], expects: 'number' }}
+        onAnswer={answer}
+        onDrag={() => undefined}
+        onSpeech={() => undefined}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    fireEvent.click(screen.getByRole('button', { name: '2' }));
+    fireEvent.click(screen.getByRole('button', { name: '.' }));
+    fireEvent.click(screen.getByRole('button', { name: '5' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Answer' }));
+
+    expect(answer).toHaveBeenCalledWith('12.5');
   });
 });
 

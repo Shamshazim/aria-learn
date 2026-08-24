@@ -3,12 +3,16 @@ import type { TutorMove } from '@aria/shared';
 import type { SessionState, TutorStatus } from '@/features/session/model/session-state';
 
 export type UiAction =
-  | Readonly<{ kind: 'DRAFT_CHANGED'; value: string }>
-  | Readonly<{ kind: 'DELIVERY_FINISHED'; moveId: string }>
+  | Readonly<{ kind: 'SOURCE_PENDING' }>
+  | Readonly<{ kind: 'SOURCE_SETTLED' }>
   | Readonly<{ kind: 'STOP_ACTIVE' }>;
 
 export function reduceSession(state: SessionState, input: TutorMove | UiAction): SessionState {
-  if (isUiAction(input)) return reduceUiAction(state, input);
+  if (input.kind === 'STOP_ACTIVE') return stopActive(state);
+  if (input.kind === 'SOURCE_PENDING') return { ...state, status: 'thinking' };
+  if (input.kind === 'SOURCE_SETTLED') {
+    return state.status === 'thinking' ? { ...state, status: 'waiting' } : state;
+  }
   switch (input.kind) {
     case 'WELCOME':
       return receive(state, input);
@@ -45,11 +49,12 @@ function reduceResponseOrSession(state: SessionState, input: ResponseOrSessionMo
     case 'PRAISE':
       return receive(state, input);
     case 'SWITCH':
-      return receive(state, input);
+      return { ...receive(state, input), paused: false };
     case 'BREAK':
       return { ...receive(state, input), paused: true };
     case 'END':
-      return { ...receive(state, input, 'waiting'), ended: true };
+      return { ...receive(state, input, 'waiting'), ended: true, paused: true };
+    /* v8 ignore next -- the default is a compile-time exhaustiveness guard. */
     default:
       return assertNever(input);
   }
@@ -61,15 +66,10 @@ function receive(state: SessionState, move: TutorMove, forcedStatus?: TutorStatu
     currentMove: move,
     moves: [...state.moves, move],
     status: forcedStatus ?? (move.speech === null ? 'waiting' : 'speaking'),
-    draft: '',
   };
 }
 
-function reduceUiAction(state: SessionState, action: UiAction): SessionState {
-  if (action.kind === 'DRAFT_CHANGED') return { ...state, draft: action.value };
-  if (action.kind === 'DELIVERY_FINISHED') {
-    return state.currentMove?.id === action.moveId ? { ...state, status: 'waiting' } : state;
-  }
+function stopActive(state: SessionState): SessionState {
   const active = state.currentMove;
   if (active === null) return state;
   return {
@@ -78,10 +78,6 @@ function reduceUiAction(state: SessionState, action: UiAction): SessionState {
     stoppedMoveIds: [...state.stoppedMoveIds, active.id],
     status: 'listening',
   };
-}
-
-function isUiAction(input: TutorMove | UiAction): input is UiAction {
-  return ['DRAFT_CHANGED', 'DELIVERY_FINISHED', 'STOP_ACTIVE'].includes(input.kind);
 }
 
 function assertNever(value: never): never {

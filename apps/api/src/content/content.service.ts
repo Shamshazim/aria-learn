@@ -31,24 +31,31 @@ async function resolve(
   const cached = await dependencies.cache.lookup(input);
   if (cached !== null) return { source: 'cache', body: cached.body };
 
-  try {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const generated = await dependencies.generate(input);
-      const verdict = dependencies.gate(generated.gateInput);
-      if (verdict.verdict === 'pass') {
-        const stored = await dependencies.cache.store(generated.draft, verdict.pass);
-        return { source: 'generated', body: stored.body };
-      }
-      await dependencies.recordFailure(verdict);
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const generated = await recoverableGeneration(dependencies.generate, input);
+    if (generated === null) break;
+    const verdict = dependencies.gate(generated.gateInput);
+    if (verdict.verdict === 'pass') {
+      const stored = await dependencies.cache.store(generated.draft, verdict.pass);
+      return { source: 'generated', body: stored.body };
     }
-  } catch {
-    // Provider exhaustion and cap trips both move directly to the already verified bank.
+    await dependencies.recordFailure(verdict);
   }
 
+  const fallback = dependencies.fallback.get(input.skillCode);
+  if (fallback === null)
+    throw new ServiceUnavailableError('No verified content source remained available');
+  return { source: 'fallback', body: fallback.definition.body };
+}
+
+async function recoverableGeneration(
+  generate: (input: ContentLookup) => Promise<GeneratedContent>,
+  input: ContentLookup,
+): Promise<GeneratedContent | null> {
   try {
-    const fallback = dependencies.fallback.get(input.skillCode);
-    return { source: 'fallback', body: fallback.definition.body };
+    return await generate(input);
   } catch (error) {
-    throw new ServiceUnavailableError('No verified content source remained available', error);
+    if (error instanceof ServiceUnavailableError) return null;
+    throw error;
   }
 }

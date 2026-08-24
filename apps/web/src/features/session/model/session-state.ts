@@ -10,7 +10,6 @@ export type SessionState = Readonly<{
   status: TutorStatus;
   paused: boolean;
   ended: boolean;
-  draft: string;
 }>;
 
 export function initialSessionState(band: Band): SessionState {
@@ -22,7 +21,6 @@ export function initialSessionState(band: Band): SessionState {
     status: 'thinking',
     paused: false,
     ended: false,
-    draft: '',
   };
 }
 

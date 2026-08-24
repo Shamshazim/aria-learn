@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createFallbackService, createReliableContentService } from '@/content';
 import type { ContentCacheService } from '@/content';
 import { createInventoryService } from '@/curriculum';
-import { ERROR_CODES } from '@/errors';
+import { ERROR_CODES, ServiceUnavailableError } from '@/errors';
 import { createQualityGate } from '@/quality';
 
 const LOOKUP = {
@@ -27,7 +27,7 @@ describe('reliable content path', () => {
       cache: cache(null),
       fallback: createFallbackService({ inventory: createInventoryService(), gate }),
       gate,
-      generate: () => Promise.reject(new Error('provider down')),
+      generate: () => Promise.reject(new ServiceUnavailableError('provider down')),
       recordFailure: vi.fn(() => Promise.resolve()),
     });
 
@@ -68,13 +68,9 @@ describe('reliable content path', () => {
     const gate = createQualityGate(() => ({ safe: true, categories: [] }));
     const service = createReliableContentService({
       cache: cache(null),
-      fallback: {
-        get: () => {
-          throw new Error('empty fallback bank');
-        },
-      },
+      fallback: { get: () => null },
       gate,
-      generate: () => Promise.reject(new Error('provider down')),
+      generate: () => Promise.reject(new ServiceUnavailableError('provider down')),
       recordFailure: vi.fn(() => Promise.resolve()),
     });
 
@@ -83,5 +79,19 @@ describe('reliable content path', () => {
       safeMessage: 'Temporarily unavailable.',
       status: 503,
     });
+  });
+
+  it('does not hide an unexpected generation failure behind fallback content', async () => {
+    const gate = createQualityGate(() => ({ safe: true, categories: [] }));
+    const programmingFailure = new TypeError('broken generator');
+    const service = createReliableContentService({
+      cache: cache(null),
+      fallback: createFallbackService({ inventory: createInventoryService(), gate }),
+      gate,
+      generate: () => Promise.reject(programmingFailure),
+      recordFailure: vi.fn(() => Promise.resolve()),
+    });
+
+    await expect(service.resolve(LOOKUP)).rejects.toBe(programmingFailure);
   });
 });

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { bandForGrade, parseGrade } from '@aria/shared';
 
@@ -7,13 +7,15 @@ import {
   EarlyLayout,
   MiddleLayout,
   SeniorLayout,
+  ConnectionNotice,
+  SessionTopbar,
   createScriptedSource,
+  createUnavailableOnceSource,
+  scenarioEvents,
   useTutorSession,
 } from '@/features/session';
-import { ConnectionNotice } from '@/features/session/components/ConnectionNotice';
-import { SessionTopbar } from '@/features/session/components/SessionTopbar';
-import { useConnectionState } from '@/features/session/hooks/useConnectionState';
 import '@/features/session/styles/session.css';
+import '@/features/session/styles/session-feedback.css';
 
 export default function SessionPage(): React.JSX.Element {
   const params = useParams();
@@ -27,18 +29,24 @@ function SessionForGrade(props: {
   subject: string;
 }): React.JSX.Element {
   const band = bandForGrade(props.grade);
-  const createSource = useCallback(createScriptedSource, []);
+  const [searchParams] = useSearchParams();
+  const startupEvents = scenarioEvents(searchParams.get('scenario'));
+  const failure = searchParams.get('failure');
+  const createSource = useCallback(
+    failure === 'content' ? createUnavailableOnceSource : createScriptedSource,
+    [failure],
+  );
   const session = useTutorSession({
     band,
     createSource,
     grade: props.grade,
     subjectId: props.subject,
+    ...(startupEvents === undefined ? {} : { startupEvents }),
   });
-  const connection = useConnectionState();
   return (
     <div className="session-app" data-band={band}>
       <SessionTopbar subject={props.subject} />
-      <ConnectionNotice band={band} status={connection.status} />
+      <ConnectionNotice band={band} status={session.connectionStatus} />
       <main>
         <h1 className="visually-hidden">{props.subject} learning session</h1>
         {band === 'early' ? (
