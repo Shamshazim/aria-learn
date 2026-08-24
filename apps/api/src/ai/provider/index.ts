@@ -3,6 +3,8 @@ export type { LoadAiConfigOptions } from './config';
 export { aiConfigSchema } from './config.schema';
 export type { AiConfig } from './config.schema';
 export type { LlmProvider, LlmRequest, LlmResponse, ModelTier, StreamChunk } from './types';
+export { createAnthropicProvider } from '@/ai/provider/adapters/anthropic';
+export type { AnthropicProviderOptions } from '@/ai/provider/adapters/anthropic';
 export { createOpenAiCompatibleProvider } from './adapters/openai-compatible';
 export type { OpenAiCompatibleProviderOptions } from './adapters/openai-compatible';
 export { AiError } from './errors';
