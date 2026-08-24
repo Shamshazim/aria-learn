@@ -63,6 +63,16 @@ const PROVIDER_COMPOSITION_IMPORT_RESTRICTION = {
   ],
 };
 
+const PROVIDER_STREAMING_IMPORT_RESTRICTION = {
+  ...PROVIDER_PUBLIC_IMPORT_RESTRICTION,
+  allowImportNames: [
+    ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
+    'LlmProvider',
+    'LlmRequest',
+    'StreamChunk',
+  ],
+};
+
 const PROVIDER_PRIVATE_IMPORT_PATTERN = {
   group: ['@/ai/provider/**', '**/ai/provider/**'],
   message: 'Provider internals are private to ai/provider and ai-client.ts (P0-14).',
@@ -196,6 +206,7 @@ export default defineConfig([
     ignores: [
       'apps/api/src/ai/provider/**/*.ts',
       'apps/api/src/ai/client/ai-client.ts',
+      'apps/api/src/ai/streaming/**/*.ts',
       'apps/api/src/server.ts',
     ],
     rules: {
@@ -236,6 +247,23 @@ export default defineConfig([
       'no-restricted-imports': [
         'error',
         {
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: ['apps/api/src/ai/streaming/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [PROVIDER_STREAMING_IMPORT_RESTRICTION],
           patterns: [
             ...FORBIDDEN_IMPORT_PATTERNS,
             PROVIDER_INTERNAL_IMPORT_PATTERN,

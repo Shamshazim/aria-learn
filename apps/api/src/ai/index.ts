@@ -16,3 +16,20 @@ export type {
   SpendSummary,
 } from '@/ai/cost';
 export type { PromptInput, PromptName, PromptOutput } from '@/ai/prompts/types';
+export {
+  createGatedStreamer,
+  MovePlanValidationError,
+  SEGMENT_GATE_BUDGET_MS,
+  spokenForm,
+  StreamGateError,
+  validateMovePlan,
+} from '@/ai/streaming';
+export type {
+  GatedStreamer,
+  GatedStreamInput,
+  MovePlan,
+  MovePlanResult,
+  ReleasedSegment,
+  SpokenContext,
+  StreamContentKind,
+} from '@/ai/streaming';

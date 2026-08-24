@@ -31,6 +31,7 @@ export const EARLY_WORDS: readonly string[] = [
   'to',
   'two',
   'what',
+  'we',
   'which',
   'you',
 ];
