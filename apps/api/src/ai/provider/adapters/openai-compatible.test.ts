@@ -181,8 +181,8 @@ describe('OpenAI-compatible stream', () => {
     const streamBody = [
       'data: {"choices":[{"delta":{"content":null},"finish_reason":null}],"usage":null}',
       'data: {"choices":[{"delta":{"content":"A clear "},"finish_reason":null}],"usage":null}',
-      'data: {"choices":[{"delta":{"content":"answer."},"finish_reason":null}],"usage":null}',
-      'data: {"choices":[{"delta":{},"finish_reason":"stop"}],"usage":null}',
+      'data: {"choices":[{"delta":{"content":"answer."}}],"usage":null}',
+      'data: {"choices":[{"finish_reason":"stop"}],"usage":null}',
       'data: {"choices":[],"usage":{"prompt_tokens":120,"completion_tokens":30}}',
       'data: [DONE]',
       '',

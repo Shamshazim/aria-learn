@@ -1,10 +1,13 @@
+/** Bounded body readers for the OpenAI-compatible adapter: SSE framing and response size caps. */
 import type { OpenAiCompatibleEndpoint } from '@/ai/provider/adapters/openai-compatible.types';
 import { AiError } from '@/ai/provider/errors';
 import type { LlmRequest } from '@/ai/provider/types';
 
 const MAX_PROVIDER_RESPONSE_BYTES = 16 * 1_024 * 1_024;
 const RESPONSE_OVERHEAD_BYTES = 64 * 1_024;
-const MAX_BYTES_PER_TOKEN = 64;
+// A streamed token arrives inside a full SSE envelope (id, model, choices…): ~250 bytes on
+// OpenAI, so budget generously; the 16 MB ceiling is the real guard.
+const MAX_BYTES_PER_TOKEN = 512;
 
 /** Reads data fields from an SSE response without assuming network chunk boundaries. */
 export async function* readSseData(

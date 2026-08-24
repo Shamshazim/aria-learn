@@ -1,3 +1,4 @@
+/** One abort signal that fires on caller cancellation or the endpoint deadline, whichever is first. */
 export type RequestTimeout = {
   signal: AbortSignal;
   didExpire: () => boolean;

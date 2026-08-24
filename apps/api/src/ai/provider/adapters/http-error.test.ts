@@ -14,4 +14,10 @@ describe('provider HTTP errors', () => {
       retryAfterMs: 300_000,
     });
   });
+
+  it('ignores an empty Retry-After header', () => {
+    const response = new Response(null, { status: 429, headers: { 'retry-after': '' } });
+
+    expect(createProviderHttpError(response, 0).retryAfterMs).toBeUndefined();
+  });
 });

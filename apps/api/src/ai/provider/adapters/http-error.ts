@@ -13,7 +13,7 @@ export function createProviderHttpError(response: Response, nowMs: number): AiEr
 }
 
 function parseRetryAfter(value: string | null, nowMs: number): number | undefined {
-  if (value === null) return undefined;
+  if (value === null || value.trim() === '') return undefined;
   const seconds = Number(value);
   if (Number.isFinite(seconds) && seconds >= 0) {
     return Math.min(MAX_RETRY_AFTER_MS, seconds * 1_000);

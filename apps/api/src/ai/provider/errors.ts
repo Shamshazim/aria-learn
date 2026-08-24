@@ -1,3 +1,8 @@
+/**
+ * `AiError` deliberately extends `Error`, not `AppError`: it never crosses the wire. It is the
+ * adapter → routing signal (P0-13 retries, falls back or opens a breaker on `category`) and the
+ * message is constant so a vendor body, key or prompt can never leak through it.
+ */
 export type AiErrorCategory =
   'transport' | 'rate_limit' | 'auth' | 'bad_request' | 'content' | 'timeout';
 

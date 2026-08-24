@@ -3,3 +3,7 @@ export type { LoadAiConfigOptions } from './config';
 export { aiConfigSchema } from './config.schema';
 export type { AiConfig } from './config.schema';
 export type { LlmProvider, LlmRequest, LlmResponse, ModelTier, StreamChunk } from './types';
+export { createOpenAiCompatibleProvider } from './adapters/openai-compatible';
+export type { OpenAiCompatibleProviderOptions } from './adapters/openai-compatible';
+export { AiError } from './errors';
+export type { AiErrorCategory } from './errors';

@@ -1,3 +1,4 @@
+/** Turns parsed vendor values into the port's `LlmResponse`, pricing from the endpoint config. */
 import type {
   OpenAiCompatibleEndpoint,
   ResponseValues,
@@ -24,6 +25,7 @@ export function createOpenAiLlmResponse(
   };
 }
 
+/** `null` (no finish chunk arrived) and unknown vendor reasons report `error` rather than guess. */
 function mapFinishReason(reason: string | null): LlmResponse['finishReason'] {
   if (reason === 'stop') return 'stop';
   if (reason === 'length') return 'length';

@@ -1,3 +1,8 @@
+/**
+ * Wire types for the OpenAI chat-completions format: the request we send and the zod schemas
+ * that bound what we accept back (§8 — a hostile or broken vendor stays allocation-safe).
+ * Schemas sit beside these types because they *are* the wire type; nothing else imports them.
+ */
 import { z } from 'zod';
 
 import type { AiConfig } from '@/ai/provider/config.schema';
@@ -46,8 +51,11 @@ export const openAiStreamResponseSchema = z.object({
   choices: z
     .array(
       z.object({
-        delta: z.object({ content: z.string().max(MAX_RESPONSE_TEXT_CHARS).nullable().optional() }),
-        finish_reason: z.string().max(64).nullable(),
+        // Compatible vendors omit `delta` on the finish chunk and `finish_reason` on delta chunks.
+        delta: z
+          .object({ content: z.string().max(MAX_RESPONSE_TEXT_CHARS).nullable().optional() })
+          .optional(),
+        finish_reason: z.string().max(64).nullable().optional(),
       }),
     )
     .max(1),
