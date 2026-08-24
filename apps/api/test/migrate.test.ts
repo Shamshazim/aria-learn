@@ -36,9 +36,10 @@ suite('runMigrations', () => {
       'SELECT version, name, checksum FROM schema_migration ORDER BY version',
     );
 
-    expect(rows.map((row) => row.version)).toEqual(['001', '002']);
+    expect(rows.map((row) => row.version)).toEqual(['001', '002', '003']);
     expect(rows[0]?.name).toBe('identity');
     expect(rows[1]?.name).toBe('ai_generation_log');
+    expect(rows[2]?.name).toBe('content_item');
     expect(rows[0]?.checksum).toMatch(/^[0-9a-f]{64}$/);
   });
 
@@ -46,7 +47,7 @@ suite('runMigrations', () => {
     const outcome = await runMigrations({ pool: database.pool, logger });
 
     expect(outcome.applied).toEqual([]);
-    expect(outcome.skipped).toBe(2);
+    expect(outcome.skipped).toBe(3);
   });
 
   it('stays a no-op when two runs race for the lock', async () => {

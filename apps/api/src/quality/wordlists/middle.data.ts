@@ -13,9 +13,7 @@ export const MIDDLE_WORDS: readonly string[] = [
   'ones',
   'paragraph',
   'regroup',
-  'sentence',
   'tens',
   'than',
   'whole',
-  'write',
 ];
