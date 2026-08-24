@@ -1,0 +1,40 @@
+app:
+  ai:
+    # Start with the simplest quality-first setup. P0-22's golden set decides when FAST
+    # can move to a cheaper endpoint without weakening the tutor.
+    routing:
+      TEACH: { endpoint: anthropic-sonnet }
+      FAST: { endpoint: anthropic-sonnet }
+
+    endpoints:
+      anthropic-sonnet:
+        api: anthropic
+        base-url: https://api.anthropic.com
+        api-key: ${ANTHROPIC_API_KEY}
+        model: claude-sonnet-5
+        max-tokens: 2048
+        timeout-seconds: 60
+        cost-per-mtok-in: 2
+        cost-per-mtok-out: 10
+
+      openai-gpt:
+        api: openai
+        base-url: https://api.openai.com/v1
+        api-key: ${OPENAI_API_KEY}
+        model: gpt-5.6-terra
+        max-tokens: 2048
+        timeout-seconds: 60
+        cost-per-mtok-in: 1.25
+        cost-per-mtok-out: 7.5
+        reasoning: true
+
+      groq-compatible:
+        api: openai
+        base-url: https://api.groq.com/openai/v1
+        api-key: ${GROQ_API_KEY}
+        model: openai/gpt-oss-120b
+        max-tokens: 2048
+        timeout-seconds: 20
+        cost-per-mtok-in: 0.15
+        cost-per-mtok-out: 0.6
+        reasoning: true

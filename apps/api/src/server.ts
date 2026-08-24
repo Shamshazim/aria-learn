@@ -1,3 +1,4 @@
+import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createApp } from '@/app';
 import { ConfigError, loadConfig } from '@/config';
 import type { AppConfig } from '@/config';
@@ -30,9 +31,10 @@ export function start(): void {
 
 function readConfigOrExit(): AppConfig {
   try {
+    loadAiConfig();
     return loadConfig(process.env, VERSION);
   } catch (error) {
-    if (error instanceof ConfigError) {
+    if (error instanceof ConfigError || error instanceof AiConfigError) {
       // Deliberately not the logger: configuration failed, so the logger's own settings are
       // exactly what we cannot trust yet.
       process.stderr.write(`${error.message}\n`);
