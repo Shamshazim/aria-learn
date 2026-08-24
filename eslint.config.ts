@@ -174,6 +174,26 @@ export default defineConfig([
     },
   },
 
+  {
+    // P0-23: the brand is constructed once in scrub.ts. An assertion elsewhere would turn
+    // the privacy guarantee back into a convention.
+    files: ['apps/api/src/**/*.ts'],
+    ignores: ['apps/api/src/privacy/scrub.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "TSAsExpression[typeAnnotation.typeName.name='ScrubbedContext']",
+          message: 'Only scrubLearnerContext may construct ScrubbedContext (P0-23).',
+        },
+        {
+          selector: "TSTypeAssertion[typeAnnotation.typeName.name='ScrubbedContext']",
+          message: 'Only scrubLearnerContext may construct ScrubbedContext (P0-23).',
+        },
+      ],
+    },
+  },
+
   // Last, so formatting never fights the rules above (§7).
   prettier,
 ]);
