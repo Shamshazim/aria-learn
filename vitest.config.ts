@@ -15,6 +15,7 @@ import { defineConfig } from 'vitest/config';
 const EXCLUDED = ['**/node_modules/**', '**/dist/**', 'legacy/**'];
 
 const apiSrc = fileURLToPath(new URL('./apps/api/src', import.meta.url));
+const webSrc = fileURLToPath(new URL('./apps/web/src', import.meta.url));
 
 export default defineConfig({
   test: {
@@ -64,7 +65,9 @@ export default defineConfig({
           environment: 'jsdom',
           include: ['src/**/*.test.{ts,tsx}'],
           exclude: EXCLUDED,
+          setupFiles: ['./src/test/setup.ts'],
         },
+        resolve: { alias: { '@': webSrc } },
       },
     ],
   },

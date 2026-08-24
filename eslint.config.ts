@@ -7,12 +7,6 @@ import { configs as tseslintConfigs } from 'typescript-eslint';
 
 import type { Linter } from 'eslint';
 
-/**
- * The standards in `dev-docs/tickets/CODE-STANDARDS.md`, enforced by the tool rather than by
- * reviewers. Every rule below traces to a numbered section of that document; where the reason
- * is not obvious from the rule name, the comment says which section and why.
- */
-
 const IGNORED = ['node_modules/**', 'legacy/**', '**/dist/**', '**/coverage/**'];
 
 /**
@@ -26,9 +20,6 @@ const FORBIDDEN_IMPORT_PATTERNS = [
     message: 'legacy/ is frozen: never import from it (AGENT-INSTRUCTIONS §2).',
   },
   {
-    // Reaching into another package by path bypasses its public entry point, and with it the
-    // module boundary (§4). Traversing *inside* your own package is fine, so this matches the
-    // workspace layout rather than counting `../` segments.
     group: ['**/apps/*/src/**', '**/packages/*/src/**'],
     message: 'Import another package through @aria/<name>, never by path (§4, §7).',
   },
@@ -80,12 +71,10 @@ const PROVIDER_PRIVATE_IMPORT_PATTERN = {
 };
 
 const typeAwareRules: Linter.RulesRecord = {
-  // §1 — `any` is banned in committed code; use `unknown` and narrow.
   '@typescript-eslint/no-explicit-any': 'error',
 
   '@typescript-eslint/no-non-null-assertion': 'error',
 
-  // §1 — exported functions get explicit return types; inference inside a body is fine.
   '@typescript-eslint/explicit-module-boundary-types': 'error',
 
   // §1 — `verbatimModuleSyntax` requires type-only imports to be spelled as such.
@@ -196,6 +185,17 @@ export default defineConfig([
     files: ['apps/api/**/*.ts'],
     rules: {
       'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['req'] }],
+    },
+  },
+
+  {
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    ignores: ['apps/web/src/api/client.ts', 'apps/web/src/**/*.test.*', 'apps/web/src/test/**'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        { name: 'fetch', message: 'Use the typed API client instead of fetch (P0-05).' },
+      ],
     },
   },
 
