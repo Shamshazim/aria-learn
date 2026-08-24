@@ -54,7 +54,16 @@ describe('loadConfig', () => {
   });
 
   it('treats production as production', () => {
-    expect(loadConfig(env({ NODE_ENV: 'production' }), '1.0.0').isProduction).toBe(true);
+    expect(
+      loadConfig(env({ NODE_ENV: 'production', STATUS_OPERATOR_TOKEN: 'x'.repeat(32) }), '1.0.0')
+        .isProduction,
+    ).toBe(true);
+  });
+
+  it('requires a status operator token in production', () => {
+    expect(() => loadConfig(env({ NODE_ENV: 'production' }), '1.0.0')).toThrow(
+      /STATUS_OPERATOR_TOKEN/,
+    );
   });
 
   it('bounds the per-student daily AI spend cap', () => {

@@ -3,6 +3,7 @@ import { AiError } from '@/ai/provider/errors';
 import {
   createCircuitBreaker,
   type CircuitBreaker,
+  type CircuitStatus,
 } from '@/ai/provider/resilience/circuit-breaker';
 import {
   isAvailabilityCategory,
@@ -24,6 +25,7 @@ export type EndpointRunnerOptions = {
 export type EndpointRunner = {
   complete: (endpointName: string, request: LlmRequest) => Promise<LlmResponse>;
   stream: (endpointName: string, request: LlmRequest) => AsyncIterable<StreamChunk>;
+  status: (endpointName: string) => CircuitStatus;
 };
 
 type RunnerRuntime = EndpointRunnerOptions & { circuitBreaker: CircuitBreaker };
@@ -48,6 +50,7 @@ export function createEndpointRunner(options: EndpointRunnerOptions): EndpointRu
   return {
     complete: (endpointName, request) => complete(runtime, endpointName, request),
     stream: (endpointName, request) => stream(runtime, endpointName, request),
+    status: (endpointName) => runtime.circuitBreaker.status(endpointName),
   };
 }
 

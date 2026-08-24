@@ -1,5 +1,4 @@
-import type { QualityGate } from '@/quality';
-import type { GateFailureReason, GateInput } from '@/quality';
+import type { GateFailureReason, GateInput, QualityGate } from '@/quality';
 
 export type SegmentGateResult =
   | Readonly<{ passed: true; gateMs: number }>

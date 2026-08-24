@@ -1,4 +1,5 @@
 import { AiConfigError, loadAiConfig } from '@/ai/provider';
+import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
 import { readConfigOrExit } from '@/config';
 import { createInventoryService } from '@/curriculum';
@@ -18,7 +19,7 @@ import type { Pool } from 'pg';
  * the port opens, so a broken deployment stops here — never later, in front of a child.
  */
 export async function start(): Promise<void> {
-  readAiConfigOrExit();
+  const aiConfig = readAiConfigOrExit();
   const config = readConfigOrExit();
   // Authored graph defects must stop boot before the API can serve curriculum.
   createInventoryService();
@@ -27,7 +28,30 @@ export async function start(): Promise<void> {
   const pool = createPool(config.database, logger);
   await verifyConnectionOrExit(pool, logger);
 
-  const app = createApp({ config, logger, clock: systemClock, ids: uuidGenerator });
+  let ai: Awaited<ReturnType<typeof createAiRuntime>>;
+  try {
+    ai = await createAiRuntime({
+      aiConfig,
+      appConfig: config,
+      db: pool,
+      ids: uuidGenerator,
+      clock: systemClock,
+      logger,
+      fetch: globalThis.fetch,
+    });
+  } catch (error) {
+    logger.fatal({ err: error }, 'AI endpoint startup checks failed; refusing to start');
+    await closePool(pool, logger);
+    throw error;
+  }
+
+  const app = createApp({
+    config,
+    logger,
+    clock: systemClock,
+    ids: uuidGenerator,
+    statusService: ai.status,
+  });
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
   });
@@ -40,9 +64,9 @@ export async function start(): Promise<void> {
   });
 }
 
-function readAiConfigOrExit(): void {
+function readAiConfigOrExit(): ReturnType<typeof loadAiConfig> {
   try {
-    loadAiConfig(process.env);
+    return loadAiConfig(process.env);
   } catch (error) {
     if (error instanceof AiConfigError) {
       process.stderr.write(`${error.message}\n`);

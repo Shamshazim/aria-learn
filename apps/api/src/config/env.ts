@@ -13,20 +13,33 @@ import type { DatabaseConfig } from './database';
  */
 const DEFAULT_PORT = 3000;
 
-export const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  API_PORT: z.coerce.number().int().min(1).max(65_535).default(DEFAULT_PORT),
-  /** `silent` is a real pino level and the one tests use; it belongs in the contract. */
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-  /** Comma-separated. Empty means "same-origin only", which is the safe default. */
-  CORS_ORIGINS: z.string().default(''),
-  /** Bounds the JSON body so a large payload cannot become a denial of service (§8). */
-  JSON_BODY_LIMIT: z.string().default('100kb'),
-  SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(120_000).default(10_000),
-  AI_DAILY_SPEND_CAP_USD: z.coerce.number().positive().max(100).default(1),
+export const envSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    API_PORT: z.coerce.number().int().min(1).max(65_535).default(DEFAULT_PORT),
+    /** `silent` is a real pino level and the one tests use; it belongs in the contract. */
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+      .default('info'),
+    /** Comma-separated. Empty means "same-origin only", which is the safe default. */
+    CORS_ORIGINS: z.string().default(''),
+    /** Bounds the JSON body so a large payload cannot become a denial of service (§8). */
+    JSON_BODY_LIMIT: z.string().default('100kb'),
+    SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(120_000).default(10_000),
+    AI_DAILY_SPEND_CAP_USD: z.coerce.number().positive().max(100).default(1),
+    STATUS_OPERATOR_TOKEN: z.string().min(32).max(512).optional(),
 
-  ...databaseEnvSchema.shape,
-});
+    ...databaseEnvSchema.shape,
+  })
+  .superRefine((env, context) => {
+    if (env.NODE_ENV === 'production' && env.STATUS_OPERATOR_TOKEN === undefined) {
+      context.addIssue({
+        code: 'custom',
+        path: ['STATUS_OPERATOR_TOKEN'],
+        message: 'is required in production',
+      });
+    }
+  });
 
 export type Env = z.infer<typeof envSchema>;
 
@@ -40,6 +53,7 @@ export type AppConfig = {
   version: string;
   isProduction: boolean;
   aiDailySpendCapUsd: number;
+  statusOperatorToken: string | undefined;
   database: DatabaseConfig;
 };
 
@@ -78,6 +92,7 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
     version,
     isProduction: env.NODE_ENV === 'production',
     aiDailySpendCapUsd: env.AI_DAILY_SPEND_CAP_USD,
+    statusOperatorToken: env.STATUS_OPERATOR_TOKEN,
     database: toDatabaseConfig(env),
   };
 }

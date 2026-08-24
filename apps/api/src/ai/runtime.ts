@@ -1,0 +1,55 @@
+import { createSpendService, type SpendService } from '@/ai/cost';
+import { bootstrapRoutedProvider, type AiConfig } from '@/ai/provider';
+import type { AppConfig } from '@/config';
+import type { Queryable } from '@/db';
+import type { Clock } from '@/lib/clock';
+import type { IdGenerator } from '@/lib/ids';
+import type { Logger } from '@/lib/logger';
+import { createAiGenerationLogRepository } from '@/repositories/ai-generation-log.repository';
+import { createStatusService, type StatusService } from '@/services/status.service';
+
+const BREAKER_FAILURES = 3;
+const BREAKER_COOLDOWN_MS = 30_000;
+
+export async function createAiRuntime(dependencies: {
+  aiConfig: AiConfig;
+  appConfig: AppConfig;
+  db: Queryable;
+  ids: IdGenerator;
+  clock: Clock;
+  logger: Logger;
+  fetch: typeof globalThis.fetch;
+}): Promise<Readonly<{ spend: SpendService; status: StatusService }>> {
+  const repository = createAiGenerationLogRepository({
+    db: dependencies.db,
+    ids: dependencies.ids,
+  });
+  const spend = createSpendService({
+    repository,
+    clock: dependencies.clock,
+    capUsd: dependencies.appConfig.aiDailySpendCapUsd,
+    alert: (event) => {
+      dependencies.logger.warn(event, 'Student daily AI spend cap reached');
+    },
+  });
+  const now = (): number => dependencies.clock.now().getTime();
+  const routed = await bootstrapRoutedProvider(dependencies.aiConfig, {
+    fetch: dependencies.fetch,
+    breaker: { failureThreshold: BREAKER_FAILURES, cooldownMs: BREAKER_COOLDOWN_MS },
+    now,
+    random: Math.random,
+    sleep: (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs)),
+    logger: dependencies.logger,
+    accounting: spend,
+    isProduction: dependencies.appConfig.isProduction,
+  });
+  return {
+    spend,
+    status: createStatusService({
+      endpointNames: routed.endpointNames,
+      health: routed.health,
+      breakers: { get: (endpointName) => routed.provider.endpointStatus(endpointName) },
+      spend,
+    }),
+  };
+}

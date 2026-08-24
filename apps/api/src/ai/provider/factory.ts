@@ -49,7 +49,7 @@ export function createEndpointProviders(
   return providers;
 }
 
-function routedEndpointNames(config: AiConfig): Set<string> {
+export function routedEndpointNames(config: AiConfig): Set<string> {
   const names = new Set<string>();
   for (const route of Object.values(config.app.ai.routing)) {
     names.add(route.endpoint);

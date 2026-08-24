@@ -2,6 +2,7 @@
 import type { AiConfig } from '@/ai/provider/config.schema';
 import { AiError, AiExhaustionError } from '@/ai/provider/errors';
 import { createEndpointProviders, type EndpointProviderDependencies } from '@/ai/provider/factory';
+import type { CircuitStatus } from '@/ai/provider/resilience/circuit-breaker';
 import {
   createEndpointRunner,
   type EndpointRunner,
@@ -24,11 +25,16 @@ type RoutingRuntime = {
   logger: EndpointRunnerOptions['logger'];
 };
 
+export type RoutedLlmProvider = LlmProvider &
+  Readonly<{
+    endpointStatus(endpointName: string): CircuitStatus;
+  }>;
+
 /** Boot-time composition: callers receive routing, never a raw vendor adapter. */
 export function createRoutedLlmProvider(
   config: AiConfig,
   dependencies: RoutedProviderDependencies,
-): LlmProvider {
+): RoutedLlmProvider {
   const providers = createEndpointProviders(config, {
     fetch: dependencies.fetch,
     now: dependencies.now,
@@ -37,7 +43,7 @@ export function createRoutedLlmProvider(
 }
 
 /** Creates the routed provider used by callers; endpoint choice remains entirely in config. */
-export function createRoutingLlmProvider(options: RoutingProviderOptions): LlmProvider {
+export function createRoutingLlmProvider(options: RoutingProviderOptions): RoutedLlmProvider {
   const runtime: RoutingRuntime = {
     config: options.config,
     endpointRunner: createEndpointRunner(options),
@@ -47,6 +53,7 @@ export function createRoutingLlmProvider(options: RoutingProviderOptions): LlmPr
   return {
     complete: (request) => complete(runtime, request),
     stream: (request) => stream(runtime, request),
+    endpointStatus: (endpointName) => runtime.endpointRunner.status(endpointName),
   };
 }
 

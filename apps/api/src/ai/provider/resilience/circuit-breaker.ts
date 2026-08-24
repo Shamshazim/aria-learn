@@ -6,7 +6,14 @@ const MAX_FAILURE_THRESHOLD = 100;
 const MAX_COOLDOWN_MS = 24 * 60 * 60 * 1_000;
 
 type CircuitState =
-  { kind: 'closed'; failures: number } | { kind: 'open'; openedAt: number } | { kind: 'half-open' };
+  | { kind: 'closed'; failures: number }
+  | { kind: 'open'; openedAt: number; failures: number }
+  | { kind: 'half-open'; failures: number };
+
+export type CircuitStatus = Readonly<{
+  state: CircuitState['kind'];
+  consecutiveFailures: number;
+}>;
 
 export type CircuitTransition = {
   endpointName: string;
@@ -23,6 +30,7 @@ export type CircuitBreaker = {
   recordSuccess: (endpointName: string, latencyMs: number) => void;
   recordFailure: (endpointName: string, observation: CircuitObservation) => void;
   recordIndeterminate: (endpointName: string, observation: CircuitObservation) => void;
+  status: (endpointName: string) => CircuitStatus;
 };
 
 export type CircuitBreakerDependencies = {
@@ -54,6 +62,7 @@ export function createCircuitBreaker(
     recordIndeterminate: (endpointName, observation) => {
       recordIndeterminate(endpointName, observation, context);
     },
+    status: (endpointName) => status(endpointName, context),
   };
 }
 
@@ -64,7 +73,7 @@ function tryAcquire(endpointName: string, context: CircuitContext): boolean {
   if (context.dependencies.now() - state.openedAt < context.config.cooldownMs) return false;
   transition(
     endpointName,
-    { from: state, to: { kind: 'half-open' } },
+    { from: state, to: { kind: 'half-open', failures: state.failures } },
     { category: 'probe', latencyMs: 0 },
     context,
   );
@@ -114,7 +123,16 @@ function recordIndeterminate(
 }
 
 function openState(context: CircuitContext): CircuitState {
-  return { kind: 'open', openedAt: context.dependencies.now() };
+  return {
+    kind: 'open',
+    openedAt: context.dependencies.now(),
+    failures: context.config.failureThreshold,
+  };
+}
+
+function status(endpointName: string, context: CircuitContext): CircuitStatus {
+  const state = context.states.get(endpointName) ?? { kind: 'closed', failures: 0 };
+  return { state: state.kind, consecutiveFailures: state.failures };
 }
 
 function transition(

@@ -59,6 +59,7 @@ const PROVIDER_COMPOSITION_IMPORT_RESTRICTION = {
   allowImportNames: [
     ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
     'RoutedProviderDependencies',
+    'bootstrapRoutedProvider',
     'createRoutedLlmProvider',
   ],
 };
@@ -207,6 +208,7 @@ export default defineConfig([
       'apps/api/src/ai/provider/**/*.ts',
       'apps/api/src/ai/client/ai-client.ts',
       'apps/api/src/ai/streaming/**/*.ts',
+      'apps/api/src/ai/runtime.ts',
       'apps/api/src/server.ts',
     ],
     rules: {
@@ -225,7 +227,7 @@ export default defineConfig([
   },
 
   {
-    files: ['apps/api/src/server.ts'],
+    files: ['apps/api/src/server.ts', 'apps/api/src/ai/runtime.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
