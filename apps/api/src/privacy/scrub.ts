@@ -1,3 +1,4 @@
+import { assertContextWithinBounds } from '@/privacy/rules/context-policy';
 import { excludeParentRestrictedFacts } from '@/privacy/rules/exclusions';
 import { createIdentifierRules, type IdentifierRule } from '@/privacy/rules/identifiers';
 import { redactText } from '@/privacy/rules/redact';
@@ -68,6 +69,7 @@ export function scrubLearnerContext(
   raw: RawLearnerContext,
   options: ScrubOptions,
 ): ScrubbedContext {
+  assertContextWithinBounds(raw);
   const rules = createIdentifierRules(raw.identifiers);
   const skill = scrubOptional(raw.skill, rules);
   const gradeBand = scrubOptional(raw.gradeBand, rules);

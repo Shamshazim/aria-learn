@@ -18,6 +18,26 @@ const GENERIC_RULES: readonly IdentifierRule[] = [
       /\bmy\s+(?:full\s+)?name\s+is\s+[\p{L}'-]+(?:\s+[\p{L}'-]+){0,3}?(?=[,.!?;]|$|\s+(?:and|but|because)\b)/giu,
   },
   {
+    kind: 'full_name',
+    pattern:
+      /\b(?:i(?:'m| am)|call me)\s+[\p{L}'-]+(?:\s+[\p{L}'-]+){0,3}?(?=[,.!?;]|$|\s+(?:and|but|because)\b)/giu,
+  },
+  {
+    kind: 'full_name',
+    pattern:
+      /(?<![\p{L}'-])(?:[\p{Lu}][\p{L}'-]*)(?:\s+[\p{Lu}][\p{L}'-]*){1,3}(?=\s+(?:answered|asked|got|read|said|selected|solved|tried|wrote)\b)/gu,
+  },
+  {
+    kind: 'full_name',
+    pattern:
+      /(?<![\p{L}'-])(?:[\p{Lu}][\p{L}'-]*\s+){1,3}[\p{Lu}][\p{L}-]*(?=['’]s\s+(?:answer|attempt|response|work)\b)/gu,
+  },
+  {
+    kind: 'full_name',
+    pattern:
+      /\b(?:ask|call|remind|tell)\s+(?:[\p{L}'-]+\s+){0,3}[\p{L}'-]+(?=\s+(?:again|next|later|now)\b)/giu,
+  },
+  {
     kind: 'phone',
     pattern: /(?<!\d)(?:\+?1[\s.-]?)?(?:\(\d{3}\)|\d{3})[\s.-]\d{3}[\s.-]\d{4}(?!\d)/g,
   },

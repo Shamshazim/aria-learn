@@ -27,4 +27,28 @@ describe('scrubLearnerContext', () => {
     ]);
     expect(JSON.stringify(scrubbed.value)).not.toContain('Private family fact');
   });
+
+  it('preserves title-cased educational context', () => {
+    const scrubbed = scrubLearnerContext(
+      {
+        identifiers: { fullName: 'Priya Shah' },
+        skill: 'Common Core Fractions',
+        recentEvidence: ['Used The Pythagorean Theorem correctly.'],
+        learnerMemory: [
+          {
+            category: 'preference',
+            modelShareable: true,
+            text: 'Enjoys Ancient Rome and Ancient Greece.',
+          },
+        ],
+      },
+      { pseudonym: 'omit' },
+    );
+
+    expect(scrubbed.value).toMatchObject({
+      skill: 'Common Core Fractions',
+      recentEvidence: ['Used The Pythagorean Theorem correctly.'],
+      learnerMemory: [{ category: 'preference', text: 'Enjoys Ancient Rome and Ancient Greece.' }],
+    });
+  });
 });

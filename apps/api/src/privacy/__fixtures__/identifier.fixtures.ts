@@ -23,6 +23,48 @@ export const identifierFixtures: readonly IdentifierFixture[] = [
     },
   },
   {
+    identifier: 'Jordan Rivera',
+    raw: {
+      identifiers: {},
+      recentEvidence: ["I'm Jordan Rivera."],
+    },
+  },
+  {
+    identifier: 'Jordan Rivera',
+    raw: {
+      identifiers: {},
+      recentEvidence: ['Jordan Rivera answered correctly.'],
+    },
+  },
+  {
+    identifier: 'Jordan Rivera',
+    raw: {
+      identifiers: {},
+      recentEvidence: ['Ask Jordan Rivera again.'],
+    },
+  },
+  {
+    identifier: 'Jordan Rivera',
+    raw: {
+      identifiers: {},
+      recentEvidence: ['Jordan Rivera solved the problem.'],
+    },
+  },
+  {
+    identifier: 'Jordan Rivera',
+    raw: {
+      identifiers: {},
+      recentEvidence: ['Jordan Rivera got it right.'],
+    },
+  },
+  {
+    identifier: 'Jordan Rivera',
+    raw: {
+      identifiers: {},
+      recentEvidence: ["This is Jordan Rivera's answer."],
+    },
+  },
+  {
     identifier: 'Lincoln Elementary School',
     raw: {
       identifiers: {},

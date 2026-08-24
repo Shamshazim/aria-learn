@@ -175,22 +175,12 @@ export default defineConfig([
   },
 
   {
-    // P0-23: the brand is constructed once in scrub.ts. An assertion elsewhere would turn
-    // the privacy guarantee back into a convention.
+    // P0-23: the brand is constructed once in scrub.ts. Type-aware assertion checking catches
+    // aliases and indirect type expressions, not just the written name `ScrubbedContext`.
     files: ['apps/api/src/**/*.ts'],
     ignores: ['apps/api/src/privacy/scrub.ts'],
     rules: {
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: "TSAsExpression[typeAnnotation.typeName.name='ScrubbedContext']",
-          message: 'Only scrubLearnerContext may construct ScrubbedContext (P0-23).',
-        },
-        {
-          selector: "TSTypeAssertion[typeAnnotation.typeName.name='ScrubbedContext']",
-          message: 'Only scrubLearnerContext may construct ScrubbedContext (P0-23).',
-        },
-      ],
+      '@typescript-eslint/no-unsafe-type-assertion': 'error',
     },
   },
 
