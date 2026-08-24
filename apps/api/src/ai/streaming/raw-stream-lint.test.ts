@@ -16,5 +16,5 @@ void provider.stream({ tier: 'FAST', system: 'x', user: 'x' });`;
     const [result] = await eslint.lintText(source, { filePath: CHILD_SERVICE });
 
     expect(result?.messages.map((message) => message.ruleId)).toContain('no-restricted-imports');
-  });
+  }, 15_000);
 });

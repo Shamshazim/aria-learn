@@ -1,0 +1,866 @@
+[
+  {
+    "id": "read-101",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-102",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-103",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-104",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-105",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-106",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-107",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-108",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-109",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-110",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-111",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-112",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-113",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-114",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-115",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-116",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-117",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-118",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-119",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-120",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-121",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-122",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-123",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-124",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-125",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-126",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-127",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-128",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-129",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-130",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-131",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-132",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-133",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-134",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-135",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-136",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-137",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-138",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-139",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-140",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-141",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-142",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-143",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-144",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-145",
+    "subject": "reading",
+    "skillCode": "PA.RHYME",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking for a word that rhymes with cat. The answer must be exactly hat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "hat"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-146",
+    "subject": "reading",
+    "skillCode": "PA.BLEND",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word cat. The answer must be exactly cat.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "cat",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-147",
+    "subject": "reading",
+    "skillCode": "PH.CVC",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item that asks the learner to blend or decode the word sit. The answer must be exactly sit.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "expectedAnswer": "sit",
+      "decodablePattern": "cvc"
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-148",
+    "subject": "reading",
+    "skillCode": "PH.SILENT_E",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for PH.SILENT_E.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-149",
+    "subject": "reading",
+    "skillCode": "FL.WCPM.60",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for FL.WCPM.60.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "read-150",
+    "subject": "reading",
+    "skillCode": "CMP.RETELL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one short child-facing practice item for CMP.RETELL.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  }
+]

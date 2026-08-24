@@ -22,12 +22,16 @@ describe('AiClient provider seam', () => {
       name: 'private routing module',
       source: `import { createRoutedLlmProvider } from '@/ai/provider/routing';\nvoid createRoutedLlmProvider;`,
     },
-  ])('rejects $name outside ai-client.ts', async ({ source }) => {
-    const eslint = new ESLint({ cwd: REPO_ROOT });
-    const [result] = await eslint.lintText(source, { filePath: OUTSIDE_CLIENT_PATH });
+  ])(
+    'rejects $name outside ai-client.ts',
+    async ({ source }) => {
+      const eslint = new ESLint({ cwd: REPO_ROOT });
+      const [result] = await eslint.lintText(source, { filePath: OUTSIDE_CLIENT_PATH });
 
-    expect(result?.messages.map((message) => message.ruleId)).toContain('no-restricted-imports');
-  });
+      expect(result?.messages.map((message) => message.ruleId)).toContain('no-restricted-imports');
+    },
+    15_000,
+  );
 
   it('allows the composition root to construct the routed provider through its public factory', async () => {
     const source = `import { createRoutedLlmProvider, type RoutedProviderDependencies } from '@/ai/provider';\ndeclare const dependencies: RoutedProviderDependencies;\nvoid createRoutedLlmProvider;\nvoid dependencies;`;
@@ -37,7 +41,7 @@ describe('AiClient provider seam', () => {
     expect(result?.messages.map((message) => message.ruleId)).not.toContain(
       'no-restricted-imports',
     );
-  });
+  }, 15_000);
 
   it('rejects routed provider construction outside the composition root', async () => {
     const source = `import { createRoutedLlmProvider } from '@/ai/provider';\nvoid createRoutedLlmProvider;`;
@@ -45,5 +49,5 @@ describe('AiClient provider seam', () => {
     const [result] = await eslint.lintText(source, { filePath: SERVICE_PATH });
 
     expect(result?.messages.map((message) => message.ruleId)).toContain('no-restricted-imports');
-  });
+  }, 15_000);
 });

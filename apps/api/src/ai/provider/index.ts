@@ -4,6 +4,7 @@ export { aiConfigSchema } from './config.schema';
 export type { AiConfig } from './config.schema';
 export { AiError, AiExhaustionError } from './errors';
 export type { AiErrorCategory } from './errors';
+export { createNamedEndpointProvider } from './factory';
 export { bootstrapRoutedProvider, EndpointHealthError } from './health';
 export type { EndpointHealthReader, EndpointProbe } from './health';
 export { createRoutedLlmProvider } from './routing';

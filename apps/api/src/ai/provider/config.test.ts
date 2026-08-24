@@ -69,6 +69,24 @@ describe('loadAiConfig loading', () => {
 
     expect(() => loadAiConfig(TEST_ENV, { filePath })).not.toThrow();
   });
+
+  it('resolves an explicitly selected evaluation endpoint', () => {
+    const dormant = KEYLESS_OPENAI_ENDPOINT.replace(
+      '        model: gpt-5',
+      '        api-key: ${OPENAI_API_KEY}\n        model: gpt-5',
+    );
+    const filePath = writeConfig(`${VALID_AI_CONFIG}${dormant}`);
+
+    const config = loadAiConfig(
+      { ...TEST_ENV, OPENAI_API_KEY: 'evaluation-key' },
+      {
+        filePath,
+        requiredEndpointNames: ['dormant'],
+      },
+    );
+
+    expect(config.app.ai.endpoints.dormant?.['api-key']).toBe('evaluation-key');
+  });
 });
 
 describe('loadAiConfig routed endpoints', () => {

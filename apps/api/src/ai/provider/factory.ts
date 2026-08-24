@@ -49,6 +49,15 @@ export function createEndpointProviders(
   return providers;
 }
 
+export function createNamedEndpointProvider(
+  config: AiConfig,
+  endpointName: string,
+  dependencies: EndpointProviderDependencies,
+): LlmProvider {
+  const endpoint = resolvedEndpoint(config, endpointName);
+  return ADAPTER_FACTORIES[endpoint.api](endpointName, endpoint, dependencies);
+}
+
 export function routedEndpointNames(config: AiConfig): Set<string> {
   const names = new Set<string>();
   for (const route of Object.values(config.app.ai.routing)) {

@@ -13,7 +13,6 @@ import type { Linter } from 'eslint';
  * is not obvious from the rule name, the comment says which section and why.
  */
 
-/** Never linted, never built, never imported. `legacy/` is frozen (AGENT-INSTRUCTIONS §2). */
 const IGNORED = ['node_modules/**', 'legacy/**', '**/dist/**', '**/coverage/**'];
 
 /**
@@ -60,6 +59,7 @@ const PROVIDER_COMPOSITION_IMPORT_RESTRICTION = {
     ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
     'RoutedProviderDependencies',
     'bootstrapRoutedProvider',
+    'createNamedEndpointProvider',
     'createRoutedLlmProvider',
   ],
 };
@@ -83,7 +83,6 @@ const typeAwareRules: Linter.RulesRecord = {
   // §1 — `any` is banned in committed code; use `unknown` and narrow.
   '@typescript-eslint/no-explicit-any': 'error',
 
-  // §1 — no `!` to silence the compiler; narrow, or make the type honest.
   '@typescript-eslint/no-non-null-assertion': 'error',
 
   // §1 — exported functions get explicit return types; inference inside a body is fine.
@@ -186,8 +185,6 @@ export default defineConfig([
   },
 
   {
-    // Config files compose tools rather than application layers, so the boundary rule that
-    // keeps an app from reaching outside its package does not apply to them.
     files: ['*.config.ts'],
     rules: { 'no-restricted-imports': 'off' },
   },
@@ -209,6 +206,7 @@ export default defineConfig([
       'apps/api/src/ai/client/ai-client.ts',
       'apps/api/src/ai/streaming/**/*.ts',
       'apps/api/src/ai/runtime.ts',
+      'apps/api/src/testing/golden/live-source.ts',
       'apps/api/src/server.ts',
     ],
     rules: {
@@ -227,7 +225,11 @@ export default defineConfig([
   },
 
   {
-    files: ['apps/api/src/server.ts', 'apps/api/src/ai/runtime.ts'],
+    files: [
+      'apps/api/src/server.ts',
+      'apps/api/src/ai/runtime.ts',
+      'apps/api/src/testing/golden/live-source.ts',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -294,6 +296,5 @@ export default defineConfig([
     rules: { 'max-lines-per-function': 'off' },
   },
 
-  // Last, so formatting never fights the rules above (§7).
   prettier,
 ]);

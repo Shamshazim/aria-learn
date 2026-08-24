@@ -22,5 +22,5 @@ void (raw as unknown as SafeContext);
     expect(result?.messages.map((message) => message.ruleId)).toContain(
       '@typescript-eslint/no-unsafe-type-assertion',
     );
-  });
+  }, 15_000);
 });

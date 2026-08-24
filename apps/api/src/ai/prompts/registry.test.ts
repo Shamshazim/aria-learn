@@ -3,13 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { promptRegistry } from '@/ai/prompts/registry';
 import type { PromptName } from '@/ai/prompts/types';
 
-const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST' }>> = {
-  'classify-safety': { tier: 'FAST' },
-  explain: { tier: 'TEACH' },
-  'grade-short-answer': { tier: 'FAST' },
-  hint: { tier: 'FAST' },
-  'practice-item': { tier: 'TEACH' },
-};
+const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST'; version?: string }>> =
+  {
+    'classify-safety': { tier: 'FAST' },
+    explain: { tier: 'TEACH' },
+    'grade-short-answer': { tier: 'FAST' },
+    hint: { tier: 'FAST' },
+    'practice-item': { tier: 'TEACH', version: '1.1.0' },
+  };
 const PROMPT_NAMES = [
   'classify-safety',
   'explain',
@@ -25,7 +26,7 @@ describe('promptRegistry', () => {
       expect(promptRegistry[name]).toMatchObject({
         name,
         tier: EXPECTED_PROMPTS[name].tier,
-        version: '1.0.0',
+        version: EXPECTED_PROMPTS[name].version ?? '1.0.0',
         jsonMode: true,
       });
     }
@@ -39,8 +40,16 @@ describe('promptRegistry', () => {
       promptRegistry.hint.outputSchema.safeParse({ hint: 'Count on.', extra: true }).success,
     ).toBe(false);
     expect(
-      promptRegistry['practice-item'].outputSchema.safeParse({ prompt: '2 + 2', answer: '4' })
-        .success,
+      promptRegistry['practice-item'].outputSchema.safeParse({
+        prompt: '2 + 2',
+        answer: '4',
+        options: [
+          { id: 'a', text: '3' },
+          { id: 'b', text: '4' },
+          { id: 'c', text: '5' },
+        ],
+        answerKey: 'b',
+      }).success,
     ).toBe(true);
     expect(
       promptRegistry['grade-short-answer'].outputSchema.safeParse({

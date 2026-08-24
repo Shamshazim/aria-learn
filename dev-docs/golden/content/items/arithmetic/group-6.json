@@ -1,0 +1,1202 @@
+[
+  {
+    "id": "arith-251",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 2/4. Answer only yes. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "2/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-252",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 1/8 and 2/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "1/8",
+        "right": "2/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-253",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 13, 14, 15. Ask for the next number. The answer is 16. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["13", "14", "15"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-254",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 10, 15, 20. Ask for the next number. The answer is 25. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["10", "15", "20"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-255",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 1 plus 1 is. The answer is 2. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "1",
+        "right": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-256",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 31 plus 30 is. The answer is 61. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "31",
+        "right": "30"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-257",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 3/4. Answer only no. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "3/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-258",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 2/8 and 3/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "2/8",
+        "right": "3/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-259",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 14, 15, 16. Ask for the next number. The answer is 17. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["14", "15", "16"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-260",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 15, 20, 25. Ask for the next number. The answer is 30. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["15", "20", "25"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-261",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 2 plus 3 is. The answer is 5. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "2",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-262",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 32 plus 31 is. The answer is 63. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "32",
+        "right": "31"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-263",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 2/4. Answer only yes. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "2/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-264",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 3/8 and 4/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "3/8",
+        "right": "4/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-265",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 0, 1, 2. Ask for the next number. The answer is 3. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["0", "1", "2"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-266",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 5, 10, 15. Ask for the next number. The answer is 20. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["5", "10", "15"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-267",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 3 plus 0 is. The answer is 3. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "3",
+        "right": "0"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-268",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 33 plus 17 is. The answer is 50. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "33",
+        "right": "17"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-269",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 3/4. Answer only no. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "3/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-270",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 4/8 and 5/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "4/8",
+        "right": "5/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-271",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 1, 2, 3. Ask for the next number. The answer is 4. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["1", "2", "3"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-272",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 10, 15, 20. Ask for the next number. The answer is 25. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["10", "15", "20"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-273",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 4 plus 2 is. The answer is 6. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "4",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-274",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 34 plus 18 is. The answer is 52. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "34",
+        "right": "18"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-275",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 2/4. Answer only yes. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "2/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-276",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 5/8 and 6/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "5/8",
+        "right": "6/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-277",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 2, 3, 4. Ask for the next number. The answer is 5. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["2", "3", "4"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-278",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 15, 20, 25. Ask for the next number. The answer is 30. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["15", "20", "25"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-279",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 5 plus 4 is. The answer is 9. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "5",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-280",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 35 plus 19 is. The answer is 54. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "35",
+        "right": "19"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-281",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 3/4. Answer only no. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "3/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-282",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 6/8 and 7/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "6/8",
+        "right": "7/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-283",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 3, 4, 5. Ask for the next number. The answer is 6. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["3", "4", "5"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-284",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 5, 10, 15. Ask for the next number. The answer is 20. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["5", "10", "15"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-285",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 0 plus 1 is. The answer is 1. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "0",
+        "right": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-286",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 36 plus 20 is. The answer is 56. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "36",
+        "right": "20"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-287",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 2/4. Answer only yes. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "2/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-288",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 7/8 and 7/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "7/8",
+        "right": "7/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-289",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 4, 5, 6. Ask for the next number. The answer is 7. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["4", "5", "6"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-290",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 10, 15, 20. Ask for the next number. The answer is 25. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["10", "15", "20"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-291",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 1 plus 3 is. The answer is 4. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "1",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-292",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 37 plus 21 is. The answer is 58. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "37",
+        "right": "21"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-293",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 3/4. Answer only no. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "3/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-294",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 1/8 and 2/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "1/8",
+        "right": "2/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-295",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.20",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 5, 6, 7. Ask for the next number. The answer is 8. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.20",
+        "kind": "sequence",
+        "values": ["5", "6", "7"],
+        "step": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-296",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CNT.SKIP5",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item using exactly the sequence 15, 20, 25. Ask for the next number. The answer is 30. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CNT.SKIP5",
+        "kind": "sequence",
+        "values": ["15", "20", "25"],
+        "step": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-297",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.10",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 2 plus 0 is. The answer is 2. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.10",
+        "kind": "addition",
+        "left": "2",
+        "right": "0"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-298",
+    "subject": "arithmetic",
+    "skillCode": "ADD.REGROUP.2D",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item asking exactly what 38 plus 22 is. The answer is 60. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.REGROUP.2D",
+        "kind": "addition",
+        "left": "38",
+        "right": "22"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-299",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUAL",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one yes-or-no item asking whether 1/2 equals 2/4. Answer only yes. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUAL",
+        "kind": "fraction-equality",
+        "left": "1/2",
+        "right": "2/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "arith-300",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.COMPARE",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one item comparing 2/8 and 3/8. The answer is <. Make it multiple choice with exactly one option matching the answer.",
+      "difficulty": "same"
+    },
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.COMPARE",
+        "kind": "fraction-comparison",
+        "left": "2/8",
+        "right": "3/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  }
+]

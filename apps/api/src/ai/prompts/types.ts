@@ -15,7 +15,12 @@ export type HintPromptOutput = Readonly<{ hint: string }>;
 
 export type PracticeItemPromptInput = ContextInput &
   Readonly<{ skill: string; difficulty: 'easier' | 'same' | 'harder' }>;
-export type PracticeItemPromptOutput = Readonly<{ prompt: string; answer: string }>;
+export type PracticeItemPromptOutput = Readonly<{
+  prompt: string;
+  answer: string;
+  options?: readonly Readonly<{ id: string; text: string }>[] | undefined;
+  answerKey?: string | undefined;
+}>;
 
 export type GradeShortAnswerPromptInput = ContextInput &
   Readonly<{ question: string; expectedAnswer: string; learnerAnswer: string }>;

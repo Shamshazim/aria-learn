@@ -21,6 +21,7 @@ const CONFIG_SIZE_ERROR = `AI configuration must not exceed ${String(MAX_CONFIG_
 
 export type LoadAiConfigOptions = {
   filePath?: string;
+  requiredEndpointNames?: readonly string[];
 };
 
 /** Boot-time only, like `ConfigError`: it never reaches a client, so it is not an AppError. */
@@ -35,7 +36,7 @@ export function loadAiConfig(env: NodeJS.ProcessEnv, options: LoadAiConfigOption
   const filePath = options.filePath ?? DEFAULT_CONFIG_PATH;
   const config = parseConfig(readConfigFile(filePath));
 
-  return resolveRoutedKeys(config, env);
+  return resolveRequiredKeys(config, env, options.requiredEndpointNames ?? []);
 }
 
 function readConfigFile(filePath: string): string {
@@ -72,17 +73,24 @@ function parseConfig(source: string): AiConfig {
   return parsed.data;
 }
 
-function resolveRoutedKeys(config: AiConfig, env: NodeJS.ProcessEnv): AiConfig {
+function resolveRequiredKeys(
+  config: AiConfig,
+  env: NodeJS.ProcessEnv,
+  additionalNames: readonly string[],
+): AiConfig {
   const endpointNames = new Set(
     Object.values(config.app.ai.routing).flatMap((route) =>
       route.fallback === undefined ? [route.endpoint] : [route.endpoint, route.fallback],
     ),
   );
+  for (const endpointName of additionalNames) endpointNames.add(endpointName);
   const endpoints = { ...config.app.ai.endpoints };
 
   for (const endpointName of endpointNames) {
     const endpoint = endpoints[endpointName];
-    if (endpoint === undefined) continue;
+    if (endpoint === undefined) {
+      throw new AiConfigError(`AI endpoint "${endpointName}" is required but not configured`);
+    }
 
     const variableName = ENVIRONMENT_REFERENCE.exec(endpoint['api-key'] ?? '')?.[1];
     if (variableName === undefined) {

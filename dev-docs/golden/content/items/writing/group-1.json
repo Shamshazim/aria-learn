@@ -1,0 +1,802 @@
+[
+  {
+    "id": "write-001",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-002",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-003",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-004",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-005",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-006",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-007",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-008",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-009",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-010",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-011",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-012",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-013",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-014",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-015",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-016",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-017",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-018",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-019",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-020",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-021",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-022",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-023",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-024",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-025",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-026",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-027",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-028",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-029",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-030",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-031",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-032",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-033",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-034",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-035",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-036",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-037",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-038",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-039",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-040",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-041",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-042",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-043",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-044",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-045",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-046",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-047",
+    "subject": "writing",
+    "skillCode": "WR.PARAGRAPH",
+    "band": "middle",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.PARAGRAPH. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-048",
+    "subject": "writing",
+    "skillCode": "WR.SHORT_PIECE",
+    "band": "senior",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SHORT_PIECE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-049",
+    "subject": "writing",
+    "skillCode": "WR.WORD",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.WORD. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  },
+  {
+    "id": "write-050",
+    "subject": "writing",
+    "skillCode": "WR.SENTENCE",
+    "band": "early",
+    "promptName": "practice-item",
+    "input": {
+      "skill": "Create one bounded writing practice item for WR.SENTENCE. Give a concise example answer.",
+      "difficulty": "same"
+    },
+    "expectation": {},
+    "humanReview": {
+      "status": "pending",
+      "notes": "Expectation drafted; independent curriculum reviewer approval is still required."
+    }
+  }
+]

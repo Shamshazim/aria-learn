@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { AiConfig } from '@/ai/provider/config.schema';
-import { createEndpointProviders } from '@/ai/provider/factory';
+import { createEndpointProviders, createNamedEndpointProvider } from '@/ai/provider/factory';
 
 describe('endpoint provider factory', () => {
   it('constructs each routed endpoint once and leaves unreferenced endpoints inert', () => {
@@ -11,6 +11,15 @@ describe('endpoint provider factory', () => {
     });
 
     expect([...providers.keys()]).toEqual(['anthropic-primary', 'openai-fallback']);
+  });
+
+  it('constructs one explicitly named configured endpoint for evaluation', () => {
+    const provider = createNamedEndpointProvider(config(), 'dormant', {
+      fetch: () => Promise.reject(new Error('Network is not called during construction')),
+      now: () => 0,
+    });
+
+    expect(provider).toBeDefined();
   });
 });
 

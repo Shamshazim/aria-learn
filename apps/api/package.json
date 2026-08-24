@@ -9,6 +9,7 @@
     "db:migrate": "tsx src/scripts/migrate.ts",
     "dev": "tsx watch src/index.ts",
     "golden:tutoring": "tsx src/testing/tutoring/run-cli.ts",
+    "golden:content": "tsx src/testing/golden/run-cli.ts",
     "start": "tsx src/index.ts",
     "test": "cd ../.. && vitest run --project api",
     "typecheck": "tsc --noEmit -p tsconfig.json"
