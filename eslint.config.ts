@@ -51,7 +51,16 @@ const PROVIDER_PUBLIC_IMPORT_RESTRICTION = {
     'aiConfigSchema',
     'loadAiConfig',
   ],
-  message: 'Only ai-client.ts may construct or call the routed provider (P0-14).',
+  message: 'Only ai-client.ts may depend on or call the LlmProvider port (P0-14).',
+};
+
+const PROVIDER_COMPOSITION_IMPORT_RESTRICTION = {
+  ...PROVIDER_PUBLIC_IMPORT_RESTRICTION,
+  allowImportNames: [
+    ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
+    'RoutedProviderDependencies',
+    'createRoutedLlmProvider',
+  ],
 };
 
 const PROVIDER_PRIVATE_IMPORT_PATTERN = {
@@ -184,12 +193,33 @@ export default defineConfig([
 
   {
     files: ['apps/api/src/**/*.ts'],
-    ignores: ['apps/api/src/ai/provider/**/*.ts', 'apps/api/src/ai/client/ai-client.ts'],
+    ignores: [
+      'apps/api/src/ai/provider/**/*.ts',
+      'apps/api/src/ai/client/ai-client.ts',
+      'apps/api/src/server.ts',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           paths: [PROVIDER_PUBLIC_IMPORT_RESTRICTION],
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: ['apps/api/src/server.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [PROVIDER_COMPOSITION_IMPORT_RESTRICTION],
           patterns: [
             ...FORBIDDEN_IMPORT_PATTERNS,
             PROVIDER_INTERNAL_IMPORT_PATTERN,
