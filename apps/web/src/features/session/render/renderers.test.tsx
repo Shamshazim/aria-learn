@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { MOVE_KINDS, type Band, type TutorMove } from '@aria/shared';
 
+import { AskAriaPanel } from '@/features/session/components/AskAriaPanel';
 import { InputSurface } from '@/features/session/components/InputSurface';
 import { TutorStatus } from '@/features/session/components/TutorStatus';
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
@@ -98,6 +99,44 @@ describe('move renderer registry', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Answer' }));
 
     expect(answer).toHaveBeenCalledWith('12.5');
+  });
+
+  it('does not invent dot arithmetic for an unknown visual', async () => {
+    const ask = (await allMoveKinds()).find((move) => move.kind === 'ASK');
+    expect(ask).toBeDefined();
+    if (ask === undefined) return;
+
+    render(
+      <MoveView
+        band="middle"
+        move={{
+          ...ask,
+          display: [
+            {
+              type: 'visual',
+              visual: 'number-line',
+              params: {},
+              alt: 'A number line from zero to ten',
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('A number line from zero to ten')).toBeInTheDocument();
+    expect(screen.queryByText('+')).not.toBeInTheDocument();
+  });
+
+  it('keeps the submitted question in the Ask Aria conversation', async () => {
+    const onQuestion = vi.fn().mockResolvedValue(undefined);
+    render(<AskAriaPanel band="middle" onQuestion={onQuestion} reply="Let us look together." />);
+    const input = screen.getByRole('textbox', { name: 'Question for Aria' });
+    expect(input).toHaveAttribute('maxlength', '2000');
+    fireEvent.change(input, { target: { value: 'Why does that work?' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send question' }));
+
+    expect(await screen.findByText('Why does that work?')).toBeInTheDocument();
+    expect(screen.getByText('Let us look together.')).toBeInTheDocument();
   });
 });
 

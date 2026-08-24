@@ -22,4 +22,25 @@ for (const [band, route] of Object.entries(BAND_ROUTES)) {
       await expect(page.locator('body')).not.toContainText('Something went wrong');
     }
   });
+
+  if (band !== 'early') {
+    test(`${band} layout keeps Ask Aria usable`, async ({ page }) => {
+      await page.goto(route);
+      await page.getByText('What is four plus three?').waitFor();
+      const docked = (page.viewportSize()?.width ?? 0) > 1080;
+      const input = page.getByRole('textbox', {
+        name: docked ? 'Question for Aria' : 'Ask Aria on this screen',
+      });
+      await input.fill('Why does that work?');
+      await input.press('Enter');
+
+      await page
+        .getByText('That is a thoughtful question. Let us look together.')
+        .first()
+        .waitFor();
+      if (docked) {
+        await expect(page.locator('.aria-chat')).toContainText('Why does that work?');
+      }
+    });
+  }
 }

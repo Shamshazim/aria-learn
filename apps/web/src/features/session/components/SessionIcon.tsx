@@ -1,5 +1,5 @@
 export type SessionIconName =
-  'arrow' | 'back' | 'confused' | 'hand' | 'mic' | 'pause' | 'play' | 'send' | 'speaker' | 'thumb';
+  'back' | 'confused' | 'hand' | 'pause' | 'play' | 'send' | 'speaker' | 'thumb';
 
 export function SessionIcon({
   name,
@@ -23,8 +23,6 @@ function iconPath(name: SessionIconName): React.JSX.Element {
     strokeWidth: 2,
   } as const;
   switch (name) {
-    case 'arrow':
-      return <path {...line} d="M5 12h14m-5-5 5 5-5 5" />;
     case 'back':
       return <path {...line} d="m15 18-6-6 6-6" />;
     case 'confused':
@@ -39,13 +37,6 @@ function iconPath(name: SessionIconName): React.JSX.Element {
         <path
           {...line}
           d="M7 11V6a1.5 1.5 0 0 1 3 0v4-6a1.5 1.5 0 0 1 3 0v6-4a1.5 1.5 0 0 1 3 0v5-2a1.5 1.5 0 0 1 3 0v4c0 5-3 8-7 8s-7-3-7-7v-3a1.5 1.5 0 0 1 2-1.4"
-        />
-      );
-    case 'mic':
-      return (
-        <path
-          {...line}
-          d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0M12 19v3m-3 0h6"
         />
       );
     case 'pause':

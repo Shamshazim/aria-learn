@@ -15,6 +15,7 @@ import {
   useTutorSession,
 } from '@/features/session';
 import '@/features/session/styles/session.css';
+import '@/features/session/styles/session-chat.css';
 import '@/features/session/styles/session-chrome.css';
 import '@/features/session/styles/session-controls.css';
 import '@/features/session/styles/session-feedback.css';

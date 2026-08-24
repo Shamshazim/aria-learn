@@ -1,0 +1,89 @@
+.aria-chat {
+  background: #fff;
+  border-radius: var(--session-radius-large);
+  box-shadow: var(--session-shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 36rem;
+  overflow: hidden;
+}
+
+.session-layout--senior .aria-chat {
+  border: 0.0625rem solid var(--session-line);
+}
+
+.aria-chat h2 {
+  border-bottom: 0.0625rem solid var(--session-line);
+  font-size: 1rem;
+  margin: 0;
+  padding: 1.125rem 1.25rem;
+}
+
+.aria-chat__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.875rem;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+}
+
+.aria-chat__turn {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.625rem;
+}
+
+.aria-chat__turn p {
+  background: #efecfd;
+  border-radius: 1rem;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+
+.aria-chat__question {
+  align-self: flex-end;
+  background: var(--session-violet-deep);
+  border-radius: 1rem;
+  color: #fff;
+  margin: 0;
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+}
+
+.aria-chat__input {
+  align-items: center;
+  border-top: 0.0625rem solid var(--session-line);
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+}
+
+.aria-chat__input input {
+  border: 0.09375rem solid var(--session-line);
+  border-radius: 999px;
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+}
+
+.aria-chat__input button {
+  background: none;
+  border: 0;
+  color: var(--session-violet-deep);
+  display: grid;
+  height: 2.5rem;
+  place-items: center;
+  width: 2.5rem;
+}
+
+.aria-chat__input button:disabled {
+  opacity: 0.35;
+}
+
+@media (max-width: 67.5rem) {
+  .aria-chat {
+    display: none;
+  }
+}

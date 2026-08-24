@@ -37,7 +37,7 @@ function DisplayContent(props: { content: MoveContent }): React.JSX.Element | nu
     case 'choices':
       return null;
     case 'visual':
-      return <DotGroups content={props.content} />;
+      return <VisualContent content={props.content} />;
     case 'passage':
       return <blockquote>{props.content.body}</blockquote>;
     case 'workpad':
@@ -49,6 +49,13 @@ function DisplayContent(props: { content: MoveContent }): React.JSX.Element | nu
     default:
       return assertNever(props.content);
   }
+}
+
+function VisualContent(props: {
+  content: Extract<MoveContent, { type: 'visual' }>;
+}): React.JSX.Element {
+  if (props.content.visual === 'dot-groups') return <DotGroups content={props.content} />;
+  return <p className="visual-description">{props.content.alt}</p>;
 }
 
 function DotGroups(props: {

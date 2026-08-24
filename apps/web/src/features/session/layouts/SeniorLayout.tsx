@@ -15,9 +15,8 @@ export function SeniorLayout(props: { session: TutorSession }): React.JSX.Elemen
       <LayoutContent session={props.session} />
       <AskAriaPanel
         band="senior"
-        onQuestion={(text) => {
-          void props.session.askQuestion(text);
-        }}
+        onQuestion={props.session.askQuestion}
+        reply={props.session.state.currentMove?.speech?.text ?? null}
       />
     </div>
   );

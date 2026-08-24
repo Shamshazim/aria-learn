@@ -15,7 +15,7 @@ export function SessionControls(props: {
 }): React.JSX.Element {
   return (
     <div aria-label="Session controls" className="session-controls" role="group">
-      {props.showQuestion ? (
+      {props.showQuestion || props.band !== 'early' ? (
         <QuestionControl band={props.band} onQuestion={props.onQuestion} />
       ) : null}
       <button onClick={props.onConfused} type="button">
@@ -44,35 +44,36 @@ function QuestionControl(props: {
   band: Band;
   onQuestion: (text?: string) => void;
 }): React.JSX.Element {
-  if (props.band === 'early') {
+  if (props.band !== 'early') {
     return (
-      <button
-        onClick={() => {
-          props.onQuestion();
+      <form
+        className="session-question-control session-question-control--compact"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const question = new FormData(event.currentTarget).get('question');
+          props.onQuestion(typeof question === 'string' ? question : '');
         }}
-        type="button"
       >
-        <SessionIcon name="send" /> <span>Ask Aria</span>
-      </button>
+        <input
+          aria-label="Ask Aria on this screen"
+          maxLength={2_000}
+          name="question"
+          placeholder="Ask Aria"
+          required
+        />
+        <button type="submit">Ask</button>
+      </form>
     );
   }
   return (
-    <form
-      onSubmit={(event) => {
-        submitQuestion(event, props.onQuestion);
+    <button
+      className="session-question-control"
+      onClick={() => {
+        props.onQuestion();
       }}
+      type="button"
     >
-      <input aria-label="Question for Aria" name="question" required />
-      <button type="submit">Ask Aria</button>
-    </form>
+      <SessionIcon name="send" /> <span>Ask Aria</span>
+    </button>
   );
-}
-
-function submitQuestion(
-  event: React.SyntheticEvent<HTMLFormElement, SubmitEvent>,
-  onQuestion: (text?: string) => void,
-): void {
-  event.preventDefault();
-  const question = new FormData(event.currentTarget).get('question');
-  onQuestion(typeof question === 'string' ? question : '');
 }

@@ -9,11 +9,17 @@
 }
 
 .move-card,
-.move-card p { margin-top: 0; }
+.move-card p {
+  margin-top: 0;
+}
 
-.move-region { min-height: 6rem; }
+.move-region {
+  min-height: 6rem;
+}
 
-.move-content:empty { display: none; }
+.move-content:empty {
+  display: none;
+}
 
 .dot-groups {
   align-items: center;
@@ -49,6 +55,12 @@
   font-weight: 700;
 }
 
+.visual-description {
+  color: var(--session-ink-soft);
+  margin: 1.25rem 0 0;
+  text-align: center;
+}
+
 .move-card blockquote {
   border-left: 0.1875rem solid var(--session-violet);
   line-height: 1.65;
@@ -62,13 +74,6 @@
   font-family: Georgia, serif;
   font-size: 1.125rem;
   margin: 1.25rem 0 0;
-  padding: 1rem;
-}
-
-.recommendation-card,
-.break-card {
-  border: 0.125rem solid var(--session-line);
-  border-radius: var(--session-radius-medium);
   padding: 1rem;
 }
 
@@ -87,7 +92,10 @@
 }
 
 @keyframes verdict-pop {
-  from { opacity: 0; transform: scale(0.94); }
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
 }
 
 .early-listen {
