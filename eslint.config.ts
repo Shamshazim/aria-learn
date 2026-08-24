@@ -35,6 +35,11 @@ const FORBIDDEN_IMPORT_PATTERNS = [
   },
 ];
 
+const PROVIDER_INTERNAL_IMPORT_PATTERN = {
+  group: ['@/ai/provider/adapters/**', '**/ai/provider/adapters/**'],
+  message: 'Vendor adapters are internal; depend on the routed provider entry point (P0-13).',
+};
+
 const typeAwareRules: Linter.RulesRecord = {
   // §1 — `any` is banned in committed code; use `unknown` and narrow.
   '@typescript-eslint/no-explicit-any': 'error',
@@ -155,6 +160,17 @@ export default defineConfig([
     files: ['apps/api/**/*.ts'],
     rules: {
       'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['req'] }],
+    },
+  },
+
+  {
+    files: ['apps/api/src/**/*.ts'],
+    ignores: ['apps/api/src/ai/provider/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: [...FORBIDDEN_IMPORT_PATTERNS, PROVIDER_INTERNAL_IMPORT_PATTERN] },
+      ],
     },
   },
 

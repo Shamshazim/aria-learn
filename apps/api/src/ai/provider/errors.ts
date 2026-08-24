@@ -18,3 +18,14 @@ export class AiError extends Error {
     this.retryAfterMs = retryAfterMs;
   }
 }
+
+/** All configured availability paths failed; its message is safe for higher layers to expose. */
+export class AiExhaustionError extends ServiceUnavailableError {
+  readonly category: AiErrorCategory;
+
+  constructor(cause: AiError) {
+    super('AI routes exhausted', cause);
+    this.category = cause.category;
+  }
+}
+import { ServiceUnavailableError } from '@/errors';
