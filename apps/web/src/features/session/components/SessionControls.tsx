@@ -1,5 +1,7 @@
 import type { Band } from '@aria/shared';
 
+import { SessionIcon } from '@/features/session/components/SessionIcon';
+
 export function SessionControls(props: {
   band: Band;
   paused: boolean;
@@ -9,26 +11,29 @@ export function SessionControls(props: {
   onPause: () => void;
   onQuestion: (text?: string) => void;
   onResume: () => void;
+  showQuestion: boolean;
 }): React.JSX.Element {
   return (
     <div aria-label="Session controls" className="session-controls" role="group">
-      <QuestionControl band={props.band} onQuestion={props.onQuestion} />
+      {props.showQuestion ? (
+        <QuestionControl band={props.band} onQuestion={props.onQuestion} />
+      ) : null}
       <button onClick={props.onConfused} type="button">
-        🧩 <span>I don't get it</span>
+        <SessionIcon name="confused" /> <span>I don&apos;t get it</span>
       </button>
       <button onClick={props.onInterrupt} type="button">
-        ✋ <span>Let me talk</span>
+        <SessionIcon name="hand" /> <span>Let me talk</span>
       </button>
       <button onClick={props.onBackchannel} type="button">
-        👍 <span>I'm with you</span>
+        <SessionIcon name="thumb" /> <span>I&apos;m with you</span>
       </button>
       {props.paused ? (
         <button onClick={props.onResume} type="button">
-          ▶️ <span>Continue</span>
+          <SessionIcon name="play" /> <span>Continue</span>
         </button>
       ) : (
         <button onClick={props.onPause} type="button">
-          ⏸️ <span>Take a break</span>
+          <SessionIcon name="pause" /> <span>Take a break</span>
         </button>
       )}
     </div>
@@ -47,7 +52,7 @@ function QuestionControl(props: {
         }}
         type="button"
       >
-        ❓ <span>Ask Aria</span>
+        <SessionIcon name="send" /> <span>Ask Aria</span>
       </button>
     );
   }

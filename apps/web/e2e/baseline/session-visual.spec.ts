@@ -5,7 +5,7 @@ import { answerWrong, BAND_ROUTES, finishSession } from '../fixtures/scripted-se
 test.beforeEach(async ({ page }) => page.emulateMedia({ reducedMotion: 'reduce' }));
 
 test('class picker baseline', async ({ page }) => {
-  await page.goto('/choose');
+  await page.goto('/');
   await page.getByRole('heading', { level: 1 }).waitFor();
   await expect(page).toHaveScreenshot('class-picker.png', { animations: 'disabled' });
 });

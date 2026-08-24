@@ -9,7 +9,7 @@ const STATUS_COPY: Readonly<Record<Status, string>> = {
 
 export function TutorStatus(props: { status: Status }): React.JSX.Element {
   return (
-    <p className="tutor-status" data-status={props.status} role="status">
+    <p className="tutor-status visually-hidden" data-status={props.status} role="status">
       <span aria-hidden="true" className="tutor-status__mark" />
       {STATUS_COPY[props.status]}
     </p>

@@ -15,6 +15,8 @@ import {
   useTutorSession,
 } from '@/features/session';
 import '@/features/session/styles/session.css';
+import '@/features/session/styles/session-chrome.css';
+import '@/features/session/styles/session-controls.css';
 import '@/features/session/styles/session-feedback.css';
 
 export default function SessionPage(): React.JSX.Element {
@@ -45,7 +47,7 @@ function SessionForGrade(props: {
   });
   return (
     <div className="session-app" data-band={band}>
-      <SessionTopbar subject={props.subject} />
+      <SessionTopbar band={band} subject={props.subject} />
       <ConnectionNotice band={band} status={session.connectionStatus} />
       <main>
         <h1 className="visually-hidden">{props.subject} learning session</h1>

@@ -1,0 +1,105 @@
+.class-picker-app { min-height: 100vh; }
+
+.class-picker-topbar { justify-content: space-between; }
+
+.class-picker-topbar__note {
+  color: var(--session-ink-soft);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.class-picker {
+  margin: 0 auto;
+  max-width: 58rem;
+  padding: 2rem 1.625rem 3rem;
+  width: 100%;
+}
+
+.class-picker__hello {
+  align-items: center;
+  display: grid;
+  gap: 0 1.375rem;
+  grid-template-columns: auto 1fr;
+  margin-bottom: 1.75rem;
+}
+
+.class-picker__hello .aria-owl { grid-row: span 2; }
+
+.class-picker__hello h1 {
+  align-self: end;
+  font-family: var(--session-display-font);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.class-picker__hello p {
+  align-self: start;
+  color: var(--session-ink-soft);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0;
+}
+
+.class-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.class-card {
+  align-items: center;
+  border: 0.125rem solid;
+  border-radius: var(--session-radius-large);
+  box-shadow: var(--session-shadow);
+  color: var(--session-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-height: 18rem;
+  padding: 1.875rem 1.375rem;
+  text-align: center;
+  text-decoration: none;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.class-card--math { background: #e4edfe; border-color: #2f73f0; }
+.class-card--reading { background: #fdece4; border-color: #ee7a3c; }
+.class-card--science { background: #e3f5ea; border-color: #3d9e63; }
+
+.class-card:hover {
+  box-shadow: 0 0.875rem 2.125rem rgb(56 42 120 / 16%);
+  transform: translateY(-0.25rem);
+}
+
+.class-card__face { font-size: 4rem; line-height: 1; }
+
+.class-card strong {
+  font-family: var(--session-display-font);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.class-card__note {
+  color: #57526f;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.class-card small {
+  color: #615c79;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-top: auto;
+}
+
+@media (max-width: 48rem) {
+  .class-grid { grid-template-columns: 1fr; }
+  .class-card { min-height: 12rem; }
+}
+
+@media (max-width: 36rem) {
+  .class-picker__hello { grid-template-columns: 1fr; text-align: center; }
+  .class-picker__hello .aria-owl { grid-row: auto; margin: 0 auto; }
+}

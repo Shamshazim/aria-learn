@@ -1,7 +1,5 @@
 import type { Band, MoveKind, TutorMove } from '@aria/shared';
 
-import { BreakCard } from '@/features/session/components/BreakCard';
-import { RecommendationCard } from '@/features/session/components/RecommendationCard';
 import { EarlyListen } from '@/features/session/render/renderers/early/Listen';
 import { EarlyMove } from '@/features/session/render/renderers/early/Move';
 import { MiddleMove } from '@/features/session/render/renderers/middle/Move';
@@ -13,7 +11,7 @@ type BandRegistry = Readonly<Record<MoveKind, MoveRenderer>>;
 const early: BandRegistry = {
   WELCOME: EarlyMove,
   CHECK_IN: EarlyMove,
-  RECOMMEND: RecommendationCard,
+  RECOMMEND: EarlyMove,
   SAY: EarlyMove,
   SHOW: EarlyMove,
   ASK: EarlyMove,
@@ -23,7 +21,7 @@ const early: BandRegistry = {
   REVEAL: EarlyMove,
   PRAISE: EarlyMove,
   SWITCH: EarlyMove,
-  BREAK: BreakCard,
+  BREAK: EarlyMove,
   END: EarlyMove,
 };
 
@@ -37,7 +35,7 @@ function bandRenderers(renderer: MoveRenderer): BandRegistry {
   return {
     WELCOME: renderer,
     CHECK_IN: renderer,
-    RECOMMEND: RecommendationCard,
+    RECOMMEND: renderer,
     SAY: renderer,
     SHOW: renderer,
     ASK: renderer,
@@ -47,7 +45,7 @@ function bandRenderers(renderer: MoveRenderer): BandRegistry {
     REVEAL: renderer,
     PRAISE: renderer,
     SWITCH: renderer,
-    BREAK: BreakCard,
+    BREAK: renderer,
     END: renderer,
   };
 }

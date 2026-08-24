@@ -13,7 +13,7 @@ export function InputSurface(props: {
     case 'none':
       return null;
     case 'choice':
-      return <Choices move={props.move} onAnswer={props.onAnswer} />;
+      return <Choices band={props.band} move={props.move} onAnswer={props.onAnswer} />;
     case 'number':
       return props.band === 'early' ? (
         <TapNumbers key={props.move.id} onAnswer={props.onAnswer} />
@@ -43,14 +43,19 @@ export function InputSurface(props: {
   }
 }
 
-function Choices(props: { move: TutorMove; onAnswer: (value: string) => void }): React.JSX.Element {
+function Choices(props: {
+  band: Band;
+  move: TutorMove;
+  onAnswer: (value: string) => void;
+}): React.JSX.Element {
   const options = props.move.display.flatMap((item) =>
     item.type === 'choices' ? item.options : [],
   );
   return (
-    <div className="session-choices">
-      {options.map((option) => (
+    <div className={props.band === 'early' ? 'answer-tiles' : 'answer-choices'}>
+      {options.map((option, index) => (
         <button
+          className={props.band === 'early' ? `answer-tile answer-tile--${String(index % 4)}` : ''}
           key={option.id}
           onClick={() => {
             props.onAnswer(option.id);
@@ -67,9 +72,9 @@ function Choices(props: { move: TutorMove; onAnswer: (value: string) => void }):
 function TapNumbers(props: { onAnswer: (value: string) => void }): React.JSX.Element {
   const [value, setValue] = useState('');
   return (
-    <div className="tap-number-input">
+    <div className="number-pad">
       <output aria-live="polite">{value.length === 0 ? 'Choose a number' : value}</output>
-      <div className="session-choices">
+      <div className="number-pad__keys">
         {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.', '/'].map((digit) => (
           <button
             key={digit}
@@ -82,6 +87,7 @@ function TapNumbers(props: { onAnswer: (value: string) => void }): React.JSX.Ele
           </button>
         ))}
         <button
+          className="number-pad__erase"
           onClick={() => {
             setValue((current) => current.slice(0, -1));
           }}
@@ -91,6 +97,7 @@ function TapNumbers(props: { onAnswer: (value: string) => void }): React.JSX.Ele
         </button>
       </div>
       <button
+        className="answer-submit"
         disabled={value.length === 0}
         onClick={() => {
           props.onAnswer(value);
@@ -109,6 +116,7 @@ function TextEntry(props: {
 }): React.JSX.Element {
   return (
     <form
+      className="answer-form"
       onSubmit={(event) => {
         submitText(event, props.onAnswer);
       }}

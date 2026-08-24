@@ -1,16 +1,24 @@
-import { AriaOwl } from '@/features/session/components/AriaOwl';
+import { AskAriaPanel } from '@/features/session/components/AskAriaPanel';
 import type { TutorSession } from '@/features/session/hooks/useTutorSession';
 import { LayoutContent } from '@/features/session/layouts/LayoutContent';
 
 export function MiddleLayout(props: { session: TutorSession }): React.JSX.Element {
+  if (props.session.state.ended) {
+    return (
+      <div className="session-layout session-layout--complete">
+        <LayoutContent session={props.session} />
+      </div>
+    );
+  }
   return (
     <div className="session-layout session-layout--middle">
       <LayoutContent session={props.session} />
-      <aside className="aria-companion">
-        <AriaOwl />
-        <h2>Ask Aria</h2>
-        <p>I can help you think it through.</p>
-      </aside>
+      <AskAriaPanel
+        band="middle"
+        onQuestion={(text) => {
+          void props.session.askQuestion(text);
+        }}
+      />
     </div>
   );
 }

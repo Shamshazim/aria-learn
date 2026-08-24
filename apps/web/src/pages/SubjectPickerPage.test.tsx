@@ -23,4 +23,9 @@ it('renders class-first links into all three bands', () => {
     'href',
     '/session/7/science',
   );
+  expect(screen.getByRole('link', { name: 'Aria Learn' })).toHaveAttribute('href', '/');
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+    'Hello! What shall we do today?',
+  );
+  expect(screen.getByText('Numbers, shapes and patterns.')).toBeInTheDocument();
 });

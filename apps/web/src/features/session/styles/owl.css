@@ -1,0 +1,37 @@
+.aria-owl {
+  flex: none;
+  overflow: visible;
+}
+
+.aria-owl__body {
+  animation: owl-bob 3.4s ease-in-out infinite;
+  transform-origin: 100px 170px;
+}
+
+.aria-owl__lid {
+  animation: owl-blink 5s infinite;
+  transform: scaleY(0);
+  transform-origin: center;
+}
+
+.aria-owl__brow { opacity: 0; }
+.aria-owl--think .aria-owl__brow { opacity: 1; }
+
+.aria-owl--cheer .aria-owl__wing-left,
+.aria-owl--cheer .aria-owl__wing-right {
+  animation: owl-flap 0.4s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+@keyframes owl-bob {
+  50% { transform: translateY(-0.4375rem); }
+}
+
+@keyframes owl-blink {
+  0%, 94%, 100% { transform: scaleY(0); }
+  96%, 98% { transform: scaleY(1); }
+}
+
+@keyframes owl-flap {
+  to { transform: rotate(18deg); }
+}

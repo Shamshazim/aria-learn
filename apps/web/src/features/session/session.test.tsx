@@ -36,6 +36,11 @@ describe.each(['early', 'middle', 'senior'] as const)('%s protocol session', (ba
     const user = userEvent.setup();
     render(<Harness band={band} />);
     await screen.findByText('What is four plus three?');
+    expect(screen.getAllByRole('img', { name: 'Aria the owl tutor' }).length).toBeGreaterThan(0);
+
+    if (band !== 'early') {
+      expect(screen.getByRole('complementary', { name: 'Ask Aria' })).toBeInTheDocument();
+    }
 
     await user.click(screen.getByRole('button', { name: '6' }));
     await screen.findByText('Try four plus three again.');
