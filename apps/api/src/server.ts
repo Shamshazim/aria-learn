@@ -2,6 +2,7 @@ import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createApp } from '@/app';
 import { ConfigError, loadConfig } from '@/config';
 import type { AppConfig } from '@/config';
+import { createInventoryService } from '@/curriculum';
 import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
@@ -19,6 +20,8 @@ const VERSION = process.env.npm_package_version ?? '0.0.0';
 
 export function start(): void {
   const config = readConfigOrExit();
+  // Authored graph defects must stop boot before the API can serve curriculum.
+  createInventoryService();
   const logger = createLogger({ level: config.logLevel });
 
   const app = createApp({ config, logger, clock: systemClock, ids: uuidGenerator });
