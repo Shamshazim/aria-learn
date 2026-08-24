@@ -9,6 +9,7 @@ import {
 import { scrubLearnerContext } from '@/privacy';
 
 type Provider = AiClientDependencies['provider'];
+type Accounting = AiClientDependencies['accounting'];
 type Complete = Provider['complete'];
 type LlmRequest = Parameters<Complete>[0];
 type LlmResponse = Awaited<ReturnType<Complete>>;
@@ -33,10 +34,22 @@ function createProvider(complete: (request: LlmRequest) => Promise<LlmResponse>)
   };
 }
 
+function createAccounting(): Accounting {
+  return {
+    assertWithinCap: vi.fn(() => Promise.resolve()),
+    record: vi.fn(() => Promise.resolve()),
+    recordCachedHit: vi.fn(() => Promise.resolve()),
+  };
+}
+
+function createTestClient(provider: Provider, accounting = createAccounting()) {
+  return createAiClient({ provider, accounting, now: () => 100 });
+}
+
 describe('AiClient generation', () => {
   it('runs a named prompt and returns parsed data with traceable metadata', async () => {
     const complete = vi.fn().mockResolvedValue(RESPONSE);
-    const client = createAiClient({ provider: createProvider(complete) });
+    const client = createTestClient(createProvider(complete));
     const signal = new AbortController().signal;
     const context = scrubLearnerContext(
       { identifiers: {}, gradeBand: 'Grade 3', skill: 'multiply within 100' },
@@ -70,9 +83,7 @@ describe('AiClient generation', () => {
 describe('AiClient rejection', () => {
   it('rejects malformed model output without returning partial data', async () => {
     const malformed = { ...RESPONSE, text: JSON.stringify({ explanation: '' }) };
-    const client = createAiClient({
-      provider: createProvider(vi.fn().mockResolvedValue(malformed)),
-    });
+    const client = createTestClient(createProvider(vi.fn().mockResolvedValue(malformed)));
     const context = scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' });
 
     const generation = client.run('explain', {
@@ -104,7 +115,7 @@ describe('AiClient rejection', () => {
     },
   ])('refuses $name before calling the provider', async ({ context }) => {
     const complete = vi.fn().mockResolvedValue(RESPONSE);
-    const client = createAiClient({ provider: createProvider(complete) });
+    const client = createTestClient(createProvider(complete));
     const rawInput = {
       context,
       concept: 'multiplication',
@@ -124,7 +135,7 @@ describe('AiClient input bounds', () => {
     'rejects an oversized prompt input before calling the provider',
     async (concept) => {
       const complete = vi.fn().mockResolvedValue(RESPONSE);
-      const client = createAiClient({ provider: createProvider(complete) });
+      const client = createTestClient(createProvider(complete));
       const context = scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' });
 
       const generation = client.run('explain', {
@@ -142,7 +153,7 @@ describe('AiClient input bounds', () => {
     'rejects invalid timeout %s before calling the provider',
     async (timeoutMs) => {
       const complete = vi.fn().mockResolvedValue(RESPONSE);
-      const client = createAiClient({ provider: createProvider(complete) });
+      const client = createTestClient(createProvider(complete));
       const context = scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' });
 
       const generation = client.run(
@@ -164,7 +175,7 @@ describe('AiClient privacy', () => {
       requests.push(request);
       return Promise.resolve(RESPONSE);
     });
-    const client = createAiClient({ provider: createProvider(complete) });
+    const client = createTestClient(createProvider(complete));
     const context = scrubLearnerContext(
       { identifiers: { fullName: 'A Child', parentEmail: 'child@example.com' } },
       { pseudonym: 'omit' },

@@ -56,6 +56,16 @@ describe('loadConfig', () => {
   it('treats production as production', () => {
     expect(loadConfig(env({ NODE_ENV: 'production' }), '1.0.0').isProduction).toBe(true);
   });
+
+  it('bounds the per-student daily AI spend cap', () => {
+    expect(loadConfig(env(), '1.0.0').aiDailySpendCapUsd).toBe(1);
+    expect(loadConfig(env({ AI_DAILY_SPEND_CAP_USD: '0.75' }), '1.0.0').aiDailySpendCapUsd).toBe(
+      0.75,
+    );
+    expect(() => loadConfig(env({ AI_DAILY_SPEND_CAP_USD: '0' }), '1.0.0')).toThrow(
+      /AI_DAILY_SPEND_CAP_USD/,
+    );
+  });
 });
 
 /**

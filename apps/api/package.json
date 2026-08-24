@@ -5,6 +5,7 @@
   "description": "Aria Learn API \u2014 Node + Express + TypeScript.",
   "type": "module",
   "scripts": {
+    "cost:report": "tsx src/scripts/cost-report.ts",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "dev": "tsx watch src/index.ts",
     "golden:tutoring": "tsx src/testing/tutoring/run-cli.ts",

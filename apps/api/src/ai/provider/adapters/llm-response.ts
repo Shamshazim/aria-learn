@@ -3,6 +3,7 @@
  * endpoint config, latency as measured by the caller. Each adapter supplies only the vendor's
  * finish-reason mapping, so the cost rule has a single source of truth (CODE-STANDARDS §4).
  */
+import { calculateCostUsd } from '@/ai/cost/cost.calculator';
 import { AiError } from '@/ai/provider/errors';
 import type { LlmResponse } from '@/ai/provider/types';
 
@@ -41,10 +42,10 @@ export function createLlmResponse(
     model: endpoint.model,
     tokensIn: values.tokensIn,
     tokensOut: values.tokensOut,
-    costUsd:
-      (values.tokensIn * endpoint['cost-per-mtok-in'] +
-        values.tokensOut * endpoint['cost-per-mtok-out']) /
-      1_000_000,
+    costUsd: calculateCostUsd(values.tokensIn, values.tokensOut, {
+      inputPerMillion: endpoint['cost-per-mtok-in'],
+      outputPerMillion: endpoint['cost-per-mtok-out'],
+    }),
     latencyMs: values.latencyMs,
     finishReason: mapFinishReason(values.finishReason),
   };

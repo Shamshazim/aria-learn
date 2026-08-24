@@ -6,4 +6,13 @@ export {
 } from '@/ai/client/ai-client';
 export type { AiClientDependencies } from '@/ai/client/ai-client';
 export type { AiClient, AiResult, AiRunOptions } from '@/ai/client/ai-client.types';
+export { createSpendService, SpendCapExceededError } from '@/ai/cost';
+export type {
+  AiAccounting,
+  GenerationLogEntry,
+  SpendAlert,
+  SpendReport,
+  SpendService,
+  SpendSummary,
+} from '@/ai/cost';
 export type { PromptInput, PromptName, PromptOutput } from '@/ai/prompts/types';

@@ -23,6 +23,7 @@ export const envSchema = z.object({
   /** Bounds the JSON body so a large payload cannot become a denial of service (§8). */
   JSON_BODY_LIMIT: z.string().default('100kb'),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(120_000).default(10_000),
+  AI_DAILY_SPEND_CAP_USD: z.coerce.number().positive().max(100).default(1),
 
   ...databaseEnvSchema.shape,
 });
@@ -38,6 +39,7 @@ export type AppConfig = {
   shutdownTimeoutMs: number;
   version: string;
   isProduction: boolean;
+  aiDailySpendCapUsd: number;
   database: DatabaseConfig;
 };
 
@@ -75,6 +77,7 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
     shutdownTimeoutMs: env.SHUTDOWN_TIMEOUT_MS,
     version,
     isProduction: env.NODE_ENV === 'production',
+    aiDailySpendCapUsd: env.AI_DAILY_SPEND_CAP_USD,
     database: toDatabaseConfig(env),
   };
 }
