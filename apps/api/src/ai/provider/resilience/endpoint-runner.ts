@@ -142,13 +142,23 @@ function recordEndpointError(
   outcome: { signal: AbortSignal | undefined; latencyMs: number },
 ): void {
   if (outcome.signal?.aborted === true) {
-    options.circuitBreaker.recordSuccess(endpointName, outcome.latencyMs);
+    options.circuitBreaker.recordIndeterminate(endpointName, {
+      category: 'cancelled',
+      latencyMs: outcome.latencyMs,
+    });
   } else if (error instanceof AiError && isAvailabilityCategory(error.category)) {
     options.circuitBreaker.recordFailure(endpointName, {
       category: error.category,
       latencyMs: outcome.latencyMs,
     });
-  } else options.circuitBreaker.recordSuccess(endpointName, outcome.latencyMs);
+  } else if (error instanceof AiError) {
+    options.circuitBreaker.recordSuccess(endpointName, outcome.latencyMs);
+  } else {
+    options.circuitBreaker.recordIndeterminate(endpointName, {
+      category: 'unknown',
+      latencyMs: outcome.latencyMs,
+    });
+  }
 }
 
 function retryOptions(

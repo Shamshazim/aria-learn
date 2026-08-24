@@ -12,7 +12,7 @@ export type CircuitTransition = {
   endpointName: string;
   from: CircuitState['kind'];
   to: CircuitState['kind'];
-  category: AiErrorCategory | 'probe' | 'success';
+  category: AiErrorCategory | 'cancelled' | 'probe' | 'success' | 'unknown';
   latencyMs: number;
 };
 
@@ -22,6 +22,7 @@ export type CircuitBreaker = {
   tryAcquire: (endpointName: string) => boolean;
   recordSuccess: (endpointName: string, latencyMs: number) => void;
   recordFailure: (endpointName: string, observation: CircuitObservation) => void;
+  recordIndeterminate: (endpointName: string, observation: CircuitObservation) => void;
 };
 
 export type CircuitBreakerDependencies = {
@@ -49,6 +50,9 @@ export function createCircuitBreaker(
     },
     recordFailure: (endpointName, observation) => {
       recordFailure(endpointName, observation, context);
+    },
+    recordIndeterminate: (endpointName, observation) => {
+      recordIndeterminate(endpointName, observation, context);
     },
   };
 }
@@ -96,6 +100,16 @@ function recordFailure(
     context.states.set(endpointName, { kind: 'closed', failures });
     return;
   }
+  transition(endpointName, { from: state, to: openState(context) }, observation, context);
+}
+
+function recordIndeterminate(
+  endpointName: string,
+  observation: CircuitObservation,
+  context: CircuitContext,
+): void {
+  const state = context.states.get(endpointName);
+  if (state?.kind !== 'half-open') return;
   transition(endpointName, { from: state, to: openState(context) }, observation, context);
 }
 
