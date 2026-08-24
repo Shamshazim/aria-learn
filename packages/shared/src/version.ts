@@ -6,6 +6,8 @@
  * transport (`master-plan.md` §4.1) and the stamp has to survive that change of channel.
  *
  * Bump the minor when a field is added and the major when an existing one changes meaning.
+ * Each bump keeps exactly one prior version readable while the new fields stay optional
+ * (the P0-27 window), so a scripted source written against the previous version still parses.
  */
 export const PROTOCOL_VERSION = '1.1.0';
 

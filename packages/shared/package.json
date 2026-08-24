@@ -9,6 +9,7 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
+    "test": "cd ../.. && vitest run --project shared",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

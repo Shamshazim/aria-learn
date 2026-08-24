@@ -14,14 +14,16 @@ import { envelopeShape, sequenceSchema } from './common.schema';
 
 const MAX_TEXT = 2000;
 
+/** The shape every event shares, mirroring `moveShape` so the two sides cannot drift. */
+export const eventShape = {
+  ...envelopeShape,
+  /** The highest `serverSeq` the client has applied, so the server can replay after a drop. */
+  acknowledgedSeq: sequenceSchema.optional(),
+} as const;
+
 /** Every event schema starts from the same envelope; only the payload differs. */
 function event<K extends string, T extends z.ZodRawShape>(kind: K, payload: T) {
-  return z.object({
-    ...envelopeShape,
-    acknowledgedSeq: sequenceSchema.optional(),
-    kind: z.literal(kind),
-    ...payload,
-  });
+  return z.object({ ...eventShape, kind: z.literal(kind), ...payload });
 }
 
 /** The student home became active. No session yet — this is what creates one. */

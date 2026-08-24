@@ -37,6 +37,10 @@ export const askMoveSchema = move('ASK', {
 export const listenMoveSchema = move('LISTEN', {
   skillId: skillRef,
   purpose: z.enum(['read_aloud', 'explain', 'answer']).default('answer'),
+  /**
+   * Declared only to forbid it. Biasing the ASR with the passage would make a reading
+   * assessment recognise words the child never said; hints belong on `ASK` alone.
+   */
   vocabularyHint: z.never().optional(),
 });
 

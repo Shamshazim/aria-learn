@@ -7,8 +7,8 @@ import type { MoveKind } from '../moves';
  * One valid raw instance of every event and every move.
  *
  * Typed as `Record<EventKind, unknown>` and `Record<MoveKind, unknown>` on purpose: adding a
- * kind to either union without adding a fixture here is a compile error, so "all sixteen
- * events and all fourteen moves exist" is checked by the compiler rather than by counting.
+ * kind to either union without adding a fixture here is a compile error, so "every kind has a
+ * fixture" is checked by the compiler; the count tests only pin the documented totals.
  *
  * The values are `unknown` because a fixture is *input* to a schema. Typing them as the
  * parsed type would assert what the test is supposed to prove.
@@ -36,12 +36,33 @@ const moveBase = {
   generationId: 'gen_01',
 } as const;
 
-/** P0-02 payload: proves the one-version compatibility window stays open after P0-27. */
+/** P0-02 payloads: prove the one-version compatibility window stays open after P0-27. */
 export const PREVIOUS_VERSION_EVENT_FIXTURE = {
   id: 'evt_previous_pause',
   at: '2026-08-22T10:00:00Z',
   sessionId: 'ses_01',
   protocolVersion: '1.0.0',
+  kind: 'PAUSE',
+} as const;
+
+/** What P0-08's scripted source emits: a 1.0.0 move with none of the realtime fields. */
+export const PREVIOUS_VERSION_MOVE_FIXTURE = {
+  id: 'mov_previous_say',
+  at: '2026-08-22T10:00:00Z',
+  sessionId: 'ses_01',
+  protocolVersion: '1.0.0',
+  kind: 'SAY',
+  speech: { text: 'Let us look at fractions.' },
+  display: [],
+  expects: 'none',
+} as const;
+
+/** A current-version event carrying none of the optional realtime fields. */
+export const MINIMAL_CURRENT_EVENT_FIXTURE = {
+  id: 'evt_minimal_pause',
+  at: '2026-08-22T10:00:00Z',
+  sessionId: 'ses_01',
+  protocolVersion: PROTOCOL_VERSION,
   kind: 'PAUSE',
 } as const;
 
