@@ -71,6 +71,19 @@ function checkApproachChanges(transcript: TutoringTranscript): readonly Invarian
 function checkFactEvidence(transcript: TutoringTranscript): readonly InvariantFinding[] {
   const facts = new Map(transcript.context.learnerFacts.map((fact) => [fact.id, fact]));
   const findings: InvariantFinding[] = [];
+  const turns = new Map(transcript.turns.map((turn) => [turn.event.id, turn]));
+  for (const expectation of transcript.context.expectedFactAssertions) {
+    const traced = turns
+      .get(expectation.eventId)
+      ?.evidence.assertedFactIds.includes(expectation.factId);
+    if (traced) continue;
+    findings.push({
+      code: 'FACT_WITHOUT_EVIDENCE',
+      scenarioId: transcript.scenarioId,
+      eventId: expectation.eventId,
+      message: `Expected durable fact ${expectation.factId} was not present in the trace.`,
+    });
+  }
   for (const turn of transcript.turns) {
     for (const factId of turn.evidence.assertedFactIds) {
       const fact = facts.get(factId);
@@ -86,24 +99,65 @@ function checkFactEvidence(transcript: TutoringTranscript): readonly InvariantFi
   return findings;
 }
 
+function affectFinding(
+  transcript: TutoringTranscript,
+  eventId: string,
+  message: string,
+): InvariantFinding {
+  return { code: 'AFFECT_STATED_AS_FACT', scenarioId: transcript.scenarioId, eventId, message };
+}
+
+function checkExpectedAffectTrace(transcript: TutoringTranscript): readonly InvariantFinding[] {
+  const turns = new Map(transcript.turns.map((turn) => [turn.event.id, turn]));
+  return transcript.context.expectedAffectCheckIns.flatMap((expectation) => {
+    const turn = turns.get(expectation.eventId);
+    const claim = turn?.evidence.affectClaims.find(
+      (candidate) => candidate.observationId === expectation.observationId,
+    );
+    if (
+      claim !== undefined &&
+      turn?.moves.find((move) => move.id === claim.moveId)?.kind === 'CHECK_IN'
+    ) {
+      return [];
+    }
+    return [
+      affectFinding(
+        transcript,
+        expectation.eventId,
+        `Expected low-confidence affect ${expectation.observationId} was not traced to a check-in.`,
+      ),
+    ];
+  });
+}
+
 function checkAffectClaims(transcript: TutoringTranscript): readonly InvariantFinding[] {
-  const lowConfidenceIds = new Set(
-    transcript.context.affectObservations
-      .filter((observation) => observation.confidence === 'low')
-      .map((observation) => observation.id),
+  const observations = new Map(
+    transcript.context.affectObservations.map((observation) => [observation.id, observation]),
   );
   const findings: InvariantFinding[] = [];
   for (const turn of transcript.turns) {
     const moves = new Map(turn.moves.map((move) => [move.id, move]));
     for (const claim of turn.evidence.affectClaims) {
-      if (!lowConfidenceIds.has(claim.observationId)) continue;
+      const observation = observations.get(claim.observationId);
+      if (observation === undefined) {
+        findings.push(
+          affectFinding(
+            transcript,
+            turn.event.id,
+            `Affect trace references unknown observation ${claim.observationId}.`,
+          ),
+        );
+        continue;
+      }
+      if (observation.confidence !== 'low') continue;
       if (moves.get(claim.moveId)?.kind === 'CHECK_IN') continue;
-      findings.push({
-        code: 'AFFECT_STATED_AS_FACT',
-        scenarioId: transcript.scenarioId,
-        eventId: turn.event.id,
-        message: `Low-confidence affect ${claim.observationId} was not surfaced as a check-in.`,
-      });
+      findings.push(
+        affectFinding(
+          transcript,
+          turn.event.id,
+          `Low-confidence affect ${claim.observationId} was not surfaced as a check-in.`,
+        ),
+      );
     }
   }
   return findings;
@@ -126,29 +180,41 @@ function checkSafetyRouting(transcript: TutoringTranscript): readonly InvariantF
 }
 
 function checkInterruptions(transcript: TutoringTranscript): readonly InvariantFinding[] {
-  return transcript.turns.flatMap((turn) => {
-    if (turn.event.kind !== 'INTERRUPT') return [];
-    const interruptedId = turn.event.interruptedMoveId;
-    const stopped =
-      interruptedId === undefined
-        ? turn.evidence.stoppedMoveIds.length > 0
-        : turn.evidence.stoppedMoveIds.includes(interruptedId);
-    if (stopped) return [];
-    return [
-      {
-        code: 'INTERRUPTION_NOT_STOPPED' as const,
+  const emittedMoveIds = new Set<string>();
+  const findings: InvariantFinding[] = [];
+  for (const turn of transcript.turns) {
+    if (turn.continuedMoveIds.length > 0) {
+      findings.push({
+        code: 'INTERRUPTION_NOT_STOPPED',
         scenarioId: transcript.scenarioId,
         eventId: turn.event.id,
-        message: 'An interruption did not stop the current move.',
-      },
-    ];
-  });
+        message: `Stopped move delivery continued: ${turn.continuedMoveIds.join(', ')}.`,
+      });
+    }
+    if (turn.event.kind === 'INTERRUPT') {
+      const interruptedId = turn.event.interruptedMoveId;
+      const stopped =
+        interruptedId === undefined
+          ? turn.stoppedMoveIds.some((moveId) => emittedMoveIds.has(moveId))
+          : emittedMoveIds.has(interruptedId) && turn.stoppedMoveIds.includes(interruptedId);
+      if (!stopped)
+        findings.push({
+          code: 'INTERRUPTION_NOT_STOPPED' as const,
+          scenarioId: transcript.scenarioId,
+          eventId: turn.event.id,
+          message: 'An interruption did not stop the current move.',
+        });
+    }
+    for (const move of turn.moves) emittedMoveIds.add(move.id);
+  }
+  return findings;
 }
 
 export function checkTutoringInvariants(transcript: TutoringTranscript): InvariantReport {
   const findings = [
     ...checkApproachChanges(transcript),
     ...checkFactEvidence(transcript),
+    ...checkExpectedAffectTrace(transcript),
     ...checkAffectClaims(transcript),
     ...checkSafetyRouting(transcript),
     ...checkInterruptions(transcript),

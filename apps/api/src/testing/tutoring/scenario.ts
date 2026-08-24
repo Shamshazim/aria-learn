@@ -19,6 +19,16 @@ const affectObservationSchema = z.strictObject({
   confidence: z.enum(['low', 'high']),
 });
 
+const expectedFactAssertionSchema = z.strictObject({
+  eventId: boundedIdSchema,
+  factId: boundedIdSchema,
+});
+
+const expectedAffectCheckInSchema = z.strictObject({
+  eventId: boundedIdSchema,
+  observationId: boundedIdSchema,
+});
+
 export const turnEvidenceSchema = z.strictObject({
   approachId: boundedIdSchema.optional(),
   assertedFactIds: z.array(boundedIdSchema).max(32).default([]),
@@ -28,7 +38,6 @@ export const turnEvidenceSchema = z.strictObject({
     .default([]),
   responseOrigin: z.enum(['scripted', 'model', 'crisis_path']).default('scripted'),
   crisisRouted: z.boolean().default(false),
-  stoppedMoveIds: z.array(boundedIdSchema).max(16).default([]),
 });
 
 const tutoringScenarioShapeSchema = z.strictObject({
@@ -46,6 +55,8 @@ const tutoringScenarioShapeSchema = z.strictObject({
       .default([]),
     learnerFacts: z.array(learnerFactSchema).max(32).default([]),
     affectObservations: z.array(affectObservationSchema).max(16).default([]),
+    expectedFactAssertions: z.array(expectedFactAssertionSchema).max(16).default([]),
+    expectedAffectCheckIns: z.array(expectedAffectCheckInSchema).max(16).default([]),
     safetyDisclosureEventIds: z.array(boundedIdSchema).max(16).default([]),
   }),
   steps: z
@@ -54,6 +65,7 @@ const tutoringScenarioShapeSchema = z.strictObject({
         event: tutorInputEventSchema,
         scripted: z.strictObject({
           moves: z.array(tutorMoveSchema).max(8),
+          stopMoveIds: z.array(boundedIdSchema).max(8).default([]),
           evidence: turnEvidenceSchema,
         }),
       }),
@@ -62,10 +74,57 @@ const tutoringScenarioShapeSchema = z.strictObject({
     .max(64),
 });
 
-function validateScenarioReferences(
-  scenario: z.infer<typeof tutoringScenarioShapeSchema>,
+type ScenarioShape = z.infer<typeof tutoringScenarioShapeSchema>;
+
+function validateFactExpectations(
+  scenario: ScenarioShape,
+  events: ReadonlyMap<string, ScenarioShape['steps'][number]['event']>,
+  facts: ReadonlySet<string>,
   context: z.RefinementCtx,
 ): void {
+  for (const [index, expectation] of scenario.context.expectedFactAssertions.entries()) {
+    if (!events.has(expectation.eventId)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Expected fact assertion must reference a scenario event.',
+        path: ['context', 'expectedFactAssertions', index, 'eventId'],
+      });
+    }
+    if (!facts.has(expectation.factId)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Expected fact assertion must reference a learner fact.',
+        path: ['context', 'expectedFactAssertions', index, 'factId'],
+      });
+    }
+  }
+}
+
+function validateAffectExpectations(
+  scenario: ScenarioShape,
+  events: ReadonlyMap<string, ScenarioShape['steps'][number]['event']>,
+  observations: ReadonlyMap<string, ScenarioShape['context']['affectObservations'][number]>,
+  context: z.RefinementCtx,
+): void {
+  for (const [index, expectation] of scenario.context.expectedAffectCheckIns.entries()) {
+    if (!events.has(expectation.eventId)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Expected affect check-in must reference a scenario event.',
+        path: ['context', 'expectedAffectCheckIns', index, 'eventId'],
+      });
+    }
+    if (observations.get(expectation.observationId)?.confidence !== 'low') {
+      context.addIssue({
+        code: 'custom',
+        message: 'Expected affect check-in must reference a low-confidence observation.',
+        path: ['context', 'expectedAffectCheckIns', index, 'observationId'],
+      });
+    }
+  }
+}
+
+function validateScenarioReferences(scenario: ScenarioShape, context: z.RefinementCtx): void {
   const events = new Map(scenario.steps.map((step) => [step.event.id, step.event]));
   for (const [index, answer] of scenario.context.answerOutcomes.entries()) {
     if (events.get(answer.eventId)?.kind === 'ANSWER') continue;
@@ -83,6 +142,12 @@ function validateScenarioReferences(
       path: ['context', 'safetyDisclosureEventIds', index],
     });
   }
+  const facts = new Set(scenario.context.learnerFacts.map((fact) => fact.id));
+  const observations = new Map(
+    scenario.context.affectObservations.map((observation) => [observation.id, observation]),
+  );
+  validateFactExpectations(scenario, events, facts, context);
+  validateAffectExpectations(scenario, events, observations, context);
 }
 
 export const tutoringScenarioSchema = tutoringScenarioShapeSchema.superRefine(

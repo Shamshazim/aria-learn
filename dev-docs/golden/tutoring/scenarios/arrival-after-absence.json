@@ -13,6 +13,12 @@
       }
     ],
     "affectObservations": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_arrival_absence",
+        "factId": "fact_regrouping_persistence"
+      }
+    ],
     "safetyDisclosureEventIds": []
   },
   "steps": [

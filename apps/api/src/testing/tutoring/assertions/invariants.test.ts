@@ -1,74 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TutorInputEvent, TutorMove } from '@aria/shared';
+import type { TutorMove } from '@aria/shared';
 
+import { checkTutoringInvariants } from '@/testing/tutoring';
 import {
-  checkTutoringInvariants,
-  turnEvidenceSchema,
-  type TranscriptTurn,
-  type TurnEvidence,
-  type TutoringTranscript,
-} from '@/testing/tutoring';
+  answerEvent,
+  interruptEvent,
+  questionEvent,
+  transcript,
+  turn,
+} from '@/testing/tutoring/assertions/invariant-test-helpers';
 
-function answerEvent(id: string, respondsTo: string): TutorInputEvent {
-  return {
-    id,
-    at: '2026-08-23T10:00:00Z',
-    protocolVersion: '1.1.0',
-    kind: 'ANSWER',
-    respondsTo,
-    text: '5',
-  };
-}
-
-function questionEvent(id: string, text: string): TutorInputEvent {
-  return {
-    id,
-    at: '2026-08-23T10:00:00Z',
-    protocolVersion: '1.1.0',
-    kind: 'QUESTION',
-    text,
-  };
-}
-
-function interruptEvent(id: string, interruptedMoveId: string): TutorInputEvent {
-  return {
-    id,
-    at: '2026-08-23T10:00:00Z',
-    protocolVersion: '1.1.0',
-    kind: 'INTERRUPT',
-    interruptedMoveId,
-  };
-}
-
-function turn(
-  event: TutorInputEvent,
-  evidence: Partial<TurnEvidence>,
-  moves: readonly TutorMove[] = [],
-): TranscriptTurn {
-  return { event, moves, durationMs: 10, evidence: turnEvidenceSchema.parse(evidence) };
-}
-
-function transcript(
-  turns: readonly TranscriptTurn[],
-  context: TutoringTranscript['context'] = {
-    answerOutcomes: [],
-    learnerFacts: [],
-    affectObservations: [],
-    safetyDisclosureEventIds: [],
-  },
-): TutoringTranscript {
-  return {
-    scenarioId: 'failing-fixture',
-    title: 'Deliberately failing fixture',
-    grade: '4',
-    description: 'Proves an invariant catches a regression.',
-    context,
-    turns,
-  };
-}
-
-describe('checkTutoringInvariants', () => {
+describe('approach-change invariant', () => {
   it('fails when two wrong answers reuse the same approach', () => {
     const result = checkTutoringInvariants(
       transcript(
@@ -87,6 +30,8 @@ describe('checkTutoringInvariants', () => {
           ],
           learnerFacts: [],
           affectObservations: [],
+          expectedFactAssertions: [],
+          expectedAffectCheckIns: [],
           safetyDisclosureEventIds: [],
         },
       ),
@@ -110,65 +55,14 @@ describe('checkTutoringInvariants', () => {
           ],
           learnerFacts: [],
           affectObservations: [],
+          expectedFactAssertions: [],
+          expectedAffectCheckIns: [],
           safetyDisclosureEventIds: [],
         },
       ),
     );
 
     expect(result.findings.map((finding) => finding.code)).toContain('APPROACH_NOT_CHANGED');
-  });
-});
-
-describe('evidence-backed tutoring invariants', () => {
-  it('fails when an asserted durable fact has no supporting evidence', () => {
-    const result = checkTutoringInvariants(
-      transcript(
-        [turn(answerEvent('evt_fact', 'mov_ask'), { assertedFactIds: ['fact_breakthrough'] })],
-        {
-          answerOutcomes: [],
-          learnerFacts: [
-            { id: 'fact_breakthrough', claim: 'You solved regrouping.', evidenceIds: [] },
-          ],
-          affectObservations: [],
-          safetyDisclosureEventIds: [],
-        },
-      ),
-    );
-
-    expect(result.findings.map((finding) => finding.code)).toContain('FACT_WITHOUT_EVIDENCE');
-  });
-
-  it('fails when low-confidence affect is stated instead of checked', () => {
-    const sayMove: TutorMove = {
-      id: 'mov_affect_claim',
-      at: '2026-08-23T10:00:00Z',
-      protocolVersion: '1.1.0',
-      kind: 'SAY',
-      speech: { text: 'You are tired today.' },
-      display: [],
-      expects: 'none',
-    };
-    const result = checkTutoringInvariants(
-      transcript(
-        [
-          turn(
-            answerEvent('evt_affect', 'mov_ask'),
-            { affectClaims: [{ observationId: 'affect_tired', moveId: sayMove.id }] },
-            [sayMove],
-          ),
-        ],
-        {
-          answerOutcomes: [],
-          learnerFacts: [],
-          affectObservations: [
-            { id: 'affect_tired', claim: 'The learner may be tired.', confidence: 'low' },
-          ],
-          safetyDisclosureEventIds: [],
-        },
-      ),
-    );
-
-    expect(result.findings.map((finding) => finding.code)).toContain('AFFECT_STATED_AS_FACT');
   });
 });
 
@@ -186,6 +80,8 @@ describe('safety and interruption invariants', () => {
           answerOutcomes: [],
           learnerFacts: [],
           affectObservations: [],
+          expectedFactAssertions: [],
+          expectedAffectCheckIns: [],
           safetyDisclosureEventIds: ['evt_safety'],
         },
       ),
@@ -195,8 +91,35 @@ describe('safety and interruption invariants', () => {
   });
 
   it('fails when an interruption does not stop the current move', () => {
+    const speakingMove: TutorMove = {
+      id: 'mov_speaking',
+      at: '2026-08-23T10:00:00Z',
+      protocolVersion: '1.1.0',
+      kind: 'SAY',
+      speech: { text: 'Here is an explanation.' },
+      display: [],
+      expects: 'none',
+    };
     const result = checkTutoringInvariants(
-      transcript([turn(interruptEvent('evt_interrupt', 'mov_speaking'), { stoppedMoveIds: [] })]),
+      transcript([
+        turn(questionEvent('evt_question', 'Can you explain?'), {}, [speakingMove]),
+        turn(interruptEvent('evt_interrupt', speakingMove.id), {}),
+      ]),
+    );
+
+    expect(result.findings.map((finding) => finding.code)).toContain('INTERRUPTION_NOT_STOPPED');
+  });
+
+  it('fails when a stop action names a move that was never emitted', () => {
+    const result = checkTutoringInvariants(
+      transcript([
+        turn(
+          interruptEvent('evt_interrupt_unknown', 'mov_never_emitted'),
+          {},
+          [],
+          ['mov_never_emitted'],
+        ),
+      ]),
     );
 
     expect(result.findings.map((finding) => finding.code)).toContain('INTERRUPTION_NOT_STOPPED');

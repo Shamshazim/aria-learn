@@ -13,6 +13,12 @@
       }
     ],
     "affectObservations": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_breakthrough_arrival",
+        "factId": "fact_blending_breakthrough"
+      }
+    ],
     "safetyDisclosureEventIds": []
   },
   "steps": [
@@ -31,7 +37,9 @@
             "at": "2026-08-23T15:00:00Z",
             "protocolVersion": "1.1.0",
             "kind": "WELCOME",
-            "speech": { "text": "Yesterday you put the sounds together and read a word all by yourself." },
+            "speech": {
+              "text": "Yesterday you put the sounds together and read a word all by yourself."
+            },
             "display": [],
             "expects": "none",
             "basedOn": ["session_2026_08_22_event_31"]

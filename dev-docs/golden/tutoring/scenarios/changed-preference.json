@@ -13,6 +13,12 @@
       }
     ],
     "affectObservations": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_preference_arrival",
+        "factId": "fact_space_story_preference"
+      }
+    ],
     "safetyDisclosureEventIds": []
   },
   "steps": [
@@ -31,7 +37,9 @@
             "at": "2026-08-23T14:00:00Z",
             "protocolVersion": "1.1.0",
             "kind": "CHECK_IN",
-            "speech": { "text": "Do space stories still sound fun, or should we choose something new?" },
+            "speech": {
+              "text": "Do space stories still sound fun, or should we choose something new?"
+            },
             "display": [],
             "expects": "text",
             "about": "preference"

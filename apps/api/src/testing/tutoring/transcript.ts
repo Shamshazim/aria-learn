@@ -7,6 +7,8 @@ export type TranscriptTurn = Readonly<{
   moves: readonly TutorMove[];
   durationMs: number;
   evidence: TurnEvidence;
+  stoppedMoveIds: readonly string[];
+  continuedMoveIds: readonly string[];
 }>;
 
 export type TutoringTranscript = Readonly<{
@@ -50,7 +52,6 @@ function formatEvidence(evidence: TurnEvidence): string {
     `- Affect claims: ${formatList(affectClaims)}`,
     `- Response origin: ${evidence.responseOrigin}`,
     `- Crisis routed: ${String(evidence.crisisRouted)}`,
-    `- Stopped moves: ${formatList(evidence.stoppedMoveIds)}`,
   ].join('\n');
 }
 
@@ -73,6 +74,11 @@ function formatTurn(turn: TranscriptTurn, index: number): string {
     '### Evidence',
     '',
     formatEvidence(turn.evidence),
+    '',
+    '### Control actions',
+    '',
+    `- Stopped moves: ${formatList(turn.stoppedMoveIds)}`,
+    `- Continued after stop: ${formatList(turn.continuedMoveIds)}`,
   ].join('\n');
 }
 

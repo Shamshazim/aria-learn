@@ -19,6 +19,8 @@ describe('formatTranscript', () => {
         answerOutcomes: [],
         learnerFacts: [SUPPORTED_FACT],
         affectObservations: [],
+        expectedFactAssertions: [],
+        expectedAffectCheckIns: [],
         safetyDisclosureEventIds: [],
       },
       turns: [
@@ -42,12 +44,13 @@ describe('formatTranscript', () => {
             },
           ],
           durationMs: 12,
+          stoppedMoveIds: [],
+          continuedMoveIds: [],
           evidence: {
             assertedFactIds: ['fact_prior_effort'],
             affectClaims: [],
             responseOrigin: 'scripted',
             crisisRouted: false,
-            stoppedMoveIds: [],
           },
         },
       ],

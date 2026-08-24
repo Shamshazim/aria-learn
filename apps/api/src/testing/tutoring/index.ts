@@ -6,7 +6,12 @@ export type {
   InvariantReport,
 } from '@/testing/tutoring/assertions/invariants';
 export { createScriptedTutor, replayScenario } from '@/testing/tutoring/replay';
-export type { ReplayClock, TutorImplementation, TutorTurnResult } from '@/testing/tutoring/replay';
+export type {
+  ReplayClock,
+  TutorImplementation,
+  TutorReplayControl,
+  TutorTurnResult,
+} from '@/testing/tutoring/replay';
 export { runTutoringGoldenSet } from '@/testing/tutoring/run';
 export type { GoldenRunOptions, GoldenRunReport, TutorFactory } from '@/testing/tutoring/run';
 export {

@@ -48,6 +48,7 @@
         "interruptedMoveId": "mov_fraction_explanation"
       },
       "scripted": {
+        "stopMoveIds": ["mov_fraction_explanation"],
         "moves": [
           {
             "id": "mov_yield_after_interrupt",
@@ -60,7 +61,6 @@
           }
         ],
         "evidence": {
-          "stoppedMoveIds": ["mov_fraction_explanation"],
           "responseOrigin": "scripted"
         }
       }

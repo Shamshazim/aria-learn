@@ -34,20 +34,25 @@ Each JSON file has:
 - learner facts with the evidence ids that support them;
 - low- or high-confidence affect observations;
 - human-authored answer outcomes, independent of the tutor implementation;
+- expected learner-fact assertions and low-confidence affect check-ins, owned by the scenario
+  rather than the tutor trace;
 - ids of events known to be safety disclosures;
 - an ordered sequence of valid `TutorInputEvent`s;
 - scripted moves and trace evidence for the current adapter.
 
-`answerOutcomes` is deliberately scenario-owned. A tutor cannot evade the repeated-error
-check by omitting or changing its own grading trace. Other trace fields identify the
-teaching approach, durable facts asserted, affect claims, response origin, crisis routing
-and moves stopped by an interruption.
+The answer, fact and affect expectations are deliberately scenario-owned. A tutor cannot
+evade those checks by omitting or changing its own trace. Other trace fields identify the
+teaching approach, durable facts asserted, affect claims, response origin and crisis routing.
+Interruption stops are explicit replay control actions, recorded separately from tutor
+evidence. Replay owns the active-delivery state and fails if a stopped move is emitted again,
+so reporting a stop is not treated as performing one.
 
 ## Add or change a scenario
 
 1. Copy the closest scenario and give every event and move a unique stable id.
 2. Use only fields accepted by the shared event/move schemas.
-3. Put known answer outcomes and safety disclosures in `context`, not in tutor evidence.
+3. Put known answer outcomes, expected fact/affect use and safety disclosures in `context`,
+   not in tutor evidence.
 4. Add only evidence that the tutor actually used or actions it actually performed.
 5. Run the full command and read the generated transcript.
 6. Have two human tutors grade it independently with [`rubric.md`](rubric.md).

@@ -72,4 +72,17 @@ describe('parseTutoringScenario', () => {
 
     expect(() => parseTutoringScenario(invalid)).toThrow('must reference an ANSWER event');
   });
+
+  it('rejects a fact expectation that does not reference scenario-owned context', () => {
+    const input = validScenarioInput();
+    const invalid = {
+      ...input,
+      context: {
+        ...input.context,
+        expectedFactAssertions: [{ eventId: 'evt_arrived', factId: 'fact_missing' }],
+      },
+    };
+
+    expect(() => parseTutoringScenario(invalid)).toThrow('must reference a learner fact');
+  });
 });

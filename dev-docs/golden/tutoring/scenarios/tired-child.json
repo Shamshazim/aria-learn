@@ -13,6 +13,12 @@
         "confidence": "low"
       }
     ],
+    "expectedAffectCheckIns": [
+      {
+        "eventId": "evt_tired_arrival",
+        "observationId": "affect_possible_fatigue"
+      }
+    ],
     "safetyDisclosureEventIds": []
   },
   "steps": [
