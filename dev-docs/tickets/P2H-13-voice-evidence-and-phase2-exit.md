@@ -4,7 +4,7 @@
 |---|---|
 | **Phase** | 2H |
 | **Track** | QA |
-| **Depends on** | P2H-01, P2H-02, P2H-05, P2H-07, P2H-08, P2H-09, P2H-12, P2-12 |
+| **Depends on** | P2H-01, P2H-02, P2H-05, P2H-07, P2H-08, P2H-09, P2H-12, P2H-15, P2-12 |
 | **Blocks** | P2H-14, P3-* (Phase 3 does not start until Phase 2 exits) |
 | **Parallel-safe with** | P2H-10, P2H-11 |
 | **Size** | M |
@@ -73,7 +73,7 @@ supports calling it.
 
 - [ ] Labelled set ≥ 200 utterances with protocol and inter-labeller agreement recorded.
 - [ ] Every candidate STT/TTS/turn-detector run over the same set; results table in
-      `voice-provider-decision.md`; decision recorded with rationale.
+      `voice-provider-decision.md`; decision recorded with rationale, including the S2S / hybrid verdict from P2H-15.
 - [ ] Browser suite passes on the reference devices (Chromebook, iPad Safari, Windows Chrome).
 - [ ] p95 first-audio and interruption numbers recorded against the bars.
 - [ ] `phase2-exit.md` lists evidence for every bullet or names precisely what is missing.

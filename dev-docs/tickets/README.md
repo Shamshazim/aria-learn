@@ -103,7 +103,8 @@ of that, so this phase comes first.
 | P2H-10 | BE + Content | P0-16, P0-17 | [Content depth for the initial scope](P2H-10-content-depth.md) |
 | P2H-11 | Backend | 03, 04 | [Specific praise, real reveals, honest endings](P2H-11-specific-praise-reveals-endings.md) |
 | P2H-12 | FE + BE | P0-26 | [Identity and child sessions, migration 009](P2H-12-identity-and-child-sessions.md) |
-| P2H-13 | QA | 01–09, P2-12 | [Voice golden set, browser suite, provider decision](P2H-13-voice-evidence-and-phase2-exit.md) |
+| P2H-13 | QA | 01–09, 15, P2-12 | [Voice golden set, browser suite, provider decision](P2H-13-voice-evidence-and-phase2-exit.md) |
+| P2H-15 | Voice + BE | 05, 06 | [Speech-to-speech spike and hybrid decision](P2H-15-speech-to-speech-spike.md) |
 | P2H-14 | QA | all of 2H | ["Sounds human" acceptance](P2H-14-sounds-human-acceptance.md) |
 
 > **Phase 2H exit:** a human tutor rates ≥90% of responses warm, age-appropriate and useful;
