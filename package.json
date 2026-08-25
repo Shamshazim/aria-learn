@@ -13,7 +13,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "trap 'kill 0' INT TERM; npm run dev -w @aria/api & npm run dev -w @aria/web & npm run dev -w @aria/voice-worker & wait",
+    "dev:api": "npm run dev -w @aria/api",
+    "dev:web": "npm run dev -w @aria/web",
+    "dev:voice": "npm run dev -w @aria/voice-worker",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint apps packages eslint.config.ts vitest.config.ts",
