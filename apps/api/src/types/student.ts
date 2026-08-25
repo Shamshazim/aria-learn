@@ -24,4 +24,11 @@ export type NewStudent = {
   parentId: string;
   displayName: string;
   grade: Grade;
+  /**
+   * The picture the child recognises themselves by, and the hash of the four pictures they
+   * tap to open a session (P0-28). Optional because a student row can exist before a child
+   * has a device to sign in from — a teacher-created roster entry, later.
+   */
+  avatarKey?: string | null;
+  pictureSecretHash?: string | null;
 };

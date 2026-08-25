@@ -27,6 +27,19 @@ export type StudentRepository = {
   /** For callers whose next line has no meaning without the student. */
   requireById(id: string): Promise<Student>;
   listByParentId(parentId: string): Promise<readonly Student[]>;
+  /**
+   * Erasure of one child. The cascades on every table that references `student` are what make
+   * this "delete means delete" for that child and only that child — a sibling's rows are
+   * reached from a different student id and are untouched (master-plan.md §12.9).
+   */
+  deleteById(id: string, parentId: string): Promise<boolean>;
+  /**
+   * The same erasure without the parent scope, for the deletion ledger's replay path only.
+   * Authorisation was checked and *recorded* when the ledger row was written; the replay is
+   * finishing an authorised deletion, and by then the parent row it was scoped to may itself
+   * be gone. Nothing reachable from a request calls this.
+   */
+  forceDeleteById(id: string): Promise<boolean>;
 };
 
 /**
@@ -37,8 +50,8 @@ export type StudentRepository = {
  * make a new column silently reach the mapper.
  */
 const SQL = {
-  insert: `INSERT INTO student (id, parent_id, display_name, grade, band)
-           VALUES ($1, $2, $3, $4, $5)
+  insert: `INSERT INTO student (id, parent_id, display_name, grade, band, avatar_key, picture_secret_hash)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING id, parent_id, display_name, grade, band, created_at`,
 
   findById: `SELECT id, parent_id, display_name, grade, band, created_at
@@ -51,6 +64,12 @@ const SQL = {
                    FROM student
                    WHERE parent_id = $1
                    ORDER BY created_at, id`,
+
+  // `parent_id` in the predicate, not only the id: a parent may only delete their own child,
+  // and putting that in the statement means no caller can forget to check it.
+  deleteById: `DELETE FROM student WHERE id = $1 AND parent_id = $2`,
+
+  forceDeleteById: `DELETE FROM student WHERE id = $1`,
 } as const;
 
 export type StudentRepositoryDeps = {
@@ -59,61 +78,80 @@ export type StudentRepositoryDeps = {
 };
 
 export function createStudentRepository(deps: StudentRepositoryDeps): StudentRepository {
-  const { db, ids } = deps;
+  const { db } = deps;
 
-  return {
+  const repository: StudentRepository = {
     withDb: (next) => createStudentRepository({ ...deps, db: next }),
-
-    async insert(input) {
-      const { rows } = await runQuery<StudentRow>({
-        db,
-        operation: 'student.insert',
-        sql: `INSERT INTO student (id, parent_id, display_name, grade, band)
-              VALUES ($1, $2, $3, $4, $5)
-              RETURNING id, parent_id, display_name, grade, band, created_at`,
-        // `band` is derived here rather than accepted, which is what makes the pair in the
-        // database consistent by construction instead of by convention.
-        params: [
-          ids.next(),
-          input.parentId,
-          input.displayName,
-          input.grade,
-          bandForGrade(input.grade),
-        ],
-      });
-
-      const row = rows[0];
-      if (!row) throw new NotFoundError('student.insert returned no row');
-      return toStudent(row);
-    },
-
-    async findById(id) {
-      const { rows } = await runQuery<StudentRow>({
-        db,
-        operation: 'student.findById',
-        sql: SQL.findById,
-        params: [id],
-      });
-
-      const row = rows[0];
-      return row ? toStudent(row) : null;
-    },
-
-    async requireById(id) {
-      const student = await this.findById(id);
+    insert: (input) => insert(deps, input),
+    findById: (id) => findById(db, id),
+    requireById: async (id) => {
+      const student = await repository.findById(id);
       if (!student) throw new NotFoundError(`student ${id} not found`);
       return student;
     },
-
-    async listByParentId(parentId) {
-      const { rows } = await runQuery<StudentRow>({
-        db,
-        operation: 'student.listByParentId',
-        sql: SQL.listByParentId,
-        params: [parentId],
-      });
-
-      return rows.map(toStudent);
-    },
+    listByParentId: (parentId) => listByParentId(db, parentId),
+    deleteById: async (id, parentId) =>
+      (await execute(db, 'student.deleteById', SQL.deleteById, [id, parentId])) > 0,
+    forceDeleteById: async (id) =>
+      (await execute(db, 'student.forceDeleteById', SQL.forceDeleteById, [id])) > 0,
   };
+
+  return repository;
+}
+
+async function insert(deps: StudentRepositoryDeps, input: NewStudent): Promise<Student> {
+  const { rows } = await runQuery<StudentRow>({
+    db: deps.db,
+    operation: 'student.insert',
+    sql: SQL.insert,
+    // `band` is derived here rather than accepted, which is what makes the pair in the
+    // database consistent by construction instead of by convention.
+    params: [
+      deps.ids.next(),
+      input.parentId,
+      input.displayName,
+      input.grade,
+      bandForGrade(input.grade),
+      input.avatarKey ?? null,
+      input.pictureSecretHash ?? null,
+    ],
+  });
+
+  const row = rows[0];
+  if (!row) throw new NotFoundError('student.insert returned no row');
+  return toStudent(row);
+}
+
+async function findById(db: Queryable, id: string): Promise<Student | null> {
+  const { rows } = await runQuery<StudentRow>({
+    db,
+    operation: 'student.findById',
+    sql: SQL.findById,
+    params: [id],
+  });
+
+  const row = rows[0];
+  return row ? toStudent(row) : null;
+}
+
+async function listByParentId(db: Queryable, parentId: string): Promise<readonly Student[]> {
+  const { rows } = await runQuery<StudentRow>({
+    db,
+    operation: 'student.listByParentId',
+    sql: SQL.listByParentId,
+    params: [parentId],
+  });
+
+  return rows.map(toStudent);
+}
+
+/** Statements whose only interesting result is how many rows they changed. */
+async function execute(
+  db: Queryable,
+  operation: string,
+  sql: string,
+  params: readonly unknown[],
+): Promise<number> {
+  const { rowCount } = await runQuery({ db, operation, sql, params });
+  return rowCount ?? 0;
 }

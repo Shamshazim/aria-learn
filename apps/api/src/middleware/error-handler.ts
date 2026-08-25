@@ -1,4 +1,4 @@
-import { ERROR_CODES, isAppError } from '@/errors';
+import { ERROR_CODES, TooManyAttemptsError, isAppError } from '@/errors';
 import type { ApiError } from '@/types/http';
 
 import type { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
@@ -32,6 +32,12 @@ export function errorHandler(): ErrorRequestHandler {
       log.error(payload, 'Request failed');
     } else {
       log.warn(payload, 'Request rejected');
+    }
+
+    // The one header a safe message cannot carry: a throttled caller has to be told when to
+    // come back, and for a child that number drives what the interface says (P0-28).
+    if (error instanceof TooManyAttemptsError) {
+      res.setHeader('Retry-After', String(error.retryAfterSeconds));
     }
 
     const body: ApiError = { error: { code, message, requestId: req.id } };

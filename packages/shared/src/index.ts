@@ -16,6 +16,17 @@ export type { Band, Grade } from './band/band';
 
 export type { Misconception, Skill, SkillSubject } from './curriculum';
 
+export {
+  AVATAR_KEYS,
+  SECRET_PICTURE_KEYS,
+  SECRET_PICTURE_LENGTH,
+  avatarKeySchema,
+  secretPictureKeySchema,
+  pictureSecretSchema,
+  isAvatarKey,
+} from './identity/pictures';
+export type { AvatarKey, SecretPictureKey, PictureSecret } from './identity/pictures';
+
 export * from './protocol/events';
 export * from './protocol/moves';
 export * from './protocol/content';

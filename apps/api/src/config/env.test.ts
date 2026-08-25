@@ -10,6 +10,15 @@ import { ConfigError, loadConfig } from '@/config';
 /** The minimum a real environment must supply. Everything else has a defensible default. */
 const REQUIRED = { DATABASE_URL: 'postgresql://aria:aria@localhost:5432/aria_dev' };
 
+/** What P0-28 additionally requires once the in-process identity provider is refused. */
+const PRODUCTION_IDENTITY = {
+  IDENTITY_PROVIDER: 'supabase',
+  SUPABASE_URL: 'https://aria.example.supabase.co',
+  SUPABASE_ANON_KEY: 'anon-key-long-enough-to-pass',
+  SUPABASE_SERVICE_ROLE_KEY: 'service-role-key-long-enough',
+  SUPABASE_JWT_SECRET: 's'.repeat(40),
+} as const;
+
 function env(overrides: Record<string, string> = {}): Record<string, string> {
   return { ...REQUIRED, ...overrides };
 }
@@ -61,10 +70,37 @@ describe('loadConfig', () => {
           STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
           SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
           SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+          ...PRODUCTION_IDENTITY,
         }),
         '1.0.0',
       ).isProduction,
     ).toBe(true);
+  });
+
+  it('refuses the in-process identity provider in production', () => {
+    // It exists so a developer needs no Supabase project. In production it would mean anyone
+    // can mint an adult token (P0-28).
+    expect(() =>
+      loadConfig(
+        env({
+          NODE_ENV: 'production',
+          STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
+          SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
+          SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+        }),
+        '1.0.0',
+      ),
+    ).toThrow(/IDENTITY_PROVIDER/);
+  });
+
+  it('requires every Supabase key once Supabase is the chosen provider', () => {
+    expect(() => loadConfig(env({ IDENTITY_PROVIDER: 'supabase' }), '1.0.0')).toThrow(
+      /SUPABASE_JWT_SECRET/,
+    );
+
+    expect(loadConfig(env(PRODUCTION_IDENTITY), '1.0.0').identity.supabase?.jwtAudience).toBe(
+      'authenticated',
+    );
   });
 
   it('requires a status operator token in production', () => {

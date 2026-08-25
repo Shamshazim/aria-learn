@@ -43,6 +43,17 @@ export class NotFoundError extends AppError {
   }
 }
 
+/**
+ * No credential was presented, or the one presented is not honoured — expired, revoked, or
+ * signed for an identity Aria has no row for. The safe message never says which: telling a
+ * caller *why* their token failed is telling an attacker which half to fix.
+ */
+export class UnauthenticatedError extends AppError {
+  constructor(logMessage: string, cause?: unknown) {
+    super(ERROR_CODES.UNAUTHENTICATED, 401, 'Please sign in again.', { cause, logMessage });
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(logMessage: string) {
     super(ERROR_CODES.FORBIDDEN, 403, 'You cannot access that.', { logMessage });
@@ -66,6 +77,22 @@ export class ServiceUnavailableError extends AppError {
       cause,
       logMessage,
     });
+  }
+}
+
+/**
+ * Too many failed attempts against a credential small enough to guess. `retryAfterSeconds`
+ * reaches the client as a header, because a locked-out child needs the interface to tell them
+ * to come back — not to keep failing.
+ */
+export class TooManyAttemptsError extends AppError {
+  readonly retryAfterSeconds: number;
+
+  constructor(logMessage: string, retryAfterSeconds: number) {
+    super(ERROR_CODES.TOO_MANY_ATTEMPTS, 429, 'Too many tries. Wait a little and try again.', {
+      logMessage,
+    });
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 

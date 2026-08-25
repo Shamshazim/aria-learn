@@ -4,6 +4,7 @@ import type { HealthController } from '@/controllers/health.controller';
 import type { StatusController } from '@/controllers/status.controller';
 
 import { createHealthRouter } from './health.routes';
+import { createIdentityRouter } from './identity.routes';
 import { createStatusRouter } from './status.routes';
 import { createStudentRouter } from './student.routes';
 
@@ -21,12 +22,19 @@ export type RouterDeps = {
   healthController: HealthController;
   status?: Readonly<{ controller: StatusController; authorize: RequestHandler }>;
   student?: Parameters<typeof createStudentRouter>[0];
+  identity?: Parameters<typeof createIdentityRouter>[0];
 };
 
-export function createApiRouter({ healthController, status, student }: RouterDeps): Router {
+export function createApiRouter({
+  healthController,
+  status,
+  student,
+  identity,
+}: RouterDeps): Router {
   const router = Router();
 
   router.use(createHealthRouter(healthController));
+  if (identity !== undefined) router.use(createIdentityRouter(identity));
   if (status !== undefined) router.use(createStatusRouter(status.controller, status.authorize));
   if (student !== undefined) router.use(createStudentRouter(student));
 

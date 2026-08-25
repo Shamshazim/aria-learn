@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import { identityEnvSchema, refineIdentityEnv, toIdentityConfig } from '@/identity';
+import type { IdentityConfig } from '@/identity';
+
 import { databaseEnvSchema, toDatabaseConfig } from './database';
 
 import type { DatabaseConfig } from './database';
@@ -37,8 +40,10 @@ export const envSchema = z
     SAFEGUARDING_WEBHOOK_TOKEN: z.string().min(32).max(512).optional(),
 
     ...databaseEnvSchema.shape,
+    ...identityEnvSchema.shape,
   })
   .superRefine((env, context) => {
+    refineIdentityEnv(env, context);
     if (env.NODE_ENV === 'production' && env.STATUS_OPERATOR_TOKEN === undefined) {
       context.addIssue({
         code: 'custom',
@@ -51,6 +56,15 @@ export const envSchema = z
         code: 'custom',
         path: ['ARIA_DEMO_STUDENT_ID'],
         message: 'is forbidden in production',
+      });
+    }
+    // The in-process identity provider exists so a developer needs no Supabase project. In
+    // production it would mean anyone can mint an adult token, so boot refuses it (P0-28).
+    if (env.NODE_ENV === 'production' && env.IDENTITY_PROVIDER !== 'supabase') {
+      context.addIssue({
+        code: 'custom',
+        path: ['IDENTITY_PROVIDER'],
+        message: 'must be a real provider in production',
       });
     }
     if (
@@ -84,6 +98,7 @@ export type AppConfig = {
   safeguardingWebhookUrl: string | undefined;
   safeguardingWebhookToken: string | undefined;
   database: DatabaseConfig;
+  identity: IdentityConfig;
 };
 
 /**
@@ -132,5 +147,6 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
     safeguardingWebhookUrl: env.SAFEGUARDING_WEBHOOK_URL,
     safeguardingWebhookToken: env.SAFEGUARDING_WEBHOOK_TOKEN,
     database: toDatabaseConfig(env),
+    identity: toIdentityConfig(env),
   };
 }

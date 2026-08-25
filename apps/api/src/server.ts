@@ -2,8 +2,10 @@ import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
 import { readConfigOrExit } from '@/config';
+import type { AppConfig } from '@/config';
 import { createInventoryService } from '@/curriculum';
 import { closePool, createPool, runMigrations, verifyConnection } from '@/db';
+import { createIdentityRuntime } from '@/identity.runtime';
 import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
@@ -31,9 +33,37 @@ export async function start(): Promise<void> {
   await verifyConnectionOrExit(pool, logger);
   await runMigrations({ pool, logger });
 
-  let ai: Awaited<ReturnType<typeof createAiRuntime>>;
+  const ai = await startAiOrExit({ aiConfig, config, pool, logger });
+  const app = await composeApp({ config, logger, pool, ai });
+
+  const server = app.listen(config.port, () => {
+    logger.info({ port: config.port, env: config.env }, 'API listening');
+  });
+
+  installShutdownHandlers({
+    server,
+    logger,
+    timeoutMs: config.shutdownTimeoutMs,
+    onDrained: () => closePool(pool, logger),
+  });
+}
+
+type AiRuntime = Awaited<ReturnType<typeof createAiRuntime>>;
+
+/**
+ * The model layer's own startup checks. A broken endpoint has to stop the boot here, before
+ * the port opens, rather than surfacing on the first request a child makes.
+ */
+async function startAiOrExit(input: {
+  aiConfig: ReturnType<typeof loadAiConfig>;
+  config: AppConfig;
+  pool: Pool;
+  logger: Logger;
+}): Promise<AiRuntime> {
+  const { aiConfig, config, pool, logger } = input;
+
   try {
-    ai = await createAiRuntime({
+    return await createAiRuntime({
       aiConfig,
       appConfig: config,
       db: pool,
@@ -47,33 +77,36 @@ export async function start(): Promise<void> {
     await closePool(pool, logger);
     throw error;
   }
+}
 
-  const app = createApp({
+/**
+ * Identity is built before the tutoring routes because they authenticate through it: the
+ * child-session resolver the tutor loop uses is this runtime's (P0-28).
+ */
+async function composeApp(input: {
+  config: AppConfig;
+  logger: Logger;
+  pool: Pool;
+  ai: AiRuntime;
+}): Promise<ReturnType<typeof createApp>> {
+  const { config, logger, pool, ai } = input;
+  const shared = { pool, config, ids: uuidGenerator, clock: systemClock, logger } as const;
+
+  const identity = createIdentityRuntime({ ...shared, fetch: globalThis.fetch });
+
+  return createApp({
     config,
     logger,
     clock: systemClock,
     ids: uuidGenerator,
     statusService: ai.status,
+    identity: identity.router,
     student: await createPhase1Runtime({
-      pool,
+      ...shared,
       ai: ai.client,
       spend: ai.spend,
-      config,
-      ids: uuidGenerator,
-      clock: systemClock,
-      logger,
-      access: createConfiguredStudentAccess(config),
+      access: createConfiguredStudentAccess(config, identity.childAuth),
     }),
-  });
-  const server = app.listen(config.port, () => {
-    logger.info({ port: config.port, env: config.env }, 'API listening');
-  });
-
-  installShutdownHandlers({
-    server,
-    logger,
-    timeoutMs: config.shutdownTimeoutMs,
-    onDrained: () => closePool(pool, logger),
   });
 }
 
