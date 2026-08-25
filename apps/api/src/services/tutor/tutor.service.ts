@@ -9,8 +9,10 @@ import {
 
 import { matchMisconception } from '@/curriculum/misconception.matcher';
 import type { Clock } from '@/lib/clock';
+import type { Logger } from '@/lib/logger';
 import { checkArithmetic } from '@/quality/arithmetic';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
+import { isStaleSilence, type LatestMoveLookup } from '@/services/tutor/stale-silence';
 
 export type TutorService = Readonly<{
   handle(
@@ -25,12 +27,15 @@ export function createTutorService(deps: {
   clock: Clock;
   sessionLimitMs(band: 'early' | 'middle' | 'senior'): number;
   requireOwnership(studentId: string, sessionId: string): Promise<void>;
+  latestMoveId: LatestMoveLookup;
+  logger: Pick<Logger, 'info'>;
 }): TutorService {
   const harness = buildHarness(deps);
   return {
     handle: async (studentId, event, signal) => {
       if (event.sessionId === undefined) throw new Error('Session turn requires sessionId');
       await deps.requireOwnership(studentId, event.sessionId);
+      if (await isStaleSilence(event, deps.latestMoveId, deps.logger)) return [];
       return harness.handle(event, signal);
     },
   };

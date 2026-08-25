@@ -45,6 +45,8 @@ type CommonVoiceEvent = Readonly<{
 export type MoveStream = Readonly<{
   authorize(signal?: AbortSignal): Promise<void>;
   handleTranscript(text: string, confidence?: number, signal?: AbortSignal): AsyncIterable<string>;
+  /** P2H-01: the child said nothing inside the band window. */
+  silence(payload: Readonly<{ waitedMs: number; afterMoveId: string }>): AsyncIterable<string>;
   resume(signal?: AbortSignal): AsyncIterable<string>;
   speechStarted(): AsyncIterable<string>;
   acceptAcknowledgement(serverSeq: number): void;
@@ -67,6 +69,13 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
           event: transcriptEvent(input, state, text, confidence),
           replayOnly: false,
           ...(signal === undefined ? {} : { signal }),
+        }),
+      ),
+    silence: (payload) =>
+      serialize(() =>
+        send(input, state, {
+          event: { ...commonEvent(input, state), kind: 'SILENCE', ...payload },
+          replayOnly: false,
         }),
       ),
     resume: (signal) =>

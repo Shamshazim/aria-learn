@@ -72,6 +72,7 @@ function inputRecord(turn: CommittedTurn, sessionId: string, clock: Clock): NewS
     latencyMs: turn.event.kind === 'ANSWER' ? (turn.event.elapsedMs ?? null) : null,
     evidence: {
       decision: turn.plan.reason,
+      ...turn.plan.evidence,
       ...(turn.decision.graded?.misconception === null || turn.decision.graded === null
         ? {}
         : { misconception: turn.decision.graded.misconception }),
@@ -97,6 +98,7 @@ function moveRecord(
     latencyMs: turn.spans.e2e_ms ?? null,
     evidence: {
       ...turn.privateEvidence,
+      ...turn.plan.evidence,
       approach: turn.plan.approach,
       reason: turn.plan.reason,
       spans: turn.spans,

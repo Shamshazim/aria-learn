@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { TutorMove } from '@aria/shared';
+import { silenceWindowMs } from '@aria/tutor';
 
 import { createEventFactory } from '@/features/session/model/input-events';
 import { reduceSession } from '@/features/session/model/session-machine';
-import { initialSessionState, silenceWindowMs } from '@/features/session/model/session-state';
+import { initialSessionState } from '@/features/session/model/session-state';
 import { createScriptedSource } from '@/features/session/sources/scripted-source';
 
 describe('session reducer', () => {

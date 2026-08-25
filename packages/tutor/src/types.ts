@@ -29,6 +29,12 @@ export type MovePlan = Readonly<{
   reason: string;
   skillCode: string | null;
   attempt: number;
+  /**
+   * Why the policy chose this, in a form a query can read — the silence rung, later the
+   * planner's allowed set and rationale (P2H-06). It is written to `session_event.evidence`
+   * and never shown to a child.
+   */
+  evidence?: Readonly<Record<string, number | string | boolean>>;
 }>;
 
 export type PolicyDecision = Readonly<{

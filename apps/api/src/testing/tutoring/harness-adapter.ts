@@ -46,6 +46,11 @@ export function createHarnessTutor(scenario: TutoringScenario): TutorImplementat
   };
 }
 
+/** The stale-`SILENCE` check compares against the last move Aria delivered (P2H-01). */
+function latestMoveId(committed: CommittedTurn | null): string | null {
+  return committed?.moves.at(-1)?.id ?? null;
+}
+
 function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplementation {
   const steps = new Map(scenario.steps.map((step) => [step.event.id, step]));
   const outcomes = new Map(
@@ -76,6 +81,8 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
     clock: fixedClock(new Date('2026-08-24T20:00:00.000Z')),
     sessionLimitMs: () => 20 * 60_000,
     requireOwnership: () => Promise.resolve(),
+    latestMoveId: () => Promise.resolve(latestMoveId(committed)),
+    logger: { info: () => undefined },
   });
   return {
     handle: async (event, control) => {

@@ -104,7 +104,11 @@ function intentDecision<TModelContext>(
 function silenceDecision<TModelContext>(context: LoadedTurnContext<TModelContext>): PolicyDecision {
   // The context counts silences already committed; this event is the next one.
   const rung = silenceRung(context.session.consecutiveSilences + 1);
-  return decision(plan(rung.kind, rung.approach, rung.reason, context), null, rung.terminal);
+  const chosen = {
+    ...plan(rung.kind, rung.approach, rung.reason, context),
+    evidence: { silenceRung: rung.rung, silenceTerminal: rung.terminal },
+  };
+  return decision(chosen, null, rung.terminal);
 }
 
 function answerDecision<TModelContext>(
@@ -185,11 +189,9 @@ function defaultPlan<TModelContext>(
         ? 'BREAK'
         : event.kind === 'LEAVE'
           ? 'END'
-          : event.kind === 'SILENCE'
-            ? 'LISTEN'
-            : event.kind === 'SUBJECT_CHOSEN' || event.kind === 'RESUME'
-              ? 'ASK'
-              : 'SAY';
+          : event.kind === 'SUBJECT_CHOSEN' || event.kind === 'RESUME'
+            ? 'ASK'
+            : 'SAY';
   return plan(
     kind,
     event.kind === 'CONFUSED' ? nextApproach(context) : 'direct',

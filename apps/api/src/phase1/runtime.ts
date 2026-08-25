@@ -1,3 +1,4 @@
+import { tutorMoveSchema } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
 import { createInventoryService, type InventoryService } from '@/curriculum';
@@ -110,7 +111,23 @@ function buildTutor(
       if (session?.studentId !== studentId)
         throw new ForbiddenError('student session ownership mismatch');
     },
+    latestMoveId: (sessionId) => latestMoveId(repositories, sessionId),
+    logger: deps.logger,
   });
+}
+
+/** The id of the last move Aria actually delivered, for the stale-`SILENCE` check (P2H-01). */
+async function latestMoveId(
+  repositories: Phase1Repositories,
+  sessionId: string,
+): Promise<string | null> {
+  const records = await repositories.events.list(sessionId);
+  for (const record of [...records].reverse()) {
+    if (record.actor !== 'aria') continue;
+    const parsed = tutorMoveSchema.safeParse(record.payload);
+    if (parsed.success) return parsed.data.id;
+  }
+  return null;
 }
 
 async function resolveContent(

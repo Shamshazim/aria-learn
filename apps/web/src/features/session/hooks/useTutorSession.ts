@@ -2,6 +2,7 @@ import { useCallback, useEffect, useReducer, useRef } from 'react';
 
 import type { Grade, TutorMove } from '@aria/shared';
 
+import { useSilenceTimer, type SilenceControls } from '@/features/session/hooks/useSilenceTimer';
 import { ONLINE, reduceConnection } from '@/features/session/model/connection-state';
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
 import {
@@ -9,11 +10,7 @@ import {
   type TutorSession,
 } from '@/features/session/model/session-commands';
 import { reduceSession } from '@/features/session/model/session-machine';
-import {
-  initialSessionState,
-  silenceWindowMs,
-  type SessionState,
-} from '@/features/session/model/session-state';
+import { initialSessionState, type SessionState } from '@/features/session/model/session-state';
 import { ContentUnavailableError, type TutorSource } from '@/features/session/model/tutor-source';
 
 export type { TutorSession } from '@/features/session/model/session-commands';
@@ -45,7 +42,7 @@ export function useTutorSession(input: {
 
   useSourceLifecycle(input, source, active, send);
   useMediaEvents(send, transport.retry);
-  useSilenceEvent(state, send);
+  const silence = useSilence(state, send);
 
   const interrupt = useCallback(async (): Promise<void> => {
     const interruptedMoveId = stateRef.current.currentMove?.id;
@@ -66,11 +63,26 @@ export function useTutorSession(input: {
     send,
     interrupt,
     receive,
+    silence,
     ...(input.onSpeak === undefined ? {} : { speak: input.onSpeak }),
   });
 }
 
 type Send = (payload: EventPayload) => Promise<void>;
+
+function useSilence(state: SessionState, send: Send): SilenceControls {
+  return useSilenceTimer({
+    move: state.currentMove,
+    band: state.band,
+    speaking: state.status === 'speaking',
+    onSilence: useCallback(
+      (payload: Readonly<{ waitedMs: number; afterMoveId: string }>) => {
+        void send({ kind: 'SILENCE', ...payload });
+      },
+      [send],
+    ),
+  });
+}
 type Transport = Readonly<{ send: Send; retry(): Promise<void> }>;
 type Retry = Readonly<{ payload: EventPayload; source: TutorSource }>;
 type SourceRefs = Readonly<{
@@ -252,18 +264,4 @@ function useMediaEvents(send: Send, retry: () => Promise<void>): void {
       window.removeEventListener('online', restored);
     };
   }, [retry, send]);
-}
-
-function useSilenceEvent(state: SessionState, send: Send): void {
-  const move = state.currentMove;
-  useEffect(() => {
-    if (move === null || move.expects === 'none') return;
-    const waitedMs = silenceWindowMs(state.band);
-    const timeout = window.setTimeout(() => {
-      void send({ kind: 'SILENCE', waitedMs, afterMoveId: move.id });
-    }, waitedMs);
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [move, send, state.band]);
 }

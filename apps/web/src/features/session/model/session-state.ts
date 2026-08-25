@@ -23,9 +23,3 @@ export function initialSessionState(band: Band): SessionState {
     ended: false,
   };
 }
-
-export function silenceWindowMs(band: Band): number {
-  if (band === 'early') return 12_000;
-  if (band === 'middle') return 18_000;
-  return 25_000;
-}
