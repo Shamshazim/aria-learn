@@ -1,8 +1,10 @@
+import type { Band } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
 import type { AiClient } from '@/ai';
 import type { FallbackReason } from '@/observability/content-metrics';
 import type { QualityGate } from '@/quality';
+import { registerFailures } from '@/quality/checks/level/register';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import { respondInput } from '@/services/content/turn-response';
 
@@ -37,7 +39,7 @@ export async function generateGatedText(
       lastReason = 'provider_error';
       continue;
     }
-    if (passesGate(deps.gate, candidate.text, turn.context.session.band)) return candidate;
+    if (isSpeakable(deps.gate, candidate.text, turn.context.session.band)) return candidate;
     lastReason = 'gate_failed';
   }
   return { kind: 'fallback', reason: lastReason };
@@ -67,6 +69,18 @@ async function generateOnce(
 
 export function throwIfAborted(signal: AbortSignal | undefined): void {
   if (signal?.aborted === true) throw new DOMException('Tutor turn aborted', 'AbortError');
+}
+
+/**
+ * The gate plus the band register (P2H-03).
+ *
+ * The register rules apply here and not inside the gate because they are about Aria *speaking*:
+ * a practice item with three short instructions is fine for a six-year-old, and a reviewed
+ * safeguarding response is deliberately longer than two sentences. Only model-written prose is
+ * held to "calm and adult" or "at most two sentences".
+ */
+function isSpeakable(gate: QualityGate, text: string, band: Band): boolean {
+  return registerFailures(text, band).length === 0 && passesGate(gate, text, band);
 }
 
 export function passesGate(

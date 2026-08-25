@@ -75,7 +75,7 @@ async function resolve(
     return responseWithContinuation(
       deps,
       turn,
-      { text, provenance: { contentSource: 'reviewed-remediation' } },
+      { text, provenance: { responseSource: 'reviewed-remediation' } },
       signal,
     );
   }
@@ -94,15 +94,20 @@ async function resolve(
   return responseWithContinuation(deps, turn, { text, provenance: provenance(outcome) }, signal);
 }
 
-/** P2H-02/P2H-03: every turn records where its words came from and which prompt made them. */
+/**
+ * P2H-02/P2H-03: where Aria's *words* came from, and which prompt made them.
+ *
+ * Deliberately not `contentSource`: that key already means where the practice *item* came
+ * from, and a PRAISE followed by a new question carries both in one evidence row.
+ */
 function provenance(outcome: GenerationOutcome): Readonly<Record<string, unknown>> {
   return outcome.kind === 'generated'
     ? {
-        contentSource: 'model',
+        responseSource: 'model',
         promptName: outcome.promptName,
         promptVersion: outcome.promptVersion,
       }
-    : { contentSource: 'fallback', fallbackReason: outcome.reason };
+    : { responseSource: 'fallback', fallbackReason: outcome.reason };
 }
 
 function currentRemediation(

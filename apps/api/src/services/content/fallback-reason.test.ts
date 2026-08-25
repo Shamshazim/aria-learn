@@ -111,7 +111,7 @@ describe('fallback_used_total', () => {
 
     expect(metrics.snapshot().counters).toEqual({});
     expect(resolved.privateEvidence).toMatchObject({
-      contentSource: 'model',
+      responseSource: 'model',
       promptName: 'respond',
       promptVersion: '1.0.0',
     });

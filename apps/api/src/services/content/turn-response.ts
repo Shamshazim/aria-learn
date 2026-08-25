@@ -17,6 +17,14 @@ const DETOUR_APPROACHES: ReadonlySet<string> = new Set([
 ]);
 
 const MOVE_FIELDS: Partial<Readonly<Record<MoveKind, MoveFields>>> = {
+  // The arrival moves carry structured fields the schema requires. Without these the turn path
+  // throws the moment a planner picks one for an `ARRIVED` event (P2H-03, P2H-06).
+  CHECK_IN: () => ({ about: 'difficulty' }),
+  RECOMMEND: (turn) => ({
+    subjectId: turn.context.session.subject,
+    grade: turn.context.session.grade,
+    reason: turn.plan.reason,
+  }),
   HINT: (turn) => ({ attempt: turn.plan.attempt }),
   RETEACH: (turn) => ({ misconception: turn.decision.graded?.misconception ?? undefined }),
   REVEAL: (turn) => ({ answer: turn.context.modelContext.answerKey ?? 'shown' }),

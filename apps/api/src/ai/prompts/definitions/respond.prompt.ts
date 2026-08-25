@@ -4,39 +4,10 @@ import { bandSchema } from '@aria/shared';
 
 import { promptTextSchema, scrubbedContextSchema } from '@/ai/prompts/input.schema';
 import { ARIA_PERSONA, REGISTERS } from '@/ai/prompts/persona/aria.persona';
+import { instructionFor } from '@/ai/prompts/persona/move-prompt.map';
 import { renderDialogue } from '@/ai/prompts/render/dialogue.render';
 import { renderPrompt } from '@/ai/prompts/render/render';
 import type { PromptDefinition, RespondPromptInput, RespondPromptOutput } from '@/ai/prompts/types';
-
-/** One instruction per move (and per approach where it changes what Aria does). */
-const MOVE_INSTRUCTIONS: Readonly<Record<string, string>> = {
-  SAY: 'Say one helpful thing that moves the child forward on the open item.',
-  'SAY:answer-question':
-    'The child asked a question. Answer it in at most two sentences, grounded in the skill. If you are not sure, say so honestly. Then invite them back to the open item in a few words.',
-  'SAY:acknowledge-chat':
-    'The child said something that is not an answer. Reply with one warm, specific sentence that shows you heard them, then in a few words bring them back to the open item.',
-  'SAY:confirm-spoken-answer':
-    'You did not hear the child clearly. Say, in a fresh way, that you did not catch it and ask them to say it again.',
-  'SAY:reask-short':
-    'The child went quiet. Ask the open question again in a shorter, friendlier way. Do not repeat your earlier wording.',
-  'SAY:check-in':
-    'The child has been quiet for a while. Gently check whether they are still there and want to keep going. One or two sentences.',
-  HINT: 'Give one useful hint toward the open item without revealing the answer. Point at the very next step, not the whole path.',
-  RETEACH:
-    'The child is stuck. Explain the idea again a different way than before, using the given approach. Keep it to the one idea they need right now.',
-  REVEAL:
-    'Reveal the answer kindly and show in one or two sentences why it is the answer. Do not scold.',
-  PRAISE:
-    'The child got it right. Praise the specific thing they did well, naming what was right about their answer. No generic praise.',
-  BREAK: 'Say goodbye for now warmly, in one or two sentences, as a person would.',
-  END: 'End the session warmly. Name one real thing the child worked on today, then say goodbye.',
-  SWITCH: 'Tell the child, kindly, that you are going to try a different step first.',
-  CHECK_IN: 'Ask the child how they are doing today, in one friendly sentence.',
-  WELCOME: 'Welcome the child warmly in one or two sentences.',
-  RECOMMEND: 'Suggest, in one sentence, what to work on today.',
-  LISTEN: 'Invite the child to speak or read aloud, in one short sentence.',
-  SHOW: 'Say what the child should look at and do, in one sentence.',
-};
 
 const TEMPLATE = `{{register}}
 
@@ -96,10 +67,7 @@ export const respondPrompt: PromptDefinition<'respond'> = {
           ? ''
           : `- The correct answer is "${input.answerKey}". Only say it if your move is REVEAL.\n`,
       move: input.move,
-      instruction:
-        MOVE_INSTRUCTIONS[`${input.move}:${input.approach}`] ??
-        MOVE_INSTRUCTIONS[input.move] ??
-        'Say one helpful sentence.',
+      instruction: instructionFor(input.move, input.approach),
     }),
   outputSchema,
   maxTokens: 300,
