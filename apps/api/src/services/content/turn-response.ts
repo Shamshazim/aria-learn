@@ -39,7 +39,7 @@ export function responseMove(
     kind: turn.plan.kind,
     speech: { text },
     display: [{ type: 'text', body: text, markdown: false }],
-    expects: 'none',
+    expects: turn.plan.approach === 'confirm-spoken-answer' ? 'speech' : 'none',
     skillId: turn.plan.skillCode ?? undefined,
   };
   return factory.make({ ...common, ...(MOVE_FIELDS[turn.plan.kind]?.(turn) ?? {}) });

@@ -14,6 +14,7 @@ describe('session end', () => {
     let deferred: (() => Promise<void>) | undefined;
     const consolidate = vi.fn(() => Promise.reject(new Error('offline')));
     const cancelAhead = vi.fn();
+    const closeVoiceSession = vi.fn(() => Promise.resolve());
     const service = createEndService({
       sessions: repository(session),
       clock: fixedClock(NOW),
@@ -23,6 +24,7 @@ describe('session end', () => {
         deferred = task;
       },
       cancelAhead,
+      closeVoiceSession,
     });
 
     await expect(
@@ -30,6 +32,7 @@ describe('session end', () => {
     ).resolves.toMatchObject({ endReason: 'complete' });
     expect(consolidate).not.toHaveBeenCalled();
     expect(cancelAhead).toHaveBeenCalledWith(session.id);
+    expect(closeVoiceSession).toHaveBeenCalledWith(session.id, NOW);
     if (deferred === undefined) throw new Error('Consolidation was not scheduled');
     await expect(deferred()).resolves.toBeUndefined();
   });

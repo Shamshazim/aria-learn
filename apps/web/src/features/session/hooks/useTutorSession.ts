@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 
-import type { Grade } from '@aria/shared';
+import type { Grade, TutorMove } from '@aria/shared';
 
 import { ONLINE, reduceConnection } from '@/features/session/model/connection-state';
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
@@ -24,6 +24,8 @@ export function useTutorSession(input: {
   subjectId: string;
   createSource: () => TutorSource;
   startupEvents?: readonly EventPayload[];
+  onSpeak?: () => Promise<void>;
+  onMove?: (move: TutorMove) => void;
 }): TutorSession {
   const [state, dispatch] = useReducer(reduceSession, input.band, initialSessionState);
   const [connection, dispatchConnection] = useReducer(reduceConnection, ONLINE);
@@ -31,10 +33,12 @@ export function useTutorSession(input: {
   const active = useRef<AbortController | null>(null);
   const queue = useRef<Promise<void>>(Promise.resolve());
   const stateRef = useRef(state);
+  const onMove = useRef(input.onMove);
   stateRef.current = state;
+  onMove.current = input.onMove;
   const events = useEventFactory();
   const transport = useSend(
-    { source, active, queue, events },
+    { source, active, queue, events, onMove },
     { session: dispatch, connection: dispatchConnection },
   );
   const send = transport.send;
@@ -53,7 +57,17 @@ export function useTutorSession(input: {
     });
   }, [send]);
 
-  return createSessionCommands(state, connection.status, send, interrupt);
+  const receive = useCallback((move: Parameters<typeof dispatch>[0]): void => {
+    dispatch(move);
+  }, []);
+  return createSessionCommands({
+    state,
+    connectionStatus: connection.status,
+    send,
+    interrupt,
+    receive,
+    ...(input.onSpeak === undefined ? {} : { speak: input.onSpeak }),
+  });
 }
 
 type Send = (payload: EventPayload) => Promise<void>;
@@ -64,6 +78,7 @@ type SourceRefs = Readonly<{
   active: React.RefObject<AbortController | null>;
   queue: React.RefObject<Promise<void>>;
   events: React.RefObject<ReturnType<typeof createEventFactory>>;
+  onMove: React.RefObject<((move: TutorMove) => void) | undefined>;
 }>;
 type SendDispatch = Readonly<{
   session: React.Dispatch<Parameters<typeof reduceSession>[1]>;
@@ -146,6 +161,7 @@ async function runSourceOperation(operation: SourceOperation): Promise<void> {
     )) {
       if (sourceRef.current !== operation.source || controller.signal.aborted) return;
       emitted = true;
+      operation.refs.onMove.current?.(move);
       operation.dispatchers.session(move);
     }
     recoverConnection(operation);

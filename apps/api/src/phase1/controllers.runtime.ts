@@ -34,20 +34,47 @@ type ControllerRuntime = Readonly<{
   cancelAhead(sessionId: string): void;
 }>;
 
-export function buildPhase1Controllers(
-  runtime: ControllerRuntime,
-): NonNullable<RouterDeps['student']> {
+export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
+  student: NonNullable<RouterDeps['student']>;
+  turn(studentId: string, request: TurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
+}> {
   const lifecycle = buildLifecycle(runtime);
   const arrival = buildArrival(runtime, runtime.gate);
+  const serialize = createSessionTurnQueue();
+  const turn = (studentId: string, request: TurnRequest, signal?: AbortSignal) =>
+    serialize(request.sessionId ?? request.event.sessionId ?? 'missing', () =>
+      turnResponse({ ...runtime, end: lifecycle.end }, studentId, request, signal),
+    );
   return {
-    authorize: requireStudentAccess(runtime.deps.access),
-    arrival: createArrivalController(arrival),
-    sessions: createSessionControllers({
-      sessions: lifecycle.sessions,
-      end: lifecycle.end,
-      turn: (studentId, request, signal) =>
-        turnResponse({ ...runtime, end: lifecycle.end }, studentId, request, signal),
-    }),
+    student: {
+      authorize: requireStudentAccess(runtime.deps.access),
+      arrival: createArrivalController(arrival),
+      sessions: createSessionControllers({
+        sessions: lifecycle.sessions,
+        end: lifecycle.end,
+        turn,
+      }),
+    },
+    turn,
+  };
+}
+
+function createSessionTurnQueue() {
+  const tails = new Map<string, Promise<void>>();
+  return async <T>(sessionId: string, operation: () => Promise<T>): Promise<T> => {
+    const previous = tails.get(sessionId) ?? Promise.resolve();
+    let release = (): void => undefined;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    tails.set(sessionId, current);
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (tails.get(sessionId) === current) tails.delete(sessionId);
+    }
   };
 }
 
@@ -84,6 +111,7 @@ function buildLifecycle(runtime: ControllerRuntime) {
     logger: deps.logger,
     schedule: deps.scheduleBackground ?? scheduleBackground,
     cancelAhead: runtime.cancelAhead,
+    ...(deps.closeVoiceSession === undefined ? {} : { closeVoiceSession: deps.closeVoiceSession }),
   });
   return { sessions, end: end.end };
 }

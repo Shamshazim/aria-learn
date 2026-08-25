@@ -1,6 +1,7 @@
 import { createArrivalEventRepository } from '@/repositories/arrival-event.repository';
 import { createContentItemRepository } from '@/repositories/content-item.repository';
 import { createLearnerMemoryRepository } from '@/repositories/learner-memory.repository';
+import { createMoveOutboxRepository } from '@/repositories/move-outbox.repository';
 import { createSafetyFlagRepository } from '@/repositories/safety-flag.repository';
 import { createSessionEventRepository } from '@/repositories/session-event.repository';
 import { createSessionRepository } from '@/repositories/session.repository';
@@ -19,5 +20,6 @@ export function buildRepositories(deps: Phase1RuntimeDeps): Phase1Repositories {
     skills: createSkillStateRepository({ db: deps.pool, clock: deps.clock }),
     content: createContentItemRepository({ db: deps.pool, ids: deps.ids, clock: deps.clock }),
     flags: createSafetyFlagRepository({ db: deps.pool, ids: deps.ids, clock: deps.clock }),
+    outbox: createMoveOutboxRepository({ db: deps.pool, ids: deps.ids }),
   };
 }

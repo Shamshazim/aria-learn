@@ -23,6 +23,7 @@
     "test": "vitest run",
     "test:session-coverage": "vitest run --project web src/features/session/model/session-machine.test.ts --coverage",
     "test:watch": "vitest",
+    "voice:golden": "npm run voice:golden -w @aria/voice-worker --",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
   "devDependencies": {

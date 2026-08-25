@@ -20,6 +20,7 @@ export * from './protocol/events';
 export * from './protocol/moves';
 export * from './protocol/content';
 export * from './protocol/session';
+export * from './protocol/realtime';
 export {
   arrivalResponseSchema,
   currentSessionResponseSchema,

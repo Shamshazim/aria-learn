@@ -7,6 +7,7 @@ import type { StudentAccessResolver } from '@/middleware/student-access';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
 import type { ContentItemRepository } from '@/repositories/content-item.repository';
 import type { LearnerMemoryRepository } from '@/repositories/learner-memory.repository';
+import type { MoveOutboxRepository } from '@/repositories/move-outbox.repository';
 import type { SafetyFlagRepository } from '@/repositories/safety-flag.repository';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
@@ -24,6 +25,7 @@ export type Phase1RuntimeDeps = Readonly<{
   clock: Clock;
   logger: Logger;
   access: StudentAccessResolver;
+  closeVoiceSession?(sessionId: string, at: Date): Promise<void>;
   scheduleBackground?(task: () => Promise<void>): void;
 }>;
 
@@ -36,4 +38,5 @@ export type Phase1Repositories = Readonly<{
   skills: SkillStateRepository;
   content: ContentItemRepository;
   flags: SafetyFlagRepository;
+  outbox: MoveOutboxRepository;
 }>;

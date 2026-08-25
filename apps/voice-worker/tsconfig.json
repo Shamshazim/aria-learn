@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@aria/shared": ["../../packages/shared/src/index.ts"],
+      "@aria/voice": ["../../packages/voice/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

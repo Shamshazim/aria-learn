@@ -4,30 +4,12 @@ import type { PlannedTurn } from '@aria/tutor';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 
 export function fallbackText(turn: PlannedTurn<ApiModelContext>): string {
-  switch (turn.plan.kind) {
-    case 'HINT':
-      return 'Look and try again.';
-    case 'RETEACH':
-      return turn.plan.approach === 'visual-model'
-        ? 'Look. We can show a different way.'
-        : 'We can try a different way.';
-    case 'REVEAL':
-      return `The answer is ${turn.context.modelContext.answerKey ?? 'shown'}.`;
-    case 'PRAISE':
-      return praiseText(turn.context.modelContext.answerKey);
-    case 'BREAK':
-      return 'We can stop for today.';
-    case 'END':
-      return 'You learned and kept trying.';
-    case 'LISTEN':
-      return 'Take your time. I am ready.';
-    case 'SAY':
-      return 'I can help. Let us look together.';
-    case 'SWITCH':
-      return 'Let us try a different step.';
-    default:
-      return 'Let us try one step.';
-  }
+  if (turn.plan.kind === 'RETEACH') return reteachText(turn.plan.approach);
+  if (turn.plan.kind === 'REVEAL')
+    return `The answer is ${turn.context.modelContext.answerKey ?? 'shown'}.`;
+  if (turn.plan.kind === 'PRAISE') return praiseText(turn.context.modelContext.answerKey);
+  if (turn.plan.kind === 'SAY') return sayText(turn.plan.approach);
+  return STATIC_FALLBACKS[turn.plan.kind] ?? 'Let us try one step.';
 }
 
 export function eventText(turn: PlannedTurn<ApiModelContext>): string | undefined {
@@ -40,4 +22,24 @@ export function eventText(turn: PlannedTurn<ApiModelContext>): string | undefine
 
 function praiseText(answerKey: string | null): string {
   return answerKey === null ? 'Yes. You showed your idea.' : `Yes. ${answerKey} is right.`;
+}
+
+const STATIC_FALLBACKS: Readonly<Record<string, string>> = {
+  HINT: 'Look and try again.',
+  BREAK: 'We can stop for today.',
+  END: 'You learned and kept trying.',
+  LISTEN: 'Take your time. I am ready.',
+  SWITCH: 'Let us try a different step.',
+};
+
+function reteachText(approach: string): string {
+  return approach === 'visual-model'
+    ? 'Look. We can show a different way.'
+    : 'We can try a different way.';
+}
+
+function sayText(approach: string): string {
+  return approach === 'confirm-spoken-answer'
+    ? 'I am not sure I heard that. Please say it again.'
+    : 'I can help. Let us look together.';
 }

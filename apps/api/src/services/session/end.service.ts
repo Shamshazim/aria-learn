@@ -18,6 +18,7 @@ export function createEndService(deps: {
   logger: Logger;
   schedule(task: () => Promise<void>): void;
   cancelAhead(sessionId: string): void;
+  closeVoiceSession?(sessionId: string, at: Date): Promise<void>;
 }): EndService {
   return {
     end: async (
@@ -27,9 +28,14 @@ export function createEndService(deps: {
       if (session === null) throw new NotFoundError('session not found');
       if (session.studentId !== input.studentId)
         throw new ForbiddenError('session ownership mismatch');
-      if (session.endedAt !== null) return session;
-      const ended = await deps.sessions.end(session.id, input.reason, deps.clock.now());
+      const endedAt = deps.clock.now();
+      if (session.endedAt !== null) {
+        await deps.closeVoiceSession?.(session.id, endedAt);
+        return session;
+      }
+      const ended = await deps.sessions.end(session.id, input.reason, endedAt);
       if (ended !== null) {
+        await deps.closeVoiceSession?.(ended.id, endedAt);
         deps.cancelAhead(ended.id);
         scheduleConsolidation(deps, ended);
       }

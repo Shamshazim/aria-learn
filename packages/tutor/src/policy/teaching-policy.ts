@@ -31,6 +31,18 @@ function decide<TModelContext>(
     );
   }
   if (event.kind === 'ANSWER' || event.kind === 'SPEECH_FINAL') {
+    if (event.kind === 'SPEECH_FINAL' && (event.confidence ?? 0) < 0.75) {
+      return decision(
+        plan(
+          'SAY',
+          'confirm-spoken-answer',
+          'The spoken answer was not reliable enough to grade.',
+          context,
+        ),
+        null,
+        false,
+      );
+    }
     const graded = input.gradeAnswer(event, context.session.skillCode);
     if (graded === null) {
       return decision(

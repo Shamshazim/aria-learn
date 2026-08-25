@@ -1,0 +1,19 @@
+{
+  "candidate": "livekit-inference-smoke",
+  "generatedAt": "2026-08-24T00:00:00.000Z",
+  "observations": [
+    {
+      "scenarioId": "synthetic-short-answer",
+      "provenance": "synthetic",
+      "transcriptCorrect": true,
+      "endOfTurnCorrect": true,
+      "interruptionSilenceMs": 180,
+      "firstAudioMs": 600,
+      "endToEndMs": 900,
+      "falseTeaching": false,
+      "lowConfidenceDurableUpdate": false,
+      "spokenTeachingApproved": null,
+      "estimatedCostUsd": 0
+    }
+  ]
+}

@@ -3,12 +3,14 @@ import {
   endSessionResponseSchema,
   sessionStartResponseSchema,
   turnResponseSchema,
+  realtimeCredentialsSchema,
   type Grade,
   type CurrentSessionResponse,
   type EndSessionResponse,
   type SessionStartResponse,
   type TurnResponse,
   type TurnRequest,
+  type RealtimeCredentialsDto,
 } from '@aria/shared';
 
 import type { ApiClient } from '@/api/client';
@@ -30,6 +32,7 @@ export type SessionApi = Readonly<{
     sessionId: string,
     reason: 'complete' | 'break' | 'child_left' | 'timeout',
   ): Promise<EndSessionResponse>;
+  realtime(sessionId: string, signal?: AbortSignal): Promise<RealtimeCredentialsDto>;
 }>;
 
 export function createSessionApi(client: ApiClient): SessionApi {
@@ -65,5 +68,12 @@ export function createSessionApi(client: ApiClient): SessionApi {
       ),
     end: (sessionId: string, reason: 'complete' | 'break' | 'child_left' | 'timeout') =>
       client.post('/api/v1/student/session/end', { sessionId, reason }, endSessionResponseSchema),
+    realtime: (sessionId, signal) =>
+      client.post(
+        `/api/v1/student/session/${encodeURIComponent(sessionId)}/realtime`,
+        {},
+        realtimeCredentialsSchema,
+        signal === undefined ? undefined : { signal },
+      ),
   };
 }

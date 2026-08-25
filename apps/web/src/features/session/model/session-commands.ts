@@ -1,3 +1,5 @@
+import type { TutorMove } from '@aria/shared';
+
 import type { ConnectionStatus } from '@/features/session/model/connection-state';
 import {
   completedDragEvent,
@@ -21,16 +23,22 @@ export type TutorSession = Readonly<{
   pause(): Promise<void>;
   resume(): Promise<void>;
   speak(): Promise<void>;
+  receive(move: TutorMove): void;
 }>;
 
 type Send = (payload: EventPayload) => Promise<void>;
 
 export function createSessionCommands(
-  state: SessionState,
-  connectionStatus: ConnectionStatus,
-  send: Send,
-  interrupt: () => Promise<void>,
+  input: Readonly<{
+    state: SessionState;
+    connectionStatus: ConnectionStatus;
+    send: Send;
+    interrupt(): Promise<void>;
+    receive(move: TutorMove): void;
+    speak?: () => Promise<void>;
+  }>,
 ): TutorSession {
+  const { state, connectionStatus, send, interrupt, receive, speak } = input;
   return {
     state,
     connectionStatus,
@@ -47,8 +55,11 @@ export function createSessionCommands(
     leave: () => send(SESSION_ENDED_EVENT),
     pause: () => send({ kind: 'PAUSE' }),
     resume: () => send({ kind: 'RESUME' }),
-    speak: async () => {
-      for (const event of SCRIPTED_SPEECH_EVENTS) await send(event);
-    },
+    speak:
+      speak ??
+      (async () => {
+        for (const event of SCRIPTED_SPEECH_EVENTS) await send(event);
+      }),
+    receive,
   };
 }

@@ -82,6 +82,27 @@ describe('loadConfig', () => {
       /AI_DAILY_SPEND_CAP_USD/,
     );
   });
+
+  it('requires a complete voice configuration and privacy sign-off in production', () => {
+    expect(() => loadConfig(env({ LIVEKIT_URL: 'wss://voice.example.test' }), '1.0.0')).toThrow(
+      /all LiveKit and voice worker settings/,
+    );
+    expect(() =>
+      loadConfig(
+        env({
+          NODE_ENV: 'production',
+          STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
+          SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
+          SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+          LIVEKIT_URL: 'wss://voice.example.test',
+          LIVEKIT_API_KEY: 'key',
+          LIVEKIT_API_SECRET: 's'.repeat(16),
+          VOICE_WORKER_TOKEN: 'w'.repeat(32),
+        }),
+        '1.0.0',
+      ),
+    ).toThrow(/VOICE_PRIVACY_SIGNOFF_ID/);
+  });
 });
 
 /**

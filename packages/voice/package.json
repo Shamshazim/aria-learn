@@ -1,0 +1,17 @@
+{
+  "name": "@aria/voice",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vendor-neutral voice session policies and assessment for Aria Learn.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "cd ../.. && vitest run --project voice",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aria/shared": "*"
+  }
+}

@@ -2,6 +2,7 @@ import type { CommittedTurn } from '@aria/tutor';
 
 import { withTransaction } from '@/db/transaction';
 import type { Clock } from '@/lib/clock';
+import type { MoveOutboxRepository } from '@/repositories/move-outbox.repository';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
 import {
@@ -20,6 +21,7 @@ export function createTurnCommitService(deps: {
   skills: SkillStateRepository;
   sessions: SessionRepository;
   clock: Clock;
+  outbox?: MoveOutboxRepository;
 }): TurnCommitService {
   return {
     commit: (turn: CommittedTurn) =>
@@ -37,7 +39,10 @@ async function commit(
   const events = deps.events.withDb(tx);
   const skills = deps.skills.withDb(tx);
   await events.append(inputRecord(turn, sessionId, deps.clock));
-  for (const move of turn.moves) await events.append(moveRecord(turn, move, sessionId, deps.clock));
+  for (const move of turn.moves) {
+    await events.append(moveRecord(turn, move, sessionId, deps.clock));
+    await deps.outbox?.withDb(tx).enqueueIfOpen(sessionId, move);
+  }
   if (turn.decision.graded !== null && turn.plan.skillCode !== null) {
     await skills.recordAttempt({
       studentId: (await requireSession(deps.sessions.withDb(tx), sessionId)).studentId,

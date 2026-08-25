@@ -19,6 +19,7 @@ export function createHttpTutorSource(
     arrivalId?: string;
     fromRecommendation: boolean;
     checkIn?: string;
+    onSessionStarted?(sessionId: string): void;
   }>,
 ): TutorSource {
   let sessionId: SessionId | null = null;
@@ -34,7 +35,10 @@ export function createHttpTutorSource(
         signal,
       );
       if (batch === null) return;
-      if (event.kind === 'SUBJECT_CHOSEN') sessionId = batch.sessionId;
+      if (event.kind === 'SUBJECT_CHOSEN') {
+        sessionId = batch.sessionId;
+        input.onSessionStarted?.(batch.sessionId);
+      }
       for (const move of batch.moves) {
         if (isClosed() || isAborted(signal)) return;
         yield move;

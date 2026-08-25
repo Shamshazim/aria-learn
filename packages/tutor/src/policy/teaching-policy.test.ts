@@ -43,6 +43,24 @@ const policy = createTeachingPolicy<null>({
 });
 
 describe('teaching policy', () => {
+  it('never praises or reteaches from a low-confidence spoken transcript', () => {
+    const voicePolicy = createTeachingPolicy<null>({
+      gradeAnswer: () => ({ correct: true, misconception: null }),
+      sessionLimitMs: () => 20 * 60_000,
+      now: () => new Date('2026-08-24T20:00:00Z'),
+    });
+    const event = tutorInputEventSchema.parse({
+      id: 'voice-event',
+      at: '2026-08-24T20:00:00.000Z',
+      protocolVersion: PROTOCOL_VERSION,
+      kind: 'SPEECH_FINAL',
+      text: 'seven',
+      confidence: 0.4,
+    });
+    const decision = voicePolicy(context(0, null), event);
+    expect(decision.defaultPlan).toMatchObject({ kind: 'SAY', approach: 'confirm-spoken-answer' });
+    expect(decision.graded).toBeNull();
+  });
   it.each([
     [0, null, 'HINT', 'single-nudge'],
     [1, 'single-nudge', 'RETEACH', 'visual-model'],

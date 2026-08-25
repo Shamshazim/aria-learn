@@ -22,16 +22,20 @@ import { buildRepositories } from './repositories.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
-export async function createPhase1Runtime(
-  deps: Phase1RuntimeDeps,
-): Promise<NonNullable<RouterDeps['student']>> {
+export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
+  Readonly<{
+    student: NonNullable<RouterDeps['student']>;
+    turn: ReturnType<typeof buildPhase1Controllers>['turn'];
+    repositories: Phase1Repositories;
+  }>
+> {
   const repositories = buildRepositories(deps);
   const inventory = createInventoryService();
   await seedInventory(repositories, inventory);
   const content = buildContentServices(deps, repositories, inventory);
   const tutor = buildTutor(deps, repositories, inventory, content);
   const crisis = buildCrisis(deps, repositories, content);
-  return buildPhase1Controllers({
+  const controllers = buildPhase1Controllers({
     deps,
     repositories,
     tutor,
@@ -41,6 +45,7 @@ export async function createPhase1Runtime(
       content.ahead.cancel(sessionId);
     },
   });
+  return { ...controllers, repositories };
 }
 
 async function seedInventory(
@@ -88,6 +93,7 @@ function buildTutor(
     skills: repositories.skills,
     sessions: repositories.sessions,
     clock: deps.clock,
+    outbox: repositories.outbox,
   });
   return createTutorService({
     ports: {

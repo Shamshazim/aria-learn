@@ -10,6 +10,8 @@ import { createLogger } from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
 import { createPhase1Runtime } from '@/phase1/runtime';
 import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
+import { createPhase2Runtime } from '@/phase2/runtime';
+import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
 
 import type { Server } from 'node:http';
 import type { Pool } from 'pg';
@@ -48,22 +50,16 @@ export async function start(): Promise<void> {
     throw error;
   }
 
+  const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger });
+  const phase1 = await createPhase1Runtime(runtimeDeps);
   const app = createApp({
     config,
     logger,
     clock: systemClock,
     ids: uuidGenerator,
     statusService: ai.status,
-    student: await createPhase1Runtime({
-      pool,
-      ai: ai.client,
-      spend: ai.spend,
-      config,
-      ids: uuidGenerator,
-      clock: systemClock,
-      logger,
-      access: createConfiguredStudentAccess(config),
-    }),
+    student: phase1.student,
+    ...(config.voice === undefined ? {} : { voice: createPhase2Runtime(runtimeDeps, phase1) }),
   });
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
@@ -75,6 +71,34 @@ export async function start(): Promise<void> {
     timeoutMs: config.shutdownTimeoutMs,
     onDrained: () => closePool(pool, logger),
   });
+}
+
+function createRuntimeDeps(input: {
+  pool: Pool;
+  ai: Awaited<ReturnType<typeof createAiRuntime>>;
+  config: ReturnType<typeof readConfigOrExit>;
+  logger: Logger;
+}) {
+  return {
+    pool: input.pool,
+    ai: input.ai.client,
+    spend: input.ai.spend,
+    config: input.config,
+    ids: uuidGenerator,
+    clock: systemClock,
+    logger: input.logger,
+    access: createConfiguredStudentAccess(input.config),
+    ...(input.config.voice === undefined
+      ? {}
+      : { closeVoiceSession: voiceSessionCloser(input.pool) }),
+  };
+}
+
+function voiceSessionCloser(pool: Pool) {
+  const sessions = createVoiceSessionRepository(pool);
+  return async (sessionId: string, at: Date): Promise<void> => {
+    await sessions.close(sessionId, at);
+  };
 }
 
 function readAiConfigOrExit(): ReturnType<typeof loadAiConfig> {

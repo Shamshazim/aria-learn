@@ -1,0 +1,24 @@
+{
+  "name": "@aria/voice-worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Long-lived LiveKit media worker for the Aria tutor harness.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts dev",
+    "start": "tsx src/index.ts start",
+    "test": "cd ../.. && vitest run --project voice-worker",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "voice:golden": "tsx src/golden/run-cli.ts"
+  },
+  "dependencies": {
+    "@aria/shared": "*",
+    "@aria/voice": "*",
+    "@livekit/rtc-node": "^0.13.34",
+    "@livekit/agents": "^1.7.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.12"
+  }
+}

@@ -52,7 +52,7 @@ export async function createPhase1Fixture(
   );
   const logger = createLogger({ level: 'silent' });
   const background = trackedBackgroundTasks();
-  const studentRuntime = await createPhase1Runtime({
+  const phase1 = await createPhase1Runtime({
     pool: database.pool,
     ai: createAiClient({ provider: recordedProvider(), accounting: spend, now: () => 0 }),
     spend,
@@ -64,7 +64,7 @@ export async function createPhase1Fixture(
     scheduleBackground: background.schedule,
   });
   return {
-    app: createApp({ config, logger, clock, ids, student: studentRuntime }),
+    app: createApp({ config, logger, clock, ids, student: phase1.student }),
     studentId: student.id,
     ids,
     clock,

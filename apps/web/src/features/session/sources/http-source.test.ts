@@ -108,6 +108,7 @@ function fakeApi(
     create,
     turn,
     end,
+    realtime: vi.fn<SessionApi['realtime']>(() => Promise.reject(new Error('not used'))),
   };
 }
 

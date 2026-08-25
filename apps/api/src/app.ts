@@ -31,6 +31,7 @@ export type AppDeps = {
   ids: IdGenerator;
   statusService?: StatusService;
   student?: RouterDeps['student'];
+  voice?: RouterDeps['voice'];
 };
 
 export function createApp({
@@ -40,6 +41,7 @@ export function createApp({
   ids,
   statusService,
   student,
+  voice,
 }: AppDeps): Express {
   const app = express();
 
@@ -70,6 +72,7 @@ export function createApp({
             },
           }),
       ...(student === undefined ? {} : { student }),
+      ...(voice === undefined ? {} : { voice }),
     }),
   );
 
