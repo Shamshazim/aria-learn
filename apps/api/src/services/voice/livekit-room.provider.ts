@@ -9,9 +9,9 @@ export function createLivekitRoomCloser(input: {
 }): VoiceRoomCloser {
   const client = new RoomServiceClient(httpUrl(input.url), input.apiKey, input.apiSecret);
   return {
-    close: async (sessionId) => {
+    close: async (roomName) => {
       try {
-        await client.deleteRoom(`aria_${sessionId}`);
+        await client.deleteRoom(roomName);
       } catch (error) {
         if (error instanceof ServerError && (error.status === 404 || error.code === 'not_found'))
           return;

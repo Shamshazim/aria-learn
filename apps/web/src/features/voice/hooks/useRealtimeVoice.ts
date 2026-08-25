@@ -8,7 +8,11 @@ import type { SessionApi } from '@/features/session/api/session.api';
 import { useVoiceActions, type VoiceActions } from '@/features/voice/hooks/useVoiceActions';
 import { setRemoteVolume } from '@/features/voice/model/voice-audio';
 import { parseVoiceMove, parseVoiceWorkerState } from '@/features/voice/model/voice-messages';
-import { INITIAL_VOICE_STATE, type VoiceState } from '@/features/voice/model/voice-state';
+import {
+  INITIAL_VOICE_STATE,
+  type VoiceState,
+  withVoiceDevices,
+} from '@/features/voice/model/voice-state';
 import {
   microphones,
   publishAcknowledgement,
@@ -16,6 +20,7 @@ import {
   readAcknowledgedSeq,
   storeAcknowledgedSeq,
 } from '@/features/voice/model/voice-transport';
+import { workerReadyAcknowledgement } from '@/features/voice/model/worker-ready';
 
 export type RealtimeVoice = VoiceState &
   VoiceActions &
@@ -157,9 +162,10 @@ async function negotiateAndConnect(
     return;
   }
   try {
+    input.setState((current) => ({ ...current, status: 'connecting' }));
     await room.connect(credentials.url, credentials.token);
     const devices = await microphones();
-    input.setState((current) => ({ ...current, status: 'ready', devices }));
+    input.setState((current) => withVoiceDevices(current, devices));
   } catch {
     input.setState((current) => ({ ...current, status: 'unavailable' }));
   }
@@ -226,7 +232,27 @@ function bindRoom(room: Room, input: RoomBindings): void {
 
 function applyVoiceState(room: Room, payload: Uint8Array, input: RoomBindings): void {
   const state = parseVoiceWorkerState(payload);
-  if (state === null || state.kind === 'METRICS_UNAVAILABLE') return;
+  if (state === null) return;
+  if (state.kind === 'WORKER_READY') {
+    const acknowledgement = workerReadyAcknowledgement(
+      state,
+      input.enabled.current,
+      input.inbox.acknowledgedSeq(),
+    );
+    if (acknowledgement !== null) {
+      void publishClientEvent(room, acknowledgement).catch(() => undefined);
+    }
+    input.setState((current) => ({
+      ...current,
+      status: !input.enabled.current
+        ? 'ready'
+        : room.localParticipant.isMicrophoneEnabled
+          ? 'listening'
+          : 'muted',
+    }));
+    return;
+  }
+  if (state.kind === 'METRICS_UNAVAILABLE') return;
   if (state.kind === 'SPEECH_FINISHED') {
     acknowledgeDelivered(room, input, state.acknowledgedSeq);
     return;

@@ -1,11 +1,13 @@
-import { tutorMoveSchema } from '@aria/shared';
+import { tutorMoveSchema, voiceRoomName } from '@aria/shared';
 
+import type { Queryable } from '@/db/types';
 import { ForbiddenError, NotFoundError, ServiceUnavailableError, ValidationError } from '@/errors';
 import type { Clock } from '@/lib/clock';
 import type { MoveOutboxRepository } from '@/repositories/move-outbox.repository';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
 import type { VoiceConsentRepository } from '@/repositories/voice-consent.repository';
+import type { VoiceLifecycleRepository } from '@/repositories/voice-lifecycle.repository';
 import type { VoiceSessionRepository } from '@/repositories/voice-session.repository';
 import type { RealtimeCredentials } from '@/types/voice';
 
@@ -22,12 +24,16 @@ export type RealtimeTokenProvider = Readonly<{
   ): Promise<string>;
 }>;
 
+type Rebindable<T> = T & Readonly<{ withDb(db: Queryable): T }>;
+
 export function createRealtimeService(deps: {
   sessions: Pick<SessionRepository, 'findById'>;
-  consent: Pick<VoiceConsentRepository, 'findGranted'>;
-  voiceSessions: Pick<VoiceSessionRepository, 'open'>;
-  events: Pick<SessionEventRepository, 'list'>;
-  outbox: Pick<MoveOutboxRepository, 'enqueueIfOpen'>;
+  consent: Rebindable<Pick<VoiceConsentRepository, 'findGranted'>>;
+  voiceSessions: Rebindable<Pick<VoiceSessionRepository, 'rotate'>>;
+  lifecycle: VoiceLifecycleRepository;
+  events: Rebindable<Pick<SessionEventRepository, 'list'>>;
+  outbox: Rebindable<Pick<MoveOutboxRepository, 'enqueueIfOpen'>>;
+  rooms: Readonly<{ close(roomName: string): Promise<void> }>;
   tokens: RealtimeTokenProvider;
   clock: Clock;
   livekitUrl: string;
@@ -47,7 +53,18 @@ async function negotiate(
   if (session.studentId !== studentId)
     throw new ForbiddenError('student session ownership mismatch');
   if (session.endedAt !== null) throw new ValidationError('session has already ended');
-  const consent = await deps.consent.findGranted(studentId);
+  return deps.lifecycle.exclusive(studentId, (db) =>
+    negotiateExclusive(deps, session, studentId, db),
+  );
+}
+
+async function negotiateExclusive(
+  deps: Parameters<typeof createRealtimeService>[0],
+  session: NonNullable<Awaited<ReturnType<SessionRepository['findById']>>>,
+  studentId: string,
+  db: Queryable,
+): Promise<RealtimeCredentials> {
+  const consent = await deps.consent.withDb(db).findGranted(studentId);
   if (consent === null) throw new ForbiddenError('verified parental voice consent is required');
   const configured = Object.keys(deps.processors);
   if (!configured.every((processor) => consent.processorCategories.includes(processor))) {
@@ -55,23 +72,30 @@ async function negotiate(
   }
   if (configured.length === 0)
     throw new ServiceUnavailableError('voice processors are not configured');
-  const connectionEpoch = await deps.voiceSessions.open({
-    sessionId,
+  const rotation = await deps.voiceSessions.withDb(db).rotate({
+    sessionId: session.id,
     region: deps.region,
     processorMap: deps.processors,
   });
-  const events = await deps.events.list(sessionId);
+  if (rotation === null) throw new ValidationError('session has already ended');
+  if (rotation.previousEpoch !== null) {
+    await deps.rooms.close(voiceRoomName(session.id, rotation.previousEpoch));
+  }
+  const connectionEpoch = rotation.connectionEpoch;
+  const events = await deps.events.withDb(db).list(session.id);
   const latestMove = events.findLast((event) => tutorMoveSchema.safeParse(event.payload).success);
   if (latestMove !== undefined) {
-    await deps.outbox.enqueueIfOpen(sessionId, tutorMoveSchema.parse(latestMove.payload));
+    await deps.outbox
+      .withDb(db)
+      .enqueueIfOpen(session.id, tutorMoveSchema.parse(latestMove.payload));
   }
-  const room = `aria_${sessionId}`;
+  const room = voiceRoomName(session.id, connectionEpoch);
   const expiresAt = new Date(deps.clock.now().getTime() + TOKEN_TTL_SECONDS * 1_000);
   const token = await deps.tokens.mint({
     identity: `student_${studentId}`,
     room,
     ttlSeconds: TOKEN_TTL_SECONDS,
-    metadata: { sessionId, connectionEpoch, band: session.band },
+    metadata: { sessionId: session.id, connectionEpoch, band: session.band },
   });
   return {
     url: deps.livekitUrl,

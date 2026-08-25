@@ -8,17 +8,22 @@ import {
 } from '@livekit/agents';
 import { RoomEvent, type LocalParticipant } from '@livekit/rtc-node';
 
-import { voiceClientEventSchema, type TutorMove, type VoiceMetric } from '@aria/shared';
+import type { TutorMove, VoiceMetric } from '@aria/shared';
 import { endpointingFor } from '@aria/voice';
 
 import { createTutorVoiceClient } from '@/api/tutor-client';
 import { readVoiceWorkerConfig, type VoiceWorkerConfig } from '@/config';
+import {
+  createAcknowledgementGate,
+  type AcknowledgementGate,
+} from '@/session/acknowledgement-gate';
+import { parseClientEvent } from '@/session/client-event';
 import { toVoiceMetric } from '@/session/metrics';
 import { createMoveStream, type MoveStream } from '@/session/move-stream';
 import { parseVoiceRoomContext, type VoiceRoomContext } from '@/session/session-context';
+import { prepareVoiceStartup } from '@/session/startup-handshake';
 
 const encoder = new TextEncoder();
-const decoder = new TextDecoder();
 
 export default defineAgent({ entry: runVoiceAgent });
 
@@ -38,14 +43,17 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
   });
   const session = createAgentSession(config, roomContext);
   const moves = createMoveRuntime(roomContext, localParticipant, client, session);
+  let sessionStarted = false;
   const finish = (): void => {
     void job.room.disconnect();
   };
   const acknowledgementReady = bindVoiceEvents({
     job,
+    participantIdentity: participant.identity,
     localParticipant,
     moves,
     session,
+    isSessionStarted: () => sessionStarted,
     finish,
     recordMetric: (metric) =>
       client.metric(roomContext.sessionId, {
@@ -53,8 +61,22 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
         metric,
       }),
   });
+  const startup = await prepareVoiceStartup({
+    authorize: moves.authorize,
+    announceReady: () =>
+      localParticipant.publishData(encoder.encode('{"kind":"WORKER_READY"}'), {
+        reliable: true,
+        topic: 'aria.voice-state',
+      }),
+    acknowledgement: acknowledgementReady.wait(),
+  });
+  if (!startup.acknowledged || acknowledgementReady.isClosed()) return;
   await session.start({ agent: createAriaAgent(moves, finish), room: job.room, record: false });
-  await acknowledgementReady;
+  sessionStarted = true;
+  if (acknowledgementReady.isClosed()) {
+    finish();
+    return;
+  }
   for await (const text of moves.resume()) session.say(text, { allowInterruptions: true });
   finishSilentTerminal(moves, finish);
 }
@@ -133,16 +155,20 @@ function createAgentSession(config: VoiceWorkerConfig, room: VoiceRoomContext) {
   });
 }
 
-function bindVoiceEvents(
-  input: Readonly<{
-    job: JobContext;
-    localParticipant: LocalParticipant;
-    moves: MoveStream;
-    session: ReturnType<typeof createAgentSession>;
-    finish(): void;
-    recordMetric(metric: VoiceMetric): Promise<void>;
-  }>,
-): Promise<void> {
+type VoiceEventBindings = Readonly<{
+  job: JobContext;
+  participantIdentity: string;
+  localParticipant: LocalParticipant;
+  moves: MoveStream;
+  session: ReturnType<typeof createAgentSession>;
+  isSessionStarted(): boolean;
+  finish(): void;
+  recordMetric(metric: VoiceMetric): Promise<void>;
+}>;
+
+function bindVoiceEvents(input: VoiceEventBindings): AcknowledgementGate {
+  const gate = createAcknowledgementGate();
+  bindCloseEvents(input, gate);
   input.session.on(AgentSessionEventTypes.UserTranscriptionTimeout, () => {
     void input.localParticipant.publishData(encoder.encode('{"kind":"TRANSCRIPT_UNCLEAR"}'), {
       reliable: true,
@@ -164,20 +190,16 @@ function bindVoiceEvents(
       });
     });
   });
-  let acknowledge: (() => void) | null = null;
-  const ready = new Promise<void>((resolve) => {
-    acknowledge = resolve;
-  });
   input.job.room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
     if (topic !== 'aria.client-event') return;
     const event = parseClientEvent(payload);
     if (event === null) return;
     if (event.kind === 'ACK') {
       input.moves.acceptAcknowledgement(event.acknowledgedSeq);
-      acknowledge?.();
-      acknowledge = null;
+      gate.acknowledge();
       return;
     }
+    if (!input.isSessionStarted()) return;
     if (event.kind === 'SYNC') {
       void speakPending(input.session, input.moves, input.finish);
       return;
@@ -189,7 +211,20 @@ function bindVoiceEvents(
     if (event.generationId !== input.moves.activeGenerationId()) return;
     void input.session.interrupt({ force: true });
   });
-  return ready;
+  return gate;
+}
+
+function bindCloseEvents(input: VoiceEventBindings, gate: AcknowledgementGate): void {
+  input.session.on(AgentSessionEventTypes.Close, () => {
+    gate.close();
+    input.finish();
+  });
+  input.job.room.on(RoomEvent.Disconnected, gate.close);
+  input.job.room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+    if (participant.identity !== input.participantIdentity) return;
+    gate.close();
+    input.finish();
+  });
 }
 
 function reportSpeechFinished(
@@ -254,13 +289,4 @@ function lastUserMessage(context: ChatContext) {
 function required<T>(value: T | undefined, label: string): T {
   if (value === undefined) throw new Error(`LiveKit did not provide ${label}`);
   return value;
-}
-
-function parseClientEvent(payload: Uint8Array) {
-  try {
-    const parsed = voiceClientEventSchema.safeParse(JSON.parse(decoder.decode(payload)));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
 }

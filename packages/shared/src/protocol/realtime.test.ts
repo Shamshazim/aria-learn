@@ -15,6 +15,9 @@ describe('voice client control events', () => {
   });
 
   it('validates the playback cursor reported by the worker', () => {
+    expect(voiceWorkerStateSchema.parse({ kind: 'WORKER_READY' })).toEqual({
+      kind: 'WORKER_READY',
+    });
     expect(voiceWorkerStateSchema.parse({ kind: 'SPEECH_FINISHED', acknowledgedSeq: 4 })).toEqual({
       kind: 'SPEECH_FINISHED',
       acknowledgedSeq: 4,

@@ -40,6 +40,9 @@ export function createWorkerTurnService(deps: {
       if (input.event.sessionId !== undefined && input.event.sessionId !== protocolSessionId) {
         throw new ValidationError('voice event session id does not match the room');
       }
+      if (input.authorizeOnly) {
+        return { connectionEpoch: input.connectionEpoch, moves: [] };
+      }
       await deps.outbox.acknowledge(sessionId, input.acknowledgedSeq, deps.clock.now());
       if (input.event.kind === 'BACKCHANNEL' || input.event.kind === 'SPEECH_STARTED') {
         await deps.events.append({

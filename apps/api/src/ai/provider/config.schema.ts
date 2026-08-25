@@ -36,6 +36,7 @@ const endpointSchema = z.strictObject({
   'timeout-seconds': z.number().positive().max(MAX_TIMEOUT_SECONDS),
   'cost-per-mtok-in': z.number().nonnegative().max(MAX_COST_PER_MTOK),
   'cost-per-mtok-out': z.number().nonnegative().max(MAX_COST_PER_MTOK),
+  'supports-temperature': z.boolean().optional(),
   reasoning: z.boolean().optional(),
 });
 

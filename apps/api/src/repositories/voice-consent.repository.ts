@@ -21,6 +21,7 @@ const rowSchema = z.object({
 type VoiceConsentRow = QueryResultRow & z.infer<typeof rowSchema>;
 
 export type VoiceConsentRepository = Readonly<{
+  withDb(db: Queryable): VoiceConsentRepository;
   findGranted(studentId: string): Promise<VoiceConsent | null>;
   grant(
     input: Readonly<{
@@ -38,6 +39,7 @@ export type VoiceConsentRepository = Readonly<{
 
 export function createVoiceConsentRepository(db: Queryable): VoiceConsentRepository {
   return {
+    withDb: (nextDb) => createVoiceConsentRepository(nextDb),
     findGranted: (studentId) => findGranted(db, studentId),
     grant: (input) => grant(db, input),
     withdraw: (studentId, at) => withdraw(db, studentId, at),

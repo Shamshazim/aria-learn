@@ -15,6 +15,7 @@ app:
         base-url: https://api.anthropic.com
         api-key: ${ANTHROPIC_API_KEY}
         model: claude-sonnet-5
+        supports-temperature: false
         max-tokens: 2048
         timeout-seconds: 60
         cost-per-mtok-in: 2

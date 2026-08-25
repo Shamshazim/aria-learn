@@ -18,3 +18,10 @@ export const INITIAL_VOICE_STATE: VoiceState = {
   activeDeviceId: '',
   caption: '',
 };
+
+export function withVoiceDevices(
+  state: VoiceState,
+  devices: readonly MediaDeviceInfo[],
+): VoiceState {
+  return { ...state, devices };
+}

@@ -92,6 +92,29 @@ describe('voice move stream', () => {
     await expect(collect(stream.resume())).rejects.toThrow(/stale voice connection epoch/);
   });
 
+  it('authorizes without queueing old speech, then replays from the browser cursor', async () => {
+    const publish = vi.fn(() => Promise.resolve());
+    const turn = vi
+      .fn()
+      .mockResolvedValueOnce(response(4, [move('already-heard', 3, 'Old speech.')]))
+      .mockResolvedValueOnce(response(4, [move('new-move', 8, 'New speech.')]));
+    const stream = createMoveStream({
+      room: { sessionId: SESSION_ID, connectionEpoch: 4, band: 'middle' },
+      client: { turn },
+      publisher: { publish },
+      nextId: () => 'event-reconnect',
+      now: () => new Date('2026-08-24T00:00:00.000Z'),
+    });
+
+    await stream.authorize();
+    expect(publish).not.toHaveBeenCalled();
+    expect(turn.mock.calls[0]?.[1]).toEqual(expect.objectContaining({ authorizeOnly: true }));
+    stream.acceptAcknowledgement(7);
+    await expect(collect(stream.resume())).resolves.toEqual(['New speech.']);
+    expect(turn.mock.calls[1]?.[1]).toEqual(expect.objectContaining({ acknowledgedSeq: 7 }));
+    expect(publish).toHaveBeenCalledWith(expect.objectContaining({ id: 'new-move' }));
+  });
+
   it('logs a backchannel without grading it as a spoken answer', async () => {
     const turn = vi.fn(() => Promise.resolve(response(1, [move('move-1', 1, 'Keep going.')])));
     const stream = createMoveStream({

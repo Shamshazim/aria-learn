@@ -37,8 +37,8 @@ export function createVoiceMetricsService(deps: {
 }
 
 function primaryLatency(metric: VoiceMetricRequest['metric']): number {
-  if (metric.kind === 'end_of_turn') return metric.endOfUtteranceMs;
-  if (metric.kind === 'tts') return metric.ttfbMs;
-  if (metric.kind === 'stt') return metric.audioDurationMs;
-  return metric.detectionMs;
+  if (metric.kind === 'end_of_turn') return Math.round(metric.endOfUtteranceMs);
+  if (metric.kind === 'tts') return Math.round(metric.ttfbMs);
+  if (metric.kind === 'stt') return Math.round(metric.audioDurationMs);
+  return Math.round(metric.detectionMs);
 }

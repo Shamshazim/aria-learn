@@ -43,6 +43,7 @@ type CommonVoiceEvent = Readonly<{
 }>;
 
 export type MoveStream = Readonly<{
+  authorize(signal?: AbortSignal): Promise<void>;
   handleTranscript(text: string, confidence?: number, signal?: AbortSignal): AsyncIterable<string>;
   resume(signal?: AbortSignal): AsyncIterable<string>;
   speechStarted(): AsyncIterable<string>;
@@ -59,6 +60,7 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
   const state = createMoveStreamState();
   const serialize = createStreamSerializer();
   return {
+    authorize: (signal) => authorize(input, state, signal),
     handleTranscript: (text, confidence, signal) =>
       serialize(() =>
         send(input, state, {
@@ -92,6 +94,22 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
       state.activate(null);
     },
   };
+}
+
+async function authorize(
+  input: MoveStreamInput,
+  state: MoveStreamState,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await requestTurn(input, state, {
+    event: resumeEvent(input, state),
+    replayOnly: true,
+    authorizeOnly: true,
+    ...(signal === undefined ? {} : { signal }),
+  });
+  if (response.connectionEpoch !== input.room.connectionEpoch) {
+    throw new Error('Tutor API returned a stale voice connection epoch');
+  }
 }
 
 async function* observe(
@@ -143,7 +161,12 @@ async function* send(
 function requestTurn(
   input: MoveStreamInput,
   state: MoveStreamState,
-  request: Readonly<{ event: TutorInputEvent; replayOnly: boolean; signal?: AbortSignal }>,
+  request: Readonly<{
+    event: TutorInputEvent;
+    replayOnly: boolean;
+    authorizeOnly?: boolean;
+    signal?: AbortSignal;
+  }>,
 ): Promise<VoiceTurnResponse> {
   return input.client.turn(
     input.room.sessionId,
@@ -151,6 +174,7 @@ function requestTurn(
       protocolVersion: PROTOCOL_VERSION,
       event: request.event,
       replayOnly: request.replayOnly,
+      authorizeOnly: request.authorizeOnly ?? false,
       acknowledgedSeq: state.acknowledgedSeq(),
       connectionEpoch: input.room.connectionEpoch,
     },

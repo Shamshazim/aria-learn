@@ -39,8 +39,8 @@ suite('voice move outbox repository', () => {
     });
     const voiceSessions = createVoiceSessionRepository(database.pool);
     await expect(
-      voiceSessions.open({ sessionId: session.id, region: 'us-west', processorMap: {} }),
-    ).resolves.toBe(0);
+      voiceSessions.rotate({ sessionId: session.id, region: 'us-west', processorMap: {} }),
+    ).resolves.toEqual({ previousEpoch: null, connectionEpoch: 0 });
     const outbox = createMoveOutboxRepository({ db: database.pool, ids: sequentialUuids() });
     const first = move(session.id, 'move-1', 'First.');
     const second = move(session.id, 'move-2', 'Second.');
@@ -54,8 +54,12 @@ suite('voice move outbox repository', () => {
     await outbox.acknowledge(session.id, 1, NOW);
     await expect(outbox.listAfter(session.id, 1)).resolves.toHaveLength(1);
     await expect(
-      voiceSessions.open({ sessionId: session.id, region: 'us-west', processorMap: {} }),
-    ).resolves.toBe(1);
+      voiceSessions.rotate({ sessionId: session.id, region: 'us-west', processorMap: {} }),
+    ).resolves.toEqual({ previousEpoch: 0, connectionEpoch: 1 });
+    await sessions.end(session.id, 'complete', NOW);
+    await expect(
+      voiceSessions.rotate({ sessionId: session.id, region: 'us-west', processorMap: {} }),
+    ).resolves.toBeNull();
   });
 });
 

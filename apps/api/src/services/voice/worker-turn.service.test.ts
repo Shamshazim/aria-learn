@@ -68,6 +68,7 @@ describe('voice worker turn delivery', () => {
       connectionEpoch: 3,
       acknowledgedSeq: 1,
       replayOnly: false,
+      authorizeOnly: false,
       event: {
         id: 'event-2',
         at: '2026-08-24T00:00:00.000Z',
@@ -100,6 +101,7 @@ describe('voice worker turn delivery', () => {
       connectionEpoch: 3,
       acknowledgedSeq: 1,
       replayOnly: true,
+      authorizeOnly: false,
       event: {
         id: 'resume-2',
         at: '2026-08-24T00:00:00.000Z',
@@ -109,6 +111,44 @@ describe('voice worker turn delivery', () => {
     });
 
     expect(response.moves).toEqual([move]);
+    expect(turn).not.toHaveBeenCalled();
+  });
+
+  it('authorizes a reconnect without loading a long move history', async () => {
+    const turn = vi.fn(() => Promise.resolve());
+    const listAfter = vi.fn(() =>
+      Promise.resolve(
+        Array.from({ length: 129 }, (_, index) => ({
+          serverSeq: index + 1,
+          move: { ...move, id: `move-${String(index + 1)}`, serverSeq: index + 1 },
+        })),
+      ),
+    );
+    const service = createWorkerTurnService({
+      sessions: { findById: () => Promise.resolve(session) },
+      voiceSessions: { findOpen: () => Promise.resolve({ connectionEpoch: 3 }) },
+      outbox: { acknowledge: () => Promise.resolve(), listAfter },
+      events: { append: eventWriter() },
+      turn,
+      clock: { now: () => new Date('2026-08-24T00:00:00Z') },
+    });
+
+    const response = await service.handle('session-1', {
+      protocolVersion: PROTOCOL_VERSION,
+      connectionEpoch: 3,
+      acknowledgedSeq: 0,
+      replayOnly: true,
+      authorizeOnly: true,
+      event: {
+        id: 'authorize-3',
+        at: '2026-08-24T00:00:00.000Z',
+        protocolVersion: PROTOCOL_VERSION,
+        kind: 'RESUME',
+      },
+    });
+
+    expect(response.moves).toEqual([]);
+    expect(listAfter).not.toHaveBeenCalled();
     expect(turn).not.toHaveBeenCalled();
   });
 
@@ -128,6 +168,7 @@ describe('voice worker turn delivery', () => {
         connectionEpoch: 3,
         acknowledgedSeq: 1,
         replayOnly: false,
+        authorizeOnly: false,
         event: {
           id: 'e',
           at: '2026-08-24T00:00:00.000Z',
@@ -156,6 +197,7 @@ describe('voice worker turn delivery', () => {
       connectionEpoch: 3,
       acknowledgedSeq: 1,
       replayOnly: false,
+      authorizeOnly: false,
       event: {
         id: 'backchannel-1',
         at: '2026-08-24T00:00:00.000Z',

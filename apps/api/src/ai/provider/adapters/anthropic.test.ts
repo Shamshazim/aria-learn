@@ -132,6 +132,17 @@ describe('Anthropic complete', () => {
     });
     expect(response.text).toBe('{"answer":4}');
   });
+
+  it('omits temperature when the endpoint disables it', async () => {
+    await createProvider({ supportsTemperature: false }).complete({
+      tier: 'FAST',
+      system: 'Return only OK.',
+      user: 'Health check.',
+      temperature: 0,
+    });
+
+    expect(JSON.parse(requestBodies[0] ?? '')).not.toHaveProperty('temperature');
+  });
 });
 
 describe('Anthropic stream', () => {
@@ -237,18 +248,23 @@ describe('Anthropic failures', () => {
   });
 });
 
-function createProvider(): LlmProvider {
+function createProvider(
+  options: Readonly<{ model?: string; supportsTemperature?: boolean }> = {},
+): LlmProvider {
   return createAnthropicProvider({
     endpointName: 'stub-anthropic',
     endpoint: {
       api: 'anthropic',
       'base-url': baseUrl,
       'api-key': 'test-api-key',
-      model: 'stub-model',
+      model: options.model ?? 'stub-model',
       'max-tokens': 512,
       'timeout-seconds': 1,
       'cost-per-mtok-in': 2,
       'cost-per-mtok-out': 10,
+      ...(options.supportsTemperature === undefined
+        ? {}
+        : { 'supports-temperature': options.supportsTemperature }),
     },
     fetch: globalThis.fetch,
     now: Date.now,

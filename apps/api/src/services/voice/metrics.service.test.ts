@@ -44,11 +44,11 @@ describe('voice metrics service', () => {
 
     await service.record('session-1', {
       connectionEpoch: 2,
-      metric: { kind: 'tts', ttfbMs: 95, durationMs: 340, cancelled: false },
+      metric: { kind: 'tts', ttfbMs: 95.6, durationMs: 340, cancelled: false },
     });
 
     expect(append).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: 'VOICE_METRIC', latencyMs: 95, text: null }),
+      expect.objectContaining({ kind: 'VOICE_METRIC', latencyMs: 96, text: null }),
     );
   });
 

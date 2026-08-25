@@ -7,6 +7,7 @@ import type { createPhase1Runtime } from '@/phase1/runtime';
 import type { Phase1RuntimeDeps } from '@/phase1/runtime.types';
 import { createRetainedAudioRepository } from '@/repositories/retained-audio.repository';
 import { createVoiceConsentRepository } from '@/repositories/voice-consent.repository';
+import { createVoiceLifecycleRepository } from '@/repositories/voice-lifecycle.repository';
 import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
 import type { RouterDeps } from '@/routes';
 import {
@@ -27,13 +28,15 @@ export function createPhase2Runtime(
   phase1: Phase1Runtime,
   deletion: AudioDeletionPort = unavailableDeletionPort(),
 ): NonNullable<RouterDeps['voice']> {
-  const voiceConfig = deps.config.voice;
-  const operatorToken = deps.config.statusOperatorToken;
-  if (voiceConfig === undefined || operatorToken === undefined) {
-    throw new ServiceUnavailableError('voice runtime is not configured');
-  }
+  const { voiceConfig, operatorToken } = requireVoiceConfig(deps);
   const consentRepo = createVoiceConsentRepository(deps.pool);
   const voiceSessions = createVoiceSessionRepository(deps.pool);
+  const lifecycle = createVoiceLifecycleRepository(deps.pool);
+  const rooms = createLivekitRoomCloser({
+    url: voiceConfig.livekitUrl,
+    apiKey: voiceConfig.apiKey,
+    apiSecret: voiceConfig.apiSecret,
+  });
   const consent = buildConsent({
     deps,
     phase1,
@@ -41,18 +44,17 @@ export function createPhase2Runtime(
     consentRepo,
     voiceSessions,
     voiceConfig,
+    rooms,
+    lifecycle,
   });
-  const realtime = createRealtimeService({
-    sessions: phase1.repositories.sessions,
-    consent: consentRepo,
+  const realtime = buildRealtime({
+    deps,
+    phase1,
+    consentRepo,
     voiceSessions,
-    events: phase1.repositories.events,
-    outbox: phase1.repositories.outbox,
-    tokens: createLivekitTokenProvider(voiceConfig),
-    clock: deps.clock,
-    livekitUrl: voiceConfig.livekitUrl,
-    region: voiceConfig.region,
-    processors: processorMap(voiceConfig),
+    voiceConfig,
+    rooms,
+    lifecycle,
   });
   const worker = createWorkerTurnService({
     sessions: phase1.repositories.sessions,
@@ -82,6 +84,43 @@ export function createPhase2Runtime(
   };
 }
 
+function requireVoiceConfig(deps: Phase1RuntimeDeps): {
+  voiceConfig: NonNullable<Phase1RuntimeDeps['config']['voice']>;
+  operatorToken: string;
+} {
+  const voiceConfig = deps.config.voice;
+  const operatorToken = deps.config.statusOperatorToken;
+  if (voiceConfig === undefined || operatorToken === undefined) {
+    throw new ServiceUnavailableError('voice runtime is not configured');
+  }
+  return { voiceConfig, operatorToken };
+}
+
+function buildRealtime(input: {
+  deps: Phase1RuntimeDeps;
+  phase1: Phase1Runtime;
+  consentRepo: ReturnType<typeof createVoiceConsentRepository>;
+  voiceSessions: ReturnType<typeof createVoiceSessionRepository>;
+  voiceConfig: NonNullable<Phase1RuntimeDeps['config']['voice']>;
+  rooms: ReturnType<typeof createLivekitRoomCloser>;
+  lifecycle: ReturnType<typeof createVoiceLifecycleRepository>;
+}) {
+  return createRealtimeService({
+    sessions: input.phase1.repositories.sessions,
+    consent: input.consentRepo,
+    voiceSessions: input.voiceSessions,
+    events: input.phase1.repositories.events,
+    outbox: input.phase1.repositories.outbox,
+    rooms: input.rooms,
+    lifecycle: input.lifecycle,
+    tokens: createLivekitTokenProvider(input.voiceConfig),
+    clock: input.deps.clock,
+    livekitUrl: input.voiceConfig.livekitUrl,
+    region: input.voiceConfig.region,
+    processors: processorMap(input.voiceConfig),
+  });
+}
+
 function buildConsent(input: {
   deps: Phase1RuntimeDeps;
   phase1: Phase1Runtime;
@@ -89,6 +128,8 @@ function buildConsent(input: {
   consentRepo: ReturnType<typeof createVoiceConsentRepository>;
   voiceSessions: ReturnType<typeof createVoiceSessionRepository>;
   voiceConfig: NonNullable<Phase1RuntimeDeps['config']['voice']>;
+  rooms: ReturnType<typeof createLivekitRoomCloser>;
+  lifecycle: ReturnType<typeof createVoiceLifecycleRepository>;
 }) {
   return createVoiceConsentService({
     students: input.phase1.repositories.students,
@@ -98,11 +139,8 @@ function buildConsent(input: {
       audio: createRetainedAudioRepository(input.deps.pool),
       deletion: input.deletion,
     }),
-    rooms: createLivekitRoomCloser({
-      url: input.voiceConfig.livekitUrl,
-      apiKey: input.voiceConfig.apiKey,
-      apiSecret: input.voiceConfig.apiSecret,
-    }),
+    rooms: input.rooms,
+    lifecycle: input.lifecycle,
     ids: input.deps.ids,
     clock: input.deps.clock,
   });
