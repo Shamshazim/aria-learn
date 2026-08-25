@@ -33,7 +33,7 @@ const SSML = {
  * Reviewed per vendor in `dev-docs/voice-review.md`. A vendor that is not listed is assumed
  * to render nothing and to have no rate control, which is the safe reading of "unknown".
  */
-const VENDORS: Readonly<Record<string, Vendor>> = {
+export const REVIEWED_VENDORS: Readonly<Record<string, Vendor>> = {
   elevenlabs: { ...SSML, rateOption: 'speed' },
   cartesia: { ...SSML, rateOption: 'speed' },
   inworld: { ...PLAIN, rateOption: 'speaking_rate' },
@@ -47,8 +47,8 @@ const NONE: Vendor = { ...PLAIN, rateOption: null };
 const EMPHASIS = /\[\[emphasis\]\](.*?)\[\[\/emphasis\]\]/gu;
 const PAUSE = /\[\[pause:short\]\]/gu;
 
-export function vendorFor(ttsModel: string): Vendor {
-  return VENDORS[ttsModel.split('/')[0] ?? ''] ?? NONE;
+function vendorFor(ttsModel: string): Vendor {
+  return REVIEWED_VENDORS[ttsModel.split('/')[0] ?? ''] ?? NONE;
 }
 
 /**

@@ -39,22 +39,39 @@ export function updateEndpointing(
   });
 }
 
+/**
+ * P2H-08: one voice for the whole session, chosen by the room's band and never re-chosen.
+ *
+ * A band is a property of the student, and `VoiceRoomContext` is immutable for the life of a
+ * room, so this is a pure function of the two — which is what makes "one voice per session"
+ * something a test can assert rather than something a comment claims.
+ */
+export function ttsOptionsFor(
+  config: VoiceWorkerConfig,
+  room: VoiceRoomContext,
+): Readonly<{
+  model: string;
+  voice: string;
+  language: 'en';
+  modelOptions: Readonly<Record<string, unknown>>;
+}> {
+  const profile = voiceProfileFor(config, room.band);
+  return {
+    model: config.ttsModel,
+    voice: profile.voiceId,
+    language: 'en',
+    modelOptions: synthesisOptions(config.ttsModel, profile.rate),
+  };
+}
+
 export function createAgentSession(
   config: VoiceWorkerConfig,
   room: VoiceRoomContext,
 ): AriaAgentSession {
   const endpointing = endpointingFor({ band: room.band, expects: 'speech', oralReading: false });
-  // P2H-08: one voice per session, chosen by band, at the band's pace. `expressive` is what
-  // makes a question sound like a question; P2H-13 measures what it costs in first audio.
-  const profile = voiceProfileFor(config, room.band);
   return new voice.AgentSession({
     stt: new inference.STT({ model: config.sttModel, language: 'en' }),
-    tts: new inference.TTS({
-      model: config.ttsModel,
-      voice: profile.voiceId,
-      language: 'en',
-      modelOptions: synthesisOptions(config.ttsModel, profile.rate),
-    }),
+    tts: new inference.TTS(ttsOptionsFor(config, room)),
     turnHandling: {
       turnDetection: new inference.TurnDetector(),
       endpointing:
@@ -75,6 +92,8 @@ export function createAgentSession(
       },
       preemptiveGeneration: PREEMPTIVE_GENERATION,
     },
+    // P2H-08: what makes a question sound like a question. P2H-13 measures what it costs in
+    // first audio; `voice-review.md` §7 records the escape hatch if a band cannot afford it.
     expressive: true,
   });
 }

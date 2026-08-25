@@ -7,17 +7,8 @@ export { createPreSynthesisTracker } from './pre-synthesis';
 export { decideInterruption, resumeAtSentence } from './interruption';
 export { assessOralReading } from './reading';
 export { spokenForm } from './spoken-form';
-export {
-  displayForm,
-  hasProsody,
-  markProsody,
-  stripProsody,
-  EMPHASIS_CLOSE,
-  EMPHASIS_OPEN,
-  PAUSE_SHORT,
-} from './prosody/markers';
+export { hasProsody, stripProsody } from './prosody/markers';
 export { applyPronunciation, NO_PRONUNCIATION_HINTS } from './pronunciation/names';
-export { CURRICULUM_LEXICON } from './pronunciation/lexicon.data';
 export type { DeliveredMove } from './delivery';
 export type { Endpointing } from './endpointing';
 export type { Proportion } from './golden';

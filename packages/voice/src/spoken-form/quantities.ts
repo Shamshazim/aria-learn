@@ -6,17 +6,29 @@ import { cardinal, ordinal } from './numbers';
  * decimal is "one point five zero" and no child has ever heard money said that way.
  */
 
-const MONEY = /\$(\d[\d,]*)(?:\.(\d{2}))?/gu;
+/**
+ * A comma is a thousands separator only in front of exactly three digits.
+ *
+ * Anything else is a comma: "Count 10, 20, 30" is a list, and swallowing its commas would
+ * delete the pauses a child needs to hear the three numbers as three numbers.
+ */
+const GROUPED = String.raw`\d{1,3}(?:,\d{3})+|\d+`;
+
+const MONEY = new RegExp(String.raw`\$(${GROUPED})(?:\.(\d{2}))?`, 'gu');
 const TIME = /\b([01]?\d|2[0-3]):([0-5]\d)\b/gu;
-const PERCENT = /(\d[\d,]*(?:\.\d+)?)\s*%/gu;
-const ORDINAL = /\b(\d[\d,]*)(?:st|nd|rd|th)\b/gu;
-const NUMBER = /\d[\d,]*(?:\.\d+)?/gu;
+const PERCENT = new RegExp(String.raw`(${GROUPED})(\.\d+)?\s*%`, 'gu');
+const ORDINAL = new RegExp(String.raw`\b(${GROUPED})(?:st|nd|rd|th)\b`, 'gu');
+const NUMBER = new RegExp(String.raw`(?:${GROUPED})(?:\.\d+)?`, 'gu');
 
 export function speakQuantities(text: string): string {
   return text
     .replace(MONEY, (_match, dollars: string, cents?: string) => speakMoney(dollars, cents))
     .replace(TIME, (_match, hour: string, minute: string) => speakTime(hour, minute))
-    .replace(PERCENT, (_match, amount: string) => `${cardinal(toNumber(amount))} percent`)
+    .replace(
+      PERCENT,
+      (_match, whole: string, fraction?: string) =>
+        `${cardinal(toNumber(`${whole}${fraction ?? ''}`))} percent`,
+    )
     .replace(ORDINAL, (_match, digits: string) => ordinal(toNumber(digits)))
     .replace(NUMBER, (digits) => cardinal(toNumber(digits)));
 }

@@ -1,3 +1,5 @@
+import { ONES, ORDINAL_WORDS, SCALES, TENS } from './numbers.data';
+
 /**
  * Numbers, read the way a person reads them.
  *
@@ -5,59 +7,6 @@
  * always the one a child needs — "one thousand two hundred four" is a number, "one two zero
  * four" is a phone number. The harness controls the text, so the harness decides.
  */
-
-const ONES = [
-  'zero',
-  'one',
-  'two',
-  'three',
-  'four',
-  'five',
-  'six',
-  'seven',
-  'eight',
-  'nine',
-  'ten',
-  'eleven',
-  'twelve',
-  'thirteen',
-  'fourteen',
-  'fifteen',
-  'sixteen',
-  'seventeen',
-  'eighteen',
-  'nineteen',
-] as const;
-
-const TENS = [
-  '',
-  '',
-  'twenty',
-  'thirty',
-  'forty',
-  'fifty',
-  'sixty',
-  'seventy',
-  'eighty',
-  'ninety',
-] as const;
-
-const SCALES = [
-  [1_000_000_000, 'billion'],
-  [1_000_000, 'million'],
-  [1_000, 'thousand'],
-] as const;
-
-/** Ordinals that are not simply the cardinal with a suffix. */
-const ORDINAL_WORDS: Readonly<Record<string, string>> = {
-  one: 'first',
-  two: 'second',
-  three: 'third',
-  five: 'fifth',
-  eight: 'eighth',
-  nine: 'ninth',
-  twelve: 'twelfth',
-};
 
 /** Above this a digit string is an identifier, not a quantity, and is left for the engine. */
 const MAX_SPOKEN = 999_999_999_999;

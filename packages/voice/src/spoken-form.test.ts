@@ -24,6 +24,12 @@ describe('spokenForm', () => {
     ['0.75', 'zero point seven five'],
     ['-5', 'negative five'],
     ['-12.5', 'negative twelve point five'],
+    // A comma is a thousands separator only in front of three digits; the rest are pauses.
+    ['Count 10, 20, 30.', 'Count ten, twenty, thirty.'],
+    ['You have 3, and I have 4.', 'You have three, and I have four.'],
+    ['It costs $5, right?', 'It costs five dollars, right?'],
+    ['25%, then 50%.', 'twenty-five percent, then fifty percent.'],
+    ['Ready? 1st, 2nd, 3rd.', 'Ready? first, second, third.'],
     // Ordinals
     ['1st', 'first'],
     ['2nd', 'second'],
@@ -44,6 +50,7 @@ describe('spokenForm', () => {
     // Percentages
     ['25%', 'twenty-five percent'],
     ['100 %', 'one hundred percent'],
+    ['12.5%', 'twelve point five percent'],
     // Fractions
     ['3/4', 'three fourths'],
     ['1/2', 'one half'],

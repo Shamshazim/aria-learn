@@ -7,8 +7,9 @@
  * that knows what its engine can do with them; one that can do nothing strips them, because a
  * child hearing "open square bracket pause" is worse than a child hearing no pause at all.
  *
- * Nothing on screen ever contains a token or an author mark: `displayForm` is what every
- * display path uses, and a protocol test holds the two apart.
+ * Nothing on screen ever contains a token or an author mark, and that is structural rather
+ * than a cleaning step: marks are authored into `speech.prosody`, a field no display path
+ * reads. `hasProsody` is what the tests assert it with.
  */
 
 export const EMPHASIS_OPEN = '[[emphasis]]';
@@ -45,14 +46,6 @@ export function stripProsody(text: string, keep: ReadonlySet<ProsodyMarker> = ne
 export function hasProsody(text: string): boolean {
   // Fresh, un-global patterns: `test` on a `/g/` regex remembers where it stopped last time.
   return /\[\[\/?(?:emphasis|pause:short)\]\]/u.test(text) || /\*\S[^*]*?\*/u.test(text);
-}
-
-/**
- * What goes on screen: the emphasised word without its asterisks, the ellipsis left alone
- * because an ellipsis is ordinary punctuation to read, and no tokens at all.
- */
-export function displayForm(text: string): string {
-  return tidy(text.replace(AUTHORED_EMPHASIS, '$1').replace(ANY_TOKEN, ''));
 }
 
 function tidy(text: string): string {

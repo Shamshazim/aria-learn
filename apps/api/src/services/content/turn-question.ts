@@ -4,8 +4,8 @@ import type { TutorMove } from '@aria/shared';
 import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
 import { arithmeticProblemSchema } from '@/quality/arithmetic';
+import { askSpeech } from '@/services/content/ask-speech';
 import { requiredGatedText, throwIfAborted } from '@/services/content/generate-text';
-import { askSpeech } from '@/services/content/personalise';
 import type { ApiModelContext, TurnContentDeps } from '@/services/content/turn-content.types';
 import { responseMove } from '@/services/content/turn-response';
 

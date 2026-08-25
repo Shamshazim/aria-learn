@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayForm, hasProsody, markProsody, stripProsody } from './markers';
+import { hasProsody, markProsody, stripProsody } from './markers';
 
 describe('prosody markers', () => {
   it('turns an author mark into a vendor-neutral token', () => {
@@ -9,15 +9,6 @@ describe('prosody markers', () => {
 
   it('leaves multiplication alone: a mark hugs the word it emphasises', () => {
     expect(markProsody('2 * 3')).toBe('2 * 3');
-  });
-
-  it('keeps the screen free of marks and tokens', () => {
-    expect(displayForm('Count the *shapes*.')).toBe('Count the shapes.');
-    expect(displayForm('Wait [[pause:short]] ready?')).toBe('Wait ready?');
-  });
-
-  it('leaves an ellipsis on screen, because an ellipsis is punctuation', () => {
-    expect(displayForm('Wait… ready?')).toBe('Wait… ready?');
   });
 
   it('strips every token for a vendor that renders none of them', () => {

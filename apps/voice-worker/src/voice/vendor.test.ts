@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { spokenForm } from '@aria/voice';
 
-import { renderProsody, synthesisOptions } from '@/voice/vendor';
+import { renderProsody, REVIEWED_VENDORS, synthesisOptions } from '@/voice/vendor';
 
 const MARKED = spokenForm('Count the *shapes*… ready?');
 
@@ -23,6 +23,15 @@ describe('vendor prosody', () => {
   it('treats an unknown engine as one that renders nothing', () => {
     expect(renderProsody(MARKED, 'somebody/new-model')).toBe('Count the shapes ready?');
     expect(synthesisOptions('somebody/new-model', 0.92)).toEqual({});
+  });
+
+  /** Every row of the reviewed table, not a sample of it: a marker must never be spoken. */
+  it.each(Object.keys(REVIEWED_VENDORS))('never leaves a marker readable for %s', (vendor) => {
+    const spoken = renderProsody(MARKED, `${vendor}/some-model`);
+
+    expect(spoken).not.toMatch(/\[\[|\]\]/u);
+    expect(spoken).toContain('shapes');
+    expect(spoken).toContain('ready?');
   });
 
   it('asks for the band rate in the provider its own word for it', () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { hasProsody } from '@aria/voice';
 
-import { askSpeech } from '@/services/content/personalise';
+import { askSpeech } from '@/services/content/ask-speech';
 
 describe('early-band emphasis', () => {
   it('leans on the word the question turns on', () => {
@@ -31,8 +31,9 @@ describe('early-band emphasis', () => {
     expect(askSpeech('How many quarters make a whole?', 'senior').prosody).toBeUndefined();
   });
 
-  it('emphasises neither when the same word appears twice', () => {
+  it('emphasises neither when the same word appears twice, in any case', () => {
     expect(askSpeech('Which shape matches this shape?', 'early').prosody).toBeUndefined();
+    expect(askSpeech('Which shape matches this Shape?', 'early').prosody).toBeUndefined();
   });
 
   it('leaves a question with nothing to lean on alone', () => {

@@ -108,6 +108,33 @@ records which candidate the review used so it can be re-run.
     answers "nothing known" so a name is read as written.
   - **Per-band `expressive`.** The ticket makes it configurable only if P2H-13 measures first
     audio over 1s p95. It is one flag today; the escape hatch is recorded in `voice-review.md` §7.
+- Found in review and fixed:
+  - **A comma after a digit was being eaten.** "Count 10, 20, 30." came out as "Count ten twenty
+    thirty" — the number pattern treated any trailing comma as a thousands separator, deleting
+    exactly the pauses this ticket exists to add. A comma is now a separator only in front of
+    three digits, and five fixtures cover the sentences that proved it.
+  - **The lexicon claimed a provenance it does not have.** Its header said each entry had been
+    heard wrong in the listening review; the review has not been run. The entries are guesses and
+    now say so.
+  - **The duplicate-word guard was case-sensitive**, so "Which shape matches this Shape?" was
+    emphasised anyway.
+  - **`displayForm` was exported, documented as load-bearing, and called by nothing.** Markers
+    live in `speech.prosody`, which no display path reads, so keeping display clean is structural
+    and the function was never needed. It and five other unused re-exports are gone.
+  - **"One voice per session" was asserted nowhere.** The TTS options are now a pure function of
+    config and room (`ttsOptionsFor`), which is what makes the property testable.
+  - The vendor adapter test covers every row of the reviewed table rather than three of five;
+    the long constant tables moved to `*.data.ts`; and `askSpeech` moved out of `personalise.ts`,
+    which had become two concerns in one file.
+- Raised in review and deliberately kept:
+  - **`pitchHint` and `register` are recorded but unread.** The Design names the shape
+    (`band -> { voiceId, rate, pitchHint, register }`) and they are what the listening review
+    judges a candidate against. Dropping them to satisfy "no unused fields" would drop a
+    requirement.
+  - **`Mr.` / `Mrs.` / `i.e.`** are not in the ticket's list, but `Dr.` and `e.g.` already were;
+    an abbreviation set that expands two of five is arbitrary rather than minimal.
+  - **`move-stream.events.ts`** is P2H-07 code moved verbatim. It is not a drive-by refactor:
+    adding the renderer to `move-stream.ts` put it over the 300-line rule.
 
 ## Acceptance criteria
 

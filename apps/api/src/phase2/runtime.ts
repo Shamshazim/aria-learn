@@ -1,3 +1,5 @@
+import type { Band } from '@aria/shared';
+
 import { createVoiceControllers } from '@/controllers/voice.controller';
 import { ServiceUnavailableError } from '@/errors';
 import { operatorOnly } from '@/middleware/operator-only';
@@ -175,7 +177,7 @@ function processorMap(
 }
 
 /** Named per band, so the consent record says which voice a family actually heard (P2H-08). */
-function describeVoices(voices: Readonly<Record<string, string | undefined>>): string {
+function describeVoices(voices: Readonly<Record<Band, string | undefined>>): string {
   return Object.entries(voices)
     .map(([band, voice]) => `${band}=${voice ?? 'unset'}`)
     .join(' ');

@@ -4,7 +4,6 @@ import { BANDS, type Band } from '@aria/shared';
 
 import { voiceFor, type BandVoiceIds, type VoiceProfile } from '@/voice/voice-catalog';
 
-
 const voiceId = z.string().min(1).max(128);
 
 /**
