@@ -6,6 +6,10 @@ import type { PlannedTurn } from '@aria/tutor';
 import type { GatedSegment, RespondStreamer } from '@/ai';
 import { fixedClock } from '@/lib/clock';
 import { sequentialIds } from '@/lib/ids';
+import {
+  NULL_TURN_CONTENT_OBSERVER,
+  type TurnContentObserver,
+} from '@/observability/content-metrics';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate } from '@/quality';
 import { createSegmentBus } from '@/services/content/segment-bus';
@@ -33,17 +37,40 @@ const FOUR_SENTENCES = [
  */
 function scriptedStreamer(sentences: readonly string[] = FOUR_SENTENCES): RespondStreamer {
   return {
-    stream: () =>
+    stream: (input) =>
       (async function* () {
-        for (const [index, written] of sentences.entries()) {
+        // The real streamer buffers anything that is not sentence-streamable, so this one does
+        // too: what the turn asks for is what decides how many segments come back.
+        const released =
+          input.contentKind === 'explanation' ? sentences : [sentences.join(' ')].filter(Boolean);
+        for (const [index, written] of released.entries()) {
           yield await Promise.resolve({
             written,
             spoken: written,
             gateMs: 0,
             index,
-            isLast: index === sentences.length - 1,
+            isLast: index === released.length - 1,
           });
         }
+      })(),
+  };
+}
+
+/** A stream that dies part-way through, after the child has already heard something. */
+function failingAfter(sentences: number): RespondStreamer {
+  return {
+    stream: () =>
+      (async function* () {
+        for (const [index, written] of FOUR_SENTENCES.slice(0, sentences).entries()) {
+          yield await Promise.resolve({
+            written,
+            spoken: written,
+            gateMs: 0,
+            index,
+            isLast: false,
+          });
+        }
+        throw new Error('safe test failure: the provider dropped the stream');
       })(),
   };
 }
@@ -51,6 +78,7 @@ function scriptedStreamer(sentences: readonly string[] = FOUR_SENTENCES): Respon
 function streamingService(
   segments: ReturnType<typeof createSegmentBus>,
   respond: RespondStreamer = scriptedStreamer(),
+  observer?: Partial<TurnContentObserver>,
 ) {
   return createTurnContentService({
     reliable: {
@@ -67,9 +95,8 @@ function streamingService(
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
-    respond,
-    segments,
-    ids: sequentialIds('stream'),
+    streaming: { respond, segments, ids: sequentialIds('stream') },
+    ...(observer === undefined ? {} : { observer: { ...NULL_TURN_CONTENT_OBSERVER, ...observer } }),
   });
 }
 
@@ -103,22 +130,34 @@ describe('a move that is said while it is written', () => {
     expect(move?.generationId).toBe(collected[0]?.generationId);
   });
 
-  it.each(['ASK', 'HINT'] as const)('never streams %s: an item is checked whole', async (kind) => {
+  it('never publishes an ASK: its words come from the bank, not from Aria', async () => {
     const segments = createSegmentBus();
     const collected = heard(segments);
 
-    await streamingService(segments).resolve(turn(kind, 'middle'));
+    await streamingService(segments).resolve(turn('ASK', 'middle'));
 
     expect(collected).toEqual([]);
   });
 
-  it('never streams the early band, whose register rule is a whole-answer rule', async () => {
+  it('sends a HINT as exactly one segment, because half a hint is a different hint', async () => {
+    const segments = createSegmentBus();
+    const collected = heard(segments);
+
+    await streamingService(segments).resolve(turn('HINT', 'middle'));
+
+    expect(collected).toHaveLength(1);
+    expect(collected[0]).toMatchObject({ index: 0, isLast: true });
+  });
+
+  it('sends the early band one segment, because its register rule judges the whole answer', async () => {
     const segments = createSegmentBus();
     const collected = heard(segments);
 
     await streamingService(segments).resolve(turn('SAY', 'early'));
 
-    expect(collected).toEqual([]);
+    expect(collected).toHaveLength(1);
+    expect(collected[0]?.text).toBe(FOUR_SENTENCES.join(' '));
+    expect(collected[0]?.isLast).toBe(true);
   });
 
   it('does not generate into nothing when no client is listening', async () => {
@@ -129,6 +168,25 @@ describe('a move that is said while it is written', () => {
     await streamingService(segments, respond).resolve(turn('SAY', 'middle'));
 
     expect(respond.stream).not.toHaveBeenCalled();
+  });
+
+  it('records a stream that stopped after the child had already heard some of it', async () => {
+    const segments = createSegmentBus();
+    const collected = heard(segments);
+    const streamTruncated = vi.fn();
+    const service = streamingService(segments, failingAfter(2), { streamTruncated });
+
+    const resolved = await service.resolve(turn('SAY', 'middle'));
+
+    expect(collected).toHaveLength(2);
+    // The two sentences the child heard were Aria's own, so the move keeps them...
+    expect(resolved.moves[0]?.speech?.text).toBe(FOUR_SENTENCES.slice(0, 2).join(' '));
+    // ...and the evidence says plainly that the rest never came.
+    expect(resolved.privateEvidence).toMatchObject({
+      responseSource: 'model',
+      streamTruncated: 'provider_error',
+    });
+    expect(streamTruncated).toHaveBeenCalledWith('SAY', 'provider_error', expect.any(Error));
   });
 
   it('falls back to a reviewed sentence when the stream produced nothing at all', async () => {

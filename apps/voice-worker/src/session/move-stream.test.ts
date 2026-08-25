@@ -50,7 +50,7 @@ describe('voice move stream', () => {
     expect(turn).toHaveBeenCalledWith(
       SESSION_ID,
       expect.objectContaining({ replayOnly: true }),
-      undefined,
+      expect.any(AbortSignal),
     );
     expect(publish).toHaveBeenCalledOnce();
     expect(stream.acknowledgedSeq()).toBe(0);
@@ -61,7 +61,7 @@ describe('voice move stream', () => {
     expect(turn).toHaveBeenLastCalledWith(
       SESSION_ID,
       expect.objectContaining({ acknowledgedSeq: 7, connectionEpoch: 1 }),
-      undefined,
+      expect.any(AbortSignal),
     );
 
     stream.clearGeneration();
@@ -69,7 +69,7 @@ describe('voice move stream', () => {
     expect(turn).toHaveBeenLastCalledWith(
       SESSION_ID,
       expect.objectContaining({ replayOnly: false }),
-      undefined,
+      expect.any(AbortSignal),
     );
     expect(JSON.stringify(turn.mock.calls.at(-1))).toContain('"kind":"SPEECH_FINAL"');
     expect(JSON.stringify(turn.mock.calls.at(-1))).toContain('"text":"okay"');
@@ -152,7 +152,7 @@ describe('voice move stream', () => {
     expect(turn).toHaveBeenLastCalledWith(
       SESSION_ID,
       expect.objectContaining({ replayOnly: false }),
-      undefined,
+      expect.any(AbortSignal),
     );
     expect(JSON.stringify(turn.mock.calls.at(-1))).toContain('"kind":"BACKCHANNEL"');
   });

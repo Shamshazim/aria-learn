@@ -32,6 +32,9 @@ async function* gatedStream(
 ): AsyncIterable<ReleasedSegment> {
   const planResult = validateMovePlan(input.plan, input.contentKind);
   if (!planResult.valid) throw new MovePlanValidationError(planResult.reasons);
+  // The daily spend cap is a rule about model calls, not about how the answer comes back, so a
+  // streamed call is checked exactly where a buffered one is: before the request goes out.
+  await dependencies.accounting.assertWithinCap(input.request.accounting?.studentId);
 
   const controller = new AbortController();
   const startedAt = dependencies.callNow();

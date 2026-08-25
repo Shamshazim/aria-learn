@@ -83,7 +83,8 @@ export function createWorkerTurnService(deps: {
  */
 function truncation(input: VoiceTurnRequest): Readonly<Record<string, string | number>> {
   const prefix = input.spokenPrefix;
-  return prefix === undefined
-    ? {}
-    : { generationId: prefix.generationId, truncatedAt: prefix.index };
+  if (prefix === undefined) return {};
+  // `index` is the position of the last sentence spoken; `truncatedAt` is how many the child
+  // heard, so "interrupted after segment 2 of 5" reads as 2 rather than 1.
+  return { generationId: prefix.generationId, truncatedAt: prefix.index + 1 };
 }

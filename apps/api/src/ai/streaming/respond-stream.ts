@@ -1,11 +1,6 @@
 import type { RespondPromptInput } from '@/ai/prompts/types';
 import { renderStreamRequest } from '@/ai/streaming/request';
-import type {
-  GatedStreamer,
-  GatedStreamInput,
-  ReleasedSegment,
-  SpokenContext,
-} from '@/ai/streaming/types';
+import type { GatedStreamer, GatedStreamInput, ReleasedSegment } from '@/ai/streaming/types';
 
 /**
  * P2H-07: Aria's own words, released a sentence at a time.
@@ -39,5 +34,3 @@ export function createRespondStreamer(streamer: GatedStreamer): RespondStreamer 
       }),
   };
 }
-
-export type { SpokenContext };

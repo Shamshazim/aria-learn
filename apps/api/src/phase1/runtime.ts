@@ -15,6 +15,7 @@ import {
   type ApiModelContext,
   type TurnContentService,
 } from '@/services/content/turn-content.service';
+import type { StreamingDeps } from '@/services/content/turn-content.types';
 import { createMemoryRetrievalService } from '@/services/memory/retrieve.service';
 import { createMoveFactory } from '@/services/moves/move-factory';
 import { createTurnCommitService } from '@/services/tutor/commit.service';
@@ -131,11 +132,19 @@ function buildTurnContent(
     moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
     remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
     observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
-    // P2H-07: a streamer and a listener both have to exist for a sentence to leave early.
-    ids: deps.ids,
-    ...(content.respond === undefined ? {} : { respond: content.respond }),
-    ...(deps.segments === undefined ? {} : { segments: deps.segments }),
+    ...streamingDeps(deps, content),
   });
+}
+
+/** P2H-07: streaming is configured whole or not at all; a half-configured one is off. */
+function streamingDeps(
+  deps: Phase1RuntimeDeps,
+  content: ContentServices,
+): Readonly<{ streaming?: StreamingDeps }> {
+  const { respond } = content;
+  const segments = deps.segments;
+  if (respond === undefined || segments === undefined) return {};
+  return { streaming: { respond, segments, ids: deps.ids } };
 }
 
 /** The planner and everything that keeps it inside its budget and on the record (P2H-06). */

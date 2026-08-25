@@ -21,7 +21,11 @@ const ACCOUNTING: AiAccounting = {
   recordCachedHit: () => Promise.resolve(),
 };
 
-function provider(chunks: readonly string[], delayMs: number): LlmProvider {
+function provider(
+  chunks: readonly string[],
+  delayMs: number,
+  onFinished?: () => void,
+): LlmProvider {
   return {
     complete: () => Promise.reject(new Error('Completion is not used')),
     stream: async function* (request) {
@@ -30,18 +34,24 @@ function provider(chunks: readonly string[], delayMs: number): LlmProvider {
         if (request.signal?.aborted === true) return;
         yield { kind: 'text', text } satisfies StreamChunk;
       }
+      onFinished?.();
     },
   };
 }
 
-function streamer(chunks: readonly string[], delayMs: number, gate: QualityGate) {
+function streamer(
+  chunks: readonly string[],
+  delayMs: number,
+  gate: QualityGate,
+  extra: Readonly<{ accounting?: AiAccounting; onFinished?(): void }> = {},
+) {
   return createRespondStreamer(
     createGatedStreamer({
-      provider: provider(chunks, delayMs),
+      provider: provider(chunks, delayMs, extra.onFinished),
       gate: speakableGate(gate),
       now: () => 0,
       callNow: () => 0,
-      accounting: ACCOUNTING,
+      accounting: extra.accounting ?? ACCOUNTING,
     }),
   );
 }
@@ -81,17 +91,46 @@ function safeGate(): QualityGate {
 }
 
 describe('the respond stream', () => {
-  it('releases the first sentence before the last one has been generated', async () => {
-    const released: number[] = [];
-    const startedAt = Date.now();
+  it('releases the first sentence before the model has finished generating', async () => {
+    const generation = { finishedAt: 0 };
+    const subject = streamer(FOUR_SENTENCES, 20, safeGate(), {
+      onFinished: () => {
+        generation.finishedAt = Date.now();
+      },
+    });
 
-    for await (const segment of streamer(FOUR_SENTENCES, 20, safeGate()).stream(input())) {
+    const releasedAt: number[] = [];
+    for await (const segment of subject.stream(input())) {
       expect(segment.written).not.toBe('');
-      released.push(Date.now() - startedAt);
+      releasedAt.push(Date.now());
     }
 
-    expect(released).toHaveLength(4);
-    expect(released[0]).toBeLessThan(released.at(-1) ?? 0);
+    expect(releasedAt).toHaveLength(4);
+    // The bar the ticket sets: the child hears something before the model is done writing.
+    expect(releasedAt[0] ?? Number.POSITIVE_INFINITY).toBeLessThan(generation.finishedAt);
+  });
+
+  it('checks the daily spend cap before it asks a provider for anything', async () => {
+    const assertWithinCap = vi.fn(() => Promise.reject(new Error('safe test failure: cap')));
+    const scripted = provider(FOUR_SENTENCES, 0);
+    const stream = vi.fn((request: Parameters<LlmProvider['stream']>[0]) =>
+      scripted.stream(request),
+    );
+    const capped = createRespondStreamer(
+      createGatedStreamer({
+        provider: { ...provider([], 0), stream },
+        gate: speakableGate(safeGate()),
+        now: () => 0,
+        callNow: () => 0,
+        accounting: { ...ACCOUNTING, assertWithinCap },
+      }),
+    );
+
+    const released = capped.stream(input({ studentId: 'student-1' }));
+
+    await expect(released[Symbol.asyncIterator]().next()).rejects.toThrow(/cap/u);
+    expect(assertWithinCap).toHaveBeenCalledWith('student-1');
+    expect(stream).not.toHaveBeenCalled();
   });
 
   it('checks every sentence it releases, and releases nothing it did not check', async () => {

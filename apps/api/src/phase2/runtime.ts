@@ -94,6 +94,7 @@ function buildVoiceController(
     recordMetric: metrics.record,
     grant: input.consent.grant,
     withdraw: (consented) => input.consent.withdraw(consented.parentId, consented.studentId),
+    logger: deps.logger,
     // P2H-07: without a bus the worker still gets one JSON body, exactly as before.
     ...(deps.segments === undefined ? {} : { segments: deps.segments }),
   });

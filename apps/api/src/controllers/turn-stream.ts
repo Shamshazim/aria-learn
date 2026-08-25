@@ -1,6 +1,7 @@
 import type { SegmentBus } from '@/services/content/segment-bus';
 
 import type { Request } from 'express';
+import type { ZodType } from 'zod';
 
 /**
  * P2H-07: writes a turn out while it is still happening.
@@ -15,6 +16,11 @@ import type { Request } from 'express';
  */
 export type FrameFormat = 'sse' | 'ndjson';
 
+const CONTENT_TYPES: Readonly<Record<FrameFormat, string>> = {
+  sse: 'text/event-stream; charset=utf-8',
+  ndjson: 'application/x-ndjson; charset=utf-8',
+};
+
 /**
  * The part of an Express response a turn stream uses.
  *
@@ -28,11 +34,6 @@ export type TurnStreamResponse = Readonly<{
   end(): unknown;
 }>;
 
-const CONTENT_TYPES: Readonly<Record<FrameFormat, string>> = {
-  sse: 'text/event-stream; charset=utf-8',
-  ndjson: 'application/x-ndjson; charset=utf-8',
-};
-
 export function requestedFormat(request: Pick<Request, 'headers'>): FrameFormat | null {
   const accept = request.headers.accept ?? '';
   if (accept.includes('text/event-stream')) return 'sse';
@@ -40,15 +41,22 @@ export function requestedFormat(request: Pick<Request, 'headers'>): FrameFormat 
   return null;
 }
 
-export async function streamTurn<T>(input: {
+export async function streamTurn<TResult, TFrame>(input: {
   response: TurnStreamResponse;
   format: FrameFormat;
   segments: SegmentBus;
   sessionId: string;
-  run(): Promise<T>;
-  closing(result: T): unknown;
+  /**
+   * The channel's own frame union. Every frame is parsed before it is written, so a stream is
+   * held to the same protocol the buffered response is (P0-02).
+   */
+  frameSchema: ZodType<TFrame>;
+  run(): Promise<TResult>;
+  closing(result: TResult): unknown;
+  /** A turn that failed after it had spoken cannot be an error response, so it is reported here. */
+  onError(error: unknown): void;
 }): Promise<void> {
-  const writer = createFrameWriter(input.response, input.format);
+  const writer = createFrameWriter(input.response, input.format, input.frameSchema);
   const unsubscribe = input.segments.subscribe(input.sessionId, (segment) => {
     writer.write({ kind: 'MOVE_SEGMENT', ...segment });
   });
@@ -57,6 +65,7 @@ export async function streamTurn<T>(input: {
     writer.write({ kind: 'TURN_MOVES', turn: input.closing(result) });
   } catch (error) {
     if (!writer.started()) throw error;
+    input.onError(error);
     input.response.end();
     return;
   } finally {
@@ -67,7 +76,11 @@ export async function streamTurn<T>(input: {
 
 type FrameWriter = Readonly<{ write(frame: unknown): void; started(): boolean }>;
 
-function createFrameWriter(response: TurnStreamResponse, format: FrameFormat): FrameWriter {
+function createFrameWriter<TFrame>(
+  response: TurnStreamResponse,
+  format: FrameFormat,
+  schema: ZodType<TFrame>,
+): FrameWriter {
   let started = false;
   return {
     started: () => started,
@@ -81,7 +94,7 @@ function createFrameWriter(response: TurnStreamResponse, format: FrameFormat): F
           connection: 'keep-alive',
         });
       }
-      const body = JSON.stringify(frame);
+      const body = JSON.stringify(schema.parse(frame));
       // No compression middleware sits in front of this, so a write reaches the socket.
       response.write(format === 'sse' ? `data: ${body}\n\n` : `${body}\n`);
     },

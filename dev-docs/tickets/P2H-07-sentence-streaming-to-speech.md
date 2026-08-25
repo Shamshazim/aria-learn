@@ -86,27 +86,42 @@ thinking" indicator until the first segment; no spinner (P0-25 rule).
   (the same situation, plain prose, because JSON cannot be cut at a full stop); the gated
   streamer numbering its segments; a `RespondStreamer` seam so a content service can stream
   without ever seeing an `LlmRequest`; a per-session segment bus; SSE on the text turn and
-  NDJSON on the worker turn, both opt-in by `Accept`; segment ordering, deduplication and
-  barge-in dropping in the worker; `preemptiveGeneration` on with `preemptiveTts` off;
-  `truncatedAt` recorded on the event that interrupted; and incremental rendering in the web
-  session.
-- Three decisions the ticket did not settle:
+  NDJSON on the worker turn, both opt-in by `Accept` and both parsed against the channel's own
+  frame schema on the way out; segment ordering, deduplication, gap recovery and barge-in
+  dropping in the worker; `preemptiveGeneration` on with `preemptiveTts` off; `truncatedAt`
+  recorded on the event that interrupted; and incremental rendering in the web session.
+- Two decisions the ticket did not settle:
   - **`isLast` is a hint, not the end of a turn.** A sentence can only be known to be the last
     one after the model stops, and holding each sentence until the next arrives would give back
     exactly the latency this ticket buys. So `isLast` is set where it is knowable without
     waiting — a whole-item segment, a flushed remainder, a reviewed closing sentence — and the
     closing `TURN_MOVES` frame is what authoritatively ends a turn. A stream that ends without
     it failed, and both clients treat it that way.
-  - **The early band does not stream.** Its register rule is a whole-answer rule (at most two
-    sentences), and a sentence already spoken cannot be taken back. Two sentences are short
-    enough that buffering them costs a child almost nothing.
   - **Streaming is off unless something is listening.** A buffered client is still a supported
     client, and a turn that generates into nothing has spent a model call for no one.
-- Deliberately not built: **per-segment regeneration**. The ticket's edge case asks for one
-  bounded retry of a sentence that failed the gate. That needs a second model call mid-utterance
-  carrying the already-spoken prefix, and the child is waiting through all of it. The reviewed
-  closing sentence is faster, safer and already the rule for the last segment, so a failed
-  segment ends the answer with it. Worth revisiting with real first-audio numbers.
+- Two deviations from the Design, both deliberate:
+  - **`ASK` never reaches the segment channel.** Every other model-written move does, including
+    the whole-item ones — a `HINT` and an early-band answer arrive as exactly one gated segment,
+    which is what the Design asks for. An `ASK` is different in kind: its words come from the
+    verified content bank rather than the respond stream, so there is nothing here to gate and
+    publishing the bank's text as a "segment" would only invite a client to render it twice. Its
+    whole-item check is where the answer key is, in `turn-question.ts`.
+  - **The idle timeout is not "2× the segment gate budget".** That is 60 ms, which is how long
+    *gating* a sentence may take, not how long a model may take to write the next one; at that
+    bound every answer would be abandoned mid-sentence. `STREAM_IDLE_TIMEOUT_MS` is 10 s — long
+    enough for a slow tier, short enough to end the turn while the child is still waiting.
+- Deliberately not built:
+  - **Per-segment regeneration.** The ticket's edge case asks for one bounded retry of a sentence
+    that failed the gate. That needs a second model call mid-utterance carrying the already-spoken
+    prefix, and the child waits through all of it. The reviewed closing sentence is faster, safer,
+    and already the rule for the last segment — so any failed segment ends the answer with it.
+    Worth revisiting with real first-audio numbers.
+  - **Segments in the move outbox.** The Design's reconnect story replays "only un-acknowledged
+    segments"; the bus is per-request and in memory, so segments are not durable. What is durable
+    is the move, and the recovery path now uses it: a stream that never reaches its closing frame
+    leaves its moves marked unspoken, so the ordinary outbox replay says the whole answer rather
+    than the half the child heard. Durable segments would need a table and an acknowledgement
+    cursor of their own, which no acceptance criterion asks for.
 - Remaining: the **first-audio p95 report** needs a live provider run (P2H-13 sets the bar).
   `npm run voice:golden` fails on `unreviewedSpokenTeachingCount: 1`, which it also does on
   `main` — a pre-existing gap in that fixture, not a regression from this ticket.
@@ -124,9 +139,11 @@ thinking" indicator until the first segment; no spinner (P0-25 rule).
       sent and never spoken.
 - [x] Out-of-order and duplicate segments are reordered/dropped; a cancelled generation's
       late segment is dropped. `session/segment-order.test.ts`.
-- [x] Barge-in mid-stream: no further segments spoken; the stored event carries
-      `truncatedAt`.
-- [x] Whole-item kinds emit exactly one segment, with `isLast` set.
+- [x] Barge-in mid-stream: no further segments spoken, the in-flight request is aborted so the
+      API stops generating, and the stored event carries `truncatedAt` — a count of what was
+      heard, so "interrupted after segment 2 of 5" reads as 2.
+- [x] Whole-item kinds emit exactly one segment, with `isLast` set — `HINT` and every early-band
+      answer, end to end through the turn path. `ASK` is excluded on purpose; see Status.
 - [x] Text channel renders segments incrementally. `features/session/render/streaming.test.tsx`.
 - [ ] Voice golden run reports first-audio p95 (P2H-13 sets the bar). Needs a live provider.
 

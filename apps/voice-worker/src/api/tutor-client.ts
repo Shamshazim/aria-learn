@@ -9,7 +9,7 @@ import {
   type VoiceTurnResponse,
 } from '@aria/shared';
 
-import { readNdjson } from '@/api/ndjson';
+import { readNdjson, STREAM_IDLE_TIMEOUT_MS, untilIdle } from '@/api/ndjson';
 
 const responseSchema = z.object({ data: voiceTurnResponseSchema });
 
@@ -93,7 +93,9 @@ async function* turnStream(
     throw new Error(`Tutor control plane rejected voice turn (${String(response.status)})`);
   }
   let closed = false;
-  for await (const line of readNdjson(response.body)) {
+  // A stream that goes quiet raises on its own, so the only case left here is a control plane
+  // that closed the connection tidily without ever saying what the turn was.
+  for await (const line of untilIdle(readNdjson(response.body), STREAM_IDLE_TIMEOUT_MS)) {
     const frame = voiceTurnFrameSchema.parse(line);
     closed = frame.kind === 'TURN_MOVES';
     yield frame;

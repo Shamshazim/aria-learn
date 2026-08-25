@@ -10,6 +10,7 @@ import {
 } from './common.schema';
 import { tutorInputEventSchema } from './events.schema';
 import { tutorMoveSchema } from './moves.schema';
+import { moveSegmentSchema } from './segment.schema';
 
 /**
  * The turn envelope: one event in, one or more moves out.
@@ -40,6 +41,20 @@ export const turnResponseSchema = z.object({
 });
 
 export type TurnResponse = z.infer<typeof turnResponseSchema>;
+
+/**
+ * P2H-07: the text channel, over SSE — gated sentences, then the turn that closes them.
+ *
+ * The frames live beside the turn they carry rather than in `realtime.ts`, which is the voice
+ * channel's own file. Both channels send the same `MOVE_SEGMENT`; only what closes a turn
+ * differs, because the two transports acknowledge moves differently.
+ */
+export const turnFrameSchema = z.discriminatedUnion('kind', [
+  moveSegmentSchema,
+  z.object({ kind: z.literal('TURN_MOVES'), turn: turnResponseSchema }),
+]);
+
+export type TurnFrame = z.infer<typeof turnFrameSchema>;
 
 /**
  * What the client needs to render a session before the first turn returns.

@@ -23,6 +23,17 @@ export type MoveStreamState = Readonly<{
   takePendingPlaybackSeq(): number;
   /** P2H-07: puts streamed sentences back in order, and remembers which moves they were. */
   order: SegmentOrder;
+  /**
+   * P2H-07: opens the abort scope for one streamed turn.
+   *
+   * The caller's own signal still ends the turn; this adds the one the worker can pull when the
+   * child interrupts, so the API stops generating instead of writing into a stream nobody is
+   * listening to any more.
+   */
+  beginGeneration(signal?: AbortSignal): AbortSignal;
+  abortGeneration(): void;
+  /** True when the stream ended because the child interrupted it, not because it failed. */
+  generationAborted(): boolean;
 }>;
 
 export function createMoveStreamState(): MoveStreamState {
@@ -33,8 +44,25 @@ export function createMoveStreamState(): MoveStreamState {
   let terminalDelivered = false;
   let pendingPlaybackSeq = 0;
   const order = createSegmentOrder();
+  let generation: AbortController | null = null;
+  let aborted = false;
   return {
     order,
+    beginGeneration: (signal) => {
+      const controller = new AbortController();
+      generation = controller;
+      aborted = false;
+      signal?.addEventListener('abort', () => {
+        controller.abort(signal.reason);
+      });
+      if (signal?.aborted === true) controller.abort(signal.reason);
+      return controller.signal;
+    },
+    abortGeneration: () => {
+      aborted = true;
+      generation?.abort();
+    },
+    generationAborted: () => aborted,
     acknowledgedSeq: () => acknowledgedSeq,
     acknowledge: (serverSeq) => {
       acknowledgedSeq = Math.max(acknowledgedSeq, serverSeq);

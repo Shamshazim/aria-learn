@@ -63,22 +63,44 @@ describe('segment ordering', () => {
     expect(order.takeInterruptedPrefix()).toBeNull();
   });
 
-  it('knows which moves have already been spoken a sentence at a time', () => {
+  it('counts a move as spoken only once its stream reached the closing frame', () => {
     const order = createSegmentOrder();
-    order.accept(segment(0, 'Said it.'));
+    order.accept(segment(0, 'Said half of it.'));
+
+    // The stream is still open: replaying the move whole is how the child hears the rest.
+    expect(order.wasSpoken('move-gen-1')).toBe(false);
+
+    order.settle();
 
     expect(order.wasSpoken('move-gen-1')).toBe(true);
     expect(order.wasSpoken('move-gen-2')).toBe(false);
   });
 
-  it('stops holding sentences back for a gap that is never going to be filled', () => {
+  it('forgets what a stream half-said once the next one starts', () => {
     const order = createSegmentOrder();
-    for (let index = 1; index <= 8; index += 1)
-      order.accept(segment(index, `Sentence ${String(index)}.`));
+    order.begin();
+    order.accept(segment(0, 'Half an answer.'));
 
-    // Nine held would mean a child waiting in silence for a sentence that was lost.
-    expect(order.accept(segment(9, 'Ninth.'))).toEqual([]);
-    expect(order.accept(segment(0, 'First.'))).toHaveLength(9);
+    // The stream stopped without a closing frame; the next one settles on its own work only.
+    order.begin();
+    order.settle();
+
+    expect(order.wasSpoken('move-gen-1')).toBe(false);
+  });
+
+  it('carries on past a sentence that is never going to arrive', () => {
+    const order = createSegmentOrder();
+    for (let index = 1; index <= 8; index += 1) {
+      expect(order.accept(segment(index, `Sentence ${String(index)}.`))).toEqual([]);
+    }
+
+    // Nine held would mean a child waiting in silence for a sentence that was lost, so the
+    // stream gives up on index 0 and says the eight it already has.
+    const released = order.accept(segment(9, 'Ninth.'));
+
+    expect(released.map((item) => item.index)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    // The lost sentence stays lost: it is behind the stream now.
+    expect(order.accept(segment(0, 'First.'))).toEqual([]);
   });
 
   it('keeps two generations apart', () => {

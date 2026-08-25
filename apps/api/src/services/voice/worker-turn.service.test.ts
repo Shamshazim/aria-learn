@@ -227,7 +227,7 @@ describe('voice worker turn delivery', () => {
       acknowledgedSeq: 1,
       replayOnly: false,
       authorizeOnly: false,
-      // P2H-07: the child talked over Aria after the second sentence.
+      // P2H-07: the child talked over Aria after the second sentence — index 1 of 0,1,2,…
       spokenPrefix: { generationId: 'generation-1', index: 1 },
       event: {
         id: 'speech-started-1',
@@ -240,7 +240,8 @@ describe('voice worker turn delivery', () => {
     expect(append).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'SPEECH_STARTED',
-        evidence: { generationId: 'generation-1', truncatedAt: 1 },
+        // Two sentences were heard, so that is what the transcript records.
+        evidence: { generationId: 'generation-1', truncatedAt: 2 },
       }),
     );
   });

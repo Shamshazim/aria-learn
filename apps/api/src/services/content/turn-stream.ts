@@ -1,15 +1,32 @@
 import type { PlannedTurn } from '@aria/tutor';
 
-import { StreamGateError, type GatedSegment, type RespondStreamer } from '@/ai';
+import {
+  StreamGateError,
+  type GatedSegment,
+  type RespondStreamer,
+  type StreamContentKind,
+} from '@/ai';
 import type { FallbackReason } from '@/observability/content-metrics';
 import type { GenerationOutcome } from '@/services/content/generate-text';
 import { throwIfAborted } from '@/services/content/generate-text';
-import type { SegmentBus } from '@/services/content/segment-bus';
-import type { ApiModelContext, MoveIdentity } from '@/services/content/turn-content.types';
+import type {
+  ApiModelContext,
+  MoveIdentity,
+  StreamingDeps,
+} from '@/services/content/turn-content.types';
 import { fallbackText } from '@/services/content/turn-fallback';
 import { respondInput } from '@/services/content/turn-response';
 
-export type StreamedText = GenerationOutcome & Readonly<{ identity: MoveIdentity }>;
+/**
+ * A streamed answer, and — when the stream stopped after the child had already heard some of it
+ * — why it stopped. A truncated answer is still the child's own answer, so it is `generated`;
+ * `truncated` is what stops that from being the whole story (P2H-07).
+ */
+export type StreamedText = GenerationOutcome &
+  Readonly<{
+    identity: MoveIdentity;
+    truncated?: Readonly<{ reason: FallbackReason; error: unknown }>;
+  }>;
 
 /**
  * P2H-07: says the answer while it is still being written.
@@ -20,31 +37,36 @@ export type StreamedText = GenerationOutcome & Readonly<{ identity: MoveIdentity
  * that gets committed and replayed has to be the whole thing.
  */
 export async function streamGatedText(
-  deps: Readonly<{ respond: RespondStreamer; segments: SegmentBus }>,
+  deps: StreamingDeps,
   turn: PlannedTurn<ApiModelContext>,
-  identity: MoveIdentity,
+  release: Readonly<{ identity: MoveIdentity; contentKind: StreamContentKind }>,
   signal?: AbortSignal,
 ): Promise<StreamedText> {
+  const { identity, contentKind } = release;
   const written: string[] = [];
+  let failure: unknown = null;
   try {
-    for await (const segment of deps.respond.stream(streamInput(turn, signal))) {
+    for await (const segment of deps.respond.stream(streamInput(turn, contentKind, signal))) {
       throwIfAborted(signal);
       written.push(segment.written);
       deps.segments.publish(turn.context.session.id, published(identity, segment));
     }
   } catch (error) {
     throwIfAborted(signal);
-    if (written.length === 0) return { kind: 'fallback', reason: providerReason(error), identity };
+    failure = error;
   }
-  return written.length === 0
-    ? { kind: 'fallback', reason: 'gate_failed', identity }
-    : {
-        kind: 'generated',
-        text: written.join(' '),
-        promptName: 'respond-stream',
-        promptVersion: '1.0.0',
-        identity,
-      };
+  if (written.length === 0) {
+    return { kind: 'fallback', reason: providerReason(failure), identity };
+  }
+  return {
+    kind: 'generated',
+    text: written.join(' '),
+    promptName: 'respond-stream',
+    promptVersion: '1.0.0',
+    identity,
+    // The child heard the sentences before the break; the record has to say the rest never came.
+    ...(failure === null ? {} : { truncated: { reason: providerReason(failure), error: failure } }),
+  };
 }
 
 function published(
@@ -62,16 +84,18 @@ function published(
 }
 
 /**
- * Nothing was released, so the child heard nothing and the turn falls back as it always did.
- * The gate has its own path — a reviewed closing sentence — and only reaches here when even
- * that sentence fails, which is a content defect rather than an outage.
+ * The gate has its own path — a reviewed closing sentence — and reaches here only when even that
+ * sentence fails, which is a content defect rather than an outage. A stream that ended with no
+ * error and no sentences is the same defect: the gate refused everything it was offered.
  */
 function providerReason(error: unknown): FallbackReason {
+  if (error === null) return 'gate_failed';
   return error instanceof StreamGateError ? 'gate_failed' : 'provider_error';
 }
 
 function streamInput(
   turn: PlannedTurn<ApiModelContext>,
+  contentKind: StreamContentKind,
   signal?: AbortSignal,
 ): Parameters<RespondStreamer['stream']>[0] {
   const band = turn.context.session.band;
@@ -85,7 +109,7 @@ function streamInput(
       teachingClaim: turn.plan.reason,
       responseType: 'none',
     },
-    contentKind: 'explanation',
+    contentKind,
     gateInput: (text) => ({
       id: 'turn-text',
       kind: 'text',

@@ -1,10 +1,12 @@
 import {
   realtimeCredentialsSchema,
+  voiceTurnFrameSchema,
   voiceTurnResponseSchema,
   type VoiceTurnResponse,
 } from '@aria/shared';
 
 import { requestedFormat, streamTurn } from '@/controllers/turn-stream';
+import type { Logger } from '@/lib/logger';
 import {
   realtimeParamsSchema,
   voiceConsentSchema,
@@ -41,6 +43,7 @@ export function createVoiceControllers(deps: {
   withdraw(input: ReturnType<typeof voiceConsentWithdrawSchema.parse>): Promise<boolean>;
   /** P2H-07: present when the deployment can stream sentences ahead of the turn. */
   segments?: SegmentBus;
+  logger?: Pick<Logger, 'warn'>;
 }): VoiceControllers {
   return {
     realtime: async (
@@ -97,7 +100,21 @@ async function workerTurn(
     response.status(200).json({ data: await run() });
     return;
   }
-  await streamTurn({ response, format, segments, sessionId: id, run, closing: (turn) => turn });
+  await streamTurn({
+    response,
+    format,
+    segments,
+    sessionId: id,
+    frameSchema: voiceTurnFrameSchema,
+    run,
+    closing: (turn) => turn,
+    onError: (error) => {
+      deps.logger?.warn(
+        { err: error, event: 'turn_stream_failed', sessionId: id },
+        'A voice turn stopped after the child had already heard part of it',
+      );
+    },
+  });
 }
 
 function studentId(request: { studentId?: string }): string {

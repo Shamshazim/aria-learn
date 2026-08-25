@@ -37,6 +37,8 @@ function segment(index: number, text: string) {
 }
 
 describe('turn frames', () => {
+  const onError = vi.fn();
+
   it('writes each sentence as it is released, then the turn itself', async () => {
     const recorded = recorder();
     const segments = createSegmentBus();
@@ -46,6 +48,8 @@ describe('turn frames', () => {
       format: 'ndjson',
       segments,
       sessionId: 'session-1',
+      frameSchema: voiceTurnFrameSchema,
+      onError,
       run: () => {
         segments.publish('session-1', segment(0, 'First.'));
         segments.publish('session-1', segment(1, 'Second.'));
@@ -73,6 +77,8 @@ describe('turn frames', () => {
       format: 'sse',
       segments,
       sessionId: 'session-1',
+      frameSchema: voiceTurnFrameSchema,
+      onError,
       run: () => {
         segments.publish('session-1', segment(0, 'First.'));
         return Promise.resolve({ connectionEpoch: 1, moves: [] });
@@ -93,6 +99,8 @@ describe('turn frames', () => {
         format: 'ndjson',
         segments: createSegmentBus(),
         sessionId: 'session-1',
+        frameSchema: voiceTurnFrameSchema,
+        onError,
         run: () => Promise.reject(new Error('safe test failure')),
         closing: (turn) => turn,
       }),
@@ -110,6 +118,8 @@ describe('turn frames', () => {
       format: 'ndjson',
       segments,
       sessionId: 'session-1',
+      frameSchema: voiceTurnFrameSchema,
+      onError,
       run: () => {
         segments.publish('session-1', segment(0, 'First.'));
         return Promise.reject(new Error('safe test failure'));
@@ -120,6 +130,8 @@ describe('turn frames', () => {
     expect(recorded.written).toHaveLength(1);
     expect(recorded.written[0]).toContain('MOVE_SEGMENT');
     expect(recorded.response.end).toHaveBeenCalledOnce();
+    // The child was left mid-answer, so the failure is reported rather than swallowed.
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'safe test failure' }));
   });
 
   it('stops listening for a session once its turn is over', async () => {
@@ -131,6 +143,8 @@ describe('turn frames', () => {
       format: 'ndjson',
       segments,
       sessionId: 'session-1',
+      frameSchema: voiceTurnFrameSchema,
+      onError,
       run: () => Promise.resolve({ connectionEpoch: 1, moves: [] }),
       closing: (turn) => turn,
     });

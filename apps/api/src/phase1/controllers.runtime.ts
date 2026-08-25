@@ -54,6 +54,7 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
         sessions: lifecycle.sessions,
         end: lifecycle.end,
         turn,
+        logger: runtime.deps.logger,
         ...(runtime.deps.segments === undefined ? {} : { segments: runtime.deps.segments }),
       }),
     },

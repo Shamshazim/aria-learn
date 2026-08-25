@@ -1,5 +1,6 @@
 import {
   sessionContextSchema,
+  turnFrameSchema,
   type CurrentSessionResponse,
   type EndSessionResponse,
   type SessionStartResponse,
@@ -7,6 +8,7 @@ import {
 } from '@aria/shared';
 
 import { requestedFormat, streamTurn } from '@/controllers/turn-stream';
+import type { Logger } from '@/lib/logger';
 import type { CreateSessionRequest, SessionTurnRequest } from '@/schemas/session.schema';
 import {
   createSessionRequestSchema,
@@ -41,6 +43,7 @@ export function createSessionControllers(deps: {
   turn(studentId: string, request: SessionTurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
   /** P2H-07: present when the deployment can stream sentences ahead of the turn. */
   segments?: SegmentBus;
+  logger?: Pick<Logger, 'warn'>;
 }): SessionControllers {
   return {
     create: async (request: Request, response: Response<ApiResponse<SessionStartResponse>>) => {
@@ -76,7 +79,7 @@ export function createSessionControllers(deps: {
       try {
         const run = (): Promise<TurnResponse> =>
           deps.turn(studentId(request), body, controller.signal);
-        const streamed = await streamedTurn(deps, request, response, run);
+        const streamed = await streamedTurn(deps, { request, response, body, run });
         if (!streamed) response.status(200).json({ data: await run() });
       } finally {
         request.off('aborted', abort);
@@ -93,20 +96,31 @@ export function createSessionControllers(deps: {
  */
 async function streamedTurn(
   deps: Parameters<typeof createSessionControllers>[0],
-  request: Request,
-  response: Response,
-  run: () => Promise<TurnResponse>,
+  turn: Readonly<{
+    request: Request;
+    response: Response;
+    body: SessionTurnRequest;
+    run(): Promise<TurnResponse>;
+  }>,
 ): Promise<boolean> {
-  const format = requestedFormat(request);
-  const sessionId = sessionTurnRequestSchema.parse(request.validated?.body).sessionId;
-  if (format !== 'sse' || deps.segments === undefined || sessionId === undefined) return false;
+  const format = requestedFormat(turn.request);
+  const sessionId = turn.body.sessionId;
+  const segments = deps.segments;
+  if (format !== 'sse' || segments === undefined || sessionId === undefined) return false;
   await streamTurn({
-    response,
+    response: turn.response,
     format,
-    segments: deps.segments,
+    segments,
     sessionId,
-    run,
-    closing: (turn: TurnResponse) => turn,
+    frameSchema: turnFrameSchema,
+    run: turn.run,
+    closing: (result: TurnResponse) => result,
+    onError: (error) => {
+      deps.logger?.warn(
+        { err: error, event: 'turn_stream_failed', sessionId },
+        'A turn stopped after the child had already been shown part of it',
+      );
+    },
   });
   return true;
 }

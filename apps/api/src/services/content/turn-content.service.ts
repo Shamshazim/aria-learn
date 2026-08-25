@@ -1,6 +1,10 @@
 import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
-import { NULL_TURN_CONTENT_OBSERVER } from '@/observability/content-metrics';
+import type { StreamContentKind } from '@/ai';
+import {
+  NULL_TURN_CONTENT_OBSERVER,
+  type TurnContentObserver,
+} from '@/observability/content-metrics';
 import { fixedText } from '@/services/content/fixed-text';
 import {
   generateGatedText,
@@ -8,10 +12,11 @@ import {
   throwIfAborted,
   type GenerationOutcome,
 } from '@/services/content/generate-text';
-import { maySegmentStream } from '@/services/content/streaming-kinds';
+import { segmentContentKind } from '@/services/content/streaming-kinds';
 import type {
   ApiModelContext,
   MoveIdentity,
+  StreamingDeps,
   TurnContentDeps,
 } from '@/services/content/turn-content.types';
 import { fallbackText } from '@/services/content/turn-fallback';
@@ -74,23 +79,45 @@ async function generated(
   turn: PlannedTurn<ApiModelContext>,
   signal?: AbortSignal,
 ): Promise<Said> {
-  const identity = streamIdentity(deps, turn);
-  const outcome =
-    identity === null
-      ? await generateGatedText(deps, turn, signal)
-      : await streamGatedText(streamDeps(deps), turn, identity, signal);
-  if (outcome.kind === 'generated') {
-    return {
-      text: outcome.text,
-      provenance: provenance(outcome),
-      ...(identity === null ? {} : { identity }),
-    };
+  const streaming = streamingFor(deps, turn);
+  if (streaming === null) return buffered(deps, turn, await generateGatedText(deps, turn, signal));
+  const outcome = await streamGatedText(streaming.deps, turn, streaming, signal);
+  if (outcome.kind !== 'generated') return buffered(deps, turn, outcome);
+  if (outcome.truncated !== undefined) {
+    observerFor(deps).streamTruncated(
+      turn.plan.kind,
+      outcome.truncated.reason,
+      outcome.truncated.error,
+    );
   }
-  (deps.observer ?? NULL_TURN_CONTENT_OBSERVER).fallbackUsed(turn.plan.kind, outcome.reason);
+  return {
+    text: outcome.text,
+    provenance: {
+      ...provenance(outcome),
+      ...(outcome.truncated === undefined ? {} : { streamTruncated: outcome.truncated.reason }),
+    },
+    identity: streaming.identity,
+  };
+}
+
+/** The turn said nothing of its own, so a reviewed sentence says it instead. */
+function buffered(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+  outcome: GenerationOutcome,
+): Said {
+  if (outcome.kind === 'generated') {
+    return { text: outcome.text, provenance: provenance(outcome) };
+  }
+  observerFor(deps).fallbackUsed(turn.plan.kind, outcome.reason);
   return {
     text: requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band),
     provenance: provenance(outcome),
   };
+}
+
+function observerFor(deps: TurnContentDeps): TurnContentObserver {
+  return deps.observer ?? NULL_TURN_CONTENT_OBSERVER;
 }
 
 /**
@@ -100,22 +127,24 @@ async function generated(
  * speak the sentences and then speak them again. Streaming is off unless something is listening
  * — a buffered client is still a supported client, and generating into nothing costs a turn.
  */
-function streamIdentity(
+function streamingFor(
   deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
-): MoveIdentity | null {
-  const { respond, segments, ids } = deps;
-  if (respond === undefined || segments === undefined || ids === undefined) return null;
-  if (!maySegmentStream(turn.plan.kind, turn.context.session.band)) return null;
-  if (!segments.listening(turn.context.session.id)) return null;
-  return { id: ids.next(), generationId: ids.next() };
-}
-
-function streamDeps(deps: TurnContentDeps): Parameters<typeof streamGatedText>[0] {
-  if (deps.respond === undefined || deps.segments === undefined) {
-    throw new Error('Streaming was chosen without a streamer');
-  }
-  return { respond: deps.respond, segments: deps.segments };
+): Readonly<{
+  deps: StreamingDeps;
+  identity: MoveIdentity;
+  contentKind: StreamContentKind;
+}> | null {
+  const streaming = deps.streaming;
+  if (streaming === undefined) return null;
+  const contentKind = segmentContentKind(turn.plan.kind, turn.context.session.band);
+  if (contentKind === null) return null;
+  if (!streaming.segments.listening(turn.context.session.id)) return null;
+  return {
+    deps: streaming,
+    identity: { id: streaming.ids.next(), generationId: streaming.ids.next() },
+    contentKind,
+  };
 }
 
 /**

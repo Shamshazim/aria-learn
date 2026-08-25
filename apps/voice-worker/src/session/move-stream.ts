@@ -2,6 +2,7 @@ import {
   PROTOCOL_VERSION,
   type TutorInputEvent,
   type TutorMove,
+  type MoveSegment,
   type VoiceTurnRequest,
   type VoiceTurnResponse,
 } from '@aria/shared';
@@ -93,7 +94,10 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
       state.activate(null);
     },
     cancelGeneration: (generationId) => {
+      // The child is talking over this answer, so the API is told to stop writing it: the
+      // request is abandoned, which is what ends generation rather than merely muting it.
       state.order.cancel(generationId);
+      state.abortGeneration();
       state.activate(null);
     },
   };
@@ -158,24 +162,47 @@ async function* send(
   state: MoveStreamState,
   request: Readonly<{ event: TutorInputEvent; replayOnly: boolean; signal?: AbortSignal }>,
 ): AsyncIterable<string> {
-  for await (const frame of input.client.turnStream(
-    input.room.sessionId,
-    turnRequest(input, state, request),
-    request.signal,
-  )) {
-    if (frame.kind === 'MOVE_SEGMENT') {
-      state.activate(frame.generationId);
-      for (const ready of state.order.accept(frame)) yield ready.speech;
-      continue;
+  const generation = state.beginGeneration(request.signal);
+  state.order.begin();
+  try {
+    const request$ = turnRequest(input, state, request);
+    for await (const frame of input.client.turnStream(input.room.sessionId, request$, generation)) {
+      yield* frame.kind === 'MOVE_SEGMENT'
+        ? spokenSegments(state, frame)
+        : closeTurn(input, state, frame.turn);
     }
-    if (frame.turn.connectionEpoch !== input.room.connectionEpoch) {
-      throw new Error('Tutor API returned a stale voice connection epoch');
-    }
-    for (const move of frame.turn.moves) {
-      if (move.serverSeq !== undefined && move.serverSeq <= state.deliveredSeq()) continue;
-      const speech = await applyMove(input.publisher, state, move);
-      if (speech !== null) yield speech;
-    }
+  } catch (error) {
+    // The child talked over the answer, so the request was pulled on purpose.
+    if (!state.generationAborted()) throw error;
+  }
+}
+
+/** The sentences this one unblocked, in the order they were written. */
+function* spokenSegments(state: MoveStreamState, segment: MoveSegment): Generator<string> {
+  state.activate(segment.generationId);
+  for (const ready of state.order.accept(segment)) yield ready.speech;
+}
+
+/**
+ * The closing frame: the moves the sentences belonged to.
+ *
+ * `settle` runs first because reaching here is what proves the stream said the whole of what it
+ * wrote. Before that a partly-spoken move counts as unspoken, so replaying it whole is how a
+ * child hears the rest of an answer the connection dropped.
+ */
+async function* closeTurn(
+  input: MoveStreamInput,
+  state: MoveStreamState,
+  turn: VoiceTurnResponse,
+): AsyncIterable<string> {
+  if (turn.connectionEpoch !== input.room.connectionEpoch) {
+    throw new Error('Tutor API returned a stale voice connection epoch');
+  }
+  state.order.settle();
+  for (const move of turn.moves) {
+    if (move.serverSeq !== undefined && move.serverSeq <= state.deliveredSeq()) continue;
+    const speech = await applyMove(input.publisher, state, move);
+    if (speech !== null) yield speech;
   }
 }
 

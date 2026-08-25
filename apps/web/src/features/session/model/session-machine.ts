@@ -33,8 +33,14 @@ export function reduceSession(
   }
 }
 
+const UI_ACTIONS: ReadonlySet<UiAction['kind']> = new Set([
+  'SOURCE_PENDING',
+  'SOURCE_SETTLED',
+  'STOP_ACTIVE',
+]);
+
 function isUiAction(input: TutorMove | UiAction): input is UiAction {
-  return input.kind === 'STOP_ACTIVE' || input.kind.startsWith('SOURCE_');
+  return (UI_ACTIONS as ReadonlySet<string>).has(input.kind);
 }
 
 function reduceUiAction(state: SessionState, input: UiAction): SessionState {

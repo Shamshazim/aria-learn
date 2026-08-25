@@ -86,8 +86,6 @@ async function recoverable(
 type MoveBatch = Readonly<{
   sessionId: SessionId;
   moves: readonly TutorMove[];
-  /** P2H-07: the sentences that were shown before the moves arrived, in the order they came. */
-  streamed?: readonly TutorOutput[];
 }>;
 
 async function startOrResume(

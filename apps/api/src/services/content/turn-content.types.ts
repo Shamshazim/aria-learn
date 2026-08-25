@@ -31,11 +31,23 @@ export type TurnContentDeps = Readonly<{
   moves(sessionId: string): MoveFactory;
   remediation(misconceptionId: string): string | null;
   observer?: TurnContentObserver;
-  /** P2H-07: Aria's words, a sentence at a time. Absent means every move arrives whole. */
-  respond?: RespondStreamer;
-  /** P2H-07: where a released sentence goes while the rest is still being written. */
-  segments?: SegmentBus;
-  ids?: IdGenerator;
+  /**
+   * P2H-07: everything needed to say an answer before it is finished, or nothing.
+   *
+   * The three arrive together because they are useless apart: a streamer with nowhere to publish
+   * generates into the void, and a bus with no streamer never sees a sentence. One optional
+   * object says that; three optional fields would have let a deployment be half-configured.
+   */
+  streaming?: StreamingDeps;
+}>;
+
+export type StreamingDeps = Readonly<{
+  /** Aria's words, a sentence at a time. */
+  respond: RespondStreamer;
+  /** Where a released sentence goes while the rest is still being written. */
+  segments: SegmentBus;
+  /** Names a streamed move before its first sentence leaves. */
+  ids: IdGenerator;
 }>;
 
 /** P2H-07: the identity a streamed move is given before its first sentence leaves. */
