@@ -16,6 +16,12 @@ export type ReadabilityFailure = Readonly<{ code: string; message: string }>;
 
 const CONTRACTION_SUFFIX = /'(?:s|re|ll|ve|d|m|t)$/u;
 const MIN_WORDS_FOR_DENSITY = 8;
+/**
+ * A ratio needs something to be a ratio of. One three-syllable word in a short sentence is
+ * 12.5% of it — "Let's try it together, Sam!" is not academic prose, and rejecting it is how
+ * the old whitelist ended up feeding children static text.
+ */
+const MIN_LONG_WORDS = 2;
 
 export function sentencesOf(text: string): readonly string[] {
   return text.split(/[.!?]+/u).filter((sentence) => sentence.trim() !== '');
@@ -62,7 +68,11 @@ export function readabilityFailures(
   // out of three); they only apply once there is enough text to describe.
   const enough = metrics.words >= MIN_WORDS_FOR_DENSITY;
   const tooDense = enough && metrics.meanSyllablesPerWord > limits.maxMeanSyllablesPerWord;
-  const tooManyLong = enough && metrics.longWordsPerHundred > limits.maxLongWordsPerHundred;
+  const longWords = Math.round((metrics.longWordsPerHundred / 100) * metrics.words);
+  const tooManyLong =
+    enough &&
+    longWords >= MIN_LONG_WORDS &&
+    metrics.longWordsPerHundred > limits.maxLongWordsPerHundred;
   const tooHighGrade =
     enough &&
     limits.maxFleschKincaidGrade !== null &&

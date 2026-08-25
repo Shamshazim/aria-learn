@@ -2,6 +2,7 @@ import { checkCorrectness } from '@/quality/checks/correctness.check';
 import { checkLevel } from '@/quality/checks/level.check';
 import { checkSafety } from '@/quality/checks/safety.check';
 import { checkStructural } from '@/quality/checks/structural.check';
+import { rejectionOf, type GateObserver } from '@/quality/gate.observer';
 import {
   GATE_PASS_BRAND,
   type GateCheckResult,
@@ -12,9 +13,23 @@ import {
 
 export type QualityGate = (input: GateInput) => GateVerdict;
 
-/** Builds the single ordered gate every child-facing content path must call. */
-export function createQualityGate(safetyChecker: SafetyChecker): QualityGate {
-  return (input) => runChecks(input, safetyChecker);
+/**
+ * Builds the single ordered gate every child-facing content path must call.
+ *
+ * `observe` is called exactly once per rejection (P2H-02) so there is one structured log and
+ * one `gate_rejections_total` increment per piece of content the gate refuses — never one per
+ * failing reason, which would over-count a single bad sentence.
+ */
+export function createQualityGate(
+  safetyChecker: SafetyChecker,
+  observe?: GateObserver,
+): QualityGate {
+  return (input) => {
+    const verdict = runChecks(input, safetyChecker);
+    const rejection = rejectionOf(input, verdict);
+    if (rejection !== null) observe?.(rejection);
+    return verdict;
+  };
 }
 
 function runChecks(input: GateInput, safetyChecker: SafetyChecker): GateVerdict {

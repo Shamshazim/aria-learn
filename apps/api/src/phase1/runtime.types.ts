@@ -4,6 +4,7 @@ import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
 import type { Logger } from '@/lib/logger';
 import type { StudentAccessResolver } from '@/middleware/student-access';
+import type { Metrics } from '@/observability/metrics';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
 import type { ContentItemRepository } from '@/repositories/content-item.repository';
 import type { LearnerMemoryRepository } from '@/repositories/learner-memory.repository';
@@ -25,6 +26,8 @@ export type Phase1RuntimeDeps = Readonly<{
   clock: Clock;
   logger: Logger;
   access: StudentAccessResolver;
+  /** Process-wide counters; supplied by the composition root (P1-14, P2H-02). */
+  metrics: Metrics;
   closeVoiceSession?(sessionId: string, at: Date): Promise<void>;
   scheduleBackground?(task: () => Promise<void>): void;
 }>;

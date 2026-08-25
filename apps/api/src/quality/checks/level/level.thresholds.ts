@@ -3,7 +3,13 @@ import type { Band } from '@aria/shared';
 /**
  * Per-band readability ceilings (P2H-02). Sentence length is a hard cap; the syllable metrics
  * describe how the text reads on average, so one long word does not sink a warm sentence.
- * Tune against the P0-21 golden set; record changes in the PR that makes them.
+ *
+ * The Flesch–Kincaid ceilings sit one grade above the band's top grade on purpose: FK reads
+ * natural spoken explanation a grade high, and a tutor who has to stay a grade *below* the
+ * child is a tutor who cannot use the word "equivalent" in a lesson about equivalence.
+ *
+ * Tune against `__fixtures__/level-corpus.fixture.ts` and the P0-21 golden set; every change
+ * here is a change to what a child hears, so record it in the PR that makes it.
  */
 export type LevelThresholds = Readonly<{
   maxWordsPerSentence: number;
@@ -24,13 +30,13 @@ export const LEVEL_THRESHOLDS: Readonly<Record<Band, LevelThresholds>> = {
     maxWordsPerSentence: 20,
     maxMeanSyllablesPerWord: 1.6,
     maxLongWordsPerHundred: 12,
-    maxFleschKincaidGrade: 6,
+    maxFleschKincaidGrade: 7,
   },
   senior: {
     maxWordsPerSentence: 30,
     maxMeanSyllablesPerWord: 1.8,
     maxLongWordsPerHundred: 20,
-    maxFleschKincaidGrade: 9,
+    maxFleschKincaidGrade: 10,
   },
 };
 

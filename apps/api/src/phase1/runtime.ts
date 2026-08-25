@@ -2,6 +2,7 @@ import type { PlannedTurn } from '@aria/tutor';
 
 import { createInventoryService, type InventoryService } from '@/curriculum';
 import { ForbiddenError } from '@/errors';
+import { createTurnContentObserver } from '@/observability/content-metrics';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
 import {
@@ -86,6 +87,7 @@ function buildTutor(
     gate: content.gate,
     moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
     remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
+    observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
   });
   const commit = createTurnCommitService({
     pool: deps.pool,

@@ -5,70 +5,19 @@ import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescrip
 import { flatConfigs as importXConfigs } from 'eslint-plugin-import-x';
 import { configs as tseslintConfigs } from 'typescript-eslint';
 
+import {
+  FORBIDDEN_IMPORT_PATTERNS,
+  PROVIDER_COMPOSITION_IMPORT_RESTRICTION,
+  PROVIDER_INTERNAL_IMPORT_PATTERN,
+  PROVIDER_PRIVATE_IMPORT_PATTERN,
+  PROVIDER_PUBLIC_IMPORT_RESTRICTION,
+  PROVIDER_STREAMING_IMPORT_RESTRICTION,
+  WORDLIST_IMPORT_PATTERN,
+} from './eslint.imports';
+
 import type { Linter } from 'eslint';
 
 const IGNORED = ['node_modules/**', 'legacy/**', '**/dist/**', '**/coverage/**'];
-
-/**
- * §3: dependencies point downward only, and `legacy/` is unreachable from anywhere. Expressed
- * as import patterns so an agent gets an error at the import, not a review comment three days
- * later.
- */
-const FORBIDDEN_IMPORT_PATTERNS = [
-  {
-    group: ['**/legacy/**', 'legacy/**'],
-    message: 'legacy/ is frozen: never import from it (AGENT-INSTRUCTIONS §2).',
-  },
-  {
-    group: ['**/apps/*/src/**', '**/packages/*/src/**'],
-    message: 'Import another package through @aria/<name>, never by path (§4, §7).',
-  },
-];
-
-const PROVIDER_INTERNAL_IMPORT_PATTERN = {
-  group: ['@/ai/provider/adapters/**', '**/ai/provider/adapters/**'],
-  message: 'Vendor adapters are internal; depend on the routed provider entry point (P0-13).',
-};
-
-const PROVIDER_PUBLIC_IMPORT_RESTRICTION = {
-  name: '@/ai/provider',
-  allowImportNames: [
-    'AiConfig',
-    'AiConfigError',
-    'LoadAiConfigOptions',
-    'LlmResponse',
-    'ModelTier',
-    'aiConfigSchema',
-    'loadAiConfig',
-  ],
-  message: 'Only ai-client.ts may depend on or call the LlmProvider port (P0-14).',
-};
-
-const PROVIDER_COMPOSITION_IMPORT_RESTRICTION = {
-  ...PROVIDER_PUBLIC_IMPORT_RESTRICTION,
-  allowImportNames: [
-    ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
-    'RoutedProviderDependencies',
-    'bootstrapRoutedProvider',
-    'createNamedEndpointProvider',
-    'createRoutedLlmProvider',
-  ],
-};
-
-const PROVIDER_STREAMING_IMPORT_RESTRICTION = {
-  ...PROVIDER_PUBLIC_IMPORT_RESTRICTION,
-  allowImportNames: [
-    ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
-    'LlmProvider',
-    'LlmRequest',
-    'StreamChunk',
-  ],
-};
-
-const PROVIDER_PRIVATE_IMPORT_PATTERN = {
-  group: ['@/ai/provider/**', '**/ai/provider/**'],
-  message: 'Provider internals are private to ai/provider and ai-client.ts (P0-14).',
-};
 
 const typeAwareRules: Linter.RulesRecord = {
   '@typescript-eslint/no-explicit-any': 'error',
@@ -202,6 +151,9 @@ export default defineConfig([
   {
     files: ['apps/api/src/**/*.ts'],
     ignores: [
+      // Decodable reading text is the one legitimate consumer of the band wordlists (P4-02).
+      'apps/api/src/quality/wordlists/**/*.ts',
+      'apps/api/src/quality/checks/decodable/**/*.ts',
       'apps/api/src/ai/provider/**/*.ts',
       'apps/api/src/ai/client/ai-client.ts',
       'apps/api/src/ai/streaming/**/*.ts',
@@ -218,6 +170,7 @@ export default defineConfig([
             ...FORBIDDEN_IMPORT_PATTERNS,
             PROVIDER_INTERNAL_IMPORT_PATTERN,
             PROVIDER_PRIVATE_IMPORT_PATTERN,
+            WORDLIST_IMPORT_PATTERN,
           ],
         },
       ],

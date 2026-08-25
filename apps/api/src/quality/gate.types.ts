@@ -21,6 +21,13 @@ type GateInputBase = Readonly<{
 
 export type GateInput =
   | (GateInputBase & Readonly<{ kind: 'text' }>)
+  /**
+   * Decodable reading text (P4-02). It is deliberately *not* judged by the readability check:
+   * decodable text is constrained by a phonics wordlist, not by a grade score, and a readability
+   * score would either wave through the wrong pattern or reject a correct one. Until the
+   * wordlist check exists, the gate refuses this kind outright (P2H-02).
+   */
+  | (GateInputBase & Readonly<{ kind: 'decodable'; pattern: 'cvc' }>)
   | (GateInputBase &
       Readonly<{
         kind: 'multiple-choice';

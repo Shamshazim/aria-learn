@@ -8,6 +8,8 @@ import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
+import { createMetrics } from '@/observability/metrics';
+import type { Metrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
 import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
 import { createPhase2Runtime } from '@/phase2/runtime';
@@ -50,7 +52,7 @@ export async function start(): Promise<void> {
     throw error;
   }
 
-  const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger });
+  const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger, metrics: createMetrics() });
   const phase1 = await createPhase1Runtime(runtimeDeps);
   const app = createApp({
     config,
@@ -78,6 +80,7 @@ function createRuntimeDeps(input: {
   ai: Awaited<ReturnType<typeof createAiRuntime>>;
   config: ReturnType<typeof readConfigOrExit>;
   logger: Logger;
+  metrics: Metrics;
 }) {
   return {
     pool: input.pool,
@@ -88,6 +91,7 @@ function createRuntimeDeps(input: {
     clock: systemClock,
     logger: input.logger,
     access: createConfiguredStudentAccess(input.config),
+    metrics: input.metrics,
     ...(input.config.voice === undefined
       ? {}
       : { closeVoiceSession: voiceSessionCloser(input.pool) }),

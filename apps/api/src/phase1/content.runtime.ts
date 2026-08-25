@@ -7,6 +7,7 @@ import {
 } from '@/content';
 import type { InventoryService } from '@/curriculum';
 import { ServiceUnavailableError } from '@/errors';
+import { createGateObserver } from '@/observability/gate-metrics';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate } from '@/quality';
 import { isUnsafeChildFacingText } from '@/safety/crisis/detect';
@@ -26,7 +27,10 @@ export function buildContentServices(
   repositories: Phase1Repositories,
   inventory: InventoryService,
 ): ContentServices {
-  const gate = createQualityGate((text) => outputSafety(text));
+  const gate = createQualityGate(
+    (text) => outputSafety(text),
+    createGateObserver({ metrics: deps.metrics, logger: deps.logger }),
+  );
   const fallback = createFallbackService({ inventory, gate });
   const cache = createContentCacheService({
     repository: repositories.content,

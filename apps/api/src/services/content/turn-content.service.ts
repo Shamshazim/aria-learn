@@ -5,11 +5,21 @@ import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
 import type { AiClient } from '@/ai';
 import type { ReliableContentService } from '@/content/content.service';
+import {
+  NULL_TURN_CONTENT_OBSERVER,
+  type TurnContentObserver,
+} from '@/observability/content-metrics';
 import type { ScrubbedContext } from '@/privacy';
 import type { QualityGate } from '@/quality';
 import { arithmeticProblemSchema, type ArithmeticProblem } from '@/quality/arithmetic';
+import {
+  generateGatedText,
+  requiredGatedText,
+  throwIfAborted,
+  type GenerationOutcome,
+} from '@/services/content/generate-text';
 import { fallbackText } from '@/services/content/turn-fallback';
-import { isDetour, respondInput, responseMove } from '@/services/content/turn-response';
+import { isDetour, responseMove } from '@/services/content/turn-response';
 import type { MoveFactory } from '@/services/moves/move-factory';
 
 export type ApiModelContext = Readonly<{
@@ -44,6 +54,7 @@ export function createTurnContentService(deps: {
   gate: QualityGate;
   moves(sessionId: string): MoveFactory;
   remediation(misconceptionId: string): string | null;
+  observer?: TurnContentObserver;
 }): TurnContentService {
   return {
     resolve: (turn: PlannedTurn<ApiModelContext>, signal?: AbortSignal) =>
@@ -61,13 +72,37 @@ async function resolve(
   const remediation = currentRemediation(deps, turn);
   if (remediation !== null) {
     const text = requiredGatedText(deps.gate, remediation, turn.context.session.band);
-    return responseWithContinuation(deps, turn, text, signal);
+    return responseWithContinuation(
+      deps,
+      turn,
+      { text, provenance: { contentSource: 'reviewed-remediation' } },
+      signal,
+    );
   }
-  const generated = await generateGatedText(deps.ai, deps.gate, turn, signal);
+  const outcome = await generateGatedText(deps, turn, signal);
   throwIfAborted(signal);
-  const text =
-    generated ?? requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band);
-  return responseWithContinuation(deps, turn, text, signal);
+  if (outcome.kind === 'generated') {
+    return responseWithContinuation(
+      deps,
+      turn,
+      { text: outcome.text, provenance: provenance(outcome) },
+      signal,
+    );
+  }
+  (deps.observer ?? NULL_TURN_CONTENT_OBSERVER).fallbackUsed(turn.plan.kind, outcome.reason);
+  const text = requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band);
+  return responseWithContinuation(deps, turn, { text, provenance: provenance(outcome) }, signal);
+}
+
+/** P2H-02/P2H-03: every turn records where its words came from and which prompt made them. */
+function provenance(outcome: GenerationOutcome): Readonly<Record<string, unknown>> {
+  return outcome.kind === 'generated'
+    ? {
+        contentSource: 'model',
+        promptName: outcome.promptName,
+        promptVersion: outcome.promptVersion,
+      }
+    : { contentSource: 'fallback', fallbackReason: outcome.reason };
 }
 
 function currentRemediation(
@@ -79,20 +114,6 @@ function currentRemediation(
       ? (turn.decision.graded?.misconception ?? turn.context.session.repeatedMisconception)
       : null;
   return id === null ? null : deps.remediation(id);
-}
-
-async function generateGatedText(
-  ai: AiClient | null,
-  gate: QualityGate,
-  turn: PlannedTurn<ApiModelContext>,
-  signal?: AbortSignal,
-): Promise<string | null> {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const candidate = await generateText(ai, turn, signal);
-    if (candidate === null) return null;
-    if (passes(gate, candidate, turn.context.session.band)) return candidate;
-  }
-  return null;
 }
 
 async function resolveQuestion(
@@ -176,81 +197,34 @@ function contextEvidence(turn: PlannedTurn<ApiModelContext>): Readonly<Record<st
   };
 }
 
-async function generateText(
-  ai: AiClient | null,
-  turn: PlannedTurn<ApiModelContext>,
-  signal?: AbortSignal,
-): Promise<string | null> {
-  if (ai === null) return null;
-  try {
-    const result = await ai.run('respond', respondInput(turn), {
-      studentId: turn.context.session.studentId,
-      ...(signal === undefined ? {} : { signal }),
-    });
-    return result.data.text;
-  } catch {
-    throwIfAborted(signal);
-    return null;
-  }
-}
-
-function throwIfAborted(signal: AbortSignal | undefined): void {
-  if (signal?.aborted === true) throw new DOMException('Tutor turn aborted', 'AbortError');
-}
-
-function requiredGatedText(
-  gate: QualityGate,
-  text: string,
-  band: PlannedTurn<ApiModelContext>['context']['session']['band'],
-  generated = false,
-): string {
-  if (!passes(gate, text, band, generated))
-    throw new Error('Child-facing turn content failed the quality gate');
-  return text;
-}
-
-function passes(
-  gate: QualityGate,
-  text: string,
-  band: Parameters<typeof requiredGatedText>[2],
-  generated = true,
-): boolean {
-  return (
-    gate({
-      id: 'turn-text',
-      kind: 'text',
-      band,
-      childText: text,
-      factual: false,
-      grounding: generated ? 'unsupported' : 'reviewed-bank',
-    }).verdict === 'pass'
-  );
-}
-
 async function responseWithContinuation(
   deps: Parameters<typeof createTurnContentService>[0],
   turn: PlannedTurn<ApiModelContext>,
-  text: string,
+  said: Readonly<{ text: string; provenance: Readonly<Record<string, unknown>> }>,
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
-  const feedback = responseMove(deps.moves(turn.context.session.id), turn, text);
+  const feedback = responseMove(deps.moves(turn.context.session.id), turn, said.text);
+  const evidence = { ...contextEvidence(turn), ...said.provenance };
   const detour = isDetour(turn);
   if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH' || detour) {
     const prior = turn.context.modelContext.latestAsk;
     return {
       moves: prior === null ? [feedback] : [feedback, retryAsk(deps, turn, prior, !detour)],
-      privateEvidence: contextEvidence(turn),
+      privateEvidence: evidence,
     };
   }
   if (!['PRAISE', 'REVEAL', 'SWITCH'].includes(turn.plan.kind)) {
-    return { moves: [feedback], privateEvidence: contextEvidence(turn) };
+    return { moves: [feedback], privateEvidence: evidence };
   }
   const next = await resolveQuestion(
     deps,
     { ...turn, plan: { ...turn.plan, kind: 'ASK', attempt: 1 } },
     signal,
   );
-  return { moves: [feedback, ...next.moves], privateEvidence: next.privateEvidence };
+  return {
+    moves: [feedback, ...next.moves],
+    privateEvidence: { ...evidence, ...next.privateEvidence },
+  };
 }
 
 function retryAsk(

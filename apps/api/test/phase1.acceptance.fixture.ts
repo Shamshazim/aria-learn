@@ -21,6 +21,7 @@ import { createApp } from '@/app';
 import { loadConfig } from '@/config';
 import type { IdGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
+import { createMetrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
 import { createParentRepository } from '@/repositories/parent.repository';
 import { createStudentRepository } from '@/repositories/student.repository';
@@ -52,6 +53,7 @@ export async function createPhase1Fixture(
   );
   const logger = createLogger({ level: 'silent' });
   const background = trackedBackgroundTasks();
+  const metrics = createMetrics();
   const phase1 = await createPhase1Runtime({
     pool: database.pool,
     ai: createAiClient({ provider: recordedProvider(), accounting: spend, now: () => 0 }),
@@ -61,6 +63,7 @@ export async function createPhase1Fixture(
     clock,
     logger,
     access: { resolve: () => Promise.resolve({ studentId: student.id }) },
+    metrics,
     scheduleBackground: background.schedule,
   });
   return {

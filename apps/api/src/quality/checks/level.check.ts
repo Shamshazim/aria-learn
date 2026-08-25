@@ -12,6 +12,16 @@ import type { GateCheckResult, GateFailureReason, GateInput } from '@/quality/ga
  * of which words it uses; the wordlists remain for decodable-text work (P4-02).
  */
 export function checkLevel(input: GateInput): GateCheckResult {
+  // Decodable text is a phonics artefact, not a readability one; a grade score cannot judge it.
+  // Refusing here means no decodable item can ever reach a child through the readability path.
+  if (input.kind === 'decodable') {
+    return failedMany('level', [
+      {
+        code: 'decodable_unsupported',
+        message: 'Decodable text must be checked against the phonics wordlist, not readability.',
+      },
+    ]);
+  }
   const text = childFacingText(input);
   const reasons: Omit<GateFailureReason, 'check'>[] = [
     ...readabilityFailures(measureReadability(text), input.band),
