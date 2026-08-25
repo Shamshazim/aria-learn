@@ -1,5 +1,9 @@
 export { createTutorHarness } from './turn.service';
 export { allowedMovesFor } from './policy/allowed-moves';
+export { allowedSet } from './policy/allowed-set';
+export { approachesFor, isPlannerApproach, PLANNER_APPROACHES } from './policy/approaches';
+export { DECISIVE_REASONS, isDecisive } from './policy/decisive';
+export { DEFAULT_PLANNER_BUDGET_MS } from './steps/plan-move';
 export { createTeachingPolicy } from './policy/teaching-policy';
 export { silenceRung } from './policy/silence-ladder';
 export { shouldArmSilenceTimer, silenceWindowMs } from './policy/silence-timer';
@@ -13,6 +17,8 @@ export type {
   LoadedTurnContext,
   MovePlan,
   PlannedTurn,
+  PlannerObservation,
+  PlanSource,
   PolicyDecision,
   ResolvedContent,
   SessionSnapshot,

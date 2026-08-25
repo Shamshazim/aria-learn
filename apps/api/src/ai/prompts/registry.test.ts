@@ -11,6 +11,7 @@ const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST'; ve
     'grade-short-answer': { tier: 'FAST' },
     hint: { tier: 'FAST' },
     'memory-proposals': { tier: 'TEACH' },
+    'plan-move': { tier: 'TEACH' },
     'practice-item': { tier: 'TEACH', version: '1.1.0' },
     respond: { tier: 'TEACH' },
   };
@@ -21,6 +22,7 @@ const PROMPT_NAMES = [
   'grade-short-answer',
   'hint',
   'memory-proposals',
+  'plan-move',
   'practice-item',
   'respond',
 ] as const satisfies readonly PromptName[];

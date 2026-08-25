@@ -1,7 +1,9 @@
-import { tutorMoveSchema } from '@aria/shared';
-import type { PlannedTurn } from '@aria/tutor';
+import { tutorMoveSchema, type TutorInputEvent } from '@aria/shared';
+import type { LoadedTurnContext, PlannedTurn } from '@aria/tutor';
 
 import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
+import { createModelPlanner } from '@/ai/planner/model-planner';
+import { plannerBudgetMs } from '@/ai/planner/planner.budget';
 import { createInventoryService, type InventoryService } from '@/curriculum';
 import { ForbiddenError } from '@/errors';
 import { createTurnContentObserver } from '@/observability/content-metrics';
@@ -18,6 +20,7 @@ import { createMoveFactory } from '@/services/moves/move-factory';
 import { createTurnCommitService } from '@/services/tutor/commit.service';
 import { createTutorContextLoader } from '@/services/tutor/context.loader';
 import { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
+import { createPlannerObserver } from '@/services/tutor/planner-evidence';
 import { createTutorService } from '@/services/tutor/tutor.service';
 
 import { buildContentServices, type ContentServices } from './content.runtime';
@@ -119,7 +122,18 @@ function buildTutor(
       ai: deps.ai,
       onFallback: createIntentFallbackObserver({ metrics: deps.metrics }),
     }),
+    ...plannerPorts(deps),
   });
+}
+
+/** The planner and everything that keeps it inside its budget and on the record (P2H-06). */
+function plannerPorts(deps: Phase1RuntimeDeps) {
+  return {
+    planner: createModelPlanner({ ai: deps.ai }),
+    plannerBudgetMs: (context: LoadedTurnContext<ApiModelContext>, event: TutorInputEvent) =>
+      plannerBudgetMs(context.session.band, event),
+    observePlan: createPlannerObserver({ metrics: deps.metrics, logger: deps.logger }),
+  };
 }
 
 /** The id of the last move Aria actually delivered, for the stale-`SILENCE` check (P2H-01). */

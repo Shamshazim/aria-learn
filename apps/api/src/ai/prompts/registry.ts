@@ -1,3 +1,4 @@
+import { planMovePrompt } from '@/ai/planner/planner.prompt';
 import { classifyIntentPrompt } from '@/ai/prompts/definitions/classify-intent.prompt';
 import { classifySafetyPrompt } from '@/ai/prompts/definitions/classify-safety.prompt';
 import { explainPrompt } from '@/ai/prompts/definitions/explain.prompt';
@@ -19,6 +20,7 @@ export const promptRegistry: PromptRegistry = {
   'grade-short-answer': gradeShortAnswerPrompt,
   hint: hintPrompt,
   'memory-proposals': memoryProposalsPrompt,
+  'plan-move': planMovePrompt,
   'practice-item': practiceItemPrompt,
   respond: respondPrompt,
 };

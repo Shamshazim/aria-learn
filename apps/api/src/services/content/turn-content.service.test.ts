@@ -185,6 +185,8 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
       allowedMoves: [kind],
       graded: null,
       terminal: kind === 'END',
+      decisive: true,
+      reasons: ['test_fixture'],
       defaultPlan: {
         kind,
         approach: 'different-way',

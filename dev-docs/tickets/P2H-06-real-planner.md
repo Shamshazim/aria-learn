@@ -76,6 +76,26 @@ apps/api/src/services/tutor/
   commit step re-runs policy and discards the draft (P1-06 amendment) — test extended.
 - Cost: planner calls counted under `ai_cost` with `purpose: 'plan'`; per-child cap applies.
 
+## Status (2026-08-25)
+
+- **Code complete pending review** on `docs/harness-review-fixes`; no PR yet.
+- Done: `policy/approaches.ts` (closed per-move approach enum), `policy/decisive.ts` (the
+  reasons that skip the planner), `policy/allowed-set.ts` (event moves ∩ limits ∩ ladder, with
+  a table test), the teaching policy split into `outcome.ts` / `intent-policy.ts` /
+  `answer-policy.ts` and now returning `{ allowedMoves, defaultPlan, decisive, reasons }`,
+  `steps/plan-move.ts` with the band budget raced in the package, validation, rejection reasons
+  and evidence, `ai/planner/*` (schema, TEACH-tier `plan-move` prompt, per-band budgets halved
+  on the voice channel, the model port), `services/tutor/planner-evidence.ts`
+  (`planner_decision_total{source,reason}`, `planner_latency_ms`), the stub removed from
+  `tutor.service.ts`, and approach instructions for every approach the planner may choose.
+- Deviations from the design block, both deliberate: the prompt lives at
+  `ai/planner/planner.prompt.ts` and is registered in the shared prompt registry (the registry
+  is the only prompt seam `AiClient` reads), and cost is attributed by `promptName:
+  'plan-move'` rather than a new `purpose` column on `ai_cost`. A proposal identical to the
+  policy default is recorded as `planner_kept_default`, not as a rejection.
+- Remaining: the p95 latency report needs a live provider run, and the golden "repeated
+  confusion" rubric line is a human judgement in `dev-docs/golden/tutoring/scores.md`.
+
 ## Acceptance criteria
 
 - [ ] `tutor.service.ts` no longer contains the fallback stub; the injected planner is the

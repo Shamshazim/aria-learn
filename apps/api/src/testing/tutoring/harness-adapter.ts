@@ -84,8 +84,10 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
     requireOwnership: () => Promise.resolve(),
     latestMoveId: () => Promise.resolve(latestMoveId(committed)),
     logger: { info: () => undefined },
-    // Golden replay is deterministic: the rules decide, never a model.
+    // Golden replay is deterministic: the rules decide, never a model. The planner is present
+    // and always declines, so the recorded policy plan is what runs (P2H-06).
     intent: createIntentClassifier({ ai: null }),
+    planner: ({ fallback }) => Promise.resolve(fallback),
   });
   return {
     handle: async (event, control) => {
@@ -180,6 +182,9 @@ function ports(
       const outcome = scenario.context.answerOutcomes.find((item) => item.eventId === event.id);
       return Promise.resolve({
         allowedMoves: [fallback.kind],
+        // Golden replay is a recording, not a judgement: the scripted move is the only move.
+        decisive: true,
+        reasons: ['golden_recorded_response'],
         defaultPlan: fallback,
         graded:
           outcome === undefined

@@ -44,6 +44,22 @@ export const APPROACH_INSTRUCTIONS: Readonly<Record<string, string>> = {
     'You did not hear the child clearly. Say, in a fresh way, that you did not catch it and ask them to say it again.',
   'SAY:reask-short':
     'The child went quiet. Ask the open question again in a shorter, friendlier way. Do not repeat your earlier wording.',
+  // P2H-06: the approaches the planner may choose. An approach it can pick but nobody wrote
+  // an instruction for would be a choice with no consequence.
+  'SAY:teach':
+    'Teach the one idea the child needs for the open item, in two sentences at most, then hand the item back to them.',
+  'HINT:point-to-step':
+    'Point at the very next step and nothing beyond it. Do not work the step for them.',
+  'HINT:worked-similar':
+    'Work one easier problem of the same shape all the way through, then leave the open item for the child.',
+  'HINT:narrow-choice':
+    'Offer two or three possible answers, one of which is right, and ask the child which one it is.',
+  'RETEACH:visual-model':
+    'Explain the idea again with something the child can picture — a bar, a number line, objects on a table.',
+  'RETEACH:concrete-story':
+    'Explain the idea again as a small everyday story with real things in it, not symbols.',
+  'RETEACH:simpler-case':
+    'Explain the idea again using the smallest, easiest case of it, then connect that back to the open item.',
   'SAY:check-in':
     'The child has been quiet for a while. Gently check whether they are still there and want to keep going. One or two sentences.',
 };

@@ -1,4 +1,4 @@
-import type { Band } from '@aria/shared';
+import type { Band, MoveKind } from '@aria/shared';
 import type { Intent } from '@aria/tutor';
 
 import type { ModelTier } from '@/ai/provider';
@@ -64,6 +64,27 @@ export type ClassifyIntentPromptInput = ContextInput &
   Readonly<{ utterance: string; question: string }>;
 export type ClassifyIntentPromptOutput = Readonly<{ intent: Intent; confidence: number }>;
 
+/**
+ * P2H-06: the planner's move selection. There is no answer key in this contract, and adding
+ * one would be a privacy and pedagogy regression, not a convenience.
+ */
+export type PlanMovePromptInput = ContextInput &
+  Readonly<{
+    band: Band;
+    skill: string;
+    question: string;
+    learnerSaid: string;
+    state: string;
+    recentIntents: string;
+    allowed: readonly MoveKind[];
+  }>;
+export type PlanMovePromptOutput = Readonly<{
+  kind: MoveKind;
+  approach: string;
+  rationale: string;
+  confidence: number;
+}>;
+
 export type SafetyCategory =
   'adult-content' | 'frightening' | 'personal-information' | 'violence' | 'other';
 export type ClassifySafetyPromptInput = ContextInput & Readonly<{ content: string }>;
@@ -86,6 +107,7 @@ export type PromptContractMap = {
     input: MemoryProposalsPromptInput;
     output: MemoryProposalsPromptOutput;
   };
+  'plan-move': { input: PlanMovePromptInput; output: PlanMovePromptOutput };
   'practice-item': { input: PracticeItemPromptInput; output: PracticeItemPromptOutput };
   respond: { input: RespondPromptInput; output: RespondPromptOutput };
 };

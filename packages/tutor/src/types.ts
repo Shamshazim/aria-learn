@@ -23,12 +23,18 @@ export type LoadedTurnContext<TModelContext> = Readonly<{
   recentKinds: readonly string[];
 }>;
 
+/** Who chose the move that was made (P2H-06). */
+export type PlanSource = 'policy' | 'planner' | 'planner-rejected';
+
 export type MovePlan = Readonly<{
   kind: MoveKind;
   approach: string;
   reason: string;
   skillCode: string | null;
   attempt: number;
+  /** The planner's one-line justification. Logged as evidence, never shown to a child. */
+  rationale?: string;
+  source?: PlanSource;
   /**
    * Why the policy chose this, in a form a query can read — the silence rung, later the
    * planner's allowed set and rationale (P2H-06). It is written to `session_event.evidence`
@@ -42,6 +48,25 @@ export type PolicyDecision = Readonly<{
   defaultPlan: MovePlan;
   graded: Readonly<{ correct: boolean; misconception: string | null }> | null;
   terminal: boolean;
+  /**
+   * The policy has already decided and the planner is skipped: safety, a limit, a ladder rung,
+   * a repeated misconception, a stop request, personal information (P2H-06).
+   */
+  decisive: boolean;
+  /** Why this plan, in codes a query can group by. Never shown to a child. */
+  reasons: readonly string[];
+}>;
+
+/** One planner decision, for evidence and metrics (P2H-06). */
+export type PlannerObservation = Readonly<{
+  allowedMoves: readonly MoveKind[];
+  proposed: Readonly<{ kind: MoveKind; approach: string }> | null;
+  accepted: boolean;
+  source: PlanSource;
+  rationale: string | null;
+  /** Why the proposal was not used, or why none was asked for. */
+  reason: string | null;
+  ms: number;
 }>;
 
 export type PlannedTurn<TModelContext> = Readonly<{
@@ -79,6 +104,13 @@ export type TutorPorts<TModelContext> = Readonly<{
       fallback: MovePlan;
     }>,
   ): Promise<MovePlan>;
+  /**
+   * How long the turn may wait for `planMove` before the policy's own plan is used. Enforced
+   * here rather than inside the port, so a provider that ignores an abort cannot hold up a
+   * child's turn (P2H-06).
+   */
+  plannerBudgetMs?(context: LoadedTurnContext<TModelContext>, event: TutorInputEvent): number;
+  observePlan?(observation: PlannerObservation): void;
   resolveContent(input: PlannedTurn<TModelContext>, signal?: AbortSignal): Promise<ResolvedContent>;
   commit(turn: CommittedTurn): Promise<void>;
   emit(moves: readonly TutorMove[]): Promise<readonly TutorMove[]>;

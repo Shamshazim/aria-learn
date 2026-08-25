@@ -32,6 +32,10 @@ export function createTutorService(deps: {
   latestMoveId: LatestMoveLookup;
   logger: Pick<Logger, 'info'>;
   intent: IntentClassifier;
+  /** The planner (P2H-06). It proposes; `@aria/tutor` decides whether the proposal survives. */
+  planner: TutorPorts<ApiModelContext>['planMove'];
+  plannerBudgetMs?: TutorPorts<ApiModelContext>['plannerBudgetMs'];
+  observePlan?: TutorPorts<ApiModelContext>['observePlan'];
 }): TutorService {
   const harness = buildHarness(deps);
   return {
@@ -60,7 +64,9 @@ function buildHarness(
         now: () => deps.clock.now(),
       })(context, event);
     },
-    planMove: ({ fallback }) => Promise.resolve(fallback),
+    planMove: deps.planner,
+    ...(deps.plannerBudgetMs === undefined ? {} : { plannerBudgetMs: deps.plannerBudgetMs }),
+    ...(deps.observePlan === undefined ? {} : { observePlan: deps.observePlan }),
     emit: (moves) => Promise.resolve(moves),
     nowMs: () => deps.clock.now().getTime(),
   });

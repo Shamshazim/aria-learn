@@ -214,7 +214,14 @@ function turn(kind: MoveKind, band: Band): PlannedTurn<ApiModelContext> {
       },
       recentKinds: [],
     },
-    decision: { allowedMoves: [kind], graded: null, terminal: false, defaultPlan: plan },
+    decision: {
+      allowedMoves: [kind],
+      graded: null,
+      terminal: false,
+      decisive: true,
+      reasons: ['test_fixture'],
+      defaultPlan: plan,
+    },
     plan,
   };
 }

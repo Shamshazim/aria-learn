@@ -166,7 +166,14 @@ function turn(): PlannedTurn<ApiModelContext> {
       },
       recentKinds: [],
     },
-    decision: { allowedMoves: ['HINT'], graded: null, terminal: false, defaultPlan: plan },
+    decision: {
+      allowedMoves: ['HINT'],
+      graded: null,
+      terminal: false,
+      decisive: true,
+      reasons: ['test_fixture'],
+      defaultPlan: plan,
+    },
     plan,
   };
 }
