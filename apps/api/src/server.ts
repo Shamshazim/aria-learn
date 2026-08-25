@@ -3,11 +3,13 @@ import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
 import { readConfigOrExit } from '@/config';
 import { createInventoryService } from '@/curriculum';
-import { closePool, createPool, verifyConnection } from '@/db';
+import { closePool, createPool, runMigrations, verifyConnection } from '@/db';
 import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
+import { createPhase1Runtime } from '@/phase1/runtime';
+import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
 
 import type { Server } from 'node:http';
 import type { Pool } from 'pg';
@@ -27,6 +29,7 @@ export async function start(): Promise<void> {
 
   const pool = createPool(config.database, logger);
   await verifyConnectionOrExit(pool, logger);
+  await runMigrations({ pool, logger });
 
   let ai: Awaited<ReturnType<typeof createAiRuntime>>;
   try {
@@ -51,6 +54,16 @@ export async function start(): Promise<void> {
     clock: systemClock,
     ids: uuidGenerator,
     statusService: ai.status,
+    student: await createPhase1Runtime({
+      pool,
+      ai: ai.client,
+      spend: ai.spend,
+      config,
+      ids: uuidGenerator,
+      clock: systemClock,
+      logger,
+      access: createConfiguredStudentAccess(config),
+    }),
   });
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');

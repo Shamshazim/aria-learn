@@ -3,6 +3,8 @@ import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { bandForGrade, parseGrade } from '@aria/shared';
 
+import { createApiClient } from '@/api';
+import { webConfig } from '@/app/config';
 import {
   EarlyLayout,
   MiddleLayout,
@@ -10,6 +12,8 @@ import {
   ConnectionNotice,
   SessionTopbar,
   createScriptedSource,
+  createHttpTutorSource,
+  createSessionApi,
   createUnavailableOnceSource,
   scenarioEvents,
   useTutorSession,
@@ -19,6 +23,8 @@ import '@/features/session/styles/session-chat.css';
 import '@/features/session/styles/session-chrome.css';
 import '@/features/session/styles/session-controls.css';
 import '@/features/session/styles/session-feedback.css';
+
+const sessionApi = createSessionApi(createApiClient({ baseUrl: webConfig.apiBaseUrl }));
 
 export default function SessionPage(): React.JSX.Element {
   const params = useParams();
@@ -35,10 +41,22 @@ function SessionForGrade(props: {
   const [searchParams] = useSearchParams();
   const startupEvents = scenarioEvents(searchParams.get('scenario'));
   const failure = searchParams.get('failure');
-  const createSource = useCallback(
-    failure === 'content' ? createUnavailableOnceSource : createScriptedSource,
-    [failure],
-  );
+  const scenario = searchParams.get('scenario');
+  const arrivalId = searchParams.get('arrivalId') ?? undefined;
+  const checkIn = searchParams.get('checkIn') ?? undefined;
+  const fromRecommendation = searchParams.get('recommended') === '1';
+  const createSource = useCallback(() => {
+    if (failure === 'content') return createUnavailableOnceSource();
+    if (scenario !== null) return createScriptedSource();
+    return createHttpTutorSource({
+      api: sessionApi,
+      grade: props.grade,
+      subject: props.subject,
+      fromRecommendation,
+      ...(arrivalId === undefined ? {} : { arrivalId }),
+      ...(checkIn === undefined ? {} : { checkIn }),
+    });
+  }, [arrivalId, checkIn, failure, fromRecommendation, props.grade, props.subject, scenario]);
   const session = useTutorSession({
     band,
     createSource,

@@ -7,6 +7,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 
 export type ApiClient = Readonly<{
   get<T>(path: string, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
+  post<T>(path: string, body: unknown, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
 }>;
 
 type RequestOptions = Readonly<{ signal?: AbortSignal; timeoutMs?: number }>;
@@ -23,6 +24,17 @@ export function createApiClient(dependencies: {
         baseUrl: dependencies.baseUrl,
         path,
         schema,
+        method: 'GET',
+        ...(options === undefined ? {} : { options }),
+      }),
+    post: (path, body, schema, options) =>
+      request({
+        fetcher,
+        baseUrl: dependencies.baseUrl,
+        path,
+        schema,
+        method: 'POST',
+        body,
         ...(options === undefined ? {} : { options }),
       }),
   };
@@ -33,13 +45,22 @@ async function request<T>(input: {
   baseUrl: string;
   path: string;
   schema: ZodType<T>;
+  method: 'GET' | 'POST';
+  body?: unknown;
   options?: RequestOptions;
 }): Promise<T> {
   const options = input.options ?? {};
   const timeout = createTimeout(options);
   try {
-    const response = await input.fetcher(`${input.baseUrl}${input.path}`, {
-      headers: { accept: 'application/json', 'x-request-id': crypto.randomUUID() },
+    const fetcher = input.fetcher;
+    const response = await fetcher(`${input.baseUrl}${input.path}`, {
+      method: input.method,
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'x-request-id': crypto.randomUUID(),
+      },
+      ...(input.body === undefined ? {} : { body: JSON.stringify(input.body) }),
       signal: timeout.signal,
     });
     const body = await parseJson(response);

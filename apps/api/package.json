@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "cost:report": "tsx src/scripts/cost-report.ts",
+    "bench:arrival": "tsx src/scripts/bench-arrival.ts",
+    "bench:turn": "tsx src/scripts/bench-turn.ts",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "dev": "tsx watch src/index.ts",
     "golden:tutoring": "tsx src/testing/tutoring/run-cli.ts",
+    "report:phase1": "tsx src/scripts/phase1-report.ts",
     "golden:content": "tsx src/testing/golden/run-cli.ts",
     "start": "tsx src/index.ts",
     "test": "cd ../.. && vitest run --project api",
@@ -16,6 +19,7 @@
   },
   "dependencies": {
     "@aria/shared": "*",
+    "@aria/tutor": "*",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "helmet": "^8.3.0",

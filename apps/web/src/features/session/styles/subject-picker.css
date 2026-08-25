@@ -47,6 +47,71 @@
   margin: 0.5rem 0 0;
 }
 
+.arrival-check-in {
+  align-items: center;
+  border: 0;
+  display: flex;
+  gap: 0.625rem;
+  margin: -0.5rem 0 1.5rem 8.5rem;
+  padding: 0;
+}
+
+.arrival-check-in legend {
+  color: var(--session-ink-soft);
+  float: left;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.arrival-check-in button,
+.arrival-recommendation a {
+  background: #fff;
+  border: 0.125rem solid #6b5acb;
+  border-radius: 999px;
+  color: #493aa4;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0.55rem 0.875rem;
+  text-decoration: none;
+}
+
+.arrival-check-in button[aria-pressed='true'] {
+  background: #6b5acb;
+  color: #fff;
+}
+
+.arrival-recommendation {
+  align-items: flex-start;
+  background: #f2efff;
+  border: 0.125rem dashed #7869cc;
+  border-radius: var(--session-radius-large);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  min-height: 18rem;
+  padding: 1.5rem;
+}
+
+.arrival-recommendation span {
+  color: #6253b3;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.arrival-recommendation strong {
+  font-family: var(--session-display-font);
+  font-size: 1.45rem;
+}
+
+.arrival-recommendation p {
+  color: var(--session-ink-soft);
+  margin: 0;
+}
+
 .class-grid {
   display: grid;
   gap: 1.25rem;
@@ -120,6 +185,14 @@
   }
   .class-card {
     min-height: 12rem;
+  }
+  .arrival-check-in {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+  .arrival-check-in legend {
+    flex-basis: 100%;
   }
 }
 

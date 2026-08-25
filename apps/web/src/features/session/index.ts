@@ -2,6 +2,8 @@ export { EarlyLayout } from '@/features/session/layouts/EarlyLayout';
 export { MiddleLayout } from '@/features/session/layouts/MiddleLayout';
 export { SeniorLayout } from '@/features/session/layouts/SeniorLayout';
 export { createScriptedSource } from '@/features/session/sources/scripted-source';
+export { createHttpTutorSource } from '@/features/session/sources/http-source';
+export { createSessionApi } from '@/features/session/api/session.api';
 export { createUnavailableOnceSource } from '@/features/session/sources/unavailable-once-source';
 export { useTutorSession } from '@/features/session/hooks/useTutorSession';
 export { scenarioEvents } from '@/features/session/sources/scenarios';

@@ -60,7 +60,11 @@ describe('reliable content path', () => {
       recordFailure: vi.fn(() => Promise.resolve()),
     });
 
-    await expect(service.resolve(LOOKUP)).resolves.toEqual({ source: 'cache', body: hit.body });
+    await expect(service.resolve(LOOKUP)).resolves.toEqual({
+      source: 'cache',
+      itemId: hit.id,
+      body: hit.body,
+    });
     expect(generate).not.toHaveBeenCalled();
   });
 

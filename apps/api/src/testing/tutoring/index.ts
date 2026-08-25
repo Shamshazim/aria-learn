@@ -6,6 +6,7 @@ export type {
   InvariantReport,
 } from '@/testing/tutoring/assertions/invariants';
 export { createScriptedTutor, replayScenario } from '@/testing/tutoring/replay';
+export { createHarnessTutor } from '@/testing/tutoring/harness-adapter';
 export type {
   ReplayClock,
   TutorImplementation,

@@ -6,12 +6,24 @@ import type { ZodType } from 'zod';
 type ContextInput = Readonly<{ context: ScrubbedContext }>;
 
 export type ExplainPromptInput = ContextInput &
-  Readonly<{ concept: string; learnerQuestion: string }>;
+  Readonly<{ concept: string; learnerQuestion: string; approach: string }>;
 export type ExplainPromptOutput = Readonly<{ explanation: string }>;
 
 export type HintPromptInput = ContextInput &
   Readonly<{ problem: string; learnerAnswer?: string | undefined }>;
 export type HintPromptOutput = Readonly<{ hint: string }>;
+
+export type MemoryProposalsPromptInput = ContextInput & Readonly<{ eventIds: readonly string[] }>;
+export type MemoryProposalsPromptOutput = Readonly<{
+  proposals: readonly Readonly<{
+    kind: string;
+    text: string;
+    confidence: number;
+    temporary: boolean;
+    sourceEventId: string;
+    skillCode: string | null;
+  }>[];
+}>;
 
 export type PracticeItemPromptInput = ContextInput &
   Readonly<{ skill: string; difficulty: 'easier' | 'same' | 'harder' }>;
@@ -46,6 +58,10 @@ export type PromptContractMap = {
     output: GradeShortAnswerPromptOutput;
   };
   hint: { input: HintPromptInput; output: HintPromptOutput };
+  'memory-proposals': {
+    input: MemoryProposalsPromptInput;
+    output: MemoryProposalsPromptOutput;
+  };
   'practice-item': { input: PracticeItemPromptInput; output: PracticeItemPromptOutput };
 };
 

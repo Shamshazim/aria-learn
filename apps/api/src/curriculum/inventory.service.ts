@@ -9,6 +9,7 @@ import { validateInventory } from '@/curriculum/validate';
 export type InventoryService = Readonly<{
   listSkills(): readonly Skill[];
   getSkill(code: string): Skill | null;
+  getMisconception(id: string): Misconception | null;
   listMisconceptions(skillCode: string): readonly Misconception[];
 }>;
 
@@ -18,10 +19,12 @@ export function createInventoryService(): InventoryService {
   const misconceptions = freezeMisconceptions(MISCONCEPTIONS);
   validateInventory(skills, misconceptions);
   const skillsByCode = new Map(skills.map((skill) => [skill.code, skill]));
+  const misconceptionsById = new Map(misconceptions.map((item) => [item.id, item]));
 
   return {
     listSkills: () => skills,
     getSkill: (code) => skillsByCode.get(code) ?? null,
+    getMisconception: (id) => misconceptionsById.get(id) ?? null,
     listMisconceptions: (skillCode) =>
       misconceptions.filter((misconception) => misconception.skillCode === skillCode),
   };

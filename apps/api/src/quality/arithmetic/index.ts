@@ -11,6 +11,8 @@ export function isArithmeticPass(result: CheckResult): boolean {
   return result.verdict === 'correct';
 }
 
+export { arithmeticProblemSchema } from '@/quality/arithmetic/schema';
+
 export type {
   ArithmeticProblem,
   ArithmeticSkillCode,

@@ -1,3 +1,5 @@
+import { createAiClient } from '@/ai/client/ai-client';
+import type { AiClient } from '@/ai/client/ai-client.types';
 import { createSpendService, type SpendService } from '@/ai/cost';
 import { bootstrapRoutedProvider, type AiConfig } from '@/ai/provider';
 import type { AppConfig } from '@/config';
@@ -19,7 +21,7 @@ export async function createAiRuntime(dependencies: {
   clock: Clock;
   logger: Logger;
   fetch: typeof globalThis.fetch;
-}): Promise<Readonly<{ spend: SpendService; status: StatusService }>> {
+}): Promise<Readonly<{ client: AiClient; spend: SpendService; status: StatusService }>> {
   const repository = createAiGenerationLogRepository({
     db: dependencies.db,
     ids: dependencies.ids,
@@ -44,6 +46,7 @@ export async function createAiRuntime(dependencies: {
     isProduction: dependencies.appConfig.isProduction,
   });
   return {
+    client: createAiClient({ provider: routed.provider, accounting: spend, now }),
     spend,
     status: createStatusService({
       endpointNames: routed.endpointNames,

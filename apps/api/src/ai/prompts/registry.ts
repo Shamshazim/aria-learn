@@ -2,6 +2,7 @@ import { classifySafetyPrompt } from '@/ai/prompts/definitions/classify-safety.p
 import { explainPrompt } from '@/ai/prompts/definitions/explain.prompt';
 import { gradeShortAnswerPrompt } from '@/ai/prompts/definitions/grade-short-answer.prompt';
 import { hintPrompt } from '@/ai/prompts/definitions/hint.prompt';
+import { memoryProposalsPrompt } from '@/ai/prompts/definitions/memory-proposals.prompt';
 import { practiceItemPrompt } from '@/ai/prompts/definitions/practice-item.prompt';
 import type { PromptRegistry } from '@/ai/prompts/types';
 
@@ -14,5 +15,6 @@ export const promptRegistry: PromptRegistry = {
   explain: explainPrompt,
   'grade-short-answer': gradeShortAnswerPrompt,
   hint: hintPrompt,
+  'memory-proposals': memoryProposalsPrompt,
   'practice-item': practiceItemPrompt,
 };

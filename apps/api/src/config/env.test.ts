@@ -55,8 +55,15 @@ describe('loadConfig', () => {
 
   it('treats production as production', () => {
     expect(
-      loadConfig(env({ NODE_ENV: 'production', STATUS_OPERATOR_TOKEN: 'x'.repeat(32) }), '1.0.0')
-        .isProduction,
+      loadConfig(
+        env({
+          NODE_ENV: 'production',
+          STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
+          SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
+          SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+        }),
+        '1.0.0',
+      ).isProduction,
     ).toBe(true);
   });
 

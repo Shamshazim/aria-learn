@@ -1,0 +1,17 @@
+{
+  "name": "@aria/tutor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Transport-independent controlled tutor loop.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "cd ../.. && vitest run --project tutor",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aria/shared": "*"
+  }
+}

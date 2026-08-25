@@ -24,12 +24,80 @@ const reviewedText = (
     factual: false,
     grounding: 'reviewed-bank',
   },
-  body: { prompt: childText },
+  body: { prompt: childText, completionOnly: true },
 });
 
 export const FALLBACK_CONTENT: readonly FallbackDefinition[] = [
-  reviewedText('NUM.CNT.20', 'early', 'What is next?', 'question'),
-  reviewedText('NUM.CNT.SKIP5', 'early', 'Count five more. What is next?', 'question'),
+  {
+    skillCode: 'NUM.CNT.20',
+    kind: 'question',
+    gateInput: {
+      id: 'fallback-num-cnt-20',
+      kind: 'multiple-choice',
+      band: 'early',
+      childText: '17, 18, 19. What is next?',
+      factual: true,
+      grounding: 'reviewed-bank',
+      answerKey: 'b',
+      options: [
+        { id: 'a', text: '19', isCorrect: false },
+        { id: 'b', text: '20', isCorrect: true },
+        { id: 'c', text: '21', isCorrect: false },
+      ],
+      arithmeticProblem: {
+        skillCode: 'NUM.CNT.20',
+        kind: 'sequence',
+        values: ['17', '18', '19'],
+        step: '1',
+      },
+    },
+    body: {
+      prompt: '17, 18, 19. What is next?',
+      choices: ['19', '20', '21'],
+      answerKey: '20',
+      arithmeticProblem: {
+        skillCode: 'NUM.CNT.20',
+        kind: 'sequence',
+        values: ['17', '18', '19'],
+        step: '1',
+      },
+    },
+  },
+  {
+    skillCode: 'NUM.CNT.SKIP5',
+    kind: 'question',
+    gateInput: {
+      id: 'fallback-num-cnt-skip5',
+      kind: 'multiple-choice',
+      band: 'early',
+      childText: '5, 10, 15. What is next?',
+      factual: true,
+      grounding: 'reviewed-bank',
+      answerKey: 'b',
+      options: [
+        { id: 'a', text: '16', isCorrect: false },
+        { id: 'b', text: '20', isCorrect: true },
+        { id: 'c', text: '25', isCorrect: false },
+      ],
+      arithmeticProblem: {
+        skillCode: 'NUM.CNT.SKIP5',
+        kind: 'sequence',
+        values: ['5', '10', '15'],
+        step: '5',
+      },
+    },
+    body: {
+      prompt: '5, 10, 15. What is next?',
+      choices: ['16', '20', '25'],
+      answerKey: '20',
+      arithmeticProblem: {
+        skillCode: 'NUM.CNT.SKIP5',
+        kind: 'sequence',
+        values: ['5', '10', '15'],
+        step: '5',
+      },
+    },
+  },
   {
     skillCode: 'ADD.FACT.10',
     kind: 'question',
@@ -48,7 +116,12 @@ export const FALLBACK_CONTENT: readonly FallbackDefinition[] = [
       ],
       arithmeticProblem: { skillCode: 'ADD.FACT.10', kind: 'addition', left: '7', right: '3' },
     },
-    body: { prompt: 'What is seven add three?', choices: ['9', '10', '11'], answerKey: '10' },
+    body: {
+      prompt: 'What is seven add three?',
+      choices: ['9', '10', '11'],
+      answerKey: '10',
+      arithmeticProblem: { skillCode: 'ADD.FACT.10', kind: 'addition', left: '7', right: '3' },
+    },
   },
   {
     skillCode: 'ADD.REGROUP.2D',
@@ -73,7 +146,12 @@ export const FALLBACK_CONTENT: readonly FallbackDefinition[] = [
         right: '37',
       },
     },
-    body: { prompt: 'What is 48 add 37?', choices: ['75', '85', '95'], answerKey: '85' },
+    body: {
+      prompt: 'What is 48 add 37?',
+      choices: ['75', '85', '95'],
+      answerKey: '85',
+      arithmeticProblem: { skillCode: 'ADD.REGROUP.2D', kind: 'addition', left: '48', right: '37' },
+    },
   },
   {
     skillCode: 'FRAC.EQUAL',
@@ -97,7 +175,17 @@ export const FALLBACK_CONTENT: readonly FallbackDefinition[] = [
         right: '2/4',
       },
     },
-    body: { prompt: 'Are 1/2 and 2/4 equal?', choices: ['equal', 'not equal'], answerKey: 'equal' },
+    body: {
+      prompt: 'Are 1/2 and 2/4 equal?',
+      choices: ['equal', 'not equal'],
+      answerKey: 'equal',
+      arithmeticProblem: {
+        skillCode: 'FRAC.EQUAL',
+        kind: 'fraction-equality',
+        left: '1/2',
+        right: '2/4',
+      },
+    },
   },
   {
     skillCode: 'FRAC.COMPARE',
@@ -122,12 +210,25 @@ export const FALLBACK_CONTENT: readonly FallbackDefinition[] = [
         right: '3/8',
       },
     },
-    body: { prompt: 'Compare 5/8 and 3/8.', choices: ['>', '=', '<'], answerKey: '>' },
+    body: {
+      prompt: 'Compare 5/8 and 3/8.',
+      choices: ['>', '=', '<'],
+      answerKey: '>',
+      arithmeticProblem: {
+        skillCode: 'FRAC.COMPARE',
+        kind: 'fraction-comparison',
+        left: '5/8',
+        right: '3/8',
+      },
+    },
   },
   reviewedText('PA.RHYME', 'early', 'Pick cat and hat.', 'activity'),
   reviewedText('PA.BLEND', 'early', 'Say cat.', 'activity'),
   reviewedText('PH.CVC', 'early', 'Read cat.', 'activity'),
-  reviewedText('PH.SILENT_E', 'early', 'Read make.', 'activity'),
+  {
+    ...reviewedText('PH.SILENT_E', 'early', 'Read make.', 'activity'),
+    body: { prompt: 'Read make.', answerKey: 'make' },
+  },
   reviewedText('FL.WCPM.60', 'early', 'Read the cat and the dog.', 'passage'),
   reviewedText('CMP.RETELL', 'early', 'What did the cat do?', 'activity'),
   reviewedText('WR.WORD', 'early', 'Write one word.', 'writing-prompt'),

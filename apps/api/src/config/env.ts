@@ -28,6 +28,13 @@ export const envSchema = z
     SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(120_000).default(10_000),
     AI_DAILY_SPEND_CAP_USD: z.coerce.number().positive().max(100).default(1),
     STATUS_OPERATOR_TOKEN: z.string().min(32).max(512).optional(),
+    SESSION_LIMIT_EARLY_MINUTES: z.coerce.number().int().min(8).max(12).default(12),
+    SESSION_LIMIT_MIDDLE_MINUTES: z.coerce.number().int().min(15).max(20).default(20),
+    SESSION_LIMIT_SENIOR_MINUTES: z.coerce.number().int().min(20).max(30).default(30),
+    MEMORY_REPETITIONS_FOR_DURABLE_FACT: z.coerce.number().int().min(1).max(10).default(1),
+    ARIA_DEMO_STUDENT_ID: z.uuid().optional(),
+    SAFEGUARDING_WEBHOOK_URL: z.url().optional(),
+    SAFEGUARDING_WEBHOOK_TOKEN: z.string().min(32).max(512).optional(),
 
     ...databaseEnvSchema.shape,
   })
@@ -37,6 +44,23 @@ export const envSchema = z
         code: 'custom',
         path: ['STATUS_OPERATOR_TOKEN'],
         message: 'is required in production',
+      });
+    }
+    if (env.NODE_ENV === 'production' && env.ARIA_DEMO_STUDENT_ID !== undefined) {
+      context.addIssue({
+        code: 'custom',
+        path: ['ARIA_DEMO_STUDENT_ID'],
+        message: 'is forbidden in production',
+      });
+    }
+    if (
+      env.NODE_ENV === 'production' &&
+      (env.SAFEGUARDING_WEBHOOK_URL === undefined || env.SAFEGUARDING_WEBHOOK_TOKEN === undefined)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['SAFEGUARDING_WEBHOOK_URL'],
+        message: 'and SAFEGUARDING_WEBHOOK_TOKEN are required in production',
       });
     }
   });
@@ -54,6 +78,11 @@ export type AppConfig = {
   isProduction: boolean;
   aiDailySpendCapUsd: number;
   statusOperatorToken: string | undefined;
+  sessionLimitMinutes: Readonly<Record<'early' | 'middle' | 'senior', number>>;
+  memoryRepetitionsForDurableFact: number;
+  demoStudentId: string | undefined;
+  safeguardingWebhookUrl: string | undefined;
+  safeguardingWebhookToken: string | undefined;
   database: DatabaseConfig;
 };
 
@@ -93,6 +122,15 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
     isProduction: env.NODE_ENV === 'production',
     aiDailySpendCapUsd: env.AI_DAILY_SPEND_CAP_USD,
     statusOperatorToken: env.STATUS_OPERATOR_TOKEN,
+    sessionLimitMinutes: {
+      early: env.SESSION_LIMIT_EARLY_MINUTES,
+      middle: env.SESSION_LIMIT_MIDDLE_MINUTES,
+      senior: env.SESSION_LIMIT_SENIOR_MINUTES,
+    },
+    memoryRepetitionsForDurableFact: env.MEMORY_REPETITIONS_FOR_DURABLE_FACT,
+    demoStudentId: env.ARIA_DEMO_STUDENT_ID,
+    safeguardingWebhookUrl: env.SAFEGUARDING_WEBHOOK_URL,
+    safeguardingWebhookToken: env.SAFEGUARDING_WEBHOOK_TOKEN,
     database: toDatabaseConfig(env),
   };
 }

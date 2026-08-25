@@ -38,6 +38,7 @@ const INPUT = {
   context: scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' }),
   concept: 'multiplication',
   learnerQuestion: 'Why is it twelve?',
+  approach: 'visual-model',
 };
 
 describe('AiClient cost accounting', () => {

@@ -77,6 +77,17 @@ export const speechPartialEventSchema = event('SPEECH_PARTIAL', {
 export const speechFinalEventSchema = event('SPEECH_FINAL', {
   text: z.string().min(1).max(MAX_TEXT),
   confidence: z.number().min(0).max(1).optional(),
+  alternatives: z
+    .array(
+      z
+        .object({
+          text: z.string().min(1).max(MAX_TEXT),
+          confidence: z.number().min(0).max(1),
+        })
+        .strict(),
+    )
+    .max(5)
+    .optional(),
 });
 
 /** No response inside the age-appropriate window. The window is a policy, not a protocol value. */

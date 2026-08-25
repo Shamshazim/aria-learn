@@ -42,4 +42,5 @@ export type ContentLookup = Readonly<{
   skillCode: string;
   band: Band;
   studentId: string;
+  excludeIds?: readonly string[];
 }>;

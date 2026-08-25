@@ -25,7 +25,7 @@ for (const [band, route] of Object.entries(BAND_ROUTES)) {
 
   if (band !== 'early') {
     test(`${band} layout keeps Ask Aria usable`, async ({ page }) => {
-      await page.goto(route);
+      await page.goto(`${route}?scenario=first-visit`);
       await page.getByText('What is four plus three?').waitFor();
       const docked = (page.viewportSize()?.width ?? 0) > 1080;
       const input = page.getByRole('textbox', {

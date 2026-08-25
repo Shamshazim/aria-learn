@@ -11,6 +11,7 @@ Learner context:
 
 Concept: {{concept}}
 Learner question: {{learnerQuestion}}
+Required teaching approach: {{approach}}
 
 Return JSON with one child-facing field named "explanation".`;
 
@@ -22,6 +23,7 @@ const inputSchema: z.ZodType<ExplainPromptInput> = z
     context: scrubbedContextSchema,
     concept: promptTextSchema,
     learnerQuestion: promptTextSchema,
+    approach: promptTextSchema,
   })
   .strict();
 
@@ -37,6 +39,7 @@ export const explainPrompt: PromptDefinition<'explain'> = {
       learnerContext: JSON.stringify(input.context.value),
       concept: input.concept,
       learnerQuestion: input.learnerQuestion,
+      approach: input.approach,
     }),
   outputSchema,
   maxTokens: 500,

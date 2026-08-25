@@ -14,6 +14,7 @@ import { operatorOnly } from '@/middleware/operator-only';
 import { requestId } from '@/middleware/request-id';
 import { requestLogger } from '@/middleware/request-logger';
 import { API_PREFIX, createApiRouter } from '@/routes';
+import type { RouterDeps } from '@/routes';
 import { createHealthService } from '@/services/health.service';
 import type { StatusService } from '@/services/status.service';
 
@@ -29,9 +30,17 @@ export type AppDeps = {
   clock: Clock;
   ids: IdGenerator;
   statusService?: StatusService;
+  student?: RouterDeps['student'];
 };
 
-export function createApp({ config, logger, clock, ids, statusService }: AppDeps): Express {
+export function createApp({
+  config,
+  logger,
+  clock,
+  ids,
+  statusService,
+  student,
+}: AppDeps): Express {
   const app = express();
 
   // Order matters. A request gets its id before anything can log it, and the error handler
@@ -60,6 +69,7 @@ export function createApp({ config, logger, clock, ids, statusService }: AppDeps
               authorize: operatorOnly(config.statusOperatorToken),
             },
           }),
+      ...(student === undefined ? {} : { student }),
     }),
   );
 

@@ -16,6 +16,7 @@ const EXCLUDED = ['**/node_modules/**', '**/dist/**', 'legacy/**'];
 
 const apiSrc = fileURLToPath(new URL('./apps/api/src', import.meta.url));
 const webSrc = fileURLToPath(new URL('./apps/web/src', import.meta.url));
+const tutorSrc = fileURLToPath(new URL('./packages/tutor/src', import.meta.url));
 
 export default defineConfig({
   test: {
@@ -27,6 +28,16 @@ export default defineConfig({
     // The scaffold ships no tests of its own; the tickets it unblocks add the first ones.
     passWithNoTests: true,
     projects: [
+      {
+        test: {
+          name: 'tutor',
+          root: './packages/tutor',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          exclude: EXCLUDED,
+        },
+        resolve: { alias: { '@': tutorSrc } },
+      },
       {
         test: {
           name: 'shared',

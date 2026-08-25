@@ -42,6 +42,22 @@ describe('api client', () => {
     });
   });
 
+  it('sends a JSON body for a parsed POST response', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ data: { value: 'saved' } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    await expect(
+      createApiClient({ baseUrl: '', fetcher }).post('/api', { answer: 7 }, valueSchema),
+    ).resolves.toEqual({ value: 'saved' });
+    const call = fetcher.mock.calls[0];
+    if (call === undefined) throw new Error('Fetch was not called');
+    expect(call[1]).toMatchObject({ method: 'POST', body: '{"answer":7}' });
+  });
+
   it('rejects malformed JSON and schema-invalid data as typed errors', async () => {
     const malformed = vi.fn<typeof fetch>().mockResolvedValue(new Response('not json'));
     const invalid = vi

@@ -58,7 +58,12 @@ describe('AiClient generation', () => {
 
     const result = await client.run(
       'explain',
-      { context, concept: '3 × 4', learnerQuestion: 'Why is it twelve?' },
+      {
+        context,
+        concept: '3 × 4',
+        learnerQuestion: 'Why is it twelve?',
+        approach: 'visual-model',
+      },
       { signal, timeoutMs: 1_500 },
     );
 
@@ -90,6 +95,7 @@ describe('AiClient rejection', () => {
       context,
       concept: 'fractions',
       learnerQuestion: 'What is one half?',
+      approach: 'worked-example',
     });
 
     await expect(generation).rejects.toMatchObject({
@@ -120,6 +126,7 @@ describe('AiClient rejection', () => {
       context,
       concept: 'multiplication',
       learnerQuestion: 'Can you help?',
+      approach: 'visual-model',
     };
 
     // @ts-expect-error This runtime test deliberately crosses the typed privacy seam.
@@ -142,6 +149,7 @@ describe('AiClient input bounds', () => {
         context,
         concept,
         learnerQuestion: 'Can you help?',
+        approach: 'visual-model',
       });
 
       await expect(generation).rejects.toMatchObject({ code: 'VALIDATION_FAILED' });
@@ -158,7 +166,12 @@ describe('AiClient input bounds', () => {
 
       const generation = client.run(
         'explain',
-        { context, concept: 'fractions', learnerQuestion: 'Can you help?' },
+        {
+          context,
+          concept: 'fractions',
+          learnerQuestion: 'Can you help?',
+          approach: 'visual-model',
+        },
         { timeoutMs },
       );
 
@@ -185,6 +198,7 @@ describe('AiClient privacy', () => {
       context,
       concept: 'multiplication',
       learnerQuestion: 'My name is A Child and my email is child@example.com.',
+      approach: 'visual-model',
     });
 
     expect(requests[0]?.user).not.toContain('A Child');

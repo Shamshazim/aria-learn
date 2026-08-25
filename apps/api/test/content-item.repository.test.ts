@@ -45,6 +45,38 @@ suite('content item repository', () => {
     );
     expect(rows[0]?.count).toBe('0');
   });
+
+  it('does not immediately repeat an excluded recent item', async () => {
+    await database.truncateAll();
+    const [student] = await insertStudents(database);
+    const repository = createContentItemRepository({
+      db: database.pool,
+      ids: sequentialUuids(),
+      clock: fixedClock(new Date('2026-08-24T00:00:00Z')),
+    });
+    const draft = {
+      kind: 'question',
+      skillCode: 'ADD.FACT.10',
+      band: 'early',
+      body: { prompt: 'What is next?' },
+      scope: { kind: 'shareable' },
+    } as const;
+    const first = await repository.insert(draft, null);
+    const second = await repository.insert(
+      { ...draft, body: { prompt: 'What comes after?' } },
+      null,
+    );
+
+    await expect(
+      repository.findEligible({
+        kind: draft.kind,
+        skillCode: draft.skillCode,
+        band: draft.band,
+        studentId: student,
+        excludeIds: [first.id],
+      }),
+    ).resolves.toMatchObject({ id: second.id });
+  });
 });
 
 async function insertStudents(database: TestDatabase): Promise<readonly [string, string]> {

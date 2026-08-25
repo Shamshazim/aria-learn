@@ -65,9 +65,10 @@ async function findEligible(db: Queryable, input: ContentLookup): Promise<Conten
     sql: `SELECT ${COLUMNS} FROM content_item
           WHERE skill_code = $1 AND band = $2 AND kind = $3
             AND (personalised_for IS NULL OR personalised_for = $4)
+            AND NOT (id = ANY($5::uuid[]))
           ORDER BY (personalised_for = $4) DESC, times_used ASC, created_at ASC
           LIMIT 1`,
-    params: [input.skillCode, input.band, input.kind, input.studentId],
+    params: [input.skillCode, input.band, input.kind, input.studentId, input.excludeIds ?? []],
   });
   return rows[0] === undefined ? null : toContentItem(rows[0]);
 }

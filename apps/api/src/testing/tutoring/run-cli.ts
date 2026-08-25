@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { runTutoringGoldenSet } from '@/testing/tutoring';
+import { createHarnessTutor, runTutoringGoldenSet } from '@/testing/tutoring';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
 
@@ -21,6 +21,7 @@ async function main(): Promise<void> {
   const report = await runTutoringGoldenSet({
     scenarioDirectory: path.join(REPO_ROOT, 'dev-docs/golden/tutoring/scenarios'),
     outputDirectory,
+    tutorFactory: createHarnessTutor,
     ...(scenarioId === undefined ? {} : { scenarioId }),
   });
   const status = report.passed ? 'PASS' : 'FAIL';
