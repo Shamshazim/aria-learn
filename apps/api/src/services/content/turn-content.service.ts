@@ -30,6 +30,8 @@ export type ApiModelContext = Readonly<{
   estimatedTokens: number;
   retrievedFactIds: readonly string[];
   recentContentItemIds: readonly string[];
+  /** P2H-06: the child's last few classified intents, oldest first, for the planner. */
+  recentIntents: readonly string[];
   arithmeticProblem: ArithmeticProblem | null;
   completionOnly: boolean;
   latestAsk: Extract<TutorMove, { kind: 'ASK' }> | null;

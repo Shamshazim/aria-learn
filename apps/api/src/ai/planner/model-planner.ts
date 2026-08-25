@@ -9,11 +9,12 @@ import type { ApiModelContext } from '@/services/content/turn-content.service';
 type PlanRequest = Parameters<TutorPorts<ApiModelContext>['planMove']>[0];
 
 const MAX_UTTERANCE_LENGTH = 500;
-const RECENT_TURNS = 3;
+const RECENT_INTENTS = 3;
 
 /**
  * A planner below this is guessing, and a guess is worth less than the policy's own plan,
- * which was written by people who know what a second wrong answer means.
+ * which was written by people who know what a second wrong answer means. Overridable because
+ * what a given model's stated confidence is worth is a property of that model, not of teaching.
  */
 export const PLANNER_MIN_CONFIDENCE = 0.4;
 
@@ -27,14 +28,19 @@ export const PLANNER_MIN_CONFIDENCE = 0.4;
  */
 export function createModelPlanner(deps: {
   ai: AiClient | null;
+  minConfidence?: number;
 }): TutorPorts<ApiModelContext>['planMove'] {
+  const minConfidence = deps.minConfidence ?? PLANNER_MIN_CONFIDENCE;
   return async (request) => {
     if (deps.ai === null) return request.fallback;
+    // The same number bounds the call twice on purpose: `@aria/tutor` races it so the child's
+    // turn moves on, and this timeout is what actually abandons the request, so a provider
+    // that lost the race is not left holding a connection.
     const result = await deps.ai.run('plan-move', promptInput(request), {
       studentId: request.context.session.studentId,
       timeoutMs: plannerBudgetMs(request.context.session.band, request.event),
     });
-    if (result.data.confidence < PLANNER_MIN_CONFIDENCE) return request.fallback;
+    if (result.data.confidence < minConfidence) return request.fallback;
     return {
       ...request.fallback,
       kind: result.data.kind,
@@ -53,7 +59,7 @@ function promptInput(request: PlanRequest): PlanMovePromptInput {
     question: context.modelContext.latestQuestion ?? 'no open item yet',
     learnerSaid: learnerSaid(event),
     state: describeState(context),
-    recentIntents: recentTurns(context),
+    recentIntents: recentIntents(context),
     allowed: allowedMoves,
   };
 }
@@ -90,7 +96,8 @@ function describeState(context: LoadedTurnContext<ApiModelContext>): string {
   return parts.join(', ');
 }
 
-function recentTurns(context: LoadedTurnContext<ApiModelContext>): string {
-  const recent = context.recentKinds.slice(-RECENT_TURNS);
+/** What the child has been doing, in the classifier's words rather than the protocol's. */
+function recentIntents(context: LoadedTurnContext<ApiModelContext>): string {
+  const recent = context.modelContext.recentIntents.slice(-RECENT_INTENTS);
   return recent.length === 0 ? 'nothing yet' : recent.join(', ');
 }

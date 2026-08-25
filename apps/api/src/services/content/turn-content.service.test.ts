@@ -175,6 +175,7 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
         estimatedTokens: 0,
         retrievedFactIds: [],
         recentContentItemIds: [],
+        recentIntents: [],
         arithmeticProblem: null,
         completionOnly: false,
         latestAsk: null,

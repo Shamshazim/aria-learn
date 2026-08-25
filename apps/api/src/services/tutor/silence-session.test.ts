@@ -66,6 +66,7 @@ function context(band: Band, consecutiveSilences: number): LoadedTurnContext<Api
       estimatedTokens: 0,
       retrievedFactIds: [],
       recentContentItemIds: [],
+      recentIntents: [],
       arithmeticProblem: null,
       completionOnly: false,
       latestAsk: null,

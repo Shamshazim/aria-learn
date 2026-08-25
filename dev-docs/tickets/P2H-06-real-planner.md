@@ -94,18 +94,51 @@ apps/api/src/services/tutor/
   'plan-move'` rather than a new `purpose` column on `ai_cost`. A proposal identical to the
   policy default is recorded as `planner_kept_default`, not as a rejection.
 - Remaining: the p95 latency report needs a live provider run, and the golden "repeated
-  confusion" rubric line is a human judgement in `dev-docs/golden/tutoring/scores.md`.
+  confusion" rubric line is a human judgement in `dev-docs/golden/tutoring/scores.md`. The
+  golden replay injects a declining planner and marks each scripted decision decisive on
+  purpose — a replay that called a model would not be a replay — so the approach change that
+  rubric line asks about comes from the policy's own `nextApproach`, not from the planner.
+
+### Review pass (2026-08-25)
+
+A standards/spec review of `f25c84f` found nine things. Fixed in the follow-up commit:
+
+- The planner log line carried no correlation id and did carry the model's `rationale`. It now
+  logs `event` and `sessionId`, and the rationale stays in `session_event.evidence` only
+  (CODE-STANDARDS §5).
+- A failing port was swallowed. `PlannerObservation` gained `error`, and the provider's own
+  message is logged.
+- `planner_declined` is a reason of its own. A port that hands back the fallback object — a
+  disabled provider, or a proposal under the confidence floor — is no longer counted as having
+  agreed with the policy. The floor itself is now an option on `createModelPlanner`.
+- **A planner-chosen `SWITCH` kept the failing skill.** `plan-move.ts` now redirects it to the
+  unmet prerequisite, which is the only reason the allowed set offers `SWITCH` at all.
+- The prompt's `recentIntents` was really a list of protocol event kinds. The policy now writes
+  the classified intent to the turn evidence and the context loader reads the last three back,
+  oldest first — the spec's "last 3 intents".
+- `ASK`'s three approaches had no persona instruction, so choosing one changed nothing.
+  Written, and `approach-coverage.test.ts` now fails if `PLANNER_APPROACHES` and
+  `APPROACH_INSTRUCTIONS` ever disagree again.
+- Unused exports removed (`allowedSet`, `isDecisive`, `DECISIVE_REASONS`,
+  `DEFAULT_PLANNER_BUDGET_MS`, `isPlannerApproach`, `describeAllowedMoves`); the dead
+  `'terminal'` entry is gone from `DECISIVE_REASONS`, since terminality is handled directly.
+
+Deliberately not changed: `unclear` and `low_confidence_speech` stay decisive — asking a model
+to weigh a turn nobody understood is exactly the case the short-circuit exists for. The budget
+still uses `setTimeout` rather than the injected clock, because it bounds real elapsed time, not
+the session's notion of now. The provider timeout equals the raced budget on purpose: the race
+frees the child's turn, the timeout frees the connection.
 
 ## Acceptance criteria
 
-- [ ] `tutor.service.ts` no longer contains the fallback stub; the injected planner is the
+- [x] `tutor.service.ts` no longer contains the fallback stub; the injected planner is the
       model implementation in prod and a fake in tests.
-- [ ] Policy returns multi-element allowed sets for ANSWER-wrong, QUESTION, CHAT, CONFUSED,
+- [x] Policy returns multi-element allowed sets for ANSWER-wrong, QUESTION, CHAT, CONFUSED,
       SILENCE (rung 1–2) and single-element for decisive cases (table in tests).
-- [ ] Disallowed proposal → default plan; `source: 'planner-rejected'` recorded.
-- [ ] Timeout at the band budget → default plan; measured with a fake slow port.
-- [ ] The answer key never appears in the planner prompt (fixture grep).
-- [ ] Every turn's evidence contains `allowedMoves`, `proposed`, `accepted`, `source`.
+- [x] Disallowed proposal → default plan; `source: 'planner-rejected'` recorded.
+- [x] Timeout at the band budget → default plan; measured with a fake slow port.
+- [x] The answer key never appears in the planner prompt (fixture grep).
+- [x] Every turn's evidence contains `allowedMoves`, `proposed`, `accepted`, `source`.
 - [ ] Golden tutoring set: "repeated confusion" now shows a different approach on the
       second RETEACH (rubric), and "two wrong answers without a change" remains 0.
 - [ ] p95 added latency of the planner on the text channel < band budget (report).

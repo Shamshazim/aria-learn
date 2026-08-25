@@ -29,14 +29,19 @@ export function createPlannerObserver(deps: {
     if (!NOT_ASKED.has(observation.reason ?? '')) {
       deps.metrics.observe(PLANNER_LATENCY_MS, observation.ms, { source: observation.source });
     }
+    // The rationale is deliberately absent: it is free text written about what a child just
+    // said, so it stays in `session_event.evidence`, behind the same access as the transcript,
+    // and never reaches a log aggregator (CODE-STANDARDS §5).
     deps.logger.info(
       {
+        event: 'planner_decision',
+        sessionId: observation.sessionId,
         allowedMoves: observation.allowedMoves,
         proposed: observation.proposed,
         accepted: observation.accepted,
         source: observation.source,
-        rationale: observation.rationale,
         reason: observation.reason,
+        ...(observation.error === null ? {} : { error: observation.error }),
         ms: observation.ms,
       },
       'planner decision',

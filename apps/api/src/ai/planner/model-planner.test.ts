@@ -71,6 +71,7 @@ function context(): LoadedTurnContext<ApiModelContext> {
       estimatedTokens: 0,
       retrievedFactIds: [],
       recentContentItemIds: [],
+      recentIntents: [],
       arithmeticProblem: null,
       completionOnly: false,
       latestAsk: null,
@@ -118,8 +119,12 @@ function clientOver(
 
 const allowed: readonly MoveKind[] = ['HINT', 'RETEACH'];
 
-const ask = (planner: TutorPorts<ApiModelContext>['planMove'], event = ANSWER): Promise<MovePlan> =>
-  planner({ context: context(), event, allowedMoves: allowed, fallback: FALLBACK });
+const ask = (
+  planner: TutorPorts<ApiModelContext>['planMove'],
+  event = ANSWER,
+  loaded = context(),
+): Promise<MovePlan> =>
+  planner({ context: loaded, event, allowedMoves: allowed, fallback: FALLBACK });
 
 describe('the model planner', () => {
   it('proposes the move and approach the model chose', async () => {
@@ -164,6 +169,10 @@ describe('the model planner', () => {
     expect(user).not.toContain('- REVEAL');
   });
 
+  /**
+   * `toBe`, not `toEqual`: handing back the fallback object itself is the signal `@aria/tutor`
+   * reads to record a decline rather than agreement with the policy.
+   */
   it('declines rather than guesses when it is unsure', async () => {
     const { ai } = clientOver({
       kind: 'RETEACH',
@@ -171,11 +180,42 @@ describe('the model planner', () => {
       rationale: 'Maybe.',
       confidence: PLANNER_MIN_CONFIDENCE - 0.01,
     });
-    await expect(ask(createModelPlanner({ ai }))).resolves.toEqual(FALLBACK);
+    await expect(ask(createModelPlanner({ ai }))).resolves.toBe(FALLBACK);
+  });
+
+  it('takes a confidence floor from its caller', async () => {
+    const proposal = {
+      kind: 'RETEACH',
+      approach: 'visual-model',
+      rationale: 'Fairly sure.',
+      confidence: 0.6,
+    };
+    await expect(
+      ask(createModelPlanner({ ai: clientOver(proposal).ai, minConfidence: 0.9 })),
+    ).resolves.toBe(FALLBACK);
+    await expect(
+      ask(createModelPlanner({ ai: clientOver(proposal).ai, minConfidence: 0.5 })),
+    ).resolves.toMatchObject({ approach: 'visual-model' });
   });
 
   it('declines when no provider is configured', async () => {
-    await expect(ask(createModelPlanner({ ai: null }))).resolves.toEqual(FALLBACK);
+    await expect(ask(createModelPlanner({ ai: null }))).resolves.toBe(FALLBACK);
+  });
+
+  it('tells the planner what the child has been doing, not which events went past', async () => {
+    const { ai, seen } = clientOver({
+      kind: 'HINT',
+      approach: 'point-to-step',
+      rationale: 'One step.',
+      confidence: 0.9,
+    });
+    const loaded = context();
+    await ask(createModelPlanner({ ai }), ANSWER, {
+      ...loaded,
+      modelContext: { ...loaded.modelContext, recentIntents: ['QUESTION', 'CHAT', 'CONFUSED'] },
+    });
+
+    expect(seen[0]?.user).toContain('QUESTION, CHAT, CONFUSED');
   });
 
   it('spends no longer than the band budget, and half of it on the voice channel', async () => {

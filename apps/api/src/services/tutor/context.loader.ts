@@ -87,6 +87,7 @@ async function load(
       estimatedTokens: memory.estimatedTokens,
       retrievedFactIds: memory.factIds,
       recentContentItemIds: recentEvidenceStrings(records, 'contentItemId', 5),
+      recentIntents: [...recentEvidenceStrings(records, 'intent', 3)].reverse(),
       arithmeticProblem: askArithmeticProblem(ask),
       completionOnly: askEvidenceBoolean(ask, 'completionOnly') ?? false,
       latestAsk: parsedAskMove(ask),

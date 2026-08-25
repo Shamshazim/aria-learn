@@ -92,6 +92,7 @@ function turnFor(text: string, band: Band) {
       estimatedTokens: 0,
       retrievedFactIds: [],
       recentContentItemIds: [],
+      recentIntents: [],
       arithmeticProblem: null,
       completionOnly: false,
       latestAsk: null,

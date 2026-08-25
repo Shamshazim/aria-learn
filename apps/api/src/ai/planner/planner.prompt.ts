@@ -48,7 +48,7 @@ const inputSchema: z.ZodType<PlanMovePromptInput> = z
   .strict();
 
 /** One line per move, so the model is choosing between meanings rather than between labels. */
-export function describeAllowedMoves(moves: readonly MoveKind[]): string {
+function describeAllowedMoves(moves: readonly MoveKind[]): string {
   return moves
     .map((move) => `- ${move} (${approachesFor(move).join(' | ')}): ${MOVE_INSTRUCTIONS[move]}`)
     .join('\n');

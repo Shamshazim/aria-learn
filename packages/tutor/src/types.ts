@@ -59,6 +59,8 @@ export type PolicyDecision = Readonly<{
 
 /** One planner decision, for evidence and metrics (P2H-06). */
 export type PlannerObservation = Readonly<{
+  /** The session this decision belongs to, so a log line can be traced to a turn. */
+  sessionId: string;
   allowedMoves: readonly MoveKind[];
   proposed: Readonly<{ kind: MoveKind; approach: string }> | null;
   accepted: boolean;
@@ -66,6 +68,8 @@ export type PlannerObservation = Readonly<{
   rationale: string | null;
   /** Why the proposal was not used, or why none was asked for. */
   reason: string | null;
+  /** What the port failed with, when it failed. Never a child's words. */
+  error: string | null;
   ms: number;
 }>;
 

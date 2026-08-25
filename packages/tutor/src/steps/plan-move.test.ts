@@ -195,6 +195,55 @@ describe('planner inside the allowed set', () => {
     expect(plan.evidence).toMatchObject({ plannerReason: reason, plannerAccepted: false });
   });
 
+  it('tells a decline apart from agreement', async () => {
+    const log = record();
+    const plan = await run(
+      OPEN,
+      // Handing back the fallback object is how a port says it has no opinion.
+      ports((input) => Promise.resolve(input.fallback), log),
+    );
+    expect(plan).toMatchObject({ kind: 'HINT', source: 'policy' });
+    expect(plan.evidence).toMatchObject({
+      plannerReason: 'planner_declined',
+      plannerProposed: 'none',
+    });
+    expect(log.observed[0]).toMatchObject({ reason: 'planner_declined', accepted: false });
+  });
+
+  it('says what the provider failed with, so a bad planner is diagnosable', async () => {
+    const log = record();
+    await run(
+      OPEN,
+      ports(() => Promise.reject(new Error('breaker open')), log),
+    );
+    expect(log.observed[0]).toMatchObject({ reason: 'planner_error', error: 'breaker open' });
+  });
+
+  it('names the session on every decision', async () => {
+    const log = record();
+    await run(
+      OPEN,
+      ports(() => Promise.resolve(proposal('RETEACH', 'visual-model')), log),
+    );
+    expect(log.observed[0]?.sessionId).toBe('session-1');
+  });
+
+  it('sends a planner-chosen SWITCH to the unmet prerequisite, not the failing skill', async () => {
+    const log = record();
+    const context: LoadedTurnContext<null> = {
+      ...CONTEXT,
+      session: { ...CONTEXT.session, unmetPrerequisite: 'ADD.WITHIN_5' },
+    };
+    const decision: PolicyDecision = { ...OPEN, allowedMoves: ['HINT', 'SWITCH'] };
+    const plan = await planMove({
+      ports: ports(() => Promise.resolve(proposal('SWITCH', 'default')), log),
+      context,
+      event: EVENT,
+      decision,
+    });
+    expect(plan).toMatchObject({ kind: 'SWITCH', skillCode: 'ADD.WITHIN_5', source: 'planner' });
+  });
+
   it('keeps the policy evidence a proposal never sees', async () => {
     const log = record();
     const decision: PolicyDecision = {

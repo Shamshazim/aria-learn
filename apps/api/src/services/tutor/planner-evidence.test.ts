@@ -11,12 +11,14 @@ import {
 
 function observation(overrides: Partial<PlannerObservation> = {}): PlannerObservation {
   return {
+    sessionId: 'session-1',
     allowedMoves: ['HINT', 'RETEACH'],
     proposed: { kind: 'RETEACH', approach: 'visual-model' },
     accepted: true,
     source: 'planner',
     rationale: 'The nudge already failed.',
     reason: null,
+    error: null,
     ms: 240,
     ...overrides,
   };
@@ -46,12 +48,36 @@ describe('planner evidence', () => {
     expect(counters[`${PLANNER_DECISION_TOTAL}{reason=accepted,source=planner}`]).toBe(1);
     expect(histograms[`${PLANNER_LATENCY_MS}{source=planner}`]).toEqual([240]);
     expect(logged[0]).toMatchObject({
+      event: 'planner_decision',
+      sessionId: 'session-1',
       allowedMoves: ['HINT', 'RETEACH'],
       proposed: { kind: 'RETEACH', approach: 'visual-model' },
       accepted: true,
       source: 'planner',
       ms: 240,
     });
+  });
+
+  it('never writes the rationale to a log, only to the turn evidence', () => {
+    const { logged } = observe(observation({ rationale: 'She said her cat is called Mopsy.' }));
+
+    expect(JSON.stringify(logged)).not.toContain('Mopsy');
+    expect(logged[0]).not.toHaveProperty('rationale');
+  });
+
+  it('says what a failing provider failed with', () => {
+    const { logged } = observe(
+      observation({
+        accepted: false,
+        source: 'policy',
+        proposed: null,
+        reason: 'planner_error',
+        error: 'breaker open',
+        rationale: null,
+      }),
+    );
+
+    expect(logged[0]).toMatchObject({ reason: 'planner_error', error: 'breaker open' });
   });
 
   it('counts a rejection under its own reason', () => {

@@ -15,7 +15,6 @@ export const DECISIVE_REASONS = [
   'repeated_misconception',
   'silence_rung_3',
   'silence_rung_4',
-  'terminal',
 ] as const;
 
 export type DecisiveReason = (typeof DECISIVE_REASONS)[number];

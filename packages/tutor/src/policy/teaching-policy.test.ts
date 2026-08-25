@@ -162,6 +162,20 @@ describe('teaching policy', () => {
     expect(question.defaultPlan).toMatchObject({ kind: 'SAY', approach: 'answer-question' });
   });
 
+  /** P2H-06: the next turn's planner is told what the child has been doing. It starts here. */
+  it('writes the intent to the turn evidence', () => {
+    const confusedPolicy = createTeachingPolicy<null>({
+      gradeAnswer: () => ({ correct: false, misconception: null }),
+      classifyIntent: () => 'CONFUSED',
+      sessionLimitMs: () => 20 * 60_000,
+      now: () => new Date('2026-08-24T20:00:00.000Z'),
+    });
+
+    expect(confusedPolicy(context(0, null), EVENT).defaultPlan.evidence).toMatchObject({
+      intent: 'CONFUSED',
+    });
+  });
+
   it('ends the session when the child asks to stop', () => {
     const stopPolicy = createTeachingPolicy<null>({
       gradeAnswer: () => ({ correct: false, misconception: null }),

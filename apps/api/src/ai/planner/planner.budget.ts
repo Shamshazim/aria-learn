@@ -8,7 +8,7 @@ import type { Band, TutorInputEvent } from '@aria/shared';
  * takes its own time at both ends, and the planner runs on a partial transcript there, so the
  * turn has already spent the budget it had.
  */
-const TEXT_BUDGET_MS: Readonly<Record<Band, number>> = {
+export const PLANNER_TEXT_BUDGET_MS: Readonly<Record<Band, number>> = {
   early: 700,
   middle: 900,
   senior: 1_200,
@@ -25,8 +25,6 @@ const VOICE_EVENTS: ReadonlySet<TutorInputEvent['kind']> = new Set([
 ]);
 
 export function plannerBudgetMs(band: Band, event: TutorInputEvent): number {
-  const budget = TEXT_BUDGET_MS[band];
+  const budget = PLANNER_TEXT_BUDGET_MS[band];
   return VOICE_EVENTS.has(event.kind) ? Math.round(budget / 2) : budget;
 }
-
-export { TEXT_BUDGET_MS as PLANNER_TEXT_BUDGET_MS };

@@ -44,8 +44,11 @@ export const APPROACH_INSTRUCTIONS: Readonly<Record<string, string>> = {
     'You did not hear the child clearly. Say, in a fresh way, that you did not catch it and ask them to say it again.',
   'SAY:reask-short':
     'The child went quiet. Ask the open question again in a shorter, friendlier way. Do not repeat your earlier wording.',
-  // P2H-06: the approaches the planner may choose. An approach it can pick but nobody wrote
-  // an instruction for would be a choice with no consequence.
+  'SAY:check-in':
+    'The child has been quiet for a while. Gently check whether they are still there and want to keep going. One or two sentences.',
+  // P2H-06: every approach the planner may choose that is not `default`. An approach it can
+  // pick but nobody wrote an instruction for would be a choice with no consequence, so
+  // `approach-coverage.test.ts` fails if this list falls behind `PLANNER_APPROACHES`.
   'SAY:teach':
     'Teach the one idea the child needs for the open item, in two sentences at most, then hand the item back to them.',
   'HINT:point-to-step':
@@ -60,8 +63,12 @@ export const APPROACH_INSTRUCTIONS: Readonly<Record<string, string>> = {
     'Explain the idea again as a small everyday story with real things in it, not symbols.',
   'RETEACH:simpler-case':
     'Explain the idea again using the smallest, easiest case of it, then connect that back to the open item.',
-  'SAY:check-in':
-    'The child has been quiet for a while. Gently check whether they are still there and want to keep going. One or two sentences.',
+  'ASK:same-item':
+    'Ask the open question again in your own words. Ask for the same thing — do not make it easier and do not answer any of it.',
+  'ASK:easier-item':
+    'Ask a smaller question of the same kind first, easy enough that this child will get it, so they have a foothold before the open item.',
+  'ASK:reask-short':
+    'Ask the open question again in fewer, friendlier words than you used before. Do not repeat your earlier wording.',
 };
 
 export function instructionFor(move: string, approach: string): string {

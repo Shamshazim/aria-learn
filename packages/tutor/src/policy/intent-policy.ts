@@ -8,6 +8,22 @@ export function intentOutcome<TModelContext>(
   intent: Intent,
   context: LoadedTurnContext<TModelContext>,
 ): PolicyOutcome | null {
+  const result = classified(intent, context);
+  return result === null ? null : recordIntent(result, intent);
+}
+
+/**
+ * P2H-06: the intent is written to the turn's evidence, so the next turn's planner can be told
+ * what the child has been doing rather than which protocol events went past.
+ */
+function recordIntent(result: PolicyOutcome, intent: Intent): PolicyOutcome {
+  return { ...result, plan: { ...result.plan, evidence: { ...result.plan.evidence, intent } } };
+}
+
+function classified<TModelContext>(
+  intent: Intent,
+  context: LoadedTurnContext<TModelContext>,
+): PolicyOutcome | null {
   if (intent === 'ANSWER') return null;
   if (intent === 'STOP_REQUEST') {
     return outcome(

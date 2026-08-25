@@ -160,6 +160,7 @@ function turn(): PlannedTurn<ApiModelContext> {
         estimatedTokens: 0,
         retrievedFactIds: [],
         recentContentItemIds: [],
+        recentIntents: [],
         arithmeticProblem: null,
         completionOnly: false,
         latestAsk: null,
