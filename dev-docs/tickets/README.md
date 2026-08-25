@@ -77,11 +77,125 @@ is wrong.
 > produces a genuinely different explanation. Tomorrow, she accurately recalls at least one
 > supported fact from today.
 
-## Phases 2–7
+## Phase 2 — Real-time voice
 
-Outlined with reserved ids in [`BACKLOG.md`](BACKLOG.md). Each phase is written out in full
-when the previous phase's exit test passes.
+Implemented 2026-08 from the outlines in [`BACKLOG.md`](BACKLOG.md) (P2-02 … P2-09, P2-13,
+P2-14). Still open: P2-01 (provider decision), P2-10 (exit), P2-11 (bridges), P2-12 (golden
+runs). Those are closed by Phase 2H below.
 
+## Phase 2H — Make Aria human (finish Phase 2)
+
+Written 2026-08-24 after the "why does it sound like a machine" review. The harness is built;
+the tutor inside it is stubs and canned strings. Nothing in Phase 3+ is worth building on top
+of that, so this phase comes first.
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| P2H-01 | FE + BE | — | [Silence and disengagement escalation](P2H-01-silence-escalation.md) |
+| P2H-02 | Backend | — | [Readability gate replaces the vocabulary whitelist](P2H-02-readability-gate.md) |
+| P2H-03 | Backend | 02 | [Aria persona and the per-move prompt library](P2H-03-persona-and-move-prompts.md) |
+| P2H-04 | Backend | P0-23, 03 | [Conversation context in every prompt](P2H-04-conversation-context.md) |
+| P2H-05 | BE + Voice | 03 | [Free conversation: intent classification](P2H-05-free-conversation-intent.md) |
+| P2H-06 | Backend | P1-06, 05 | [The real planner](P2H-06-real-planner.md) |
+| P2H-07 | BE + Voice | P0-19, 03 | [Sentence-level streaming to speech](P2H-07-sentence-streaming-to-speech.md) |
+| P2H-08 | Voice | P2-01 | [Voice identity and prosody](P2H-08-voice-identity-and-prosody.md) |
+| P2H-09 | Voice | 07 | [Bridges and backchannels wired](P2H-09-bridges-and-backchannels.md) |
+| P2H-10 | BE + Content | P0-16, P0-17 | [Content depth for the initial scope](P2H-10-content-depth.md) |
+| P2H-11 | Backend | 03, 04 | [Specific praise, real reveals, honest endings](P2H-11-specific-praise-reveals-endings.md) |
+| P2H-12 | FE + BE | P0-26 | [Identity and child sessions, migration 009](P2H-12-identity-and-child-sessions.md) |
+| P2H-13 | QA | 01–09, P2-12 | [Voice golden set, browser suite, provider decision](P2H-13-voice-evidence-and-phase2-exit.md) |
+| P2H-14 | QA | all of 2H | ["Sounds human" acceptance](P2H-14-sounds-human-acceptance.md) |
+
+> **Phase 2H exit:** a human tutor rates ≥90% of responses warm, age-appropriate and useful;
+> no sentence is spoken twice in a session; no static fallback reaches a child in a nominal
+> session; first audio < 1s p95; the Phase 2 exit gate passes on recorded evidence.
+
+## Phase 3 — Durable relationship memory and engagement
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| P3-01 | Backend | P1-02 | [Episodes, briefs and corrections, migration 010](P3-01-episode-brief-correction-tables.md) |
+| P3-02 | Backend | 01, P1-09 | [Consolidation v2](P3-02-consolidation-v2.md) |
+| P3-03 | Backend | 01, 02 | [The learner brief](P3-03-learner-brief.md) |
+| P3-04 | Backend | P1-03, P0-17 | [Full skill graph and scheduler](P3-04-skill-graph-and-scheduler.md) |
+| P3-05 | FE + BE | P1-06, P2H-05 | [Engagement state and check-ins](P3-05-engagement-state.md) |
+| P3-06 | Backend | 01 | [The correction path](P3-06-memory-correction-path.md) |
+| P3-07 | BE + Content | P2H-10, 04 | [Curriculum expansion, TK–8 arithmetic](P3-07-curriculum-expansion-arithmetic.md) |
+| P3-08 | QA | all of Phase 3 | [Phase 3 exit acceptance](P3-08-phase3-exit-acceptance.md) |
+
+## Phase 4 — Reading and writing to the real bar
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| P4-01 | Backend | P1-03 | [Phonics ladder and tables, migration 013](P4-01-phonics-ladder-tables.md) |
+| P4-02 | Backend | 01 | [The decodable-text filter](P4-02-decodable-text-filter.md) |
+| P4-03 | Backend | 02, P0-20 | [Decodable passages and the reviewed bank](P4-03-decodable-passages.md) |
+| P4-04 | Backend | P2-09, 01 | [Oral reading assessment](P4-04-oral-reading-assessment.md) |
+| P4-05 | FE + BE | P2H-08, 01 | [Sounds without letters, and blending](P4-05-phonemic-awareness-activities.md) |
+| P4-06 | Backend | 04 | [Comprehension](P4-06-comprehension.md) |
+| P4-07 | FE + BE | P1-06 | [The writing coach loop, migration 014](P4-07-writing-coach-loop.md) |
+| P4-08 | Frontend | 05, 07 | [Reading and writing in the band UIs](P4-08-reading-writing-band-ui.md) |
+| P4-09 | QA | all of Phase 4 | [Phase 4 exit acceptance](P4-09-phase4-exit-acceptance.md) |
+
+## Phase 5 — The Primer
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| P5-01 | Backend | P3-02 | [The narrative thread, migration 015](P5-01-narrative-thread.md) |
+| P5-02 | Backend | 01, P3-06 | [Consented, current facts only](P5-02-consented-interests.md) |
+| P5-03 | FE + BE + Voice | 01, P2H-07 | [The story in the session](P5-03-story-in-the-session.md) |
+| P5-04 | QA | all of Phase 5 | [Phase 5 exit acceptance](P5-04-phase5-exit-acceptance.md) |
+
+## Phase 6 — Parent and teacher agents
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| P6-01 | FE + BE | P2H-12 | [Parent app shell](P6-01-parent-app-shell.md) |
+| P6-02 | Backend | P3-03 | [Weekly digest, migration 018](P6-02-weekly-digest.md) |
+| P6-03 | Backend | P3-01 | [Ask-Aria for parents](P6-03-ask-aria-parents.md) |
+| P6-04 | Backend | P3-04 | [Parent goals](P6-04-parent-goals.md) |
+| P6-05 | FE + BE | P3-06 | [Transcripts, learner memory and correction UI](P6-05-transcripts-memory-correction-ui.md) |
+| P6-06 | Backend | P2H-12 | [Delete means delete, and export](P6-06-delete-means-delete.md) |
+| P6-07 | Backend | P1-13 | [Crisis escalation delivery](P6-07-crisis-escalation-delivery.md) |
+| P6-08 | FE + BE | 01 | [Teacher: classes, reports, directives, alerts, migration 023](P6-08-teacher-agent.md) |
+| P6-09 | QA | all of Phase 6 | [Phase 6 exit acceptance](P6-09-phase6-exit-acceptance.md) |
+
+## Phase 7 — Scale
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| P7-01 | Backend | P2H-10 | [Shared verified content](P7-01-shared-content-expansion.md) |
+| P7-02 | Backend | P0-20 | [Cache and pre-generation optimisation](P7-02-cache-and-pregeneration-optimisation.md) |
+| P7-03 | Backend | P0-21, P0-22 | [Tier routing tuning](P7-03-tier-routing-tuning.md) |
+| P7-04 | Ops | P0-15 | [Cost per child per month](P7-04-cost-per-child.md) |
+| P7-05 | QA | all of Phase 7 | [Phase 7 exit acceptance](P7-05-phase7-exit-acceptance.md) |
+
+## Migration map (009 onward)
+
+Numbers are assigned by ticket, not by merge order (`AGENT-INSTRUCTIONS.md` §4).
+
+| # | Ticket | # | Ticket | # | Ticket |
+|---|---|---|---|---|---|
+| 009 | P2H-12 identity | 016 | P5-02 story consent | 023 | P6-08 teacher |
+| 010 | P3-01 episodes/briefs | 017 | P6-01 student controls | 024 | P7-01 shared content |
+| 011 | P3-02 rebuild shadow | 018 | P6-02 parent_digest | 025 | P7-02 pregeneration_job |
+| 012 | P3-04 scheduler columns | 019 | P6-03 parent_ask | 026 | P7-04 voice cost |
+| 013 | P4-01 phonics | 020 | P6-04 learner_goal | 027 | X-02 subscription |
+| 014 | P4-07 child_writing | 021 | P6-06 deletion tombstone | 028 | X-05 idempotency |
+| 015 | P5-01 narrative | 022 | P6-07 escalation/contacts | 000 | X-01 migration ledger |
+
+## Cross-cutting
+
+Not phase-bound. X-01 is needed before any real family uses the product; X-02 before anyone
+pays; the rest before public launch.
+
+| Id | Track | Depends on | Ticket |
+|---|---|---|---|
+| X-01 | Infra | — | [Deployment and CI](X-01-deployment.md) |
+| X-02 | Decision + BE | P2H-12 | [Signup, subscription and billing](X-02-signup-subscription-billing.md) |
+| X-03 | Frontend | P2-07 | [Device and accessibility matrix](X-03-device-and-accessibility-matrix.md) |
+| X-04 | Ops | P1-14 | [Load, latency SLOs and alerting](X-04-load-latency-slos-alerting.md) |
+| X-05 | Backend | P1-13 | [Abuse and robustness](X-05-abuse-and-robustness.md) |
 ---
 
 ## What can run in parallel

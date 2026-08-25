@@ -1,5 +1,9 @@
 # Backlog — Phases 2 to 7
 
+> **Superseded 2026-08-24.** Phases 2H–7 and the cross-cutting X tickets are now written in
+> full; see [`README.md`](README.md). This file is kept for the Phase 2 rows (P2-01 … P2-14),
+> which remain the authority for that phase, and for the "deliberately not built" list.
+
 Phase 0 and Phase 1 are written as full tickets in this folder. Phases 2 onward are recorded
 here as scoped outlines, not because they matter less but because writing them in detail now
 would be guessing: Phase 2's transport choice depends on Phase 0's measured latency, and

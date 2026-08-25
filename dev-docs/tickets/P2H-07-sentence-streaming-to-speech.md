@@ -1,0 +1,110 @@
+# P2H-07 — Sentence-level streaming to speech
+
+| | |
+|---|---|
+| **Phase** | 2H |
+| **Track** | Backend + Voice |
+| **Depends on** | P0-19, P2H-03 |
+| **Blocks** | P2H-09, P5-03, P2H-13 |
+| **Parallel-safe with** | P2H-04, P2H-05, P2H-06, P2H-08, P2H-12 |
+| **Size** | M |
+
+## Why
+
+The worker speaks a move only after the whole text is generated, whole-gated and returned
+(`agent.ts speakPending` → `session.say(text)`). `apps/api/src/ai/streaming/gated-stream.ts`
+already gates sentence by sentence and is unused. The plan's latency rule: *begin the first
+gated sentence as soon as it is safe*. This is the difference between a pause and a person.
+
+## Scope
+
+### Build
+Wire the gated streamer into the turn path for both channels, stream segments to TTS in order,
+cancel by `generationId`, enable preemptive generation with a proof it cannot bypass the gate,
+and buffer whole items that need full verification.
+
+### Do not build
+No bridges (P2H-09). No speculative TTS of un-gated text, ever.
+
+## Design
+
+```
+apps/api/src/services/content/
+  turn-content.service.ts       returns AsyncIterable<GatedSegment> for streaming kinds
+  streaming-kinds.ts            SAY, RETEACH, WELCOME, END, REVEAL(reasoning part) stream;
+                                ASK, HINT, practice items are whole-item (answer key check)
+apps/api/src/ai/streaming/
+  gated-stream.ts               existing; add segment index, generationId, isLast
+  segment.types.ts              GatedSegment { generationId, index, text, speech, isLast }
+apps/api/src/controllers/
+  voice.controller.ts           worker-turn endpoint streams segments (NDJSON) instead of one move
+  session.controller.ts         text turn streams segments over SSE; falls back to one move
+apps/voice-worker/src/session/
+  move-stream.ts                consumes segments; yields per-segment text to the LLM node
+  segment-order.ts              reorders/dedupes by (generationId, index); drops after cancel
+apps/voice-worker/src/agent.ts  preemptiveGeneration: { enabled: true, preemptiveTts: false }
+apps/web/src/features/session/
+  sources/http-source.ts        SSE segment consumer; renders sentences as they pass
+  model/session-machine.ts      currentMove.text grows by segment; expects set on isLast
+packages/shared/src/protocol/realtime.ts   MOVE_SEGMENT message + schema
+```
+
+**Ordering and cancel**
+- Segments carry `(generationId, index)`; the worker speaks index `n` only after `n-1`.
+- Barge-in confirmed by the server (P2-05/06) cancels `generationId`: the api stops
+  generating, the worker discards queued segments, `session.say` is interrupted. Late segments
+  for a cancelled generation are dropped by `segment-order.ts`.
+- `preemptiveGeneration` may start the harness on a partial transcript; the harness's draft
+  path (P1-06) yields segments only after each passes the gate; `preemptiveTts: false`
+  because TTS of a draft would be audible waste — measured before enabling later.
+
+**Whole-item buffering**: kinds in the whole-item list are gated as a unit and emitted as a
+single segment with `isLast: true`. A streaming kind whose *last* segment fails the gate emits
+a reviewed closing sentence (from P2H-11 fallback data) so the child never hears a half-thought.
+
+**Text channel**: the UI shows each sentence as it arrives with the existing "Aria is
+thinking" indicator until the first segment; no spinner (P0-25 rule).
+
+### Edge cases
+- First segment passes, second fails, regeneration of the second passes → spoken in order,
+  regeneration bounded to one attempt per segment.
+- Model emits a very long sentence (> band limit) → level check fails that segment → regenerate.
+- Sentence boundary inside a number ("3.5") or abbreviation ("Dr.") → boundary detector in
+  gated-stream uses `spokenForm` aware splitting; fixtures.
+- Network hiccup between api and worker mid-stream → worker times out at 2× the segment gate
+  budget, emits `MEDIA_LOST`-style resume via the move outbox (P2-13) with the last index.
+- Reconnect during a stream → outbox replays only un-acknowledged segments; duplicates by
+  (generationId,index) are dropped.
+- Child interrupts after segment 2 of 5 → segments 3–5 never spoken; the session_event stores
+  the spoken prefix with `truncatedAt: 2`.
+
+## Acceptance criteria
+
+- [ ] First audio starts before the model finishes generating a 4-sentence SAY (test with a
+      slow fake provider; first `say` call time < full generation time).
+- [ ] No segment reaches TTS or the UI without a gate pass; the gate-invocation counter
+      equals the segment count (existing P0-19 style test extended to the worker path).
+- [ ] `preemptiveGeneration` enabled and a test proves a draft segment that fails the gate is
+      never spoken.
+- [ ] Out-of-order and duplicate segments are reordered/dropped; a cancelled generation's
+      late segment is dropped.
+- [ ] Barge-in mid-stream: no further segments spoken; the stored event carries
+      `truncatedAt`.
+- [ ] Whole-item kinds emit exactly one segment.
+- [ ] Text channel renders segments incrementally (component test).
+- [ ] Voice golden run reports first-audio p95 (P2H-13 sets the bar).
+
+## Verification
+
+```bash
+npm run test -w @aria/api -- streaming
+npm run test -w @aria/voice-worker
+npm run test -w @aria/web -- http-source
+npm run voice:golden -w @aria/voice-worker
+```
+
+## References
+
+- `master-plan.md` §4.1 latency rule, safety rule
+- `realtime-agent-harness.md` — "Gated segments as the LLM stage", "Preemptive generation"
+- P0-19, P2-04, P2-13
