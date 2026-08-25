@@ -8,6 +8,7 @@
 | **Blocks** | P2H-13, P2H-14 |
 | **Parallel-safe with** | P2H-02, P2H-03, P2H-08, P2H-10, P2H-12 |
 | **Size** | S |
+| **Status** | 🟡 Core implemented on branch `docs/harness-review-fixes` (commits `ab1ef4b`, `ccba913`), no PR yet. |
 
 ## Why
 
@@ -95,6 +96,11 @@ them; a candidate equal to any of them is rejected once and re-picked.
 - Tab hidden for 10 minutes then visible → timer resumes with remaining time, does not fire
   immediately; if hidden > session max, `PAUSE` is sent instead.
 - Provider outage: variants are static and reviewed, so the ladder needs no model.
+
+## Status (2026-08-25)
+
+- Done: `silenceRung` ladder (reask → HINT → check-in → BREAK), `consecutiveSilences` in the session snapshot, `SILENCE` row without `LISTEN`, approach-aware fallbacks, policy tests.
+- Remaining: per-band scripted session tests, no-two-identical-texts fuzz, UI/worker timer does not arm on `LISTEN` or while Aria speaks, `BACKCHANNEL`/`SPEECH_PARTIAL` timer semantics, stale-`SILENCE` handling, rung in `session_event.evidence`.
 
 ## Acceptance criteria
 

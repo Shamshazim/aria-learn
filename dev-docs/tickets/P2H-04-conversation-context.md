@@ -8,6 +8,7 @@
 | **Blocks** | P2H-06, P2H-11, P2H-14 |
 | **Parallel-safe with** | P2H-05, P2H-07, P2H-08, P2H-10 |
 | **Size** | M |
+| **Status** | 🟡 Core implemented on branch `docs/harness-review-fixes` (commits `ab1ef4b`, `ccba913`), no PR yet. |
 
 ## Why
 
@@ -70,6 +71,11 @@ prompt can say "I think you said…".
 - Name that is also a common word ("Sunny", "May") → allowlisted only as the capitalised token.
 - Token cap hit → drop oldest turns first, never truncate mid-sentence.
 - Parent opt-out toggled mid-session → next turn uses "you".
+
+## Status (2026-08-25)
+
+- Done: `recentDialogue` in raw/scrubbed context, scrubber redacts dialogue and passes first name only (decision recorded), per-band dialogue window, `renderDialogue`, context loader wiring, pseudonym tests.
+- Remaining: type test that only the scrubber sets `dialogue`/`firstName`, surname/email/address fixture over child turns, 1,500-token cap, safety-flagged turn redaction, parent disclosure entries, `repeated-confusion` golden scenario.
 
 ## Acceptance criteria
 

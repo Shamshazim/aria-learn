@@ -89,6 +89,9 @@ Written 2026-08-24 after the "why does it sound like a machine" review. The harn
 the tutor inside it is stubs and canned strings. Nothing in Phase 3+ is worth building on top
 of that, so this phase comes first.
 
+**Status 2026-08-25:** P2H-01 … P2H-05 have their core implemented on `docs/harness-review-fixes`
+(no PR yet); each ticket's "Status" section lists what remains before it can be marked merged.
+
 | Id | Track | Depends on | Ticket |
 |---|---|---|---|
 | P2H-01 | FE + BE | — | [Silence and disengagement escalation](P2H-01-silence-escalation.md) |

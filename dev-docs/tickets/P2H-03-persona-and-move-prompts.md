@@ -8,6 +8,7 @@
 | **Blocks** | P2H-04, P2H-05, P2H-07, P2H-11, P2H-14 |
 | **Parallel-safe with** | P2H-01, P2H-08, P2H-10, P2H-12 |
 | **Size** | M |
+| **Status** | 🟡 Core implemented on branch `docs/harness-review-fixes` (commits `ab1ef4b`, `ccba913`), no PR yet. |
 
 ## Why
 
@@ -82,6 +83,11 @@ line of defence, the guard the second.
   `privacy/__fixtures__` proves the persona holds.
 - `SHOW` captions must not describe the visual ("here is a number line") but say what to do.
 - Token budget: persona + register + examples ≤ 1,200 tokens; measured in a test.
+
+## Status (2026-08-25)
+
+- Done: `aria.persona.ts` + band registers, single `respond` prompt with per-move/approach instructions, `turn-content.service.ts` generates every spoken move through it, prompt-injection-safe dialogue block.
+- Remaining: `aria.md` + human review, per-kind provider-call test, register checks over the golden set, rubric ≥ 80%, prompt id/version on every generation, token-budget test.
 
 ## Acceptance criteria
 

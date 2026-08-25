@@ -8,6 +8,7 @@
 | **Blocks** | P2H-06, P3-05, P2H-14 |
 | **Parallel-safe with** | P2H-04, P2H-07, P2H-08, P2H-10, P2H-12 |
 | **Size** | M |
+| **Status** | 🟡 Core implemented on branch `docs/harness-review-fixes` (commits `ab1ef4b`, `ccba913`), no PR yet. |
 
 ## Why
 
@@ -81,6 +82,11 @@ re-ask is the same item, not a new one; `attempts` is not incremented by a detou
 - Model classifier timeout → rules result stands; logged.
 - `expects: 'tap' | 'choice'` and the child speaks → still classified (a spoken "the red one"
   is an `ANSWER` mapped to a choice by the grader if unambiguous).
+
+## Status (2026-08-25)
+
+- Done: rules classifier (`ANSWER`/`QUESTION`/`CONFUSED`/`CHAT`/`STOP_REQUEST`), wired into `teaching-policy` for text and voice, `QUESTION`/`CHAT` detours re-ask without counting an attempt, `STOP_REQUEST` → BREAK.
+- Remaining: 60-utterance fixture, model classifier + budget fallback, `PERSONAL_INFO` path, safety-before-intent order test, golden scenario.
 
 ## Acceptance criteria
 

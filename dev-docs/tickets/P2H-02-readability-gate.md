@@ -8,6 +8,7 @@
 | **Blocks** | P2H-03, P2H-11, P2H-13 |
 | **Parallel-safe with** | P2H-01, P2H-05, P2H-08, P2H-10, P2H-12 |
 | **Size** | M |
+| **Status** | 🟡 Core implemented on branch `docs/harness-review-fixes` (commits `ab1ef4b`, `ccba913`), no PR yet. |
 
 ## Why
 
@@ -86,6 +87,11 @@ line and a metric.**
   cache keys already include band (P0-20).
 - Syllable counter unknown word → estimate from vowel groups; exceptions table covers the
   common silent-e and `-le` cases; test corpus of 300 words with known counts, ≥ 97% exact.
+
+## Status (2026-08-25)
+
+- Done: syllable counter, per-band readability thresholds, banned-tone list, `level.check.ts` rewritten off the wordlists, unit tests.
+- Remaining: golden-set pass-rate/regression list, structured rejection log + `gate_rejections_total`, `fallback_used_total{reason}`, alert rule, `decodable` exclusion, syllable fixture accuracy, wordlist-import lint rule.
 
 ## Acceptance criteria
 
