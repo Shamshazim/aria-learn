@@ -38,8 +38,14 @@ function reteachText(approach: string): string {
     : 'We can try a different way.';
 }
 
+const SAY_FALLBACKS: Readonly<Record<string, string>> = {
+  'confirm-spoken-answer': 'I did not catch that. Can you say it again?',
+  'answer-question': 'Good thinking to ask. We can find out together as we go.',
+  'acknowledge-chat': 'Thanks for telling me. Now back to our question.',
+  'reask-short': 'No rush. What do you think the answer is?',
+  'check-in': 'Are you still there? Say or tap something so I know.',
+};
+
 function sayText(approach: string): string {
-  return approach === 'confirm-spoken-answer'
-    ? 'I am not sure I heard that. Please say it again.'
-    : 'I can help. Let us look together.';
+  return SAY_FALLBACKS[approach] ?? 'I can help. We can look at it together.';
 }

@@ -83,15 +83,36 @@ function literalRule(kind: IdentifierKind, value: string): IdentifierRule {
   };
 }
 
-function fullNameRules(fullName: string | undefined): readonly IdentifierRule[] {
+export type IdentifierRuleOptions = Readonly<{
+  /** P2H-04: the first-name token stays; the full name and every other part are still redacted. */
+  allowFirstName: boolean;
+}>;
+
+export function firstNameOf(fullName: string | undefined): string | undefined {
+  const first = fullName?.trim().split(/\s+/u)[0];
+  return first === undefined || first.length < 3 ? undefined : first;
+}
+
+function fullNameRules(
+  fullName: string | undefined,
+  options: IdentifierRuleOptions,
+): readonly IdentifierRule[] {
   if (fullName === undefined || fullName.trim() === '') return [];
 
   const name = fullName.trim();
   const parts = name.split(/\s+/u).filter((part) => part.length >= 2);
-  return [name, ...parts].map((value) => literalRule('full_name', value));
+  const first = options.allowFirstName ? firstNameOf(name) : undefined;
+  if (first === undefined) return [name, ...parts].map((value) => literalRule('full_name', value));
+  if (parts.length <= 1) return [];
+  return [name, ...parts.filter((part) => part !== first)].map((value) =>
+    literalRule('full_name', value),
+  );
 }
 
-export function createIdentifierRules(identifiers: RawIdentifiers): readonly IdentifierRule[] {
+export function createIdentifierRules(
+  identifiers: RawIdentifiers,
+  options: IdentifierRuleOptions = { allowFirstName: false },
+): readonly IdentifierRule[] {
   const known: readonly [IdentifierKind, string | undefined][] = [
     ['school', identifiers.school],
     ['address', identifiers.address],
@@ -103,5 +124,5 @@ export function createIdentifierRules(identifiers: RawIdentifiers): readonly Ide
     value === undefined || value.trim() === '' ? [] : [literalRule(kind, value.trim())],
   );
 
-  return [...fullNameRules(identifiers.fullName), ...knownRules, ...GENERIC_RULES];
+  return [...fullNameRules(identifiers.fullName, options), ...knownRules, ...GENERIC_RULES];
 }

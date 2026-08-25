@@ -11,6 +11,7 @@ const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST'; ve
     hint: { tier: 'FAST' },
     'memory-proposals': { tier: 'TEACH' },
     'practice-item': { tier: 'TEACH', version: '1.1.0' },
+    respond: { tier: 'TEACH' },
   };
 const PROMPT_NAMES = [
   'classify-safety',
@@ -19,6 +20,7 @@ const PROMPT_NAMES = [
   'hint',
   'memory-proposals',
   'practice-item',
+  'respond',
 ] as const satisfies readonly PromptName[];
 
 describe('promptRegistry', () => {

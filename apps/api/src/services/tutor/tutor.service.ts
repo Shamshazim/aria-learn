@@ -1,5 +1,6 @@
 import type { TutorInputEvent, TutorMove } from '@aria/shared';
 import {
+  classifyIntent,
   createTeachingPolicy,
   createTutorHarness,
   type TutorHarness,
@@ -44,6 +45,10 @@ function buildHarness(
       Promise.resolve(
         createTeachingPolicy<ApiModelContext>({
           gradeAnswer: (answer) => grade(answer, context.modelContext, context.session.skillCode),
+          classifyIntent: (utterance) =>
+            classifyIntent(utterance.kind === 'ANSWER' ? (utterance.text ?? '') : utterance.text, {
+              answerKey: context.modelContext.answerKey,
+            }).intent,
           sessionLimitMs: (band) => deps.sessionLimitMs(band),
           now: () => deps.clock.now(),
         })(context, event),

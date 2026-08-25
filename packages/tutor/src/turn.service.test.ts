@@ -70,6 +70,7 @@ function ports(log: string[], proposed: MovePlan = FALLBACK): TutorPorts<ModelCo
           startedAt: new Date('2026-08-24T19:55:00.000Z'),
           attempts: 0,
           consecutiveWrong: 0,
+          consecutiveSilences: 0,
           repeatedMisconception: null,
           lastApproach: null,
           unmetPrerequisite: null,

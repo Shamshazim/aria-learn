@@ -6,6 +6,7 @@ import type {
   ContextCategory,
   RawLearnerContext,
   ScrubbedContext,
+  ScrubbedDialogueTurn,
   ScrubbedLearnerContext,
   ScrubbedLearnerMemory,
   ScrubOptions,
@@ -48,6 +49,17 @@ function scrubMemory(
   return memory.length === 0 ? undefined : Object.freeze(memory);
 }
 
+function scrubDialogue(
+  raw: RawLearnerContext,
+  rules: readonly IdentifierRule[],
+): readonly ScrubbedDialogueTurn[] | undefined {
+  const turns = (raw.recentDialogue ?? [])
+    .map((turn) => ({ speaker: turn.speaker, text: redactText(turn.text, rules) }))
+    .filter((turn) => turn.text !== '')
+    .map((turn) => Object.freeze(turn));
+  return turns.length === 0 ? undefined : Object.freeze(turns);
+}
+
 function scrubPseudonym(
   raw: RawLearnerContext,
   options: ScrubOptions,
@@ -65,6 +77,7 @@ function contextCategories(value: ScrubbedLearnerContext): readonly ContextCateg
   if (value.recentEvidence !== undefined) categories.push('recent_evidence');
   if (value.learnerMemory !== undefined) categories.push('learner_memory');
   if (value.pseudonymousFirstName !== undefined) categories.push('pseudonymous_first_name');
+  if (value.recentDialogue !== undefined) categories.push('recent_dialogue');
   return Object.freeze(categories);
 }
 
@@ -74,17 +87,21 @@ export function scrubLearnerContext(
   options: ScrubOptions,
 ): ScrubbedContext {
   assertContextWithinBounds(raw);
-  const rules = createIdentifierRules(raw.identifiers);
+  const rules = createIdentifierRules(raw.identifiers, {
+    allowFirstName: options.pseudonym === 'include',
+  });
   const skill = scrubOptional(raw.skill, rules);
   const gradeBand = scrubOptional(raw.gradeBand, rules);
   const recentEvidence = scrubList(raw.recentEvidence, rules);
   const learnerMemory = scrubMemory(raw, rules);
+  const recentDialogue = scrubDialogue(raw, rules);
   const pseudonymousFirstName = scrubPseudonym(raw, options, rules);
   const value: ScrubbedLearnerContext = Object.freeze({
     ...(skill === undefined ? {} : { skill }),
     ...(gradeBand === undefined ? {} : { gradeBand }),
     ...(recentEvidence === undefined ? {} : { recentEvidence }),
     ...(learnerMemory === undefined ? {} : { learnerMemory }),
+    ...(recentDialogue === undefined ? {} : { recentDialogue }),
     ...(pseudonymousFirstName === undefined ? {} : { pseudonymousFirstName }),
   });
 

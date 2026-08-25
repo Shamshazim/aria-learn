@@ -92,6 +92,23 @@ describe('turn content', () => {
     expect(result.moves[1]).toMatchObject({ kind: 'ASK', itemId: 'item-1', attempt: 2 });
   });
 
+  it.each(['answer-question', 'acknowledge-chat', 'reask-short', 'check-in'] as const)(
+    'follows a %s detour with the same question and no extra attempt',
+    async (approach) => {
+      const base = turn('SAY');
+      const result = await serviceWithFallback().resolve({
+        ...base,
+        plan: { ...base.plan, approach },
+        context: {
+          ...base.context,
+          modelContext: { ...base.context.modelContext, latestAsk: askMove() },
+        },
+      });
+      expect(result.moves.map((move) => move.kind)).toEqual(['SAY', 'ASK']);
+      expect(result.moves[1]).toMatchObject({ kind: 'ASK', itemId: 'item-1', attempt: 1 });
+    },
+  );
+
   it.each(['PRAISE', 'REVEAL', 'SWITCH'] as const)(
     'follows %s with a new verified question',
     async (kind) => {
@@ -143,6 +160,7 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
         startedAt: NOW,
         attempts: 1,
         consecutiveWrong: 1,
+        consecutiveSilences: 0,
         repeatedMisconception: null,
         lastApproach: 'single-nudge',
         unmetPrerequisite: null,

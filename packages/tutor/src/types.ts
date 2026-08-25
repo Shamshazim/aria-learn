@@ -10,6 +10,8 @@ export type SessionSnapshot = Readonly<{
   startedAt: Date;
   attempts: number;
   consecutiveWrong: number;
+  /** `SILENCE` events since the child last did anything (P2H-01). */
+  consecutiveSilences: number;
   repeatedMisconception: string | null;
   lastApproach: string | null;
   unmetPrerequisite: string | null;

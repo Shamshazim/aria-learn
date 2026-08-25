@@ -8,8 +8,8 @@ import type { ReliableContentService } from '@/content/content.service';
 import type { ScrubbedContext } from '@/privacy';
 import type { QualityGate } from '@/quality';
 import { arithmeticProblemSchema, type ArithmeticProblem } from '@/quality/arithmetic';
-import { eventText, fallbackText } from '@/services/content/turn-fallback';
-import { responseMove } from '@/services/content/turn-response';
+import { fallbackText } from '@/services/content/turn-fallback';
+import { isDetour, respondInput, responseMove } from '@/services/content/turn-response';
 import type { MoveFactory } from '@/services/moves/move-factory';
 
 export type ApiModelContext = Readonly<{
@@ -183,39 +183,15 @@ async function generateText(
 ): Promise<string | null> {
   if (ai === null) return null;
   try {
-    if (turn.plan.kind === 'HINT') {
-      const result = await ai.run(
-        'hint',
-        {
-          context: turn.context.modelContext.scrubbed,
-          problem:
-            turn.context.modelContext.latestQuestion ??
-            turn.context.session.skillCode ??
-            'practice',
-          learnerAnswer: eventText(turn),
-        },
-        { studentId: turn.context.session.studentId, ...(signal === undefined ? {} : { signal }) },
-      );
-      return result.data.hint;
-    }
-    if (turn.plan.kind === 'SAY' || turn.plan.kind === 'RETEACH') {
-      const result = await ai.run(
-        'explain',
-        {
-          context: turn.context.modelContext.scrubbed,
-          concept: turn.context.session.skillCode ?? turn.context.session.subject,
-          learnerQuestion: eventText(turn) ?? 'Please explain this in a different way.',
-          approach: turn.plan.approach,
-        },
-        { studentId: turn.context.session.studentId, ...(signal === undefined ? {} : { signal }) },
-      );
-      return result.data.explanation;
-    }
+    const result = await ai.run('respond', respondInput(turn), {
+      studentId: turn.context.session.studentId,
+      ...(signal === undefined ? {} : { signal }),
+    });
+    return result.data.text;
   } catch {
     throwIfAborted(signal);
     return null;
   }
-  return null;
 }
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
@@ -258,10 +234,11 @@ async function responseWithContinuation(
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
   const feedback = responseMove(deps.moves(turn.context.session.id), turn, text);
-  if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH') {
+  const detour = isDetour(turn);
+  if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH' || detour) {
     const prior = turn.context.modelContext.latestAsk;
     return {
-      moves: prior === null ? [feedback] : [feedback, retryAsk(deps, turn, prior)],
+      moves: prior === null ? [feedback] : [feedback, retryAsk(deps, turn, prior, !detour)],
       privateEvidence: contextEvidence(turn),
     };
   }
@@ -280,12 +257,13 @@ function retryAsk(
   deps: Parameters<typeof createTurnContentService>[0],
   turn: PlannedTurn<ApiModelContext>,
   prior: Extract<TutorMove, { kind: 'ASK' }>,
+  countAttempt: boolean,
 ): TutorMove {
   return deps.moves(turn.context.session.id).make({
     kind: 'ASK',
     skillId: prior.skillId,
     itemId: prior.itemId,
-    attempt: Math.min(10, prior.attempt + 1),
+    attempt: countAttempt ? Math.min(10, prior.attempt + 1) : prior.attempt,
     vocabularyHint: prior.vocabularyHint,
     speech: prior.speech,
     display: prior.display,

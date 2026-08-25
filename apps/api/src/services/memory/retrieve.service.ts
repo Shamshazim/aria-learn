@@ -1,5 +1,5 @@
 import type { Clock } from '@/lib/clock';
-import type { ScrubbedContext } from '@/privacy';
+import type { RawDialogueTurn, ScrubbedContext } from '@/privacy';
 import type { LearnerMemoryRepository } from '@/repositories/learner-memory.repository';
 import { toScrubbedContext } from '@/services/memory/present/to-context';
 import { applyTokenBudget, estimateTokens } from '@/services/memory/relevance/budget';
@@ -20,6 +20,8 @@ export type MemoryRetrievalService = Readonly<{
       skillCode: string | null;
       identifiers: Parameters<typeof toScrubbedContext>[0]['identifiers'];
       recentEvidence?: readonly string[];
+      recentDialogue?: readonly RawDialogueTurn[];
+      shareFirstName?: boolean;
     }>,
   ): Promise<MemoryRetrieval>;
 }>;
@@ -53,6 +55,8 @@ async function retrieve(
     skillCode: string | null;
     identifiers: Parameters<typeof toScrubbedContext>[0]['identifiers'];
     recentEvidence?: readonly string[];
+    recentDialogue?: readonly RawDialogueTurn[];
+    shareFirstName?: boolean;
   }>,
 ): Promise<MemoryRetrieval> {
   const now = deps.clock.now();
@@ -72,6 +76,8 @@ async function retrieve(
       facts: budgeted.facts,
       identifiers: input.identifiers,
       ...(input.recentEvidence === undefined ? {} : { recentEvidence: input.recentEvidence }),
+      ...(input.recentDialogue === undefined ? {} : { recentDialogue: input.recentDialogue }),
+      ...(input.shareFirstName === undefined ? {} : { shareFirstName: input.shareFirstName }),
     }),
     estimatedTokens,
     factIds: budgeted.facts.map((item) => item.fact.id),

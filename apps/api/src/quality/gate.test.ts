@@ -81,7 +81,7 @@ describe('quality gate', () => {
     if (verdict.verdict === 'fail') {
       expect(verdict.reasons.map((reason) => reason.code)).toEqual([
         'sentence_too_long',
-        'vocabulary',
+        'readability',
       ]);
     }
   });

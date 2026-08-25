@@ -21,6 +21,9 @@ function assertCollectionBounds(raw: RawLearnerContext): void {
   if ((raw.learnerMemory?.length ?? 0) > MAX_CONTEXT_ITEMS) {
     throw new RangeError('Learner memory exceeds the privacy limit.');
   }
+  if ((raw.recentDialogue?.length ?? 0) > MAX_CONTEXT_ITEMS) {
+    throw new RangeError('Recent dialogue exceeds the privacy limit.');
+  }
 }
 
 function assertMemoryCategoryBounds(raw: RawLearnerContext): void {
@@ -38,6 +41,7 @@ function assertContextTextBounds(raw: RawLearnerContext): void {
     raw.pseudonymousFirstName,
     ...(raw.recentEvidence ?? []),
     ...(raw.learnerMemory ?? []).map((fact) => fact.text),
+    ...(raw.recentDialogue ?? []).map((turn) => turn.text),
   ];
   if (contextText.some((value) => value !== undefined && value.length > MAX_CONTEXT_TEXT_LENGTH)) {
     throw new RangeError('Learner context text exceeds the privacy limit.');

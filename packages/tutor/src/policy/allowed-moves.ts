@@ -8,7 +8,7 @@ const BY_EVENT: Readonly<Record<TutorInputEvent['kind'], readonly MoveKind[]>> =
   CONFUSED: ['RETEACH', 'SHOW', 'SWITCH', 'BREAK'],
   SPEECH_PARTIAL: ['SAY'],
   SPEECH_FINAL: ['PRAISE', 'HINT', 'RETEACH', 'SAY'],
-  SILENCE: ['LISTEN', 'BREAK', 'SWITCH'],
+  SILENCE: ['SAY', 'HINT', 'BREAK', 'SWITCH'],
   INTERRUPT: ['SAY', 'LISTEN'],
   BACKCHANNEL: ['SAY'],
   SPEECH_STARTED: ['SAY'],

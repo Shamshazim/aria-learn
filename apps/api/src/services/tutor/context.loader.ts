@@ -2,6 +2,7 @@ import { tutorMoveSchema, type TutorInputEvent } from '@aria/shared';
 import type { LoadedTurnContext } from '@aria/tutor';
 
 import { NotFoundError, ValidationError } from '@/errors';
+import type { RawDialogueTurn } from '@/privacy';
 import { arithmeticProblemSchema } from '@/quality/arithmetic';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
@@ -28,6 +29,8 @@ export function createTutorContextLoader(deps: {
       skillCode: string | null;
       identifiers: Readonly<{ fullName?: string }>;
       recentEvidence?: readonly string[];
+      recentDialogue?: readonly RawDialogueTurn[];
+      shareFirstName?: boolean;
     }>,
   ): Promise<MemoryRetrieval>;
 }): TutorContextLoader {
@@ -55,6 +58,8 @@ async function load(
       band: session.band,
       skillCode,
       identifiers: { fullName: student.displayName },
+      recentDialogue: dialogueWindow(records, session.band),
+      shareFirstName: true,
       ...checkInEvidence(session.plan),
     }),
   ]);
@@ -69,6 +74,7 @@ async function load(
       startedAt: session.startedAt,
       attempts: Math.min(10, consecutiveWrong(records)),
       consecutiveWrong: consecutiveWrong(records),
+      consecutiveSilences: consecutiveSilences(records),
       repeatedMisconception:
         latestEvidenceString(records, 'misconception') ?? skillContext.repeatedMisconception,
       lastApproach: latestEvidenceString(records, 'approach'),
@@ -197,6 +203,38 @@ function consecutiveWrong(records: Awaited<ReturnType<SessionEventRepository['li
     if (record.correct === false) count += 1;
   }
   return count;
+}
+
+/** P2H-01: silences since the child last did anything. Backchannels do not reset the count. */
+function consecutiveSilences(records: Awaited<ReturnType<SessionEventRepository['list']>>): number {
+  let count = 0;
+  for (const record of [...records].reverse()) {
+    if (record.actor !== 'child') continue;
+    if (record.kind === 'SILENCE') count += 1;
+    else if (record.kind !== 'BACKCHANNEL' && record.kind !== 'SPEECH_STARTED') break;
+  }
+  return count;
+}
+
+const DIALOGUE_TURNS: Readonly<Record<string, number>> = { early: 6, middle: 10, senior: 14 };
+
+/** P2H-04: the last few spoken turns, oldest first, for the prompt's conversation block. */
+function dialogueWindow(
+  records: Awaited<ReturnType<SessionEventRepository['list']>>,
+  band: string,
+): readonly RawDialogueTurn[] {
+  return records
+    .filter(
+      (record): record is typeof record & { text: string } =>
+        (record.actor === 'aria' || record.actor === 'child') &&
+        typeof record.text === 'string' &&
+        record.text.trim() !== '',
+    )
+    .slice(-(DIALOGUE_TURNS[band] ?? 10))
+    .map((record) => ({
+      speaker: record.actor === 'aria' ? 'aria' : 'child',
+      text: record.text.slice(0, 500),
+    }));
 }
 
 function latestEvidenceString(

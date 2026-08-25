@@ -7,6 +7,7 @@ export type {
   ContextCategory,
   DisclosureWriter,
   LearnerContextDisclosure,
+  RawDialogueTurn,
   RawIdentifiers,
   RawLearnerContext,
   RawLearnerMemory,

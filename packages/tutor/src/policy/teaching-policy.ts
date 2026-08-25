@@ -1,14 +1,23 @@
 import type { MoveKind, TutorInputEvent } from '@aria/shared';
 
+import { silenceRung } from './silence-ladder';
+
+import type { Intent } from '../intent/intent.types';
 import type { LoadedTurnContext, MovePlan, PolicyDecision } from '../types';
 
+type ChildUtterance = Extract<TutorInputEvent, { kind: 'ANSWER' | 'SPEECH_FINAL' }>;
+
 export type AnswerGrader = (
-  event: Extract<TutorInputEvent, { kind: 'ANSWER' | 'SPEECH_FINAL' }>,
+  event: ChildUtterance,
   skillCode: string | null,
 ) => Readonly<{ correct: boolean; misconception: string | null }> | null;
 
+/** Returns what kind of thing the child said; `null` means "treat it as an answer". */
+export type IntentClassifier = (event: ChildUtterance) => Intent | null;
+
 export function createTeachingPolicy<TModelContext>(input: {
   gradeAnswer: AnswerGrader;
+  classifyIntent?: IntentClassifier;
   sessionLimitMs(band: LoadedTurnContext<TModelContext>['session']['band']): number;
   now(): Date;
 }): (context: LoadedTurnContext<TModelContext>, event: TutorInputEvent) => PolicyDecision {
@@ -43,6 +52,8 @@ function decide<TModelContext>(
         false,
       );
     }
+    const detour = intentDecision(input.classifyIntent?.(event) ?? 'ANSWER', context);
+    if (detour !== null) return detour;
     const graded = input.gradeAnswer(event, context.session.skillCode);
     if (graded === null) {
       return decision(
@@ -53,7 +64,42 @@ function decide<TModelContext>(
     }
     return answerDecision(context, graded);
   }
+  if (event.kind === 'SILENCE') return silenceDecision(context);
   return decision(defaultPlan(context, event), null, event.kind === 'LEAVE');
+}
+
+/** P2H-05: a question, a bit of chat, confusion or "stop" is never graded as a wrong answer. */
+function intentDecision<TModelContext>(
+  intent: Intent,
+  context: LoadedTurnContext<TModelContext>,
+): PolicyDecision | null {
+  if (intent === 'ANSWER') return null;
+  if (intent === 'STOP_REQUEST') {
+    return decision(
+      plan('BREAK', 'child_asked', 'Intent STOP_REQUEST: the child asked to stop.', context),
+      null,
+      true,
+    );
+  }
+  if (intent === 'CONFUSED') {
+    return decision(
+      plan('RETEACH', nextApproach(context), 'Intent CONFUSED: explain another way.', context),
+      null,
+      false,
+    );
+  }
+  const approach = intent === 'QUESTION' ? 'answer-question' : 'acknowledge-chat';
+  return decision(
+    plan('SAY', approach, `Intent ${intent}: respond briefly, then return to the item.`, context),
+    null,
+    false,
+  );
+}
+
+/** P2H-01: silence escalates through the ladder instead of repeating one sentence. */
+function silenceDecision<TModelContext>(context: LoadedTurnContext<TModelContext>): PolicyDecision {
+  const rung = silenceRung(context.session.consecutiveSilences);
+  return decision(plan(rung.kind, rung.approach, rung.reason, context), null, rung.terminal);
 }
 
 function answerDecision<TModelContext>(
