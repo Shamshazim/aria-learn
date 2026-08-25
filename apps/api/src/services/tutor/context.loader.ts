@@ -234,6 +234,8 @@ function dialogueWindow(
     .map((record) => ({
       speaker: record.actor === 'aria' ? 'aria' : 'child',
       text: record.text.slice(0, 500),
+      // The crisis path stamps `evidence.safety`; that turn's words never leave the API.
+      ...(record.evidence.safety === undefined ? {} : { safetyFlagged: true }),
     }));
 }
 

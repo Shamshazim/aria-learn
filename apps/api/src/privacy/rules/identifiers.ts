@@ -124,5 +124,8 @@ export function createIdentifierRules(
     value === undefined || value.trim() === '' ? [] : [literalRule(kind, value.trim())],
   );
 
-  return [...fullNameRules(identifiers.fullName, options), ...knownRules, ...GENERIC_RULES];
+  // Known identifiers first, as whole units. Otherwise a surname rule fires *inside* the
+  // parent's email — "anita.shah@example.test" becomes "anita.[redacted]@example.test" — and
+  // the email rule can no longer match what is left, so the local part crosses the boundary.
+  return [...knownRules, ...fullNameRules(identifiers.fullName, options), ...GENERIC_RULES];
 }

@@ -2,11 +2,17 @@
   "id": "repeated-confusion",
   "title": "Repeated confusion",
   "grade": "4",
-  "description": "Two wrong attempts cause a real change from a verbal hint to a concrete visual reteach.",
+  "description": "Two wrong attempts cause a real change from a verbal hint to a concrete visual reteach, and the reteach names the answer the child actually gave both times.",
   "context": {
     "answerOutcomes": [
-      { "eventId": "evt_wrong_fraction_1", "outcome": "wrong" },
-      { "eventId": "evt_wrong_fraction_2", "outcome": "wrong" }
+      {
+        "eventId": "evt_wrong_fraction_1",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_wrong_fraction_2",
+        "outcome": "wrong"
+      }
     ],
     "learnerFacts": [],
     "affectObservations": [],
@@ -29,7 +35,9 @@
             "at": "2026-08-23T13:00:00Z",
             "protocolVersion": "1.1.0",
             "kind": "HINT",
-            "speech": { "text": "Look at how many equal pieces the whole has." },
+            "speech": {
+              "text": "Look at how many equal pieces the whole has."
+            },
             "display": [],
             "expects": "number",
             "skillId": "math.fraction_parts",
@@ -58,12 +66,16 @@
             "at": "2026-08-23T13:00:06Z",
             "protocolVersion": "1.1.0",
             "kind": "RETEACH",
-            "speech": { "text": "Let's draw one bar and cut it into four equal boxes." },
+            "speech": {
+              "text": "You said five both times, so you're counting the shaded pieces. Let's draw one bar and cut it into four equal boxes."
+            },
             "display": [
               {
                 "type": "visual",
                 "visual": "fraction_bar",
-                "params": { "parts": 4 },
+                "params": {
+                  "parts": 4
+                },
                 "alt": "One bar divided into four equal boxes"
               }
             ],

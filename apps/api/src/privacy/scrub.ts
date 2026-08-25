@@ -1,4 +1,5 @@
 import { assertContextWithinBounds } from '@/privacy/rules/context-policy';
+import { capDialogueTokens, redactFlaggedTurns } from '@/privacy/rules/dialogue-window';
 import { excludeParentRestrictedFacts } from '@/privacy/rules/exclusions';
 import { createIdentifierRules, type IdentifierRule } from '@/privacy/rules/identifiers';
 import { redactText } from '@/privacy/rules/redact';
@@ -53,11 +54,12 @@ function scrubDialogue(
   raw: RawLearnerContext,
   rules: readonly IdentifierRule[],
 ): readonly ScrubbedDialogueTurn[] | undefined {
-  const turns = (raw.recentDialogue ?? [])
+  const turns = redactFlaggedTurns(raw.recentDialogue ?? [])
     .map((turn) => ({ speaker: turn.speaker, text: redactText(turn.text, rules) }))
     .filter((turn) => turn.text !== '')
     .map((turn) => Object.freeze(turn));
-  return turns.length === 0 ? undefined : Object.freeze(turns);
+  const capped = capDialogueTokens(turns);
+  return capped.length === 0 ? undefined : Object.freeze(capped);
 }
 
 function scrubPseudonym(

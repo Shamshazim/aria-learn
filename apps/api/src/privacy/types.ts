@@ -10,7 +10,12 @@ export type ContextCategory =
 
 export type DialogueSpeaker = 'aria' | 'child';
 
-export type RawDialogueTurn = { speaker: DialogueSpeaker; text: string };
+export type RawDialogueTurn = {
+  speaker: DialogueSpeaker;
+  text: string;
+  /** The safety layer flagged this turn. Its text never crosses the vendor boundary (P2H-04). */
+  safetyFlagged?: boolean;
+};
 export type ScrubbedDialogueTurn = Readonly<{ speaker: DialogueSpeaker; text: string }>;
 
 export type RawIdentifiers = {
