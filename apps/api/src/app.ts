@@ -4,15 +4,19 @@ import helmet from 'helmet';
 
 import type { AppConfig } from '@/config';
 import { createHealthController } from '@/controllers/health.controller';
+import { createStatusController } from '@/controllers/status.controller';
 import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
 import type { Logger } from '@/lib/logger';
 import { errorHandler } from '@/middleware/error-handler';
 import { notFound } from '@/middleware/not-found';
+import { operatorOnly } from '@/middleware/operator-only';
 import { requestId } from '@/middleware/request-id';
 import { requestLogger } from '@/middleware/request-logger';
 import { API_PREFIX, createApiRouter } from '@/routes';
+import type { RouterDeps } from '@/routes';
 import { createHealthService } from '@/services/health.service';
+import type { StatusService } from '@/services/status.service';
 
 /**
  * The composition root: it wires dependencies and middleware, and contains no business logic.
@@ -25,9 +29,18 @@ export type AppDeps = {
   logger: Logger;
   clock: Clock;
   ids: IdGenerator;
+  statusService?: StatusService;
+  student?: RouterDeps['student'];
 };
 
-export function createApp({ config, logger, clock, ids }: AppDeps): Express {
+export function createApp({
+  config,
+  logger,
+  clock,
+  ids,
+  statusService,
+  student,
+}: AppDeps): Express {
   const app = express();
 
   // Order matters. A request gets its id before anything can log it, and the error handler
@@ -46,7 +59,18 @@ export function createApp({ config, logger, clock, ids }: AppDeps): Express {
 
   app.use(
     API_PREFIX,
-    createApiRouter({ healthController: buildHealthController({ config, clock }) }),
+    createApiRouter({
+      healthController: buildHealthController({ config, clock }),
+      ...(statusService === undefined || config.statusOperatorToken === undefined
+        ? {}
+        : {
+            status: {
+              controller: createStatusController(statusService),
+              authorize: operatorOnly(config.statusOperatorToken),
+            },
+          }),
+      ...(student === undefined ? {} : { student }),
+    }),
   );
 
   app.use(notFound());

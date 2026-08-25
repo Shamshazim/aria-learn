@@ -1,0 +1,22 @@
+:root {
+  color-scheme: light;
+  --color-canvas: #fff9ef;
+  --color-surface: #ffffff;
+  --color-text: #26221f;
+  --color-muted: #685f58;
+  --color-primary: #6256a5;
+  --color-focus: #1268d6;
+  --color-danger: #a73d34;
+  --color-success: #33752b;
+  --font-family: ui-rounded, 'Avenir Next', system-ui, sans-serif;
+  --font-size-body: 1rem;
+  --font-size-title: clamp(2rem, 7vw, 4rem);
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-6: 3rem;
+  --radius-medium: 1rem;
+  --shadow-card: 0 1rem 3rem rgb(55 44 35 / 12%);
+  --motion-fast: 160ms;
+}

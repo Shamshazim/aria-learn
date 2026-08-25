@@ -38,7 +38,7 @@ type PgErrorShape = {
 };
 
 export function isDatabaseError(error: unknown): error is Error & PgErrorShape {
-  return error instanceof Error && typeof (error as PgErrorShape).code === 'string';
+  return error instanceof Error && 'code' in error && typeof error.code === 'string';
 }
 
 /**

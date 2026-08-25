@@ -1,0 +1,92 @@
+{
+  "id": "arrival-after-absence",
+  "title": "Arrival after an absence",
+  "grade": "4",
+  "description": "A returning learner is welcomed from supported prior-session evidence without being made to feel guilty for the absence.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_regrouping_persistence",
+        "claim": "The learner persisted with regrouping in the prior session.",
+        "evidenceIds": ["session_2026_08_18_event_42"]
+      }
+    ],
+    "affectObservations": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_arrival_absence",
+        "factId": "fact_regrouping_persistence"
+      }
+    ],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_arrival_absence",
+        "at": "2026-08-23T10:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "4"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_welcome_absence",
+            "at": "2026-08-23T10:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "WELCOME",
+            "speech": {
+              "text": "Welcome back. Last time you stayed with regrouping even when it was hard."
+            },
+            "display": [],
+            "expects": "none",
+            "basedOn": ["session_2026_08_18_event_42"]
+          },
+          {
+            "id": "mov_check_in_absence",
+            "at": "2026-08-23T10:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": { "text": "Do you want an easy start or a challenge?" },
+            "display": [],
+            "expects": "text",
+            "about": "difficulty"
+          }
+        ],
+        "evidence": {
+          "assertedFactIds": ["fact_regrouping_persistence"],
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_ready_after_absence",
+        "at": "2026-08-23T10:00:05Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_check_in_absence",
+        "text": "An easy start."
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_recommend_after_absence",
+            "at": "2026-08-23T10:00:05Z",
+            "protocolVersion": "1.1.0",
+            "kind": "RECOMMEND",
+            "speech": { "text": "Let's warm up with a short reading puzzle." },
+            "display": [],
+            "expects": "choice",
+            "subjectId": "reading",
+            "grade": "4",
+            "reason": "A short reading puzzle is a gentle warm-up."
+          }
+        ],
+        "evidence": { "responseOrigin": "scripted" }
+      }
+    }
+  ]
+}

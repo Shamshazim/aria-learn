@@ -1,0 +1,240 @@
+.session-app {
+  --session-violet: #6366f1;
+  --session-violet-deep: #4f46e5;
+  --session-violet-ink: #312e81;
+  --session-blue: #2f73f0;
+  --session-green: #57a94a;
+  --session-amber: #f2b233;
+  --session-purple: #7c5ce0;
+  --session-red: #e23b3b;
+  --session-ground: #f1effc;
+  --session-card: #fff;
+  --session-line: #e6e2f7;
+  --session-ink: #221e3d;
+  --session-ink-soft: #6b6790;
+  --session-ink-faint: #9a96b8;
+  --session-radius-large: 1.5rem;
+  --session-radius-medium: 1rem;
+  --session-radius-small: 0.625rem;
+  --session-shadow: 0 0.5rem 1.75rem rgb(56 42 120 / 10%);
+  --session-ui-font: 'Nunito', system-ui, sans-serif;
+  --session-display-font: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  background: var(--session-ground);
+  color: var(--session-ink);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--session-ui-font);
+  min-height: 100vh;
+}
+
+.session-app[data-band='senior'] {
+  --session-ground: #fafafc;
+  --session-line: #e7e7ee;
+  --session-ink: #1b1b23;
+  --session-ink-soft: #63636f;
+  --session-ink-faint: #9b9ba6;
+  --session-radius-large: 0.75rem;
+  --session-radius-medium: 0.625rem;
+  --session-radius-small: 0.5rem;
+  --session-shadow: 0 0.0625rem 0.125rem rgb(20 20 40 / 5%);
+  --session-ui-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.session-app button,
+.session-app input {
+  font: inherit;
+}
+
+.session-app button {
+  color: inherit;
+  cursor: pointer;
+}
+
+.session-app button:disabled {
+  cursor: default;
+}
+
+.session-layout {
+  align-content: start;
+  display: grid;
+  flex: 1;
+  gap: 1.625rem;
+  padding: 1.625rem;
+}
+
+.session-layout--early {
+  align-items: center;
+  grid-template-columns: minmax(13.75rem, 1fr) minmax(0, 2.1fr) 5.625rem;
+}
+
+.session-layout--middle {
+  grid-template-columns: minmax(0, 1fr) 21.25rem;
+  justify-items: center;
+}
+
+.session-layout--middle .session-main {
+  max-width: 47.5rem;
+  width: 100%;
+}
+
+.session-layout--senior {
+  grid-template-columns: minmax(0, 1fr) 23.75rem;
+  padding: 1.375rem 1.625rem;
+}
+
+.session-layout--complete {
+  align-content: center;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  min-height: calc(100vh - 4.25rem);
+}
+
+.session-layout--complete .session-done {
+  margin: 0;
+  width: min(100%, 35rem);
+}
+
+.session-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  min-width: 0;
+}
+
+.session-owl-column {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.session-jar-column {
+  align-self: start;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.375rem;
+}
+
+.session-card {
+  background: var(--session-card);
+  border-radius: var(--session-radius-large);
+  box-shadow: var(--session-shadow);
+  padding: 1.625rem;
+}
+
+.session-layout--senior .session-card {
+  border: 0.0625rem solid var(--session-line);
+  box-shadow: var(--session-shadow);
+  padding: 0;
+}
+
+.session-speech-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.875rem;
+}
+
+.session-speech {
+  background: #efecfd;
+  border-radius: 1.25rem;
+  flex: 1;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+  padding: 1rem 1.375rem;
+  position: relative;
+}
+
+.session-speech::after {
+  background: #efecfd;
+  border-radius: 0.1875rem;
+  content: '';
+  height: 1.125rem;
+  left: -0.5625rem;
+  position: absolute;
+  top: 1.375rem;
+  transform: rotate(45deg);
+  width: 1.125rem;
+}
+
+.session-layout--early .session-speech {
+  font-family: var(--session-display-font);
+  font-size: clamp(1.75rem, 3vw, 2.125rem);
+  text-align: center;
+}
+
+.session-layout--early .session-speech::after {
+  display: none;
+}
+
+.session-layout--middle .session-speech {
+  font-size: 1.1875rem;
+}
+
+.speech-replay {
+  background: var(--session-violet);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: var(--session-shadow);
+  color: #fff;
+  display: grid;
+  flex: none;
+  height: 3.25rem;
+  place-items: center;
+  width: 3.25rem;
+}
+
+.speech-replay:disabled {
+  opacity: 0.72;
+}
+
+@media (max-width: 67.5rem) {
+  .session-layout,
+  .session-layout--early,
+  .session-layout--middle,
+  .session-layout--senior {
+    grid-template-columns: 1fr;
+  }
+
+  .session-owl-column,
+  .session-jar-column {
+    display: none;
+  }
+  .session-layout--early .session-owl-column {
+    display: flex;
+    order: -1;
+  }
+  .session-layout--early .session-owl-column .aria-owl {
+    height: auto;
+    max-width: 100%;
+  }
+  .session-layout--early .session-jar-column {
+    display: flex;
+    position: fixed;
+    right: 1rem;
+    top: 6rem;
+    z-index: 2;
+  }
+  .level-progress {
+    display: none;
+  }
+}
+
+@media (max-width: 42rem) {
+  .session-topbar {
+    padding: 0.75rem 0.875rem;
+  }
+  .session-topbar__middle,
+  .level-chip,
+  .session-topbar__right > span:first-child {
+    display: none;
+  }
+  .session-layout {
+    padding: 1rem;
+  }
+  .session-layout--early .session-jar-column {
+    display: none;
+  }
+  .session-layout--early .session-speech {
+    font-size: 1.625rem;
+  }
+}

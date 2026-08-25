@@ -1,0 +1,80 @@
+{
+  "id": "changed-preference",
+  "title": "Changed preference",
+  "grade": "5",
+  "description": "Aria acknowledges that an old supported preference can change and follows the learner's current choice.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_space_story_preference",
+        "claim": "The learner previously preferred space stories.",
+        "evidenceIds": ["session_2026_08_20_event_18"]
+      }
+    ],
+    "affectObservations": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_preference_arrival",
+        "factId": "fact_space_story_preference"
+      }
+    ],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_preference_arrival",
+        "at": "2026-08-23T14:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "5"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_preference_check",
+            "at": "2026-08-23T14:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": {
+              "text": "Do space stories still sound fun, or should we choose something new?"
+            },
+            "display": [],
+            "expects": "text",
+            "about": "preference"
+          }
+        ],
+        "evidence": {
+          "assertedFactIds": ["fact_space_story_preference"],
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_preference_changed",
+        "at": "2026-08-23T14:00:05Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_preference_check",
+        "text": "I want mysteries now."
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_preference_accept",
+            "at": "2026-08-23T14:00:05Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": { "text": "Mysteries it is. You can always change what you like." },
+            "display": [],
+            "expects": "none",
+            "skillId": "reading.inference"
+          }
+        ],
+        "evidence": { "responseOrigin": "scripted" }
+      }
+    }
+  ]
+}

@@ -1,10 +1,15 @@
+import { AiConfigError, loadAiConfig } from '@/ai/provider';
+import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
 import { readConfigOrExit } from '@/config';
-import { closePool, createPool, verifyConnection } from '@/db';
+import { createInventoryService } from '@/curriculum';
+import { closePool, createPool, runMigrations, verifyConnection } from '@/db';
 import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
+import { createPhase1Runtime } from '@/phase1/runtime';
+import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
 
 import type { Server } from 'node:http';
 import type { Pool } from 'pg';
@@ -16,13 +21,50 @@ import type { Pool } from 'pg';
  * the port opens, so a broken deployment stops here — never later, in front of a child.
  */
 export async function start(): Promise<void> {
+  const aiConfig = readAiConfigOrExit();
   const config = readConfigOrExit();
+  // Authored graph defects must stop boot before the API can serve curriculum.
+  createInventoryService();
   const logger = createLogger({ level: config.logLevel });
 
   const pool = createPool(config.database, logger);
   await verifyConnectionOrExit(pool, logger);
+  await runMigrations({ pool, logger });
 
-  const app = createApp({ config, logger, clock: systemClock, ids: uuidGenerator });
+  let ai: Awaited<ReturnType<typeof createAiRuntime>>;
+  try {
+    ai = await createAiRuntime({
+      aiConfig,
+      appConfig: config,
+      db: pool,
+      ids: uuidGenerator,
+      clock: systemClock,
+      logger,
+      fetch: globalThis.fetch,
+    });
+  } catch (error) {
+    logger.fatal({ err: error }, 'AI endpoint startup checks failed; refusing to start');
+    await closePool(pool, logger);
+    throw error;
+  }
+
+  const app = createApp({
+    config,
+    logger,
+    clock: systemClock,
+    ids: uuidGenerator,
+    statusService: ai.status,
+    student: await createPhase1Runtime({
+      pool,
+      ai: ai.client,
+      spend: ai.spend,
+      config,
+      ids: uuidGenerator,
+      clock: systemClock,
+      logger,
+      access: createConfiguredStudentAccess(config),
+    }),
+  });
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
   });
@@ -35,10 +77,19 @@ export async function start(): Promise<void> {
   });
 }
 
-/**
- * A database the process cannot reach is a failed boot, not a degraded service. Exiting lets
- * an orchestrator restart or roll back; serving 500s would look like success to it.
- */
+function readAiConfigOrExit(): ReturnType<typeof loadAiConfig> {
+  try {
+    return loadAiConfig(process.env);
+  } catch (error) {
+    if (error instanceof AiConfigError) {
+      process.stderr.write(`${error.message}\n`);
+      process.exit(1);
+    }
+    throw error;
+  }
+}
+
+/** A database the process cannot reach is a failed boot, not a degraded service. */
 async function verifyConnectionOrExit(pool: Pool, logger: Logger): Promise<void> {
   try {
     await verifyConnection(pool);

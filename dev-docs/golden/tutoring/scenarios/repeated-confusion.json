@@ -1,0 +1,82 @@
+{
+  "id": "repeated-confusion",
+  "title": "Repeated confusion",
+  "grade": "4",
+  "description": "Two wrong attempts cause a real change from a verbal hint to a concrete visual reteach.",
+  "context": {
+    "answerOutcomes": [
+      { "eventId": "evt_wrong_fraction_1", "outcome": "wrong" },
+      { "eventId": "evt_wrong_fraction_2", "outcome": "wrong" }
+    ],
+    "learnerFacts": [],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_wrong_fraction_1",
+        "at": "2026-08-23T13:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_fraction_ask_1",
+        "text": "5"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_fraction_hint",
+            "at": "2026-08-23T13:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "HINT",
+            "speech": { "text": "Look at how many equal pieces the whole has." },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.fraction_parts",
+            "attempt": 1
+          }
+        ],
+        "evidence": {
+          "approachId": "denominator-verbal-cue",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_wrong_fraction_2",
+        "at": "2026-08-23T13:00:06Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_fraction_ask_2",
+        "text": "5"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_fraction_reteach",
+            "at": "2026-08-23T13:00:06Z",
+            "protocolVersion": "1.1.0",
+            "kind": "RETEACH",
+            "speech": { "text": "Let's draw one bar and cut it into four equal boxes." },
+            "display": [
+              {
+                "type": "visual",
+                "visual": "fraction_bar",
+                "params": { "parts": 4 },
+                "alt": "One bar divided into four equal boxes"
+              }
+            ],
+            "expects": "none",
+            "skillId": "math.fraction_parts",
+            "misconception": "The learner is counting marked pieces instead of all equal parts."
+          }
+        ],
+        "evidence": {
+          "approachId": "fraction-bar-visual",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

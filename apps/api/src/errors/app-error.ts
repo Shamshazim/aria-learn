@@ -43,6 +43,12 @@ export class NotFoundError extends AppError {
   }
 }
 
+export class ForbiddenError extends AppError {
+  constructor(logMessage: string) {
+    super(ERROR_CODES.FORBIDDEN, 403, 'You cannot access that.', { logMessage });
+  }
+}
+
 /**
  * A uniqueness or invariant the store already holds. The safe message names nothing about
  * which row collided: the colliding value is usually the very thing we must not disclose.

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PROTOCOL_VERSION } from '../../version';
+import { SUPPORTED_PROTOCOL_VERSIONS } from '../../version';
 
 /**
  * The primitives every event and every move is built from.
@@ -17,11 +17,12 @@ export const sessionIdSchema = z.string().min(1).max(MAX_ID_LENGTH).brand<'Sessi
 export type SessionId = z.infer<typeof sessionIdSchema>;
 
 export const messageIdSchema = z.string().min(1).max(MAX_ID_LENGTH);
+export const sequenceSchema = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
 
 /** ISO-8601 in UTC. `offset: false` rejects `+05:30`, so every timestamp is comparable. */
 export const timestampSchema = z.iso.datetime({ offset: false });
 
-export const protocolVersionSchema = z.literal(PROTOCOL_VERSION);
+export const protocolVersionSchema = z.enum(SUPPORTED_PROTOCOL_VERSIONS);
 
 /**
  * The fields on every event and move.
@@ -35,6 +36,8 @@ export const envelopeShape = {
   at: timestampSchema,
   sessionId: sessionIdSchema.optional(),
   protocolVersion: protocolVersionSchema,
+  turnId: messageIdSchema.optional(),
+  connectionEpoch: sequenceSchema.optional(),
 } as const;
 
 export const envelopeSchema = z.object(envelopeShape);
@@ -51,6 +54,7 @@ export const speechSchema = z
   .object({
     text: z.string().min(1).max(2000),
     ssml: z.string().max(8000).optional(),
+    assetId: messageIdSchema.optional(),
   })
   .nullable();
 

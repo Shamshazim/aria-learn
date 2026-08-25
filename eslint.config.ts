@@ -7,13 +7,6 @@ import { configs as tseslintConfigs } from 'typescript-eslint';
 
 import type { Linter } from 'eslint';
 
-/**
- * The standards in `dev-docs/tickets/CODE-STANDARDS.md`, enforced by the tool rather than by
- * reviewers. Every rule below traces to a numbered section of that document; where the reason
- * is not obvious from the rule name, the comment says which section and why.
- */
-
-/** Never linted, never built, never imported. `legacy/` is frozen (AGENT-INSTRUCTIONS §2). */
 const IGNORED = ['node_modules/**', 'legacy/**', '**/dist/**', '**/coverage/**'];
 
 /**
@@ -27,22 +20,61 @@ const FORBIDDEN_IMPORT_PATTERNS = [
     message: 'legacy/ is frozen: never import from it (AGENT-INSTRUCTIONS §2).',
   },
   {
-    // Reaching into another package by path bypasses its public entry point, and with it the
-    // module boundary (§4). Traversing *inside* your own package is fine, so this matches the
-    // workspace layout rather than counting `../` segments.
     group: ['**/apps/*/src/**', '**/packages/*/src/**'],
     message: 'Import another package through @aria/<name>, never by path (§4, §7).',
   },
 ];
 
+const PROVIDER_INTERNAL_IMPORT_PATTERN = {
+  group: ['@/ai/provider/adapters/**', '**/ai/provider/adapters/**'],
+  message: 'Vendor adapters are internal; depend on the routed provider entry point (P0-13).',
+};
+
+const PROVIDER_PUBLIC_IMPORT_RESTRICTION = {
+  name: '@/ai/provider',
+  allowImportNames: [
+    'AiConfig',
+    'AiConfigError',
+    'LoadAiConfigOptions',
+    'LlmResponse',
+    'ModelTier',
+    'aiConfigSchema',
+    'loadAiConfig',
+  ],
+  message: 'Only ai-client.ts may depend on or call the LlmProvider port (P0-14).',
+};
+
+const PROVIDER_COMPOSITION_IMPORT_RESTRICTION = {
+  ...PROVIDER_PUBLIC_IMPORT_RESTRICTION,
+  allowImportNames: [
+    ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
+    'RoutedProviderDependencies',
+    'bootstrapRoutedProvider',
+    'createNamedEndpointProvider',
+    'createRoutedLlmProvider',
+  ],
+};
+
+const PROVIDER_STREAMING_IMPORT_RESTRICTION = {
+  ...PROVIDER_PUBLIC_IMPORT_RESTRICTION,
+  allowImportNames: [
+    ...PROVIDER_PUBLIC_IMPORT_RESTRICTION.allowImportNames,
+    'LlmProvider',
+    'LlmRequest',
+    'StreamChunk',
+  ],
+};
+
+const PROVIDER_PRIVATE_IMPORT_PATTERN = {
+  group: ['@/ai/provider/**', '**/ai/provider/**'],
+  message: 'Provider internals are private to ai/provider and ai-client.ts (P0-14).',
+};
+
 const typeAwareRules: Linter.RulesRecord = {
-  // §1 — `any` is banned in committed code; use `unknown` and narrow.
   '@typescript-eslint/no-explicit-any': 'error',
 
-  // §1 — no `!` to silence the compiler; narrow, or make the type honest.
   '@typescript-eslint/no-non-null-assertion': 'error',
 
-  // §1 — exported functions get explicit return types; inference inside a body is fine.
   '@typescript-eslint/explicit-module-boundary-types': 'error',
 
   // §1 — `verbatimModuleSyntax` requires type-only imports to be spelled as such.
@@ -142,8 +174,6 @@ export default defineConfig([
   },
 
   {
-    // Config files compose tools rather than application layers, so the boundary rule that
-    // keeps an app from reaching outside its package does not apply to them.
     files: ['*.config.ts'],
     rules: { 'no-restricted-imports': 'off' },
   },
@@ -159,6 +189,106 @@ export default defineConfig([
   },
 
   {
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    ignores: ['apps/web/src/api/client.ts', 'apps/web/src/**/*.test.*', 'apps/web/src/test/**'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        { name: 'fetch', message: 'Use the typed API client instead of fetch (P0-05).' },
+      ],
+    },
+  },
+
+  {
+    files: ['apps/api/src/**/*.ts'],
+    ignores: [
+      'apps/api/src/ai/provider/**/*.ts',
+      'apps/api/src/ai/client/ai-client.ts',
+      'apps/api/src/ai/streaming/**/*.ts',
+      'apps/api/src/ai/runtime.ts',
+      'apps/api/src/testing/golden/live-source.ts',
+      'apps/api/src/server.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [PROVIDER_PUBLIC_IMPORT_RESTRICTION],
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: [
+      'apps/api/src/server.ts',
+      'apps/api/src/ai/runtime.ts',
+      'apps/api/src/testing/golden/live-source.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [PROVIDER_COMPOSITION_IMPORT_RESTRICTION],
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: ['apps/api/src/ai/client/ai-client.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    files: ['apps/api/src/ai/streaming/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [PROVIDER_STREAMING_IMPORT_RESTRICTION],
+          patterns: [
+            ...FORBIDDEN_IMPORT_PATTERNS,
+            PROVIDER_INTERNAL_IMPORT_PATTERN,
+            PROVIDER_PRIVATE_IMPORT_PATTERN,
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    // P0-23: the brand is constructed once in scrub.ts. Type-aware assertion checking catches
+    // aliases and indirect type expressions, not just the written name `ScrubbedContext`.
+    files: ['apps/api/src/**/*.ts'],
+    ignores: ['apps/api/src/privacy/scrub.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-type-assertion': 'error',
+    },
+  },
+
+  {
     // `describe` and `it` read as blocks, not as functions, and the 60-line ceiling exists to
     // stop a function doing several jobs — which a suite is supposed to do. The 300-line file
     // rule still applies, so a suite that grows past that still has to be split (P0-04).
@@ -166,6 +296,5 @@ export default defineConfig([
     rules: { 'max-lines-per-function': 'off' },
   },
 
-  // Last, so formatting never fights the rules above (§7).
   prettier,
 ]);

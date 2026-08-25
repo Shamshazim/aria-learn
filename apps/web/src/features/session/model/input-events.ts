@@ -1,0 +1,57 @@
+import {
+  PROTOCOL_VERSION,
+  tutorInputEventSchema,
+  type Grade,
+  type TutorInputEvent,
+} from '@aria/shared';
+
+export type EventPayload =
+  | Readonly<{ kind: 'ARRIVED'; grade: Grade }>
+  | Readonly<{
+      kind: 'SUBJECT_CHOSEN';
+      subjectId: string;
+      grade: Grade;
+      fromRecommendation: boolean;
+    }>
+  | Readonly<{ kind: 'ANSWER'; respondsTo: string; text: string }>
+  | Readonly<{ kind: 'QUESTION'; text: string }>
+  | Readonly<{ kind: 'CONFUSED'; aboutMoveId?: string }>
+  | Readonly<{ kind: 'SPEECH_PARTIAL'; text: string }>
+  | Readonly<{ kind: 'SPEECH_FINAL'; text: string }>
+  | Readonly<{ kind: 'SILENCE'; waitedMs: number; afterMoveId?: string }>
+  | Readonly<{ kind: 'INTERRUPT'; interruptedMoveId?: string }>
+  | Readonly<{ kind: 'BACKCHANNEL' }>
+  | Readonly<{ kind: 'SPEECH_STARTED' }>
+  | Readonly<{ kind: 'MEDIA_LOST' }>
+  | Readonly<{ kind: 'MEDIA_RESTORED' }>
+  | Readonly<{ kind: 'PAUSE' }>
+  | Readonly<{ kind: 'RESUME' }>
+  | Readonly<{ kind: 'LEAVE'; reason: 'done' | 'navigated_away' | 'disconnected' }>;
+
+export type EventFactory = (payload: EventPayload) => TutorInputEvent;
+
+export function questionEvent(text?: string): EventPayload {
+  return { kind: 'QUESTION', text: text ?? 'I have a question.' };
+}
+
+export function completedDragEvent(moveId: string): EventPayload {
+  return { kind: 'ANSWER', respondsTo: moveId, text: 'done' };
+}
+
+export const SESSION_ENDED_EVENT: EventPayload = { kind: 'LEAVE', reason: 'done' };
+
+export const SCRIPTED_SPEECH_EVENTS: readonly EventPayload[] = [
+  { kind: 'SPEECH_STARTED' },
+  { kind: 'SPEECH_PARTIAL', text: 'sev' },
+  { kind: 'SPEECH_FINAL', text: 'seven' },
+];
+
+export function createEventFactory(dependencies: { nextId(): string; now(): Date }): EventFactory {
+  return (payload) =>
+    tutorInputEventSchema.parse({
+      id: dependencies.nextId(),
+      at: dependencies.now().toISOString(),
+      protocolVersion: PROTOCOL_VERSION,
+      ...payload,
+    });
+}

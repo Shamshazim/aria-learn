@@ -36,8 +36,18 @@ suite('runMigrations', () => {
       'SELECT version, name, checksum FROM schema_migration ORDER BY version',
     );
 
-    expect(rows.map((row) => row.version)).toEqual(['001']);
+    expect(rows.map((row) => row.version)).toEqual([
+      '001',
+      '002',
+      '003',
+      '004',
+      '005',
+      '006',
+      '007',
+    ]);
     expect(rows[0]?.name).toBe('identity');
+    expect(rows[1]?.name).toBe('ai_generation_log');
+    expect(rows[2]?.name).toBe('content_item');
     expect(rows[0]?.checksum).toMatch(/^[0-9a-f]{64}$/);
   });
 
@@ -45,7 +55,7 @@ suite('runMigrations', () => {
     const outcome = await runMigrations({ pool: database.pool, logger });
 
     expect(outcome.applied).toEqual([]);
-    expect(outcome.skipped).toBe(1);
+    expect(outcome.skipped).toBe(7);
   });
 
   it('stays a no-op when two runs race for the lock', async () => {
@@ -62,7 +72,9 @@ suite('runMigrations', () => {
     await runMigrations({ pool: database.pool, logger });
 
     const { rows } = await database.pool.query<{ count: string }>(
-      "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'",
+      `SELECT count(*) FROM pg_locks
+       WHERE locktype = 'advisory'
+         AND database = (SELECT oid FROM pg_database WHERE datname = current_database())`,
     );
 
     expect(rows[0]?.count).toBe('0');
@@ -117,7 +129,7 @@ suite('the runner refuses a migration that arrives out of order', () => {
   });
 });
 
-suite('the schema migration 001 produced', () => {
+suite('the schema migrations produced', () => {
   let database: TestDatabase;
 
   beforeAll(async () => {

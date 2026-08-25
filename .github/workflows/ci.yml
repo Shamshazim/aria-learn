@@ -62,3 +62,9 @@ jobs:
 
       - name: Typecheck, lint and test
         run: npm run check
+
+      - name: Install browser for visual baseline
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify visual and accessibility baseline
+        run: npm run e2e:baseline -w @aria/web

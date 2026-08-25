@@ -15,12 +15,29 @@ import { defineConfig } from 'vitest/config';
 const EXCLUDED = ['**/node_modules/**', '**/dist/**', 'legacy/**'];
 
 const apiSrc = fileURLToPath(new URL('./apps/api/src', import.meta.url));
+const webSrc = fileURLToPath(new URL('./apps/web/src', import.meta.url));
+const tutorSrc = fileURLToPath(new URL('./packages/tutor/src', import.meta.url));
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: 'v8',
+      include: ['apps/web/src/features/session/model/session-machine.ts'],
+      thresholds: { branches: 100 },
+    },
     // The scaffold ships no tests of its own; the tickets it unblocks add the first ones.
     passWithNoTests: true,
     projects: [
+      {
+        test: {
+          name: 'tutor',
+          root: './packages/tutor',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          exclude: EXCLUDED,
+        },
+        resolve: { alias: { '@': tutorSrc } },
+      },
       {
         test: {
           name: 'shared',
@@ -64,7 +81,9 @@ export default defineConfig({
           environment: 'jsdom',
           include: ['src/**/*.test.{ts,tsx}'],
           exclude: EXCLUDED,
+          setupFiles: ['./src/test/setup.ts'],
         },
+        resolve: { alias: { '@': webSrc } },
       },
     ],
   },

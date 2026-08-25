@@ -195,9 +195,10 @@ and use a new defensive JSON extractor that strips fences and rejects ambiguous 
 - `max_tokens` is **required**.
 - Read `content[0].text`, `usage.input_tokens`, `usage.output_tokens`.
 
-**There is no JSON mode.** Use assistant prefill: append a final message
-`{"role":"assistant","content":"{"}`, then prepend `{` back onto the returned text before
-handing it to `AiClient`. This is reliable and costs nothing.
+**There is no JSON mode.** *Amended by P0-12:* assistant prefill was the original plan, but
+Claude 4.6+ rejects prefill, so the adapter instructs the model to return exactly one JSON
+object and extracts it from the reply (`json-extract.ts`), the same prompt-only path the
+OpenAI-compatible adapter falls back to.
 
 ### 5.3 What both must guarantee
 
@@ -383,7 +384,7 @@ Each step is small and independently shippable. Do not batch them.
    methods, plus config parsed and validated at boot. No calls yet.
 2. **`adapters/openaiCompatible.ts`.** Point the config at one endpoint and make a real
    call.
-3. **`adapters/anthropic.ts`**, with the prefill trick.
+3. **`adapters/anthropic.ts`**, with prompt-instructed JSON (prefill is rejected by Claude 4.6+).
 4. **`routing.ts`** — tier routing, retry, fallback, circuit breaker. It becomes the only
    `LlmProvider` the app sees. Everything else talks to `AiClient`.
 5. **The `ai_cost` migration** and cost accounting in the adapters.

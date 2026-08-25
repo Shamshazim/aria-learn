@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { PROTOCOL_VERSION } from '../version';
 
-import { EVENT_FIXTURES, MOVE_FIXTURES } from './__fixtures__/protocol.fixtures';
-import { EVENT_KINDS, tutorInputEventSchema } from './events';
-import { MOVE_KINDS, tutorMoveSchema } from './moves';
+import {
+  EVENT_FIXTURES,
+  MINIMAL_CURRENT_EVENT_FIXTURE,
+  MOVE_FIXTURES,
+  PREVIOUS_VERSION_EVENT_FIXTURE,
+  PREVIOUS_VERSION_MOVE_FIXTURE,
+} from './__fixtures__/protocol.fixtures';
+import { EVENT_KINDS, tutorInputEventSchema, type EventKind } from './events';
+import { MOVE_KINDS, tutorMoveSchema, type MoveKind } from './moves';
 import { turnResponseSchema } from './session';
 
 /**
@@ -15,10 +21,18 @@ import { turnResponseSchema } from './session';
 const eventEntries = EVENT_KINDS.map((kind) => [kind, EVENT_FIXTURES[kind]] as const);
 const moveEntries = MOVE_KINDS.map((kind) => [kind, MOVE_FIXTURES[kind]] as const);
 
+/** A fixture as a spreadable object, for tests that corrupt one field of a valid payload. */
+const eventOf = (kind: EventKind) => EVENT_FIXTURES[kind] as Record<string, unknown>;
+const moveOf = (kind: MoveKind) => MOVE_FIXTURES[kind] as Record<string, unknown>;
+
+/** Parse, serialise as it would travel, parse again. */
+const roundTrip = <T>(schema: { parse: (input: unknown) => T }, fixture: unknown): T =>
+  schema.parse(JSON.parse(JSON.stringify(schema.parse(fixture))));
+
 describe('the event union', () => {
-  it('declares all twelve kinds from master-plan §4.1', () => {
-    expect(EVENT_KINDS).toHaveLength(12);
-    expect(new Set(EVENT_KINDS).size).toBe(12);
+  it('declares the sixteen text and realtime event kinds', () => {
+    expect(EVENT_KINDS).toHaveLength(16);
+    expect(new Set(EVENT_KINDS).size).toBe(16);
   });
 
   it.each(eventEntries)('parses a valid %s', (kind, fixture) => {
@@ -67,10 +81,107 @@ describe('round trip', () => {
   });
 });
 
+describe('realtime envelope fields', () => {
+  it('round-trips client ordering state on events', () => {
+    const roundTripped = roundTrip(tutorInputEventSchema, EVENT_FIXTURES.SPEECH_STARTED);
+
+    expect(roundTripped).toMatchObject({
+      turnId: 'turn_01',
+      connectionEpoch: 2,
+      acknowledgedSeq: 17,
+    });
+  });
+
+  it('round-trips server ordering and causation state on moves', () => {
+    const roundTripped = roundTrip(tutorMoveSchema, MOVE_FIXTURES.SAY);
+
+    expect(roundTripped).toMatchObject({
+      turnId: 'turn_01',
+      connectionEpoch: 2,
+      serverSeq: 18,
+      causationId: 'evt_final',
+    });
+  });
+});
+
+describe('protocol compatibility', () => {
+  it('bumps the current protocol minor version', () => {
+    expect(PROTOCOL_VERSION).toBe('1.1.0');
+  });
+
+  it('still parses a P0-02 fixture without the optional realtime fields', () => {
+    const parsed = tutorInputEventSchema.parse(PREVIOUS_VERSION_EVENT_FIXTURE);
+
+    expect(parsed.protocolVersion).toBe('1.0.0');
+    expect(parsed).not.toHaveProperty('turnId');
+  });
+
+  it('still parses a P0-02 move, which is what the scripted source emits', () => {
+    const parsed = tutorMoveSchema.parse(PREVIOUS_VERSION_MOVE_FIXTURE);
+
+    expect(parsed.protocolVersion).toBe('1.0.0');
+    expect(parsed).not.toHaveProperty('serverSeq');
+    expect(parsed).not.toHaveProperty('generationId');
+  });
+
+  it('parses a current-version event that omits every optional realtime field', () => {
+    const parsed = tutorInputEventSchema.parse(MINIMAL_CURRENT_EVENT_FIXTURE);
+
+    expect(parsed.protocolVersion).toBe(PROTOCOL_VERSION);
+    expect(parsed).not.toHaveProperty('acknowledgedSeq');
+  });
+});
+
+describe('realtime move controls', () => {
+  it('round-trips resumable audio identity and the client duck reflex', () => {
+    const roundTripped = roundTrip(tutorMoveSchema, MOVE_FIXTURES.SAY);
+
+    expect(roundTripped).toMatchObject({
+      resumeOf: 'mov_interrupted',
+      generationId: 'gen_01',
+      reflexes: { duckOnSpeech: true },
+      speech: { assetId: 'speech_ready_01' },
+    });
+  });
+
+  it('round-trips bounded vocabulary hints on ASK', () => {
+    const roundTripped = roundTrip(tutorMoveSchema, MOVE_FIXTURES.ASK);
+
+    expect(roundTripped).toMatchObject({ vocabularyHint: ['quarters', 'whole'] });
+  });
+
+  it('rejects vocabulary hints on LISTEN so a passage cannot bias reading ASR', () => {
+    const result = tutorMoveSchema.safeParse({
+      ...moveOf('LISTEN'),
+      vocabularyHint: ['The', 'cat', 'sat', 'on', 'the', 'mat'],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['vocabularyHint']);
+  });
+
+  it('rejects a generationId on a move with nothing to say', () => {
+    const result = tutorMoveSchema.safeParse({ ...moveOf('SAY'), speech: null });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['generationId']);
+  });
+
+  it('rejects a client reflex that can cancel speech', () => {
+    const result = tutorMoveSchema.safeParse({
+      ...moveOf('SAY'),
+      reflexes: { duckOnSpeech: true, stopOnSpeech: true },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['reflexes']);
+  });
+});
+
 describe('rejection', () => {
   it('fails an unknown event kind with an error naming the discriminator', () => {
     const result = tutorInputEventSchema.safeParse({
-      ...(EVENT_FIXTURES.PAUSE as Record<string, unknown>),
+      ...eventOf('PAUSE'),
       kind: 'TELEPATHY',
     });
 
@@ -85,7 +196,7 @@ describe('rejection', () => {
 
   it('fails an unknown move kind', () => {
     const result = tutorMoveSchema.safeParse({
-      ...(MOVE_FIXTURES.SAY as Record<string, unknown>),
+      ...moveOf('SAY'),
       kind: 'SHOUT',
     });
 
@@ -95,7 +206,7 @@ describe('rejection', () => {
 
   it('rejects a timestamp carrying an offset, so every `at` is comparable', () => {
     const result = tutorInputEventSchema.safeParse({
-      ...(EVENT_FIXTURES.PAUSE as Record<string, unknown>),
+      ...eventOf('PAUSE'),
       at: '2026-08-22T10:00:00+05:30',
     });
 
@@ -103,17 +214,14 @@ describe('rejection', () => {
   });
 
   it('rejects an ANSWER that carries neither a choice nor text', () => {
-    const { choiceId: _choiceId, ...withoutChoice } = EVENT_FIXTURES.ANSWER as Record<
-      string,
-      unknown
-    >;
+    const { choiceId: _choiceId, ...withoutChoice } = eventOf('ANSWER');
 
     expect(tutorInputEventSchema.safeParse(withoutChoice).success).toBe(false);
   });
 
   it('rejects a protocol version it does not speak', () => {
     const result = tutorInputEventSchema.safeParse({
-      ...(EVENT_FIXTURES.PAUSE as Record<string, unknown>),
+      ...eventOf('PAUSE'),
       protocolVersion: '0.9.0',
     });
 

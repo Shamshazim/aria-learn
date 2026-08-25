@@ -4,7 +4,9 @@ export {
   AppError,
   ValidationError,
   NotFoundError,
+  ForbiddenError,
   ConflictError,
   ServiceUnavailableError,
   isAppError,
 } from './app-error';
+export { MovePlanValidationError, SpendCapExceededError, StreamGateError } from './ai-errors';

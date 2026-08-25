@@ -6,6 +6,7 @@
     "paths": {
       "@aria/shared": ["../../packages/shared/src/index.ts"],
       "@aria/shared/*": ["../../packages/shared/src/*"],
+      "@aria/tutor": ["../../packages/tutor/src/index.ts"],
       "@/*": ["./src/*"]
     }
   },

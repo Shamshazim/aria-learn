@@ -45,8 +45,9 @@ describe('toStudent', () => {
       expect.unreachable('should have thrown');
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(row.id);
-      expect((error as Error).message).not.toContain('year 6');
+      if (!(error instanceof Error)) throw error;
+      expect(error.message).toContain(row.id);
+      expect(error.message).not.toContain('year 6');
     }
   });
 });

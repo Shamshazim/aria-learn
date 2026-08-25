@@ -44,6 +44,7 @@ is wrong.
 | P0-24 | Backend | 13, 15 | [Health checks and status route](P0-24-health-and-status.md) |
 | P0-25 | FE + BE | 09, 13, 20 | [What the child sees when it fails](P0-25-failure-experience.md) |
 | P0-26 | Decision | — | [Identity and accounts](P0-26-decision-identity.md) |
+| P0-27 | Shared | 02 | [Voice protocol amendment](P0-27-voice-protocol-amendment.md) |
 
 > **Phase 0 exit:** the four session screens render in all three bands; scripted arrival,
 > conversation and interruption render without the old `SessionSource` contract; switching
@@ -60,7 +61,7 @@ is wrong.
 | P1-03 | Backend | P0-04, P0-17 | [Skill state and misconceptions](P1-03-skill-state-tables.md) |
 | P1-04 | Backend | 01–03 | [Arrival endpoint](P1-04-arrival-endpoint.md) |
 | P1-05 | Backend | 01 | [Session lifecycle endpoints](P1-05-session-lifecycle-endpoints.md) |
-| P1-06 | Backend | P0-14/18/23, 01, 03, 05 | [The tutor loop engine](P1-06-tutor-loop-engine.md) |
+| P1-06 | Backend | P0-14/18/23/27, 01, 03, 05 | [The tutor loop engine](P1-06-tutor-loop-engine.md) |
 | P1-07 | Backend | P0-18, P0-20, 06 | [Content resolution in the turn](P1-07-content-in-the-loop.md) |
 | P1-08 | Backend | 03, 06 | [Teaching policies](P1-08-teaching-policies.md) |
 | P1-09 | Backend | 01, 02, 06 | [Post-session consolidation](P1-09-consolidation.md) |

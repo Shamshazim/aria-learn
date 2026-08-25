@@ -4,7 +4,7 @@
 |---|---|
 | **Phase** | 1 |
 | **Track** | Backend |
-| **Depends on** | P0-14, P0-18, P0-23, P1-01, P1-03, P1-05 |
+| **Depends on** | P0-14, P0-18, P0-23, P0-27, P1-01, P1-03, P1-05 |
 | **Blocks** | P1-07, P1-08, P1-11, P1-15 |
 | **Parallel-safe with** | P1-09, P1-10, P1-13 |
 | **Size** | L |
@@ -28,7 +28,7 @@ consumes its port.
 ## Design
 
 ```
-apps/api/src/services/tutor/
+packages/tutor/src/                 (amended 2026-08-23 — was apps/api/src/services/tutor/)
   turn.service.ts         the orchestrator. Seven steps, ~80 lines, no branching business
                           rules of its own.
   steps/
@@ -62,6 +62,19 @@ Rules:
 - `turn.service.ts` is an orchestrator: if it grows an `if` about pedagogy, that rule belongs
   in `policy/`.
 
+**Amendment 2026-08-23** (from the `realtime-agent-harness.md` design review):
+- **The harness lives in `packages/tutor`, not in `apps/api`.** `apps/api`'s
+  `POST /session/turn` and the Phase 2 `apps/voice-worker` call the same
+  `TutorHarness.handle(event) → Move[]`. The package depends on `packages/shared` and on
+  ports only; database and provider implementations are injected by the app.
+- **Speculation is side-effect-free by construction.** Steps 1–3 (load, policy, plan) may
+  run on a partial transcript and produce a *draft* only. `record.ts`, `update-state.ts`
+  and any mutating tool run only in the commit step, which re-runs the deterministic checks
+  (grading, `expects` match, intent) on the final input and discards the draft if they
+  disagree. This is enforced by the step signatures: draft steps receive no repository.
+- **`plan-move.ts` returns a structured move plan first** (see P0-19 amendment) which is
+  validated before any content is generated.
+
 ## Acceptance criteria
 
 - [ ] `POST /session/turn` accepts any `TutorInputEvent` and returns one or more `TutorMove`s.
@@ -74,6 +87,10 @@ Rules:
 - [ ] Skill state updates on every graded answer, atomically with the event write.
 - [ ] A provider outage still returns a usable move from cache or fallback.
 - [ ] The P0-22 tutoring scenarios replay against this loop with no scenario changes.
+- [ ] A discarded draft leaves no `session_event`, no evidence and no skill-state change —
+      proven by a test that speculates on "I don't know" and finalises on "I don't know
+      if it is seven".
+- [ ] `packages/tutor` has no import from `apps/*`, enforced by lint.
 
 ## Verification
 
@@ -85,3 +102,4 @@ npm run golden:tutoring -w @aria/api
 ## References
 
 - `master-plan.md` §4.1 (the seven-step turn), §13 Phase 1, §15
+- `realtime-agent-harness.md` — "Speculative planning on partials", "Worker topology"

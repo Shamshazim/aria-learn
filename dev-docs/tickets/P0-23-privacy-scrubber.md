@@ -30,7 +30,8 @@ No parent-facing UI. That is Phase 6; this ticket produces the record it will re
 
 ```
 apps/api/src/privacy/
-  scrub.ts              scrubLearnerContext(raw) -> ScrubbedContext (a branded type)
+  scrub.ts              scrubLearnerContext(raw) -> ScrubbedContext (a branded type),
+                        runtime provenance check, and model-bound text redaction
   rules/
     identifiers.ts      full name, school, address, parent email, phone, exact birthdate
     redact.ts           replacement strategy, deterministic and reversible only in-house
@@ -53,6 +54,11 @@ Rules, verbatim from the plans:
 The guarantee is structural: `AiClient` (P0-14) accepts only `ScrubbedContext`, which can
 only be produced by `scrub.ts`. There is no cast that makes an unscrubbed object acceptable
 without failing lint.
+
+P0-14 integration amendment: `scrub.ts` also exposes `isScrubbedContext` so `AiClient` can
+reject raw runtime input, and `scrubTextForModel` so learner-supplied prompt fields use the
+same identifier rules as the context. These remain privacy-owned operations; prompt modules
+may call them but must not recreate identifier rules.
 
 ## Acceptance criteria
 

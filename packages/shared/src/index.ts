@@ -14,7 +14,21 @@ export type { ProtocolVersion } from './version';
 export { BANDS, GRADES, bandSchema, gradeSchema, bandForGrade, parseGrade } from './band/band';
 export type { Band, Grade } from './band/band';
 
+export type { Misconception, Skill, SkillSubject } from './curriculum';
+
 export * from './protocol/events';
 export * from './protocol/moves';
 export * from './protocol/content';
 export * from './protocol/session';
+export {
+  arrivalResponseSchema,
+  currentSessionResponseSchema,
+  endSessionResponseSchema,
+  sessionStartResponseSchema,
+} from './protocol/schemas/phase1.schema';
+export type {
+  ArrivalResponse,
+  CurrentSessionResponse,
+  EndSessionResponse,
+  SessionStartResponse,
+} from './protocol/schemas/phase1.schema';
