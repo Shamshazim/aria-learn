@@ -99,8 +99,16 @@ them; a candidate equal to any of them is rejected once and re-picked.
 
 ## Status (2026-08-25)
 
-- Done: `silenceRung` ladder (reask → HINT → check-in → BREAK), `consecutiveSilences` in the session snapshot, `SILENCE` row without `LISTEN`, approach-aware fallbacks, policy tests.
-- Remaining: per-band scripted session tests, no-two-identical-texts fuzz, UI/worker timer does not arm on `LISTEN` or while Aria speaks, `BACKCHANNEL`/`SPEECH_PARTIAL` timer semantics, stale-`SILENCE` handling, rung in `session_event.evidence`.
+- **Complete pending review.** Ladder, both channel timers, stale-`SILENCE` handling and rung
+  evidence are implemented and tested on `docs/harness-review-fixes`; no PR yet.
+- Done: `silenceRung` ladder, `consecutiveSilences` in the session snapshot, `SILENCE` row
+  without `LISTEN`, approach-aware fallbacks, `shouldArmSilenceTimer`/`silenceWindowMs` shared
+  by the UI and the worker, `LISTEN` never arms, no countdown while Aria speaks or the tab is
+  hidden, `BACKCHANNEL` cancels without answering, `SPEECH_PARTIAL` restarts, a worker silence
+  timer where there was none, stale-`SILENCE` drop + log, `MovePlan.evidence` carrying the rung
+  into `session_event.evidence`, per-band ladder tests through the real policy and content
+  service, a seeded 50-turn fuzz, and a `SENTENCE_REPEATED` invariant over the P0-22 set.
+- Remaining: nothing in code. Needs the PR and a review.
 
 ## Acceptance criteria
 

@@ -74,8 +74,17 @@ prompt can say "I think you said…".
 
 ## Status (2026-08-25)
 
-- Done: `recentDialogue` in raw/scrubbed context, scrubber redacts dialogue and passes first name only (decision recorded), per-band dialogue window, `renderDialogue`, context loader wiring, pseudonym tests.
-- Remaining: type test that only the scrubber sets `dialogue`/`firstName`, surname/email/address fixture over child turns, 1,500-token cap, safety-flagged turn redaction, parent disclosure entries, `repeated-confusion` golden scenario.
+- **Complete pending review** on `docs/harness-review-fixes`; no PR yet.
+- Done: `recentDialogue` in raw/scrubbed context, per-band window, `renderDialogue`, pseudonym
+  handling, a 1,500-token cap that drops whole turns oldest-first, safety-flagged turns removed
+  from the window entirely rather than redacted word by word, `privacy/disclosure/categories.ts`
+  exhaustive over `ContextCategory` and naming the first name `first_name`, a type test proving
+  a `ScrubbedContext` cannot be hand-built with a dialogue window or a first name, a
+  surname/email/address/school/phone fixture over child turns, and a Continuity dimension in
+  the rubric with `repeated-confusion` as its fixed case.
+- One real leak fixed: the surname rule fired inside the parent's email, leaving the local part
+  intact. Known identifiers are now redacted as whole units first.
+- Remaining: nothing in code. Needs the PR and a review.
 
 ## Acceptance criteria
 

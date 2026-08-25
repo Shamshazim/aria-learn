@@ -85,8 +85,18 @@ re-ask is the same item, not a new one; `attempts` is not incremented by a detou
 
 ## Status (2026-08-25)
 
-- Done: rules classifier (`ANSWER`/`QUESTION`/`CONFUSED`/`CHAT`/`STOP_REQUEST`), wired into `teaching-policy` for text and voice, `QUESTION`/`CHAT` detours re-ask without counting an attempt, `STOP_REQUEST` → BREAK.
-- Remaining: 60-utterance fixture, model classifier + budget fallback, `PERSONAL_INFO` path, safety-before-intent order test, golden scenario.
+- **Complete pending review** on `docs/harness-review-fixes`; no PR yet.
+- Done: rules classifier extended with `PERSONAL_INFO` and `UNCLEAR`, a 60-utterance
+  hand-labelled fixture (rules reach 59/60), the FAST-tier model second pass with a 300 ms
+  budget the classifier enforces itself, `intent_model_fallback_total{reason}`, the full
+  `PERSONAL_INFO` path (fixed per-band text, no model call, marker-only storage, no
+  dialogue-window entry), `turnMoves` naming the safety-before-intent order with a test, a
+  channel-parity test over all 60 utterances, and a `question-mid-lesson` golden scenario.
+- Two real fixes found here: the household-abuse crisis pattern matched "hit" but not "hits",
+  and "can I go now?" was read as a question rather than a request to stop.
+- Remaining: `OFF_TOPIC` is deliberately not built — it needs a three-in-a-row counter in
+  session state, which P2H-05 does not own. Chat that drifts is `CHAT` until then. The ">= 95%
+  with the model" number needs a live provider run.
 
 ## Acceptance criteria
 

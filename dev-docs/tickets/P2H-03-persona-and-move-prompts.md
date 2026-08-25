@@ -86,8 +86,16 @@ line of defence, the guard the second.
 
 ## Status (2026-08-25)
 
-- Done: `aria.persona.ts` + band registers, single `respond` prompt with per-move/approach instructions, `turn-content.service.ts` generates every spoken move through it, prompt-injection-safe dialogue block.
-- Remaining: `aria.md` + human review, per-kind provider-call test, register checks over the golden set, rubric ≥ 80%, prompt id/version on every generation, token-budget test.
+- **Code complete; blocked on two human judgements** on `docs/harness-review-fixes`.
+- Done: `aria.persona.ts` + band registers, `dev-docs/aria.md` as the source of truth with a
+  test asserting character-for-character parity, `move-prompt.map.ts` exhaustive over
+  `MoveKind` by type, a single `respond` prompt, one provider call per spoken move kind
+  (tested), register rules enforced in code for generated prose (senior: no exclamation marks;
+  early: at most two sentences), prompt id + version on every generation, a persona token
+  budget test, and a prompt-injection fixture.
+- Remaining, both human: the `aria.md` review table (a practising TK-8 tutor), and the >= 80%
+  rubric round recorded in `dev-docs/golden/tutoring/scores.md`. Neither can be filled in by a
+  model, and the ticket is not done until they are.
 
 ## Acceptance criteria
 

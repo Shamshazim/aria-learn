@@ -90,8 +90,19 @@ line and a metric.**
 
 ## Status (2026-08-25)
 
-- Done: syllable counter, per-band readability thresholds, banned-tone list, `level.check.ts` rewritten off the wordlists, unit tests.
-- Remaining: golden-set pass-rate/regression list, structured rejection log + `gate_rejections_total`, `fallback_used_total{reason}`, alert rule, `decodable` exclusion, syllable fixture accuracy, wordlist-import lint rule.
+- **Complete pending review** on `docs/harness-review-fixes`; no PR yet.
+- Done: syllable counter (systematic silent-e/`-es`/`-ed`/consonant-`le` rules, >=97% exact on
+  a 175-word reviewed corpus), per-band readability thresholds, banned-tone list,
+  `level.check.ts` off the wordlists, `gate_rejections_total` + one structured log per
+  rejection, `fallback_used_total{move,reason}` with three distinct reasons,
+  `dev-docs/observability/alerts.md`, `decodable` refused by the level check, and a
+  wordlist-import lint rule with a test.
+- The golden-set regression list is `quality/checks/level/__fixtures__/level-corpus.fixture.ts`
+  — 20 sentences that must pass and 9 that must keep failing, each naming its code. Two real
+  threshold bugs were fixed against it (long-word ratio over eight words; FK ceiling a grade
+  too low).
+- Remaining: the ">= 98% on the P0-21 content golden set" number needs a live provider run;
+  the bar is already enforced by `report.ts` (`reading_level` bar 0.98).
 
 ## Acceptance criteria
 
