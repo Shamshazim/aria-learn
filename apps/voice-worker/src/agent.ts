@@ -3,7 +3,6 @@ import {
   defineAgent,
   inference,
   voice,
-  type ChatContext,
   type JobContext,
 } from '@livekit/agents';
 import { RoomEvent, type LocalParticipant } from '@livekit/rtc-node';
@@ -71,7 +70,11 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
     acknowledgement: acknowledgementReady.wait(),
   });
   if (!startup.acknowledged || acknowledgementReady.isClosed()) return;
-  await session.start({ agent: createAriaAgent(moves, finish), room: job.room, record: false });
+  await session.start({
+    agent: createAriaAgent(moves, session, finish),
+    room: job.room,
+    record: false,
+  });
   sessionStarted = true;
   if (acknowledgementReady.isClosed()) {
     finish();
@@ -261,14 +264,25 @@ async function speakPending(
   finishSilentTerminal(moves, finish);
 }
 
-function createAriaAgent(moves: MoveStream, finish: () => void): voice.Agent {
+/**
+ * With `llm: null` the SDK resolves the activity's llm to `undefined` and returns from
+ * `userTurnCompleted` before `llmNode` is ever reached, so transcripts were silently dropped.
+ * `onUserTurnCompleted` runs before that guard; the tutor harness answers from there.
+ */
+function createAriaAgent(
+  moves: MoveStream,
+  session: ReturnType<typeof createAgentSession>,
+  finish: () => void,
+): voice.Agent {
   return voice.Agent.create({
     instructions: 'All child-facing content is supplied by the Aria tutor harness.',
     llm: null,
-    llmNode: async function* (_context, chatContext) {
-      const message = lastUserMessage(chatContext);
-      if (message === null) return;
-      yield* moves.handleTranscript(message.textContent ?? '', message.transcriptConfidence);
+    onUserTurnCompleted: async (_context, _chatContext, message) => {
+      const text = message.textContent ?? '';
+      if (text.trim() === '') return;
+      for await (const reply of moves.handleTranscript(text, message.transcriptConfidence)) {
+        session.say(reply, { allowInterruptions: true });
+      }
       finishSilentTerminal(moves, finish);
     },
   });
@@ -276,14 +290,6 @@ function createAriaAgent(moves: MoveStream, finish: () => void): voice.Agent {
 
 function finishSilentTerminal(moves: MoveStream, finish: () => void): void {
   if (moves.terminalDelivered() && !moves.terminalSpeechPending()) finish();
-}
-
-function lastUserMessage(context: ChatContext) {
-  for (let index = context.items.length - 1; index >= 0; index -= 1) {
-    const item = context.items[index];
-    if (item?.type === 'message' && item.role === 'user') return item;
-  }
-  return null;
 }
 
 function required<T>(value: T | undefined, label: string): T {

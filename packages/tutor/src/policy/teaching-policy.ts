@@ -40,7 +40,11 @@ function decide<TModelContext>(
     );
   }
   if (event.kind === 'ANSWER' || event.kind === 'SPEECH_FINAL') {
-    if (event.kind === 'SPEECH_FINAL' && (event.confidence ?? 0) < 0.75) {
+    if (
+      event.kind === 'SPEECH_FINAL' &&
+      event.confidence !== undefined &&
+      event.confidence < 0.75
+    ) {
       return decision(
         plan(
           'SAY',
@@ -98,7 +102,8 @@ function intentDecision<TModelContext>(
 
 /** P2H-01: silence escalates through the ladder instead of repeating one sentence. */
 function silenceDecision<TModelContext>(context: LoadedTurnContext<TModelContext>): PolicyDecision {
-  const rung = silenceRung(context.session.consecutiveSilences);
+  // The context counts silences already committed; this event is the next one.
+  const rung = silenceRung(context.session.consecutiveSilences + 1);
   return decision(plan(rung.kind, rung.approach, rung.reason, context), null, rung.terminal);
 }
 

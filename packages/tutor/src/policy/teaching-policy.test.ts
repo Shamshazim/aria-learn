@@ -119,6 +119,17 @@ describe('teaching policy', () => {
     });
   });
 
+  it('grades a spoken answer whose provider reports no confidence', () => {
+    const event = tutorInputEventSchema.parse({
+      id: 'voice-event-2',
+      at: '2026-08-24T20:00:00.000Z',
+      protocolVersion: PROTOCOL_VERSION,
+      kind: 'SPEECH_FINAL',
+      text: 'six',
+    });
+    expect(policy(context(0, null), event).graded).not.toBeNull();
+  });
+
   it('reveals after the third same-misconception miss instead of repeating reteach', () => {
     const repeated = {
       ...context(2, 'visual-model'),
@@ -171,7 +182,7 @@ describe('teaching policy', () => {
       kind: 'SILENCE',
       waitedMs: 18_000,
     });
-    const kinds = [1, 2, 3, 4].map((count) => {
+    const kinds = [0, 1, 2, 3].map((count) => {
       const base = context(0, null);
       const quiet = { ...base, session: { ...base.session, consecutiveSilences: count } };
       return policy(quiet, silence);
