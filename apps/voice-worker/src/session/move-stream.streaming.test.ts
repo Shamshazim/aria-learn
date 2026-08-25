@@ -4,13 +4,25 @@ import {
   PROTOCOL_VERSION,
   sessionIdSchema,
   tutorMoveSchema,
+  type Band,
   type VoiceTurnRequest,
   type VoiceTurnResponse,
 } from '@aria/shared';
 
+import { createSpeechRenderer } from '@/voice/speech-renderer';
+
 import { createMoveStream } from './move-stream';
 
+import type { VoiceRoomContext } from './session-context';
+
 const SESSION_ID = sessionIdSchema.parse('11111111-1111-4111-8111-111111111111');
+
+/** P2H-08: a real renderer against a vendor that renders no markup — the default deployment. */
+const RENDERER = createSpeechRenderer({ ttsModel: 'fishaudio/s2.1-pro', hints: {} });
+
+function room(band: Band, connectionEpoch: number): VoiceRoomContext {
+  return { sessionId: SESSION_ID, connectionEpoch, band, pronunciation: {} };
+}
 
 /**
  * P2H-07: the turn as a stream of sentences, closed by the moves they belonged to.
@@ -24,7 +36,7 @@ describe('voice move stream, sentence by sentence', () => {
     const publish = vi.fn(() => Promise.resolve());
     const spoken = move('move-streamed', 1, 'Four plus three is seven. You can count on.');
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'middle' },
+      room: room('middle', 1),
       client: {
         turn: () => Promise.reject(new Error('the streaming path is under test')),
         turnStream: async function* () {
@@ -34,6 +46,7 @@ describe('voice move stream, sentence by sentence', () => {
         },
       },
       publisher: { publish },
+      renderer: RENDERER,
       nextId: () => 'event-streamed',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -48,7 +61,7 @@ describe('voice move stream, sentence by sentence', () => {
 
   it('drops the sentences of an answer the child talked over', async () => {
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'middle' },
+      room: room('middle', 1),
       client: {
         turn: () => Promise.reject(new Error('the streaming path is under test')),
         turnStream: async function* () {
@@ -57,6 +70,7 @@ describe('voice move stream, sentence by sentence', () => {
         },
       },
       publisher: { publish: () => Promise.resolve() },
+      renderer: RENDERER,
       nextId: () => 'event-barge-in',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -70,7 +84,7 @@ describe('voice move stream, sentence by sentence', () => {
   it('stops the API writing an answer the child talked over', async () => {
     let generationSignal: AbortSignal | undefined;
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'middle' },
+      room: room('middle', 1),
       client: {
         turn: () => Promise.reject(new Error('the streaming path is under test')),
         turnStream: async function* (
@@ -84,6 +98,7 @@ describe('voice move stream, sentence by sentence', () => {
         },
       },
       publisher: { publish: () => Promise.resolve() },
+      renderer: RENDERER,
       nextId: () => 'event-abort',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -99,7 +114,7 @@ describe('voice move stream, sentence by sentence', () => {
     const half = move('move-streamed', 1, 'One. Two.');
     let attempt = 0;
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'middle' },
+      room: room('middle', 1),
       client: {
         turn: () => Promise.reject(new Error('the streaming path is under test')),
         turnStream: async function* () {
@@ -114,6 +129,7 @@ describe('voice move stream, sentence by sentence', () => {
         },
       },
       publisher: { publish },
+      renderer: RENDERER,
       nextId: () => 'event-partial',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -131,9 +147,10 @@ describe('voice move stream, sentence by sentence', () => {
       yield { kind: 'TURN_MOVES' as const, turn: response(1, []) };
     });
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'middle' },
+      room: room('middle', 1),
       client: { turn: () => Promise.resolve(response(1, [])), turnStream },
       publisher: { publish: () => Promise.resolve() },
+      renderer: RENDERER,
       nextId: () => 'event-prefix',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });

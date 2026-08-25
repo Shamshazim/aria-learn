@@ -4,13 +4,25 @@ import {
   PROTOCOL_VERSION,
   sessionIdSchema,
   tutorMoveSchema,
+  type Band,
   type VoiceTurnRequest,
   type VoiceTurnResponse,
 } from '@aria/shared';
 
+import { createSpeechRenderer } from '@/voice/speech-renderer';
+
 import { createMoveStream } from './move-stream';
 
+import type { VoiceRoomContext } from './session-context';
+
 const SESSION_ID = sessionIdSchema.parse('11111111-1111-4111-8111-111111111111');
+
+/** P2H-08: a real renderer against a vendor that renders no markup — the default deployment. */
+const RENDERER = createSpeechRenderer({ ttsModel: 'fishaudio/s2.1-pro', hints: {} });
+
+function room(band: Band, connectionEpoch: number): VoiceRoomContext {
+  return { sessionId: SESSION_ID, connectionEpoch, band, pronunciation: {} };
+}
 
 type Turn = (
   sessionId: string,
@@ -39,9 +51,10 @@ describe('voice move stream', () => {
       Promise.resolve(response(1, [move('move-1', 4, 'Try four plus three.')])),
     );
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
+      room: room('early', 1),
       client: client(turn),
       publisher: { publish },
+      renderer: RENDERER,
       nextId: () => 'event-1',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -89,9 +102,10 @@ describe('voice move stream', () => {
     });
     const publish = vi.fn(() => Promise.resolve());
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 2, band: 'middle' },
+      room: room('middle', 2),
       client: client(() => Promise.resolve(response(2, [silent]))),
       publisher: { publish },
+      renderer: RENDERER,
       nextId: () => 'event-2',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -103,9 +117,10 @@ describe('voice move stream', () => {
 
   it('rejects a response from an old connection epoch', async () => {
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 3, band: 'senior' },
+      room: room('senior', 3),
       client: client(() => Promise.resolve(response(2, []))),
       publisher: { publish: () => Promise.resolve() },
+      renderer: RENDERER,
       nextId: () => 'event-3',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -120,9 +135,10 @@ describe('voice move stream', () => {
       .mockResolvedValueOnce(response(4, [move('already-heard', 3, 'Old speech.')]))
       .mockResolvedValueOnce(response(4, [move('new-move', 8, 'New speech.')]));
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 4, band: 'middle' },
+      room: room('middle', 4),
       client: client(turn),
       publisher: { publish },
+      renderer: RENDERER,
       nextId: () => 'event-reconnect',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -139,9 +155,10 @@ describe('voice move stream', () => {
   it('logs a backchannel without grading it as a spoken answer', async () => {
     const turn = vi.fn(() => Promise.resolve(response(1, [move('move-1', 1, 'Keep going.')])));
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
+      room: room('early', 1),
       client: client(turn),
       publisher: { publish: () => Promise.resolve() },
+      renderer: RENDERER,
       nextId: () => 'event-backchannel',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -162,9 +179,10 @@ describe('voice move stream', () => {
     const publish = vi.fn(() => Promise.resolve());
     const turn = vi.fn(() => Promise.resolve(response(1, [pending])));
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
+      room: room('early', 1),
       client: client(turn),
       publisher: { publish },
+      renderer: RENDERER,
       nextId: () => 'event-speech-started',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });
@@ -183,9 +201,10 @@ describe('voice move stream', () => {
       kind: 'END',
     });
     const stream = createMoveStream({
-      room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
+      room: room('early', 1),
       client: client(() => Promise.resolve(response(1, [terminal]))),
       publisher: { publish: () => Promise.resolve() },
+      renderer: RENDERER,
       nextId: () => 'event-terminal',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
     });

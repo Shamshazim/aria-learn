@@ -18,7 +18,7 @@ import { createVoiceConsentService } from '@/services/voice/consent.service';
 import { createLivekitRoomCloser } from '@/services/voice/livekit-room.provider';
 import { createLivekitTokenProvider } from '@/services/voice/livekit-token.provider';
 import { createVoiceMetricsService } from '@/services/voice/metrics.service';
-import { createRealtimeService } from '@/services/voice/realtime.service';
+import { createRealtimeService, NO_PRONUNCIATION_SOURCE } from '@/services/voice/realtime.service';
 import { createWorkerTurnService } from '@/services/voice/worker-turn.service';
 
 type Phase1Runtime = Awaited<ReturnType<typeof createPhase1Runtime>>;
@@ -130,6 +130,8 @@ function buildRealtime(input: {
     rooms: input.rooms,
     lifecycle: input.lifecycle,
     tokens: createLivekitTokenProvider(input.voiceConfig),
+    // P2H-12 stores the parent's spelling; until then nothing is known and nothing is sent.
+    pronunciation: NO_PRONUNCIATION_SOURCE,
     clock: input.deps.clock,
     livekitUrl: input.voiceConfig.livekitUrl,
     region: input.voiceConfig.region,
@@ -168,8 +170,15 @@ function processorMap(
   return {
     media: `LiveKit media transport in ${config.region}; session recording disabled`,
     stt: `LiveKit Inference ${config.sttModel}; child-audio zero-retention terms required`,
-    tts: `LiveKit Inference ${config.ttsModel} voice ${config.ttsVoice}; receives gated text only`,
+    tts: `LiveKit Inference ${config.ttsModel} voices ${describeVoices(config.ttsVoices)}; receives gated text only`,
   };
+}
+
+/** Named per band, so the consent record says which voice a family actually heard (P2H-08). */
+function describeVoices(voices: Readonly<Record<string, string | undefined>>): string {
+  return Object.entries(voices)
+    .map(([band, voice]) => `${band}=${voice ?? 'unset'}`)
+    .join(' ');
 }
 
 function unavailableDeletionPort(): AudioDeletionPort {

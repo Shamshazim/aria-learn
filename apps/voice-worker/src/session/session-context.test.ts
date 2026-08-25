@@ -16,9 +16,34 @@ describe('voice room context', () => {
       sessionId: SESSION_ID,
       connectionEpoch: 2,
       band: 'middle',
+      pronunciation: {},
     });
     expect(() => parseVoiceRoomContext(`aria_${SESSION_ID}_1`, metadata)).toThrow(
       /does not match participant metadata/,
     );
+  });
+
+  it('carries the profile pronunciation hints the token was minted with (P2H-08)', () => {
+    const metadata = JSON.stringify({
+      sessionId: SESSION_ID,
+      connectionEpoch: 2,
+      band: 'early',
+      pronunciation: JSON.stringify({ Siobhan: 'shiv-AWN' }),
+    });
+
+    expect(parseVoiceRoomContext(`aria_${SESSION_ID}_2`, metadata).pronunciation).toEqual({
+      Siobhan: 'shiv-AWN',
+    });
+  });
+
+  it('starts a session with no hints rather than refusing one over a broken hint', () => {
+    const metadata = JSON.stringify({
+      sessionId: SESSION_ID,
+      connectionEpoch: 2,
+      band: 'early',
+      pronunciation: 'not json',
+    });
+
+    expect(parseVoiceRoomContext(`aria_${SESSION_ID}_2`, metadata).pronunciation).toEqual({});
   });
 });

@@ -5,6 +5,7 @@ import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
 import { arithmeticProblemSchema } from '@/quality/arithmetic';
 import { requiredGatedText, throwIfAborted } from '@/services/content/generate-text';
+import { askSpeech } from '@/services/content/personalise';
 import type { ApiModelContext, TurnContentDeps } from '@/services/content/turn-content.types';
 import { responseMove } from '@/services/content/turn-response';
 
@@ -59,7 +60,7 @@ export async function resolveQuestion(
     skillId: skillCode,
     itemId: content.itemId ?? `fallback-${skillCode}`,
     attempt: turn.plan.attempt,
-    speech: { text: body.prompt },
+    speech: askSpeech(body.prompt, turn.context.session.band),
     display,
     expects: body.choices === undefined ? 'text' : 'choice',
   });

@@ -1,55 +1,22 @@
+import { markProsody } from './prosody/markers';
+import { speakQuantities } from './spoken-form/quantities';
+import { speakPlaceValue, speakSymbols } from './spoken-form/symbols';
+
 export type SpokenContext = 'default' | 'phoneme' | 'place-value';
 
-const NUMBER_WORDS: Readonly<Record<string, string>> = {
-  '0': 'zero',
-  '1': 'one',
-  '2': 'two',
-  '3': 'three',
-  '4': 'four',
-  '5': 'five',
-  '6': 'six',
-  '7': 'seven',
-  '8': 'eight',
-  '9': 'nine',
-};
-
-const FRACTION_DENOMINATORS: Readonly<Record<string, string>> = {
-  '2': 'half',
-  '3': 'third',
-  '4': 'fourth',
-  '5': 'fifth',
-  '6': 'sixth',
-  '7': 'seventh',
-  '8': 'eighth',
-  '9': 'ninth',
-  '10': 'tenth',
-};
-
+/**
+ * The written sentence, turned into the sentence Aria says.
+ *
+ * Three things happen here and nowhere else: the author's prosody marks become vendor-neutral
+ * tokens, the characters a child would never say become words, and the numbers are read the
+ * way a person reads them. The result still has no vendor in it — the worker's adapter is what
+ * turns a token into markup or drops it (`prosody/markers.ts`).
+ *
+ * `place-value` reads digits one at a time because that is the lesson; it is the only context
+ * where "12" is not "twelve".
+ */
 export function spokenForm(written: string, context: SpokenContext = 'default'): string {
-  let spoken = written
-    .replace(/\bDr\./gu, 'Doctor')
-    .replace(/\be\.g\./gu, 'for example')
-    .replace(/\b(\d+)\/(\d+)\b/gu, (_, numerator: string, denominator: string) =>
-      speakFraction(numerator, denominator),
-    )
-    .replace(/\/([a-z])\//giu, (_, phoneme: string) => `${phoneme.toLowerCase()} sound`)
-    .replaceAll('×', ' times ')
-    .replaceAll('÷', ' divided by ')
-    .replaceAll('+', ' plus ')
-    .replaceAll('−', ' minus ');
-
-  if (context === 'place-value') {
-    spoken = spoken.replace(/\b\d+\b/gu, (digits) =>
-      Array.from(digits)
-        .map((digit) => NUMBER_WORDS[digit] ?? digit)
-        .join(' '),
-    );
-  }
-  return spoken.replace(/\s+/gu, ' ').trim();
-}
-
-function speakFraction(numerator: string, denominator: string): string {
-  const top = NUMBER_WORDS[numerator] ?? numerator;
-  const base = FRACTION_DENOMINATORS[denominator] ?? `${denominator}th`;
-  return `${top} ${numerator === '1' ? base : `${base}s`}`;
+  const marked = speakSymbols(markProsody(written));
+  const spoken = context === 'place-value' ? speakPlaceValue(marked) : speakQuantities(marked);
+  return spoken.replace(/[^\S\n]{2,}/gu, ' ').trim();
 }

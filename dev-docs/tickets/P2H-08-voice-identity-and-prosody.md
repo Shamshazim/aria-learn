@@ -73,23 +73,65 @@ records which candidate the review used so it can be re-run.
 - `expressive: true` raises first-audio latency → measured in P2H-13; if p95 > 1s the flag
   is per-band configurable.
 
+## Status (2026-08-25)
+
+- **Complete pending review** on `feat/P2H-08-voice-identity-and-prosody`, stacked on
+  `feat/P2H-07-sentence-streaming` (which is itself on `docs/harness-review-fixes`), because
+  neither dependency is on `main` yet.
+- Done: a voice per band with no default and a boot failure when one is missing; `expressive`
+  on; the band's speaking rate sent in the provider's own word for it; `spokenForm` extended to
+  numbers, ordinals, decimals, negatives, money, clock times, percentages, expressions and
+  emphasis/pause marks; a vendor-neutral prosody vocabulary that the worker's vendor adapter
+  renders or strips; a curriculum lexicon; the pronunciation path from the participant token to
+  the engine; emphasis on the key noun of an early-band `ASK`; and `dev-docs/voice-review.md`.
+- Three decisions the ticket did not settle:
+  - **Prosody rides in `speech.prosody`, not in `speech.text`.** The ticket says the display
+    text and the spoken text diverge, and the protocol does allow it — but the web renders
+    `speech.text` as a caption in four places, so a marker in that field would be a marker on
+    screen. A new optional `speech.prosody` carries the marked, already-spoken form; every
+    display path keeps reading `text` and needs no change to stay clean.
+  - **The marker vocabulary is `[[emphasis]]…[[/emphasis]]` and `[[pause:short]]`**, not SSML.
+    SSML is a vendor format and two of the five candidates cannot parse it. Authors write
+    `*word*` and `…`; `spokenForm` converts; `voice/vendor.ts` is the only file that knows what
+    an engine can do with the result.
+  - **The key noun of a question is guessed, and declines to guess twice.** "How many *quarters*
+    make a whole?" leans on the word after "how many", and everything else falls back to the
+    last content word. A word that appears twice in the sentence is left unmarked, because
+    emphasising the wrong one of them is worse than emphasising neither.
+- Deliberately not built:
+  - **The listening review itself.** It needs six people and a provider decision, neither of
+    which is code. `dev-docs/voice-review.md` is the protocol it will be run against and the
+    table it will be written into; §4 and §5 are empty and say so.
+  - **The profile field.** `student.settings.pronunciation` arrives with P2H-12's migration 009,
+    which owns that column. Everything downstream of the value exists and is tested end to end —
+    `PronunciationSource` is the port, `NO_PRONUNCIATION_SOURCE` is what is wired today, and it
+    answers "nothing known" so a name is read as written.
+  - **Per-band `expressive`.** The ticket makes it configurable only if P2H-13 measures first
+    audio over 1s p95. It is one flag today; the escape hatch is recorded in `voice-review.md` §7.
+
 ## Acceptance criteria
 
-- [ ] `ttsVoice: 'default'` no longer exists; each band resolves to a named voice; boot fails
-      loudly if a band has no voice configured.
-- [ ] `spokenForm` fixtures: 40 cases across numbers, money, time, fractions, expressions,
-      emphasis and pauses, including the edge cases above.
-- [ ] Display text never contains prosody markers (protocol test).
-- [ ] Unsupported markers are stripped for the configured vendor (adapter test).
-- [ ] Listening review recorded with scores ≥ 4/5 mean warmth and clarity per band.
-- [ ] Name pronunciation hint round-trips from profile to synthesis (integration test with
-      a fake TTS capturing the request).
+- [x] `ttsVoice: 'default'` no longer exists; each band resolves to a named voice; boot fails
+      loudly if a band has no voice configured. `config.test.ts`, `voice/voice-catalog.test.ts`.
+- [x] `spokenForm` fixtures: 48 cases across numbers, money, time, fractions, expressions,
+      emphasis and pauses, including the edge cases above. `spoken-form.test.ts`.
+- [x] Display text never contains prosody markers. `services/content/personalise.test.ts`
+      asserts it over the early-band `ASK` path, which is the only place a marker is authored.
+- [x] Unsupported markers are stripped for the configured vendor. `voice/vendor.test.ts`,
+      including an engine the table has never heard of.
+- [ ] Listening review recorded with scores >= 4/5 mean warmth and clarity per band. Needs six
+      listeners and a provider; the protocol and the empty record are in `dev-docs/voice-review.md`.
+- [x] Name pronunciation hint round-trips from profile to synthesis.
+      `voice/pronunciation.round-trip.test.ts` starts from the minted participant token and ends
+      at a fake engine that records what it was asked to say; the published move keeps the name
+      as it is written. The profile column itself belongs to P2H-12 — see Status.
 
 ## Verification
 
 ```bash
 npm run test -w @aria/voice -- spoken-form
-npm run test -w @aria/voice-worker -- voice-catalog
+npm run test -w @aria/voice-worker
+npm run test -w @aria/api -- personalise
 npm run voice:golden -w @aria/voice-worker -- --report first-audio
 ```
 

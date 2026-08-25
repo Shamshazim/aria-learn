@@ -6,7 +6,7 @@ import { PROTOCOL_VERSION, tutorMoveSchema, type TutorMove } from '@aria/shared'
 import type { Queryable } from '@/db/types';
 import type { TutorSessionRecord } from '@/types/session';
 
-import { createRealtimeService } from './realtime.service';
+import { createRealtimeService, NO_PRONUNCIATION_SOURCE } from './realtime.service';
 
 const session: TutorSessionRecord = {
   id: 'session-1',
@@ -32,6 +32,7 @@ function service(
     } | null>;
     mint?: () => Promise<string>;
     exclusive?: <T>(studentId: string, operation: (db: Queryable) => Promise<T>) => Promise<T>;
+    pronunciation?: Readonly<Record<string, string>>;
   }> = {},
 ) {
   const enqueueIfOpen = vi.fn(() => Promise.resolve());
@@ -99,6 +100,9 @@ function service(
     outbox: { enqueueIfOpen, withDb: () => ({ enqueueIfOpen }) },
     rooms: { close: closeRoom },
     tokens: { mint },
+    pronunciation: {
+      forStudent: () => Promise.resolve(overrides.pronunciation ?? {}),
+    },
     clock: { now: () => new Date('2026-08-24T00:00:00Z') },
     livekitUrl: 'wss://voice.example.test',
     region: 'us-west',
@@ -197,5 +201,36 @@ describe('realtime negotiation', () => {
     expect([first.connectionEpoch, second.connectionEpoch]).toEqual([2, 3]);
     expect(current.closeRoom).toHaveBeenNthCalledWith(1, 'aria_session-1_1');
     expect(current.closeRoom).toHaveBeenNthCalledWith(2, 'aria_session-1_2');
+  });
+
+  it('mints the profile pronunciation into the participant token (P2H-08)', async () => {
+    const current = service('granted', undefined, { pronunciation: { Siobhan: 'shiv-AWN' } });
+
+    await current.realtime.negotiate('student-1', 'session-1');
+
+    expect(current.mint).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: {
+          sessionId: 'session-1',
+          connectionEpoch: 2,
+          band: 'early',
+          pronunciation: JSON.stringify({ Siobhan: 'shiv-AWN' }),
+        },
+      }),
+    );
+  });
+
+  it('sends no pronunciation field at all when the profile has nothing to say', async () => {
+    const current = service('granted');
+
+    await current.realtime.negotiate('student-1', 'session-1');
+
+    expect(current.mint).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // Exact, not partial: the field is absent, not present and empty.
+        metadata: { sessionId: 'session-1', connectionEpoch: 2, band: 'early' },
+      }),
+    );
+    await expect(NO_PRONUNCIATION_SOURCE.forStudent('student-1')).resolves.toEqual({});
   });
 });

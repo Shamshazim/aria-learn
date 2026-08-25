@@ -54,6 +54,14 @@ export const speechSchema = z
   .object({
     text: z.string().min(1).max(2000),
     ssml: z.string().max(8000).optional(),
+    /**
+     * P2H-08: the same sentence with prosody in it, vendor-neutral (`@aria/voice` markers).
+     *
+     * Set only when the harness has something to say about *how* a line is said — an
+     * emphasised word, a beat. It never reaches a screen: `text` is what is displayed and
+     * `prosody` is what is spoken, and the two diverge here on purpose.
+     */
+    prosody: z.string().min(1).max(4000).optional(),
     assetId: messageIdSchema.optional(),
   })
   .nullable();

@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+import { BANDS, type Band } from '@aria/shared';
+
+import { voiceFor, type BandVoiceIds, type VoiceProfile } from '@/voice/voice-catalog';
+
+
+const voiceId = z.string().min(1).max(128);
+
+/**
+ * P2H-08: a voice per band, and no default.
+ *
+ * `VOICE_TTS_VOICE=default` used to mean "whatever the engine feels like", which is how Aria
+ * ended up sounding like a text-to-speech demo in every band. There is no default now: a band
+ * without a configured voice fails the worker at boot, loudly, rather than at the first child.
+ */
 const schema = z.object({
   LIVEKIT_URL: z.url(),
   LIVEKIT_API_KEY: z.string().min(1),
@@ -8,7 +22,9 @@ const schema = z.object({
   VOICE_WORKER_TOKEN: z.string().min(32),
   VOICE_STT_MODEL: z.string().min(1).default('assemblyai/universal-3-5-pro'),
   VOICE_TTS_MODEL: z.string().min(1).default('fishaudio/s2.1-pro'),
-  VOICE_TTS_VOICE: z.string().min(1).default('default'),
+  VOICE_TTS_VOICE_EARLY: voiceId,
+  VOICE_TTS_VOICE_MIDDLE: voiceId,
+  VOICE_TTS_VOICE_SENIOR: voiceId,
 });
 
 export type VoiceWorkerConfig = Readonly<{
@@ -19,11 +35,18 @@ export type VoiceWorkerConfig = Readonly<{
   workerToken: string;
   sttModel: string;
   ttsModel: string;
-  ttsVoice: string;
+  voices: BandVoiceIds;
 }>;
 
 export function readVoiceWorkerConfig(source: NodeJS.ProcessEnv): VoiceWorkerConfig {
   const parsed = schema.parse(source);
+  const voices: BandVoiceIds = {
+    early: parsed.VOICE_TTS_VOICE_EARLY,
+    middle: parsed.VOICE_TTS_VOICE_MIDDLE,
+    senior: parsed.VOICE_TTS_VOICE_SENIOR,
+  };
+  // Resolved at boot for every band, so a misconfigured band cannot wait for a child in it.
+  for (const band of BANDS) voiceFor(band, voices);
   return {
     livekitUrl: parsed.LIVEKIT_URL,
     livekitApiKey: parsed.LIVEKIT_API_KEY,
@@ -32,6 +55,10 @@ export function readVoiceWorkerConfig(source: NodeJS.ProcessEnv): VoiceWorkerCon
     workerToken: parsed.VOICE_WORKER_TOKEN,
     sttModel: parsed.VOICE_STT_MODEL,
     ttsModel: parsed.VOICE_TTS_MODEL,
-    ttsVoice: parsed.VOICE_TTS_VOICE,
+    voices,
   };
+}
+
+export function voiceProfileFor(config: VoiceWorkerConfig, band: Band): VoiceProfile {
+  return voiceFor(band, config.voices);
 }

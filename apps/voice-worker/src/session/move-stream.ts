@@ -1,16 +1,21 @@
 import {
-  PROTOCOL_VERSION,
   type TutorInputEvent,
   type TutorMove,
   type MoveSegment,
-  type VoiceTurnRequest,
   type VoiceTurnResponse,
 } from '@aria/shared';
-import { decideInterruption, spokenForm } from '@aria/voice';
+import { spokenForm } from '@aria/voice';
 
 import type { TutorVoiceClient } from '@/api/tutor-client';
+import {
+  commonEvent,
+  resumeEvent,
+  transcriptEvent,
+  turnRequest,
+} from '@/session/move-stream.events';
 import { createMoveStreamState, type MoveStreamState } from '@/session/move-stream.state';
 import type { VoiceRoomContext } from '@/session/session-context';
+import type { SpeechRenderer } from '@/voice/speech-renderer';
 
 export type MovePublisher = Readonly<{ publish(move: TutorMove): Promise<void> }>;
 
@@ -18,17 +23,10 @@ type MoveStreamInput = Readonly<{
   room: VoiceRoomContext;
   client: Pick<TutorVoiceClient, 'turn' | 'turnStream'>;
   publisher: MovePublisher;
+  /** P2H-08: names respelled and prosody rendered, once, on the way out. */
+  renderer: SpeechRenderer;
   nextId(): string;
   now(): Date;
-}>;
-
-type CommonVoiceEvent = Readonly<{
-  id: string;
-  at: string;
-  protocolVersion: typeof PROTOCOL_VERSION;
-  sessionId: VoiceRoomContext['sessionId'];
-  connectionEpoch: number;
-  acknowledgedSeq: number;
 }>;
 
 export type MoveStream = Readonly<{
@@ -168,7 +166,7 @@ async function* send(
     const request$ = turnRequest(input, state, request);
     for await (const frame of input.client.turnStream(input.room.sessionId, request$, generation)) {
       yield* frame.kind === 'MOVE_SEGMENT'
-        ? spokenSegments(state, frame)
+        ? spokenSegments(input, state, frame)
         : closeTurn(input, state, frame.turn);
     }
   } catch (error) {
@@ -178,9 +176,13 @@ async function* send(
 }
 
 /** The sentences this one unblocked, in the order they were written. */
-function* spokenSegments(state: MoveStreamState, segment: MoveSegment): Generator<string> {
+function* spokenSegments(
+  input: MoveStreamInput,
+  state: MoveStreamState,
+  segment: MoveSegment,
+): Generator<string> {
   state.activate(segment.generationId);
-  for (const ready of state.order.accept(segment)) yield ready.speech;
+  for (const ready of state.order.accept(segment)) yield input.renderer.render(ready.speech);
 }
 
 /**
@@ -201,7 +203,7 @@ async function* closeTurn(
   state.order.settle();
   for (const move of turn.moves) {
     if (move.serverSeq !== undefined && move.serverSeq <= state.deliveredSeq()) continue;
-    const speech = await applyMove(input.publisher, state, move);
+    const speech = await applyMove(input, state, move);
     if (speech !== null) yield speech;
   }
 }
@@ -223,30 +225,12 @@ function requestTurn(
   );
 }
 
-function turnRequest(
-  input: MoveStreamInput,
-  state: MoveStreamState,
-  request: Readonly<{ event: TutorInputEvent; replayOnly: boolean; authorizeOnly?: boolean }>,
-): VoiceTurnRequest {
-  // P2H-07: how far into an interrupted answer the child got, so the API can record it.
-  const spokenPrefix = state.order.takeInterruptedPrefix();
-  return {
-    protocolVersion: PROTOCOL_VERSION,
-    event: request.event,
-    replayOnly: request.replayOnly,
-    authorizeOnly: request.authorizeOnly ?? false,
-    acknowledgedSeq: state.acknowledgedSeq(),
-    connectionEpoch: input.room.connectionEpoch,
-    ...(spokenPrefix === null ? {} : { spokenPrefix }),
-  };
-}
-
 async function applyMove(
-  publisher: MovePublisher,
+  input: MoveStreamInput,
   state: MoveStreamState,
   move: TutorMove,
 ): Promise<string | null> {
-  await publisher.publish(move);
+  await input.publisher.publish(move);
   if (move.serverSeq !== undefined) state.markDelivered(move.serverSeq);
   if (move.kind === 'END' || move.kind === 'BREAK') {
     state.markTerminalSpeechPending(move.speech !== null);
@@ -256,42 +240,7 @@ async function applyMove(
   // P2H-07: the child already heard this one, a sentence at a time.
   if (state.order.wasSpoken(move.id)) return null;
   state.activate(move.generationId ?? null);
-  return spokenForm(move.speech.text);
-}
-
-function transcriptEvent(
-  input: MoveStreamInput,
-  state: MoveStreamState,
-  text: string,
-  confidence?: number,
-): TutorInputEvent {
-  const generationId = state.activeGenerationId();
-  if (
-    generationId !== null &&
-    decideInterruption({ generationId, speechDurationMs: 0, transcript: text }).kind ===
-      'backchannel'
-  ) {
-    return { ...commonEvent(input, state), kind: 'BACKCHANNEL' };
-  }
-  return {
-    ...commonEvent(input, state),
-    kind: 'SPEECH_FINAL',
-    text,
-    ...(confidence === undefined ? {} : { confidence }),
-  };
-}
-
-function resumeEvent(input: MoveStreamInput, state: MoveStreamState): TutorInputEvent {
-  return { ...commonEvent(input, state), kind: 'RESUME' };
-}
-
-function commonEvent(input: MoveStreamInput, state: MoveStreamState): CommonVoiceEvent {
-  return {
-    id: input.nextId(),
-    at: input.now().toISOString(),
-    protocolVersion: PROTOCOL_VERSION,
-    sessionId: input.room.sessionId,
-    connectionEpoch: input.room.connectionEpoch,
-    acknowledgedSeq: state.acknowledgedSeq(),
-  };
+  // P2H-08: `prosody` is the same sentence with the harness's own emphasis and beats in it.
+  // It never reaches a screen, so it is the one the child hears when it is there.
+  return input.renderer.render(move.speech.prosody ?? spokenForm(move.speech.text));
 }

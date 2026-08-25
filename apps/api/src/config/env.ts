@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import type { Band } from '@aria/shared';
+
 import { databaseEnvSchema, toDatabaseConfig } from './database';
 
 import type { DatabaseConfig } from './database';
@@ -40,7 +42,11 @@ const envObjectSchema = z.object({
   VOICE_PRIVACY_SIGNOFF_ID: z.string().min(3).max(128).optional(),
   VOICE_STT_MODEL: z.string().min(1).max(128).default('assemblyai/universal-3-5-pro'),
   VOICE_TTS_MODEL: z.string().min(1).max(128).default('fishaudio/s2.1-pro'),
-  VOICE_TTS_VOICE: z.string().min(1).max(128).default('default'),
+  // P2H-08: a named voice per band. The API only describes them to the consent record; the
+  // worker is what fails to boot without them.
+  VOICE_TTS_VOICE_EARLY: z.string().min(1).max(128).optional(),
+  VOICE_TTS_VOICE_MIDDLE: z.string().min(1).max(128).optional(),
+  VOICE_TTS_VOICE_SENIOR: z.string().min(1).max(128).optional(),
 
   ...databaseEnvSchema.shape,
 });
@@ -125,7 +131,7 @@ export type AppConfig = {
         privacySignoffId: string | undefined;
         sttModel: string;
         ttsModel: string;
-        ttsVoice: string;
+        ttsVoices: Readonly<Record<Band, string | undefined>>;
       }>
     | undefined;
   database: DatabaseConfig;
@@ -191,7 +197,11 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
             privacySignoffId: env.VOICE_PRIVACY_SIGNOFF_ID,
             sttModel: env.VOICE_STT_MODEL,
             ttsModel: env.VOICE_TTS_MODEL,
-            ttsVoice: env.VOICE_TTS_VOICE,
+            ttsVoices: {
+              early: env.VOICE_TTS_VOICE_EARLY,
+              middle: env.VOICE_TTS_VOICE_MIDDLE,
+              senior: env.VOICE_TTS_VOICE_SENIOR,
+            },
           },
     database: toDatabaseConfig(env),
   };

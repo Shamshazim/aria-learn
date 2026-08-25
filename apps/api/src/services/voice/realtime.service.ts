@@ -1,4 +1,5 @@
 import { tutorMoveSchema, voiceRoomName } from '@aria/shared';
+import { NO_PRONUNCIATION_HINTS, type PronunciationHints } from '@aria/voice';
 
 import type { Queryable } from '@/db/types';
 import { ForbiddenError, NotFoundError, ServiceUnavailableError, ValidationError } from '@/errors';
@@ -12,6 +13,22 @@ import type { VoiceSessionRepository } from '@/repositories/voice-session.reposi
 import type { RealtimeCredentials } from '@/types/voice';
 
 const TOKEN_TTL_SECONDS = 300;
+
+/**
+ * P2H-08: how this child's name is said, if anyone has told us.
+ *
+ * It is a port rather than a query because the field it reads — `student.settings.pronunciation`
+ * — arrives with P2H-12's migration and its profile UI. Until then `NO_PRONUNCIATION_SOURCE`
+ * answers "nothing known", and the rest of the path from profile to synthesis is already here
+ * and tested.
+ */
+export type PronunciationSource = Readonly<{
+  forStudent(studentId: string): Promise<PronunciationHints>;
+}>;
+
+export const NO_PRONUNCIATION_SOURCE: PronunciationSource = {
+  forStudent: () => Promise.resolve(NO_PRONUNCIATION_HINTS),
+};
 
 export type RealtimeTokenProvider = Readonly<{
   mint(
@@ -35,6 +52,7 @@ export function createRealtimeService(deps: {
   outbox: Rebindable<Pick<MoveOutboxRepository, 'enqueueIfOpen'>>;
   rooms: Readonly<{ close(roomName: string): Promise<void> }>;
   tokens: RealtimeTokenProvider;
+  pronunciation: PronunciationSource;
   clock: Clock;
   livekitUrl: string;
   region: string;
@@ -91,11 +109,18 @@ async function negotiateExclusive(
   }
   const room = voiceRoomName(session.id, connectionEpoch);
   const expiresAt = new Date(deps.clock.now().getTime() + TOKEN_TTL_SECONDS * 1_000);
+  // Token metadata is flat, so the hints travel as JSON and are absent when there are none.
+  const hints = await deps.pronunciation.forStudent(studentId);
   const token = await deps.tokens.mint({
     identity: `student_${studentId}`,
     room,
     ttlSeconds: TOKEN_TTL_SECONDS,
-    metadata: { sessionId: session.id, connectionEpoch, band: session.band },
+    metadata: {
+      sessionId: session.id,
+      connectionEpoch,
+      band: session.band,
+      ...(Object.keys(hints).length === 0 ? {} : { pronunciation: JSON.stringify(hints) }),
+    },
   });
   return {
     url: deps.livekitUrl,

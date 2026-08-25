@@ -1,7 +1,7 @@
 import { defineAgent, voice, type JobContext } from '@livekit/agents';
 
 import { createTutorVoiceClient } from '@/api/tutor-client';
-import { readVoiceWorkerConfig } from '@/config';
+import { readVoiceWorkerConfig, type VoiceWorkerConfig } from '@/config';
 import {
   createAgentSession,
   updateEndpointing,
@@ -13,6 +13,7 @@ import { createSilenceTimer, type SilenceTimer } from '@/session/silence-timer';
 import { finishSilentTerminal, speakSilence, speakStream } from '@/session/speak';
 import { prepareVoiceStartup } from '@/session/startup-handshake';
 import { bindVoiceEvents } from '@/session/voice-events';
+import { createSpeechRenderer, type SpeechRenderer } from '@/voice/speech-renderer';
 
 import type { LocalParticipant } from '@livekit/rtc-node';
 
@@ -29,13 +30,7 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
     required(participant.metadata, 'participant metadata'),
   );
   const localParticipant = required(job.room.localParticipant, 'local participant');
-  const client = createTutorVoiceClient({
-    baseUrl: config.apiUrl,
-    token: config.workerToken,
-    fetcher: globalThis.fetch,
-  });
-  const session = createAgentSession(config, room);
-  const runtime = createRuntime({ room, localParticipant, client, session });
+  const { client, session, runtime } = startSession(config, room, localParticipant);
   let sessionStarted = false;
   const finish = (): void => {
     runtime.silence.stop();
@@ -77,6 +72,36 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
   finishSilentTerminal(runtime.moves, finish);
 }
 
+/**
+ * Everything a session needs before the first word: the control-plane client, the LiveKit
+ * session with this band's voice, and the move stream that feeds it.
+ */
+function startSession(
+  config: VoiceWorkerConfig,
+  room: VoiceRoomContext,
+  localParticipant: LocalParticipant,
+): Readonly<{
+  client: ReturnType<typeof createTutorVoiceClient>;
+  session: AriaAgentSession;
+  runtime: VoiceRuntime;
+}> {
+  const client = createTutorVoiceClient({
+    baseUrl: config.apiUrl,
+    token: config.workerToken,
+    fetcher: globalThis.fetch,
+  });
+  const session = createAgentSession(config, room);
+  const runtime = createRuntime({
+    room,
+    localParticipant,
+    client,
+    session,
+    // P2H-08: built once per session, from this child's profile and this vendor's abilities.
+    renderer: createSpeechRenderer({ ttsModel: config.ttsModel, hints: room.pronunciation }),
+  });
+  return { client, session, runtime };
+}
+
 type VoiceRuntime = Readonly<{ moves: MoveStream; silence: SilenceTimer }>;
 
 /**
@@ -90,6 +115,7 @@ function createRuntime(
     localParticipant: LocalParticipant;
     client: ReturnType<typeof createTutorVoiceClient>;
     session: AriaAgentSession;
+    renderer: SpeechRenderer;
   }>,
 ): VoiceRuntime {
   const runtime: { moves: MoveStream | null } = { moves: null };
@@ -103,6 +129,7 @@ function createRuntime(
   runtime.moves = createMoveStream({
     room: input.room,
     client: input.client,
+    renderer: input.renderer,
     publisher: { publish: (move) => publishMove(input, silence, move) },
     nextId: () => crypto.randomUUID(),
     now: () => new Date(),
