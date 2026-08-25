@@ -17,6 +17,7 @@ import {
   anthropicMessageDeltaSchema,
   anthropicMessageStartSchema,
   anthropicStreamErrorSchema,
+  anthropicOtherDeltaSchema,
   anthropicTextDeltaSchema,
   type AnthropicStreamEvent,
 } from '@/ai/provider/adapters/anthropic.types';
@@ -101,7 +102,11 @@ function parseStreamEvent(data: string): AnthropicStreamEvent | undefined {
   }
   const type = eventType(input);
   if (type === 'message_start') return parseKnownEvent(anthropicMessageStartSchema, input);
-  if (type === 'content_block_delta') return parseKnownEvent(anthropicTextDeltaSchema, input);
+  if (type === 'content_block_delta') {
+    const delta = parseKnownEvent(anthropicOtherDeltaSchema, input);
+    if (delta.delta.type !== 'text_delta') return undefined;
+    return parseKnownEvent(anthropicTextDeltaSchema, input);
+  }
   if (type === 'message_delta') return parseKnownEvent(anthropicMessageDeltaSchema, input);
   if (type === 'error') return parseKnownEvent(anthropicStreamErrorSchema, input);
   return undefined;

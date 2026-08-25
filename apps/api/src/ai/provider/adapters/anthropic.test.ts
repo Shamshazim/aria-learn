@@ -133,6 +133,30 @@ describe('Anthropic complete', () => {
     expect(response.text).toBe('{"answer":4}');
   });
 
+  it('reads the text block when a reasoning model emits a thinking block first', async () => {
+    stubResponses = [
+      {
+        status: 200,
+        body: JSON.stringify({
+          content: [
+            { type: 'thinking', thinking: '', signature: 'abc' },
+            { type: 'text', text: '{"answer":4}' },
+          ],
+          stop_reason: 'end_turn',
+          usage: { input_tokens: 10, output_tokens: 5 },
+        }),
+      },
+    ];
+
+    const response = await createProvider().complete({
+      tier: 'TEACH',
+      system: 'Teach clearly.',
+      user: 'What is 2 + 2?',
+      jsonMode: true,
+    });
+    expect(response.text).toBe('{"answer":4}');
+  });
+
   it('omits temperature when the endpoint disables it', async () => {
     await createProvider({ supportsTemperature: false }).complete({
       tier: 'FAST',
@@ -155,7 +179,10 @@ describe('Anthropic stream', () => {
           'data: {"type":"message_start","message":{"usage":{"input_tokens":120,"output_tokens":1}}}',
           '',
           'event: content_block_delta',
-          'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"A clear "}}',
+          'data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"hmm"}}',
+          '',
+          'event: content_block_delta',
+          'data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"A clear "}}',
           '',
           'event: ping',
           'data: {"type":"ping"}',

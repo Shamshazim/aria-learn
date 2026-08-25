@@ -31,9 +31,25 @@ const outputUsageSchema = z.object({
   output_tokens: z.number().int().nonnegative().max(MAX_TOKEN_COUNT),
 });
 
+const textBlockSchema = z.object({
+  type: z.literal('text'),
+  text: z.string().max(MAX_RESPONSE_TEXT_CHARS),
+});
+/** Reasoning models emit `thinking` (and other) blocks before the text; they are carried, not read. */
+const otherBlockSchema = z.object({ type: z.string().max(64) }).loose();
+
+export type AnthropicContentBlock =
+  z.infer<typeof textBlockSchema> | z.infer<typeof otherBlockSchema>;
+
+export function textOfBlocks(blocks: readonly AnthropicContentBlock[]): string {
+  return blocks
+    .flatMap((block) => (block.type === 'text' && 'text' in block ? [String(block.text)] : []))
+    .join('');
+}
+
 export const anthropicResponseSchema = z.object({
   content: z
-    .array(z.object({ type: z.literal('text'), text: z.string().max(MAX_RESPONSE_TEXT_CHARS) }))
+    .array(z.union([textBlockSchema, otherBlockSchema]))
     .min(1)
     .max(64),
   stop_reason: z.string().max(64).nullable(),
@@ -50,6 +66,12 @@ export const anthropicMessageStartSchema = z.object({
 export const anthropicTextDeltaSchema = z.object({
   type: z.literal('content_block_delta'),
   delta: z.object({ type: z.literal('text_delta'), text: z.string().max(MAX_RESPONSE_TEXT_CHARS) }),
+});
+
+/** Any other delta (`thinking_delta`, `signature_delta`, …) is skipped by the stream parser. */
+export const anthropicOtherDeltaSchema = z.object({
+  type: z.literal('content_block_delta'),
+  delta: z.object({ type: z.string().max(64) }).loose(),
 });
 
 export const anthropicMessageDeltaSchema = z.object({
