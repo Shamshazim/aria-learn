@@ -5,7 +5,8 @@ export { silenceRung } from './policy/silence-ladder';
 export { shouldArmSilenceTimer, silenceWindowMs } from './policy/silence-timer';
 export type { SilenceArmInput } from './policy/silence-timer';
 export { classifyIntent } from './intent/rules';
-export { INTENTS } from './intent/intent.types';
+export { INTENTS, MODEL_PASS_CONFIDENCE } from './intent/intent.types';
+export { PERSONAL_INFO_PATTERNS } from './intent/personal-info.patterns';
 export type { Intent, IntentHints, IntentResult } from './intent/intent.types';
 export type {
   CommittedTurn,

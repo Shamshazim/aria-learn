@@ -12,6 +12,7 @@ import {
 import type { ScrubbedContext } from '@/privacy';
 import type { QualityGate } from '@/quality';
 import { arithmeticProblemSchema, type ArithmeticProblem } from '@/quality/arithmetic';
+import { fixedText } from '@/services/content/fixed-text';
 import {
   generateGatedText,
   requiredGatedText,
@@ -69,6 +70,16 @@ async function resolve(
 ): Promise<ResolvedContent> {
   throwIfAborted(signal);
   if (turn.plan.kind === 'ASK') return resolveQuestion(deps, turn, signal);
+  const scripted = fixedText(turn);
+  if (scripted !== null) {
+    const text = requiredGatedText(deps.gate, scripted, turn.context.session.band);
+    return responseWithContinuation(
+      deps,
+      turn,
+      { text, provenance: { responseSource: 'reviewed-fixed' } },
+      signal,
+    );
+  }
   const remediation = currentRemediation(deps, turn);
   if (remediation !== null) {
     const text = requiredGatedText(deps.gate, remediation, turn.context.session.band);

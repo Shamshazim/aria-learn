@@ -1,9 +1,11 @@
 import { tutorMoveSchema } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
+import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { createInventoryService, type InventoryService } from '@/curriculum';
 import { ForbiddenError } from '@/errors';
 import { createTurnContentObserver } from '@/observability/content-metrics';
+import { createIntentFallbackObserver } from '@/observability/intent-metrics';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
 import {
@@ -113,6 +115,10 @@ function buildTutor(
     },
     latestMoveId: (sessionId) => latestMoveId(repositories, sessionId),
     logger: deps.logger,
+    intent: createIntentClassifier({
+      ai: deps.ai,
+      onFallback: createIntentFallbackObserver({ metrics: deps.metrics }),
+    }),
   });
 }
 

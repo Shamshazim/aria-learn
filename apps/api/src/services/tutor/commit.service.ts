@@ -61,12 +61,21 @@ async function commit(
   }
 }
 
+/**
+ * P2H-05: what a child said when they volunteered personal information is never written down.
+ *
+ * Not redacted field by field — replaced. The row still exists, so the turn is auditable and
+ * the count is honest, but the address itself stops at the policy that recognised it.
+ */
+export const PERSONAL_INFO_MARKER = '[redacted: personal-info]';
+
 function inputRecord(turn: CommittedTurn, sessionId: string, clock: Clock): NewSessionEvent {
+  const redacted = turn.plan.evidence?.personalInfoRedacted === true;
   return {
     sessionId,
     actor: 'child',
     kind: turn.event.kind,
-    text: eventText(turn),
+    text: redacted ? PERSONAL_INFO_MARKER : eventText(turn),
     skillCode: turn.plan.skillCode,
     correct: turn.decision.graded?.correct ?? null,
     latencyMs: turn.event.kind === 'ANSWER' ? (turn.event.elapsedMs ?? null) : null,
@@ -77,9 +86,15 @@ function inputRecord(turn: CommittedTurn, sessionId: string, clock: Clock): NewS
         ? {}
         : { misconception: turn.decision.graded.misconception }),
     },
-    payload: turn.event,
+    payload: redacted ? redactedPayload(turn) : turn.event,
     at: clock.now(),
   };
+}
+
+/** The stored payload keeps the event's shape and identity, never its words. */
+function redactedPayload(turn: CommittedTurn): Readonly<Record<string, unknown>> {
+  const { id, at, protocolVersion, kind } = turn.event;
+  return { id, at, protocolVersion, kind, redacted: 'personal-info' };
 }
 
 function moveRecord(

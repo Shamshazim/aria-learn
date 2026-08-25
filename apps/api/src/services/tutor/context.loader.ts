@@ -228,7 +228,9 @@ function dialogueWindow(
       (record): record is typeof record & { text: string } =>
         (record.actor === 'aria' || record.actor === 'child') &&
         typeof record.text === 'string' &&
-        record.text.trim() !== '',
+        record.text.trim() !== '' &&
+        // P2H-05: a turn that carried personal information never enters the window at all.
+        record.evidence.personalInfoRedacted !== true,
     )
     .slice(-(DIALOGUE_TURNS[band] ?? 10))
     .map((record) => ({

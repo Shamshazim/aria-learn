@@ -1,4 +1,5 @@
 import type { Band } from '@aria/shared';
+import type { Intent } from '@aria/tutor';
 
 import type { ModelTier } from '@/ai/provider';
 import type { ScrubbedContext } from '@/privacy';
@@ -58,6 +59,11 @@ export type RespondPromptInput = ContextInput &
   }>;
 export type RespondPromptOutput = Readonly<{ text: string }>;
 
+/** P2H-05: the model second pass over what a child meant. */
+export type ClassifyIntentPromptInput = ContextInput &
+  Readonly<{ utterance: string; question: string }>;
+export type ClassifyIntentPromptOutput = Readonly<{ intent: Intent; confidence: number }>;
+
 export type SafetyCategory =
   'adult-content' | 'frightening' | 'personal-information' | 'violence' | 'other';
 export type ClassifySafetyPromptInput = ContextInput & Readonly<{ content: string }>;
@@ -65,6 +71,7 @@ export type ClassifySafetyPromptOutput =
   Readonly<{ verdict: 'safe' }> | Readonly<{ verdict: 'unsafe'; category: SafetyCategory }>;
 
 export type PromptContractMap = {
+  'classify-intent': { input: ClassifyIntentPromptInput; output: ClassifyIntentPromptOutput };
   'classify-safety': {
     input: ClassifySafetyPromptInput;
     output: ClassifySafetyPromptOutput;

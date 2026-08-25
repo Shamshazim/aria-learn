@@ -5,6 +5,7 @@ import type { PromptName } from '@/ai/prompts/types';
 
 const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST'; version?: string }>> =
   {
+    'classify-intent': { tier: 'FAST' },
     'classify-safety': { tier: 'FAST' },
     explain: { tier: 'TEACH' },
     'grade-short-answer': { tier: 'FAST' },
@@ -14,6 +15,7 @@ const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST'; ve
     respond: { tier: 'TEACH' },
   };
 const PROMPT_NAMES = [
+  'classify-intent',
   'classify-safety',
   'explain',
   'grade-short-answer',

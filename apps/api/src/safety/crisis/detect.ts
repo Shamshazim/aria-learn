@@ -18,8 +18,12 @@ const PATTERNS: readonly Readonly<{ category: CrisisCategory; expression: RegExp
     expression: /\b(in danger|someone is chasing me|has a weapon)\b/i,
   },
   {
+    // Inflections matter here more than anywhere else in the codebase: a child says "my dad
+    // hits me", present tense, about something that is still happening. Matching only "hit"
+    // caught the past tense and missed the disclosure that needs acting on today.
     category: 'household_abuse',
-    expression: /\b(mom|dad|parent|uncle|aunt|brother|sister).{0,28}\b(hit|hurt|touch)\b/i,
+    expression:
+      /\b(mom|mum|dad|parent|uncle|aunt|brother|sister|stepdad|stepmom).{0,28}\b(hit|hits|hitting|hurt|hurts|hurting|touch|touches|touching|beat|beats|beating|punch|punches|punching)\b/i,
   },
   { category: 'general_distress', expression: /\b(i am scared|i feel hopeless|nobody cares)\b/i },
 ];

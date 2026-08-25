@@ -85,6 +85,35 @@ function intentDecision<TModelContext>(
       true,
     );
   }
+  if (intent === 'PERSONAL_INFO') {
+    // Fixed reviewed text, no model call, nothing stored. The child gets one warm sentence
+    // and the lesson back; the words they said do not travel anywhere.
+    return decision(
+      {
+        ...plan(
+          'SAY',
+          'deflect-personal-info',
+          'Intent PERSONAL_INFO: deflect warmly and return to the item.',
+          context,
+        ),
+        evidence: { personalInfoRedacted: true },
+      },
+      null,
+      false,
+    );
+  }
+  if (intent === 'UNCLEAR') {
+    return decision(
+      plan(
+        'SAY',
+        'confirm-spoken-answer',
+        'Intent UNCLEAR: ask the child to say it again.',
+        context,
+      ),
+      null,
+      false,
+    );
+  }
   if (intent === 'CONFUSED') {
     return decision(
       plan('RETEACH', nextApproach(context), 'Intent CONFUSED: explain another way.', context),

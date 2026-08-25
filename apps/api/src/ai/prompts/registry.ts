@@ -1,3 +1,4 @@
+import { classifyIntentPrompt } from '@/ai/prompts/definitions/classify-intent.prompt';
 import { classifySafetyPrompt } from '@/ai/prompts/definitions/classify-safety.prompt';
 import { explainPrompt } from '@/ai/prompts/definitions/explain.prompt';
 import { gradeShortAnswerPrompt } from '@/ai/prompts/definitions/grade-short-answer.prompt';
@@ -12,6 +13,7 @@ import type { PromptRegistry } from '@/ai/prompts/types';
  * add definitions here instead of branching in AiClient.
  */
 export const promptRegistry: PromptRegistry = {
+  'classify-intent': classifyIntentPrompt,
   'classify-safety': classifySafetyPrompt,
   explain: explainPrompt,
   'grade-short-answer': gradeShortAnswerPrompt,

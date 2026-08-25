@@ -39,6 +39,21 @@ reasons are deliberately distinct: they have three different owners.
 | `FallbackGateFailed` | `increase(fallback_used_total{reason="gate_failed"}[30m]) > 20` | warning | Our own prompts are producing text that cannot pass our own gate. This is the only one of the three we fix by writing a better prompt. |
 | `FallbackAiDisabled` | `increase(fallback_used_total{reason="ai_disabled"}[5m]) > 0` in production | **critical** | A production deployment is serving children canned strings because no model is configured. This is a deployment fault, not a model fault. |
 
+## Free conversation (P2H-05)
+
+### `intent_model_fallback_total`
+
+Labels: `reason` (`timeout` | `provider_error` | `disabled`).
+
+Incremented when the model second pass over what a child meant could not answer, and the
+deterministic rules' result was used instead. The rules are always computed, so a fallback is
+a quality loss, never an outage: chat is more likely to be graded as a wrong answer.
+
+| Rule | Condition | Severity | What it means |
+|---|---|---|---|
+| `IntentModelTimeoutRate` | `rate(intent_model_fallback_total{reason="timeout"}[15m]) > 0.2 * rate(intent_classifications_total[15m])` | warning | The FAST tier is too slow to sit in front of a turn. Move the endpoint; do **not** raise the 300 ms budget — the budget is what keeps a child from waiting on a classifier. |
+| `IntentModelDisabledInProd` | `increase(intent_model_fallback_total{reason="disabled"}[5m]) > 0` in production | warning | No model is configured for the second pass. Rules-only agreement is ~90%, so roughly one utterance in ten is being read wrong. |
+
 ## Runbook notes
 
 - **Never** silence a `safety` rule to clear a board. Route it to the safeguarding on-call

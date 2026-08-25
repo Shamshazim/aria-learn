@@ -21,6 +21,7 @@ import { createEndService } from '@/services/session/end.service';
 import { createResumeService } from '@/services/session/resume.service';
 import { createSessionService } from '@/services/session/session.service';
 import type { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
+import { turnMoves } from '@/services/tutor/safety-first';
 import type { createTutorService } from '@/services/tutor/tutor.service';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
@@ -165,9 +166,7 @@ async function turnResponse(
     throw new ForbiddenError('student session ownership mismatch');
   if (session.endedAt !== null) throw new ValidationError('session has already ended');
   const event = { ...request.event, sessionId };
-  const moves =
-    (await runtime.crisis.handle(studentId, event)) ??
-    (await runtime.tutor.handle(studentId, event, signal));
+  const moves = await turnMoves(runtime, studentId, event, signal);
   const terminal = moves.find((move) => move.kind === 'END' || move.kind === 'BREAK');
   if (terminal !== undefined) {
     await runtime.end({

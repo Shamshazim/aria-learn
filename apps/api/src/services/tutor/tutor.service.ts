@@ -1,12 +1,14 @@
 import type { TutorInputEvent, TutorMove } from '@aria/shared';
 import {
-  classifyIntent,
   createTeachingPolicy,
   createTutorHarness,
+  type Intent,
+  type LoadedTurnContext,
   type TutorHarness,
   type TutorPorts,
 } from '@aria/tutor';
 
+import type { IntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { matchMisconception } from '@/curriculum/misconception.matcher';
 import type { Clock } from '@/lib/clock';
 import type { Logger } from '@/lib/logger';
@@ -29,6 +31,7 @@ export function createTutorService(deps: {
   requireOwnership(studentId: string, sessionId: string): Promise<void>;
   latestMoveId: LatestMoveLookup;
   logger: Pick<Logger, 'info'>;
+  intent: IntentClassifier;
 }): TutorService {
   const harness = buildHarness(deps);
   return {
@@ -46,22 +49,41 @@ function buildHarness(
 ): TutorHarness<ApiModelContext> {
   return createTutorHarness<ApiModelContext>({
     ...deps.ports,
-    applyPolicy: (context, event) =>
-      Promise.resolve(
-        createTeachingPolicy<ApiModelContext>({
-          gradeAnswer: (answer) => grade(answer, context.modelContext, context.session.skillCode),
-          classifyIntent: (utterance) =>
-            classifyIntent(utterance.kind === 'ANSWER' ? (utterance.text ?? '') : utterance.text, {
-              answerKey: context.modelContext.answerKey,
-            }).intent,
-          sessionLimitMs: (band) => deps.sessionLimitMs(band),
-          now: () => deps.clock.now(),
-        })(context, event),
-      ),
+    applyPolicy: async (context, event) => {
+      // The intent decides which branch the turn takes, so it is resolved before the policy
+      // runs rather than inside it: the model second pass is asynchronous, the policy is pure.
+      const intent = await resolveIntent(deps, context, event);
+      return createTeachingPolicy<ApiModelContext>({
+        gradeAnswer: (answer) => grade(answer, context.modelContext, context.session.skillCode),
+        classifyIntent: () => intent,
+        sessionLimitMs: (band) => deps.sessionLimitMs(band),
+        now: () => deps.clock.now(),
+      })(context, event);
+    },
     planMove: ({ fallback }) => Promise.resolve(fallback),
     emit: (moves) => Promise.resolve(moves),
     nowMs: () => deps.clock.now().getTime(),
   });
+}
+
+async function resolveIntent(
+  deps: Parameters<typeof createTutorService>[0],
+  context: LoadedTurnContext<ApiModelContext>,
+  event: TutorInputEvent,
+): Promise<Intent | null> {
+  if (event.kind !== 'ANSWER' && event.kind !== 'SPEECH_FINAL') return null;
+  const text = event.kind === 'ANSWER' ? (event.text ?? '') : event.text;
+  const classified = await deps.intent.classify({
+    text,
+    hints: {
+      answerKey: context.modelContext.answerKey,
+      ...(event.kind === 'SPEECH_FINAL' ? { speechConfidence: event.confidence } : {}),
+    },
+    context: context.modelContext.scrubbed,
+    question: context.modelContext.latestQuestion ?? 'no open item yet',
+    studentId: context.session.studentId,
+  });
+  return classified.intent;
 }
 
 function grade(

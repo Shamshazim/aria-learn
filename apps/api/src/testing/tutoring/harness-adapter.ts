@@ -6,6 +6,7 @@ import {
   type TutorPorts,
 } from '@aria/tutor';
 
+import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { fixedClock } from '@/lib/clock';
 import { scrubLearnerContext } from '@/privacy';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
@@ -83,6 +84,8 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
     requireOwnership: () => Promise.resolve(),
     latestMoveId: () => Promise.resolve(latestMoveId(committed)),
     logger: { info: () => undefined },
+    // Golden replay is deterministic: the rules decide, never a model.
+    intent: createIntentClassifier({ ai: null }),
   });
   return {
     handle: async (event, control) => {
