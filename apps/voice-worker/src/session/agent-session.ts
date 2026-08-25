@@ -10,6 +10,15 @@ export type AriaAgentSession = voice.AgentSession;
 
 export { AgentSessionEventTypes };
 
+/**
+ * P2H-07: the harness may start on a partial transcript, but nothing is ever spoken from a draft.
+ *
+ * `preemptiveTts: false` is the whole of the safety story here. A draft answer still goes through
+ * the API, which releases a sentence only after it passes the gate, so speaking one early would
+ * be audible waste rather than a shortcut — and a guess the child hears cannot be taken back.
+ */
+export const PREEMPTIVE_GENERATION = { enabled: true, preemptiveTts: false } as const;
+
 export function updateEndpointing(
   session: AriaAgentSession,
   room: VoiceRoomContext,
@@ -55,7 +64,7 @@ export function createAgentSession(
         falseInterruptionTimeout: 1_500,
         resumeFalseInterruption: true,
       },
-      preemptiveGeneration: { enabled: false, preemptiveTts: false },
+      preemptiveGeneration: PREEMPTIVE_GENERATION,
     },
     expressive: false,
   });

@@ -18,6 +18,7 @@ export type {
 export type { PromptInput, PromptName, PromptOutput } from '@/ai/prompts/types';
 export {
   createGatedStreamer,
+  createRespondStreamer,
   MovePlanValidationError,
   SEGMENT_GATE_BUDGET_MS,
   spokenForm,
@@ -25,8 +26,11 @@ export {
   validateMovePlan,
 } from '@/ai/streaming';
 export type {
+  GatedSegment,
   GatedStreamer,
   GatedStreamInput,
+  RespondStreamer,
+  RespondStreamInput,
   MovePlan,
   MovePlanResult,
   ReleasedSegment,

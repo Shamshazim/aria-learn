@@ -4,6 +4,7 @@ import {
   type VoiceTurnResponse,
 } from '@aria/shared';
 
+import { requestedFormat, streamTurn } from '@/controllers/turn-stream';
 import {
   realtimeParamsSchema,
   voiceConsentSchema,
@@ -11,6 +12,7 @@ import {
   workerVoiceMetricSchema,
   workerVoiceTurnSchema,
 } from '@/schemas/voice.schema';
+import type { SegmentBus } from '@/services/content/segment-bus';
 import type { ApiResponse } from '@/types/http';
 import type { RealtimeCredentials, VoiceConsent } from '@/types/voice';
 
@@ -37,6 +39,8 @@ export function createVoiceControllers(deps: {
   ): Promise<void>;
   grant(input: ReturnType<typeof voiceConsentSchema.parse>): Promise<VoiceConsent>;
   withdraw(input: ReturnType<typeof voiceConsentWithdrawSchema.parse>): Promise<boolean>;
+  /** P2H-07: present when the deployment can stream sentences ahead of the turn. */
+  segments?: SegmentBus;
 }): VoiceControllers {
   return {
     realtime: async (
@@ -48,17 +52,8 @@ export function createVoiceControllers(deps: {
         data: realtimeCredentialsSchema.parse(await deps.negotiate(studentId(request), id)),
       });
     },
-    workerTurn: async (request: Request, response: Response<ApiResponse<VoiceTurnResponse>>) => {
-      const { id } = realtimeParamsSchema.parse(request.validated?.params);
-      const input = workerVoiceTurnSchema.parse(request.validated?.body);
-      const controller = new AbortController();
-      request.once('aborted', () => {
-        controller.abort();
-      });
-      response.status(200).json({
-        data: voiceTurnResponseSchema.parse(await deps.workerTurn(id, input, controller.signal)),
-      });
-    },
+    workerTurn: (request: Request, response: Response<ApiResponse<VoiceTurnResponse>>) =>
+      workerTurn(deps, request, response),
     workerMetric: async (request: Request, response: Response<ApiResponse<{ recorded: true }>>) => {
       const { id } = realtimeParamsSchema.parse(request.validated?.params);
       await deps.recordMetric(id, workerVoiceMetricSchema.parse(request.validated?.body));
@@ -74,6 +69,35 @@ export function createVoiceControllers(deps: {
       response.status(200).json({ data: { withdrawn: await deps.withdraw(input) } });
     },
   };
+}
+
+/**
+ * The worker's turn, streamed when it asks for it (P2H-07).
+ *
+ * The closing frame carries the same batch the buffered response always did — the moves the
+ * worker has to publish and acknowledge. The sentences before it are what the child hears while
+ * the batch is still being written.
+ */
+async function workerTurn(
+  deps: Parameters<typeof createVoiceControllers>[0],
+  request: Request,
+  response: Response<ApiResponse<VoiceTurnResponse>>,
+): Promise<void> {
+  const { id } = realtimeParamsSchema.parse(request.validated?.params);
+  const input = workerVoiceTurnSchema.parse(request.validated?.body);
+  const controller = new AbortController();
+  request.once('aborted', () => {
+    controller.abort();
+  });
+  const run = async (): Promise<VoiceTurnResponse> =>
+    voiceTurnResponseSchema.parse(await deps.workerTurn(id, input, controller.signal));
+  const format = requestedFormat(request);
+  const segments = deps.segments;
+  if (format !== 'ndjson' || segments === undefined) {
+    response.status(200).json({ data: await run() });
+    return;
+  }
+  await streamTurn({ response, format, segments, sessionId: id, run, closing: (turn) => turn });
 }
 
 function studentId(request: { studentId?: string }): string {

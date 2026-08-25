@@ -6,8 +6,10 @@ export type {
 } from '@/quality/content-policy';
 export { createQualityGate } from '@/quality/gate';
 export type { QualityGate } from '@/quality/gate';
+export { speakableGate } from '@/quality/speakable-gate';
 export type {
   GateCheckName,
+  GateCheckResult,
   GateFailureReason,
   GateInput,
   GatePass,

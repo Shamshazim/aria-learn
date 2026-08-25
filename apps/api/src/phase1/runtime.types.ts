@@ -1,10 +1,11 @@
-import type { AiClient, SpendService } from '@/ai';
+import type { AiClient, GatedStreamer, SpendService } from '@/ai';
 import type { AppConfig } from '@/config';
 import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
 import type { Logger } from '@/lib/logger';
 import type { StudentAccessResolver } from '@/middleware/student-access';
 import type { Metrics } from '@/observability/metrics';
+import type { QualityGate } from '@/quality';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
 import type { ContentItemRepository } from '@/repositories/content-item.repository';
 import type { LearnerMemoryRepository } from '@/repositories/learner-memory.repository';
@@ -14,6 +15,7 @@ import type { SessionEventRepository } from '@/repositories/session-event.reposi
 import type { SessionRepository } from '@/repositories/session.repository';
 import type { SkillStateRepository } from '@/repositories/skill-state.repository';
 import type { StudentRepository } from '@/repositories/student.repository';
+import type { SegmentBus } from '@/services/content/segment-bus';
 
 import type { Pool } from 'pg';
 
@@ -28,6 +30,10 @@ export type Phase1RuntimeDeps = Readonly<{
   access: StudentAccessResolver;
   /** Process-wide counters; supplied by the composition root (P1-14, P2H-02). */
   metrics: Metrics;
+  /** P2H-07: builds the sentence streamer once the child-facing gate exists. */
+  gatedStreamer?(gate: QualityGate): GatedStreamer;
+  /** P2H-07: carries released sentences to whichever request is holding the child's line. */
+  segments?: SegmentBus;
   closeVoiceSession?(sessionId: string, at: Date): Promise<void>;
   scheduleBackground?(task: () => Promise<void>): void;
 }>;

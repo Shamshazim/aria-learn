@@ -6,6 +6,7 @@ import { gradeShortAnswerPrompt } from '@/ai/prompts/definitions/grade-short-ans
 import { hintPrompt } from '@/ai/prompts/definitions/hint.prompt';
 import { memoryProposalsPrompt } from '@/ai/prompts/definitions/memory-proposals.prompt';
 import { practiceItemPrompt } from '@/ai/prompts/definitions/practice-item.prompt';
+import { respondStreamPrompt } from '@/ai/prompts/definitions/respond-stream.prompt';
 import { respondPrompt } from '@/ai/prompts/definitions/respond.prompt';
 import type { PromptRegistry } from '@/ai/prompts/types';
 
@@ -23,4 +24,5 @@ export const promptRegistry: PromptRegistry = {
   'plan-move': planMovePrompt,
   'practice-item': practiceItemPrompt,
   respond: respondPrompt,
+  'respond-stream': respondStreamPrompt,
 };

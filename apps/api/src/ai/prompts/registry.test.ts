@@ -3,18 +3,21 @@ import { describe, expect, it } from 'vitest';
 import { promptRegistry } from '@/ai/prompts/registry';
 import type { PromptName } from '@/ai/prompts/types';
 
-const EXPECTED_PROMPTS: Readonly<Record<PromptName, { tier: 'TEACH' | 'FAST'; version?: string }>> =
-  {
-    'classify-intent': { tier: 'FAST' },
-    'classify-safety': { tier: 'FAST' },
-    explain: { tier: 'TEACH' },
-    'grade-short-answer': { tier: 'FAST' },
-    hint: { tier: 'FAST' },
-    'memory-proposals': { tier: 'TEACH' },
-    'plan-move': { tier: 'TEACH' },
-    'practice-item': { tier: 'TEACH', version: '1.1.0' },
-    respond: { tier: 'TEACH' },
-  };
+const EXPECTED_PROMPTS: Readonly<
+  Record<PromptName, { tier: 'TEACH' | 'FAST'; version?: string; jsonMode?: boolean }>
+> = {
+  'classify-intent': { tier: 'FAST' },
+  'classify-safety': { tier: 'FAST' },
+  explain: { tier: 'TEACH' },
+  'grade-short-answer': { tier: 'FAST' },
+  hint: { tier: 'FAST' },
+  'memory-proposals': { tier: 'TEACH' },
+  'plan-move': { tier: 'TEACH' },
+  'practice-item': { tier: 'TEACH', version: '1.1.0' },
+  respond: { tier: 'TEACH' },
+  // P2H-07: the streamed twin returns prose, because JSON cannot be cut at a full stop.
+  'respond-stream': { tier: 'TEACH', jsonMode: false },
+};
 const PROMPT_NAMES = [
   'classify-intent',
   'classify-safety',
@@ -25,6 +28,7 @@ const PROMPT_NAMES = [
   'plan-move',
   'practice-item',
   'respond',
+  'respond-stream',
 ] as const satisfies readonly PromptName[];
 
 describe('promptRegistry', () => {
@@ -35,7 +39,7 @@ describe('promptRegistry', () => {
         name,
         tier: EXPECTED_PROMPTS[name].tier,
         version: EXPECTED_PROMPTS[name].version ?? '1.0.0',
-        jsonMode: true,
+        jsonMode: EXPECTED_PROMPTS[name].jsonMode ?? true,
       });
     }
   });

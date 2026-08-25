@@ -1,17 +1,6 @@
-import { z } from 'zod';
-
-import type { TutorMove } from '@aria/shared';
 import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
-import type { AiClient } from '@/ai';
-import type { ReliableContentService } from '@/content/content.service';
-import {
-  NULL_TURN_CONTENT_OBSERVER,
-  type TurnContentObserver,
-} from '@/observability/content-metrics';
-import type { ScrubbedContext } from '@/privacy';
-import type { QualityGate } from '@/quality';
-import { arithmeticProblemSchema, type ArithmeticProblem } from '@/quality/arithmetic';
+import { NULL_TURN_CONTENT_OBSERVER } from '@/observability/content-metrics';
 import { fixedText } from '@/services/content/fixed-text';
 import {
   generateGatedText,
@@ -19,92 +8,114 @@ import {
   throwIfAborted,
   type GenerationOutcome,
 } from '@/services/content/generate-text';
+import { maySegmentStream } from '@/services/content/streaming-kinds';
+import type {
+  ApiModelContext,
+  MoveIdentity,
+  TurnContentDeps,
+} from '@/services/content/turn-content.types';
 import { fallbackText } from '@/services/content/turn-fallback';
+import { contextEvidence, resolveQuestion, retryAsk } from '@/services/content/turn-question';
 import { isDetour, responseMove } from '@/services/content/turn-response';
-import type { MoveFactory } from '@/services/moves/move-factory';
+import { streamGatedText } from '@/services/content/turn-stream';
 
-export type ApiModelContext = Readonly<{
-  scrubbed: ScrubbedContext;
-  answerKey: string | null;
-  latestQuestion: string | null;
-  estimatedTokens: number;
-  retrievedFactIds: readonly string[];
-  recentContentItemIds: readonly string[];
-  /** P2H-06: the child's last few classified intents, oldest first, for the planner. */
-  recentIntents: readonly string[];
-  arithmeticProblem: ArithmeticProblem | null;
-  completionOnly: boolean;
-  latestAsk: Extract<TutorMove, { kind: 'ASK' }> | null;
-}>;
-
-const questionBodySchema = z
-  .object({
-    prompt: z.string().min(1).max(2_000),
-    choices: z.array(z.string().min(1).max(300)).min(2).max(8).optional(),
-    answerKey: z.string().min(1).max(500).optional(),
-    arithmeticProblem: arithmeticProblemSchema.optional(),
-    completionOnly: z.boolean().optional(),
-  })
-  .loose();
+export type { ApiModelContext } from '@/services/content/turn-content.types';
 
 export type TurnContentService = Readonly<{
   resolve(turn: PlannedTurn<ApiModelContext>, signal?: AbortSignal): Promise<ResolvedContent>;
 }>;
 
-export function createTurnContentService(deps: {
-  reliable: ReliableContentService;
-  ai: AiClient | null;
-  gate: QualityGate;
-  moves(sessionId: string): MoveFactory;
-  remediation(misconceptionId: string): string | null;
-  observer?: TurnContentObserver;
-}): TurnContentService {
+export function createTurnContentService(deps: TurnContentDeps): TurnContentService {
   return {
     resolve: (turn: PlannedTurn<ApiModelContext>, signal?: AbortSignal) =>
       resolve(deps, turn, signal),
   };
 }
 
+/** What Aria says this turn, and where the words came from. */
+type Said = Readonly<{
+  text: string;
+  provenance: Readonly<Record<string, unknown>>;
+  identity?: MoveIdentity;
+}>;
+
 async function resolve(
-  deps: Parameters<typeof createTurnContentService>[0],
+  deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
   throwIfAborted(signal);
   if (turn.plan.kind === 'ASK') return resolveQuestion(deps, turn, signal);
+  const reviewed = reviewedText(deps, turn);
+  if (reviewed !== null) {
+    const text = requiredGatedText(deps.gate, reviewed.text, turn.context.session.band);
+    return responseWithContinuation(deps, turn, { text, provenance: reviewed.provenance }, signal);
+  }
+  const said = await generated(deps, turn, signal);
+  throwIfAborted(signal);
+  return responseWithContinuation(deps, turn, said, signal);
+}
+
+/** A sentence somebody already approved: the scripted one, or a misconception's remediation. */
+function reviewedText(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): Readonly<{ text: string; provenance: Readonly<Record<string, unknown>> }> | null {
   const scripted = fixedText(turn);
   if (scripted !== null) {
-    const text = requiredGatedText(deps.gate, scripted, turn.context.session.band);
-    return responseWithContinuation(
-      deps,
-      turn,
-      { text, provenance: { responseSource: 'reviewed-fixed' } },
-      signal,
-    );
+    return { text: scripted, provenance: { responseSource: 'reviewed-fixed' } };
   }
-  const remediation = currentRemediation(deps, turn);
-  if (remediation !== null) {
-    const text = requiredGatedText(deps.gate, remediation, turn.context.session.band);
-    return responseWithContinuation(
-      deps,
-      turn,
-      { text, provenance: { responseSource: 'reviewed-remediation' } },
-      signal,
-    );
-  }
-  const outcome = await generateGatedText(deps, turn, signal);
-  throwIfAborted(signal);
+  return currentRemediation(deps, turn);
+}
+
+/** Aria's own words: streamed a sentence at a time where that is safe, buffered otherwise. */
+async function generated(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+  signal?: AbortSignal,
+): Promise<Said> {
+  const identity = streamIdentity(deps, turn);
+  const outcome =
+    identity === null
+      ? await generateGatedText(deps, turn, signal)
+      : await streamGatedText(streamDeps(deps), turn, identity, signal);
   if (outcome.kind === 'generated') {
-    return responseWithContinuation(
-      deps,
-      turn,
-      { text: outcome.text, provenance: provenance(outcome) },
-      signal,
-    );
+    return {
+      text: outcome.text,
+      provenance: provenance(outcome),
+      ...(identity === null ? {} : { identity }),
+    };
   }
   (deps.observer ?? NULL_TURN_CONTENT_OBSERVER).fallbackUsed(turn.plan.kind, outcome.reason);
-  const text = requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band);
-  return responseWithContinuation(deps, turn, { text, provenance: provenance(outcome) }, signal);
+  return {
+    text: requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band),
+    provenance: provenance(outcome),
+  };
+}
+
+/**
+ * P2H-07: a streamed move is named before its first sentence leaves.
+ *
+ * The segments and the move that finally arrives have to be the same thing, or a client would
+ * speak the sentences and then speak them again. Streaming is off unless something is listening
+ * — a buffered client is still a supported client, and generating into nothing costs a turn.
+ */
+function streamIdentity(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): MoveIdentity | null {
+  const { respond, segments, ids } = deps;
+  if (respond === undefined || segments === undefined || ids === undefined) return null;
+  if (!maySegmentStream(turn.plan.kind, turn.context.session.band)) return null;
+  if (!segments.listening(turn.context.session.id)) return null;
+  return { id: ids.next(), generationId: ids.next() };
+}
+
+function streamDeps(deps: TurnContentDeps): Parameters<typeof streamGatedText>[0] {
+  if (deps.respond === undefined || deps.segments === undefined) {
+    throw new Error('Streaming was chosen without a streamer');
+  }
+  return { respond: deps.respond, segments: deps.segments };
 }
 
 /**
@@ -124,104 +135,29 @@ function provenance(outcome: GenerationOutcome): Readonly<Record<string, unknown
 }
 
 function currentRemediation(
-  deps: Parameters<typeof createTurnContentService>[0],
+  deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
-): string | null {
+): Readonly<{ text: string; provenance: Readonly<Record<string, unknown>> }> | null {
   const id =
     turn.plan.kind === 'RETEACH'
       ? (turn.decision.graded?.misconception ?? turn.context.session.repeatedMisconception)
       : null;
-  return id === null ? null : deps.remediation(id);
-}
-
-async function resolveQuestion(
-  deps: Parameters<typeof createTurnContentService>[0],
-  turn: PlannedTurn<ApiModelContext>,
-  signal?: AbortSignal,
-): Promise<ResolvedContent> {
-  throwIfAborted(signal);
-  const skillCode = turn.plan.skillCode;
-  if (skillCode === null) return resolveOpenQuestion(deps, turn);
-  const content = await deps.reliable.resolve(
-    {
-      kind: 'question',
-      skillCode,
-      band: turn.context.session.band,
-      studentId: turn.context.session.studentId,
-      excludeIds: turn.context.modelContext.recentContentItemIds,
-    },
-    signal,
-  );
-  throwIfAborted(signal);
-  const body = questionBodySchema.parse(content.body);
-  const display = questionDisplay(body);
-  for (const childText of [body.prompt, ...(body.choices ?? [])]) {
-    requiredGatedText(
-      deps.gate,
-      childText,
-      turn.context.session.band,
-      content.source === 'generated',
-    );
-  }
-  const move = deps.moves(turn.context.session.id).make({
-    kind: 'ASK',
-    skillId: skillCode,
-    itemId: content.itemId ?? `fallback-${skillCode}`,
-    attempt: turn.plan.attempt,
-    speech: { text: body.prompt },
-    display,
-    expects: body.choices === undefined ? 'text' : 'choice',
-  });
-  return {
-    moves: [move],
-    privateEvidence: {
-      ...contextEvidence(turn),
-      answerKey: body.answerKey ?? null,
-      arithmeticProblem: body.arithmeticProblem ?? null,
-      completionOnly: body.completionOnly ?? false,
-      contentSource: content.source,
-      approach: turn.plan.approach,
-      ...(content.itemId === null ? {} : { contentItemId: content.itemId }),
-    },
-  };
-}
-
-function resolveOpenQuestion(
-  deps: Parameters<typeof createTurnContentService>[0],
-  turn: PlannedTurn<ApiModelContext>,
-): ResolvedContent {
-  const text = requiredGatedText(deps.gate, 'What do you think?', turn.context.session.band);
-  return {
-    moves: [responseMove(deps.moves(turn.context.session.id), turn, text)],
-    privateEvidence: contextEvidence(turn),
-  };
-}
-
-function questionDisplay(body: z.infer<typeof questionBodySchema>): TutorMove['display'] {
-  return body.choices === undefined
-    ? [{ type: 'text', body: body.prompt, markdown: false }]
-    : [
-        {
-          type: 'choices',
-          options: body.choices.map((choice) => ({ id: choice, label: choice })),
-        },
-      ];
-}
-
-function contextEvidence(turn: PlannedTurn<ApiModelContext>): Readonly<Record<string, unknown>> {
-  return {
-    contextTokens: turn.context.modelContext.estimatedTokens,
-    retrievedFactIds: turn.context.modelContext.retrievedFactIds,
-  };
+  const text = id === null ? null : deps.remediation(id);
+  return text === null ? null : { text, provenance: { responseSource: 'reviewed-remediation' } };
 }
 
 async function responseWithContinuation(
-  deps: Parameters<typeof createTurnContentService>[0],
+  deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
-  said: Readonly<{ text: string; provenance: Readonly<Record<string, unknown>> }>,
+  said: Said,
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
-  const feedback = responseMove(deps.moves(turn.context.session.id), turn, said.text);
+  const feedback = responseMove(
+    deps.moves(turn.context.session.id),
+    turn,
+    said.text,
+    said.identity,
+  );
   const evidence = { ...contextEvidence(turn), ...said.provenance };
   const detour = isDetour(turn);
   if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH' || detour) {
@@ -243,22 +179,4 @@ async function responseWithContinuation(
     moves: [feedback, ...next.moves],
     privateEvidence: { ...evidence, ...next.privateEvidence },
   };
-}
-
-function retryAsk(
-  deps: Parameters<typeof createTurnContentService>[0],
-  turn: PlannedTurn<ApiModelContext>,
-  prior: Extract<TutorMove, { kind: 'ASK' }>,
-  countAttempt: boolean,
-): TutorMove {
-  return deps.moves(turn.context.session.id).make({
-    kind: 'ASK',
-    skillId: prior.skillId,
-    itemId: prior.itemId,
-    attempt: countAttempt ? Math.min(10, prior.attempt + 1) : prior.attempt,
-    vocabularyHint: prior.vocabularyHint,
-    speech: prior.speech,
-    display: prior.display,
-    expects: prior.expects,
-  });
 }

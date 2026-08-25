@@ -56,6 +56,24 @@ export function createPhase2Runtime(
     rooms,
     lifecycle,
   });
+  const controller = buildVoiceController({ deps, phase1, voiceSessions, realtime, consent });
+  return {
+    student: { authorize: requireStudentAccess(deps.access), controller },
+    worker: { authorize: workerOnly(voiceConfig.workerToken), controller },
+    admin: { authorize: operatorOnly(operatorToken), controller },
+  };
+}
+
+function buildVoiceController(
+  input: Readonly<{
+    deps: Phase1RuntimeDeps;
+    phase1: Phase1Runtime;
+    voiceSessions: ReturnType<typeof createVoiceSessionRepository>;
+    realtime: ReturnType<typeof buildRealtime>;
+    consent: ReturnType<typeof buildConsent>;
+  }>,
+): ReturnType<typeof createVoiceControllers> {
+  const { deps, phase1, voiceSessions } = input;
   const worker = createWorkerTurnService({
     sessions: phase1.repositories.sessions,
     voiceSessions,
@@ -70,18 +88,15 @@ export function createPhase2Runtime(
     events: phase1.repositories.events,
     clock: deps.clock,
   });
-  const controller = createVoiceControllers({
-    negotiate: realtime.negotiate,
+  return createVoiceControllers({
+    negotiate: input.realtime.negotiate,
     workerTurn: worker.handle,
     recordMetric: metrics.record,
-    grant: consent.grant,
-    withdraw: (input) => consent.withdraw(input.parentId, input.studentId),
+    grant: input.consent.grant,
+    withdraw: (consented) => input.consent.withdraw(consented.parentId, consented.studentId),
+    // P2H-07: without a bus the worker still gets one JSON body, exactly as before.
+    ...(deps.segments === undefined ? {} : { segments: deps.segments }),
   });
-  return {
-    student: { authorize: requireStudentAccess(deps.access), controller },
-    worker: { authorize: workerOnly(voiceConfig.workerToken), controller },
-    admin: { authorize: operatorOnly(operatorToken), controller },
-  };
 }
 
 function requireVoiceConfig(deps: Phase1RuntimeDeps): {

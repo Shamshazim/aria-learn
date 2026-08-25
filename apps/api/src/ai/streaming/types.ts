@@ -24,6 +24,10 @@ export type ReleasedSegment = Readonly<{
   written: string;
   spoken: string;
   gateMs: number;
+  /** P2H-07: position in this generation. The consumer speaks `n` only after `n - 1`. */
+  index: number;
+  /** P2H-07: known-final. See `moveSegmentSchema` for why a stream may never set it. */
+  isLast: boolean;
 }>;
 
 export type GatedStreamInput = Readonly<{

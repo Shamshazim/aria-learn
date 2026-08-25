@@ -72,6 +72,9 @@ export function bindVoiceEvents(input: VoiceEventBindings): AcknowledgementGate 
       return;
     }
     if (event.generationId !== input.moves.activeGenerationId()) return;
+    // P2H-07: the child is talking over this answer. Nothing more from it gets spoken, and how
+    // far they got is carried on the next turn so the transcript records what they heard.
+    input.moves.cancelGeneration(event.generationId);
     void input.session.interrupt({ force: true });
   });
   return gate;

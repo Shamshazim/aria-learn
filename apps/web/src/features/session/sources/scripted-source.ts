@@ -24,7 +24,8 @@ export function createScriptedSource(): TutorSource {
     });
   };
   return {
-    send: async function* (event, signal) {
+    // Scripted moves arrive whole; nothing here is generated, so there is nothing to stream.
+    send: async function* (event, signal): AsyncIterable<TutorMove> {
       for (const move of movesFor(event, make, () => {
         wrongAnswerAttempts += 1;
         return wrongAnswerAttempts;

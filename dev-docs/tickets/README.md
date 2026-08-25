@@ -89,10 +89,11 @@ Written 2026-08-24 after the "why does it sound like a machine" review. The harn
 the tutor inside it is stubs and canned strings. Nothing in Phase 3+ is worth building on top
 of that, so this phase comes first.
 
-**Status 2026-08-25:** P2H-01 … P2H-06 are code complete on `docs/harness-review-fixes` (no PR
-yet). P2H-03 is additionally blocked on two human judgements — the `aria.md` persona review and
-the >= 80% rubric round in `../golden/tutoring/scores.md` — and P2H-07 … P2H-15 are not started.
-Each ticket's "Status" section says exactly what is left.
+**Status 2026-08-25:** P2H-01 … P2H-06 are code complete on `docs/harness-review-fixes` and
+P2H-07 on `feat/P2H-07-sentence-streaming` stacked on it (no PRs yet). P2H-03 is additionally
+blocked on two human judgements — the `aria.md` persona review and the >= 80% rubric round in
+`../golden/tutoring/scores.md` — and P2H-08 … P2H-15 are not started. Each ticket's "Status"
+section says exactly what is left.
 
 | Id | Track | Depends on | Ticket |
 |---|---|---|---|

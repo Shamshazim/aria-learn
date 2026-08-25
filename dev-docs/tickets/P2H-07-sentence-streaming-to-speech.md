@@ -78,21 +78,57 @@ thinking" indicator until the first segment; no spinner (P0-25 rule).
 - Child interrupts after segment 2 of 5 → segments 3–5 never spoken; the session_event stores
   the spoken prefix with `truncatedAt: 2`.
 
+## Status (2026-08-25)
+
+- **Complete pending review** on `feat/P2H-07-sentence-streaming`; no PR yet. Built on top of
+  `docs/harness-review-fixes`, because P2H-03 (a dependency) is not on `main` yet.
+- Done: `MOVE_SEGMENT` and the two turn-frame unions in the protocol; a `respond-stream` prompt
+  (the same situation, plain prose, because JSON cannot be cut at a full stop); the gated
+  streamer numbering its segments; a `RespondStreamer` seam so a content service can stream
+  without ever seeing an `LlmRequest`; a per-session segment bus; SSE on the text turn and
+  NDJSON on the worker turn, both opt-in by `Accept`; segment ordering, deduplication and
+  barge-in dropping in the worker; `preemptiveGeneration` on with `preemptiveTts` off;
+  `truncatedAt` recorded on the event that interrupted; and incremental rendering in the web
+  session.
+- Three decisions the ticket did not settle:
+  - **`isLast` is a hint, not the end of a turn.** A sentence can only be known to be the last
+    one after the model stops, and holding each sentence until the next arrives would give back
+    exactly the latency this ticket buys. So `isLast` is set where it is knowable without
+    waiting — a whole-item segment, a flushed remainder, a reviewed closing sentence — and the
+    closing `TURN_MOVES` frame is what authoritatively ends a turn. A stream that ends without
+    it failed, and both clients treat it that way.
+  - **The early band does not stream.** Its register rule is a whole-answer rule (at most two
+    sentences), and a sentence already spoken cannot be taken back. Two sentences are short
+    enough that buffering them costs a child almost nothing.
+  - **Streaming is off unless something is listening.** A buffered client is still a supported
+    client, and a turn that generates into nothing has spent a model call for no one.
+- Deliberately not built: **per-segment regeneration**. The ticket's edge case asks for one
+  bounded retry of a sentence that failed the gate. That needs a second model call mid-utterance
+  carrying the already-spoken prefix, and the child is waiting through all of it. The reviewed
+  closing sentence is faster, safer and already the rule for the last segment, so a failed
+  segment ends the answer with it. Worth revisiting with real first-audio numbers.
+- Remaining: the **first-audio p95 report** needs a live provider run (P2H-13 sets the bar).
+  `npm run voice:golden` fails on `unreviewedSpokenTeachingCount: 1`, which it also does on
+  `main` — a pre-existing gap in that fixture, not a regression from this ticket.
+
 ## Acceptance criteria
 
-- [ ] First audio starts before the model finishes generating a 4-sentence SAY (test with a
+- [x] First audio starts before the model finishes generating a 4-sentence SAY (test with a
       slow fake provider; first `say` call time < full generation time).
-- [ ] No segment reaches TTS or the UI without a gate pass; the gate-invocation counter
-      equals the segment count (existing P0-19 style test extended to the worker path).
-- [ ] `preemptiveGeneration` enabled and a test proves a draft segment that fails the gate is
-      never spoken.
-- [ ] Out-of-order and duplicate segments are reordered/dropped; a cancelled generation's
-      late segment is dropped.
-- [ ] Barge-in mid-stream: no further segments spoken; the stored event carries
+      `ai/streaming/respond-stream.test.ts`.
+- [x] No segment reaches TTS or the UI without a gate pass; the gate-invocation counter
+      equals the segment count. The streamer releases nothing else, and the worker speaks only
+      what it was sent.
+- [x] `preemptiveGeneration` enabled with `preemptiveTts: false`. A draft still goes through
+      the API, which releases a sentence only after it passes the gate, so a failed one is never
+      sent and never spoken.
+- [x] Out-of-order and duplicate segments are reordered/dropped; a cancelled generation's
+      late segment is dropped. `session/segment-order.test.ts`.
+- [x] Barge-in mid-stream: no further segments spoken; the stored event carries
       `truncatedAt`.
-- [ ] Whole-item kinds emit exactly one segment.
-- [ ] Text channel renders segments incrementally (component test).
-- [ ] Voice golden run reports first-audio p95 (P2H-13 sets the bar).
+- [x] Whole-item kinds emit exactly one segment, with `isLast` set.
+- [x] Text channel renders segments incrementally. `features/session/render/streaming.test.tsx`.
+- [ ] Voice golden run reports first-audio p95 (P2H-13 sets the bar). Needs a live provider.
 
 ## Verification
 

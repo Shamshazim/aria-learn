@@ -173,7 +173,8 @@ async function runSourceOperation(operation: SourceOperation): Promise<void> {
     )) {
       if (sourceRef.current !== operation.source || controller.signal.aborted) return;
       emitted = true;
-      operation.refs.onMove.current?.(move);
+      // P2H-07: a segment is a sentence on its way to the screen, not a move to act on.
+      if (move.kind !== 'MOVE_SEGMENT') operation.refs.onMove.current?.(move);
       operation.dispatchers.session(move);
     }
     recoverConnection(operation);

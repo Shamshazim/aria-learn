@@ -209,4 +209,39 @@ describe('voice worker turn delivery', () => {
     expect(append).toHaveBeenCalledOnce();
     expect(turn).not.toHaveBeenCalled();
   });
+
+  it('records how far into an interrupted answer the child actually got', async () => {
+    const append = eventWriter();
+    const service = createWorkerTurnService({
+      sessions: { findById: () => Promise.resolve(session) },
+      voiceSessions: { findOpen: () => Promise.resolve({ connectionEpoch: 3 }) },
+      outbox: { acknowledge: () => Promise.resolve(), listAfter: () => Promise.resolve([]) },
+      events: { append },
+      turn: vi.fn(() => Promise.resolve()),
+      clock: { now: () => new Date('2026-08-24T00:00:00Z') },
+    });
+
+    await service.handle('session-1', {
+      protocolVersion: PROTOCOL_VERSION,
+      connectionEpoch: 3,
+      acknowledgedSeq: 1,
+      replayOnly: false,
+      authorizeOnly: false,
+      // P2H-07: the child talked over Aria after the second sentence.
+      spokenPrefix: { generationId: 'generation-1', index: 1 },
+      event: {
+        id: 'speech-started-1',
+        at: '2026-08-24T00:00:00.000Z',
+        protocolVersion: PROTOCOL_VERSION,
+        kind: 'SPEECH_STARTED',
+      },
+    });
+
+    expect(append).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'SPEECH_STARTED',
+        evidence: { generationId: 'generation-1', truncatedAt: 1 },
+      }),
+    );
+  });
 });

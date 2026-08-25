@@ -58,6 +58,8 @@ export type RespondPromptInput = ContextInput &
     correct?: boolean | undefined;
   }>;
 export type RespondPromptOutput = Readonly<{ text: string }>;
+/** P2H-07: the streamed twin of `respond`; the same words, released a sentence at a time. */
+export type RespondStreamPromptOutput = RespondPromptOutput;
 
 /** P2H-05: the model second pass over what a child meant. */
 export type ClassifyIntentPromptInput = ContextInput &
@@ -110,6 +112,7 @@ export type PromptContractMap = {
   'plan-move': { input: PlanMovePromptInput; output: PlanMovePromptOutput };
   'practice-item': { input: PracticeItemPromptInput; output: PracticeItemPromptOutput };
   respond: { input: RespondPromptInput; output: RespondPromptOutput };
+  'respond-stream': { input: RespondPromptInput; output: RespondStreamPromptOutput };
 };
 
 export type PromptName = keyof PromptContractMap;

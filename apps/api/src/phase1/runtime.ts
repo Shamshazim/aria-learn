@@ -87,14 +87,7 @@ function buildTutor(
     retrieve: memory.retrieve,
     misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
   });
-  const turnContent = createTurnContentService({
-    reliable: content.reliable,
-    ai: deps.ai,
-    gate: content.gate,
-    moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
-    remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
-    observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
-  });
+  const turnContent = buildTurnContent(deps, inventory, content);
   const commit = createTurnCommitService({
     pool: deps.pool,
     events: repositories.events,
@@ -123,6 +116,25 @@ function buildTutor(
       onFallback: createIntentFallbackObserver({ metrics: deps.metrics }),
     }),
     ...plannerPorts(deps),
+  });
+}
+
+function buildTurnContent(
+  deps: Phase1RuntimeDeps,
+  inventory: InventoryService,
+  content: ContentServices,
+): TurnContentService {
+  return createTurnContentService({
+    reliable: content.reliable,
+    ai: deps.ai,
+    gate: content.gate,
+    moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
+    remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
+    observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
+    // P2H-07: a streamer and a listener both have to exist for a sentence to leave early.
+    ids: deps.ids,
+    ...(content.respond === undefined ? {} : { respond: content.respond }),
+    ...(deps.segments === undefined ? {} : { segments: deps.segments }),
   });
 }
 

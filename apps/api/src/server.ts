@@ -14,6 +14,7 @@ import { createPhase1Runtime } from '@/phase1/runtime';
 import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
 import { createPhase2Runtime } from '@/phase2/runtime';
 import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
+import { createSegmentBus } from '@/services/content/segment-bus';
 
 import type { Server } from 'node:http';
 import type { Pool } from 'pg';
@@ -92,6 +93,9 @@ function createRuntimeDeps(input: {
     logger: input.logger,
     access: createConfiguredStudentAccess(input.config),
     metrics: input.metrics,
+    // P2H-07: one bus per process; a subscription lasts exactly as long as one request.
+    gatedStreamer: input.ai.gatedStreamer,
+    segments: createSegmentBus(),
     ...(input.config.voice === undefined
       ? {}
       : { closeVoiceSession: voiceSessionCloser(input.pool) }),

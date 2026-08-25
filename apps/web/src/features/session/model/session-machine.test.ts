@@ -6,6 +6,7 @@ import { silenceWindowMs } from '@aria/tutor';
 import { createEventFactory } from '@/features/session/model/input-events';
 import { reduceSession } from '@/features/session/model/session-machine';
 import { initialSessionState } from '@/features/session/model/session-state';
+import { isTutorMove } from '@/features/session/model/tutor-source';
 import { createScriptedSource } from '@/features/session/sources/scripted-source';
 
 describe('session reducer', () => {
@@ -86,7 +87,9 @@ async function allMoves(): Promise<readonly TutorMove[]> {
   ] as const;
   const moves: TutorMove[] = [];
   for (const payload of payloads) {
-    for await (const move of source.send(make(payload))) moves.push(move);
+    for await (const output of source.send(make(payload))) {
+      if (isTutorMove(output)) moves.push(output);
+    }
   }
   source.close();
   return moves;

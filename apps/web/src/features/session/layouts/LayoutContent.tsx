@@ -7,6 +7,10 @@ import { MoveView } from '@/features/session/render/registry';
 
 function CurrentMove(props: { session: TutorSession }): React.JSX.Element {
   const move = props.session.state.currentMove;
+  const streaming = props.session.state.streaming;
+  // P2H-07: the sentences Aria has already said. No input surface until the move arrives —
+  // a half-written answer has nothing to answer yet.
+  if (move === null && streaming !== null) return <p aria-live="polite">{streaming.text}</p>;
   if (move === null) return <p aria-live="polite">Take your time.</p>;
   return (
     <>

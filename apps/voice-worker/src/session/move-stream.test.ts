@@ -4,12 +4,33 @@ import {
   PROTOCOL_VERSION,
   sessionIdSchema,
   tutorMoveSchema,
+  type VoiceTurnRequest,
   type VoiceTurnResponse,
 } from '@aria/shared';
 
 import { createMoveStream } from './move-stream';
 
 const SESSION_ID = sessionIdSchema.parse('11111111-1111-4111-8111-111111111111');
+
+type Turn = (
+  sessionId: string,
+  body: VoiceTurnRequest,
+  signal?: AbortSignal,
+) => Promise<VoiceTurnResponse>;
+
+/**
+ * A control plane that answers in one frame. P2H-07 made the turn a stream, and a buffered
+ * answer is still a stream — one that goes straight to its closing frame — so every assertion
+ * about moves, epochs and acknowledgement cursors stays exactly what it was.
+ */
+function client(turn: Turn) {
+  return {
+    turn,
+    turnStream: async function* (sessionId: string, body: VoiceTurnRequest, signal?: AbortSignal) {
+      yield { kind: 'TURN_MOVES' as const, turn: await turn(sessionId, body, signal) };
+    },
+  };
+}
 
 describe('voice move stream', () => {
   it('speaks only server-gated move text and carries the acknowledgement cursor forward', async () => {
@@ -19,7 +40,7 @@ describe('voice move stream', () => {
     );
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
-      client: { turn },
+      client: client(turn),
       publisher: { publish },
       nextId: () => 'event-1',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
@@ -69,7 +90,7 @@ describe('voice move stream', () => {
     const publish = vi.fn(() => Promise.resolve());
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 2, band: 'middle' },
-      client: { turn: () => Promise.resolve(response(2, [silent])) },
+      client: client(() => Promise.resolve(response(2, [silent]))),
       publisher: { publish },
       nextId: () => 'event-2',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
@@ -83,7 +104,7 @@ describe('voice move stream', () => {
   it('rejects a response from an old connection epoch', async () => {
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 3, band: 'senior' },
-      client: { turn: () => Promise.resolve(response(2, [])) },
+      client: client(() => Promise.resolve(response(2, []))),
       publisher: { publish: () => Promise.resolve() },
       nextId: () => 'event-3',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
@@ -100,7 +121,7 @@ describe('voice move stream', () => {
       .mockResolvedValueOnce(response(4, [move('new-move', 8, 'New speech.')]));
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 4, band: 'middle' },
-      client: { turn },
+      client: client(turn),
       publisher: { publish },
       nextId: () => 'event-reconnect',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
@@ -119,7 +140,7 @@ describe('voice move stream', () => {
     const turn = vi.fn(() => Promise.resolve(response(1, [move('move-1', 1, 'Keep going.')])));
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
-      client: { turn },
+      client: client(turn),
       publisher: { publish: () => Promise.resolve() },
       nextId: () => 'event-backchannel',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
@@ -142,7 +163,7 @@ describe('voice move stream', () => {
     const turn = vi.fn(() => Promise.resolve(response(1, [pending])));
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
-      client: { turn },
+      client: client(turn),
       publisher: { publish },
       nextId: () => 'event-speech-started',
       now: () => new Date('2026-08-24T00:00:00.000Z'),
@@ -163,7 +184,7 @@ describe('voice move stream', () => {
     });
     const stream = createMoveStream({
       room: { sessionId: SESSION_ID, connectionEpoch: 1, band: 'early' },
-      client: { turn: () => Promise.resolve(response(1, [terminal])) },
+      client: client(() => Promise.resolve(response(1, [terminal]))),
       publisher: { publish: () => Promise.resolve() },
       nextId: () => 'event-terminal',
       now: () => new Date('2026-08-24T00:00:00.000Z'),

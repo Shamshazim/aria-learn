@@ -1,6 +1,7 @@
 import { z, type ZodType } from 'zod';
 
 import { ApiError } from '@/api/errors';
+import { readSse } from '@/api/sse';
 
 const errorSchema = z.object({ error: z.object({ code: z.string() }) });
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -8,6 +9,18 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 export type ApiClient = Readonly<{
   get<T>(path: string, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
   post<T>(path: string, body: unknown, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
+  /**
+   * P2H-07: the same POST, read as it arrives.
+   *
+   * There is no envelope and no timeout: a stream is open for as long as Aria is talking, and
+   * the frames are the response. A caller that wants one settled answer uses `post`.
+   */
+  postStream<T>(
+    path: string,
+    body: unknown,
+    schema: ZodType<T>,
+    options?: RequestOptions,
+  ): AsyncIterable<T>;
 }>;
 
 type RequestOptions = Readonly<{ signal?: AbortSignal; timeoutMs?: number }>;
@@ -25,6 +38,15 @@ export function createApiClient(dependencies: {
         path,
         schema,
         method: 'GET',
+        ...(options === undefined ? {} : { options }),
+      }),
+    postStream: (path, body, schema, options) =>
+      streamRequest({
+        fetcher,
+        baseUrl: dependencies.baseUrl,
+        path,
+        body,
+        schema,
         ...(options === undefined ? {} : { options }),
       }),
     post: (path, body, schema, options) =>
@@ -76,6 +98,55 @@ async function request<T>(input: {
   } finally {
     timeout.dispose();
   }
+}
+
+async function* streamRequest<T>(input: {
+  fetcher: typeof globalThis.fetch;
+  baseUrl: string;
+  path: string;
+  body: unknown;
+  schema: ZodType<T>;
+  options?: RequestOptions;
+}): AsyncIterable<T> {
+  const response = await openStream({
+    fetcher: input.fetcher,
+    baseUrl: input.baseUrl,
+    path: input.path,
+    body: input.body,
+    ...(input.options === undefined ? {} : { options: input.options }),
+  });
+  for await (const frame of readSse(response)) {
+    const parsed = input.schema.safeParse(frame);
+    if (!parsed.success) throw new ApiError('malformed', 'MALFORMED_RESPONSE');
+    yield parsed.data;
+  }
+}
+
+async function openStream(input: {
+  fetcher: typeof globalThis.fetch;
+  baseUrl: string;
+  path: string;
+  body: unknown;
+  options?: RequestOptions;
+}): Promise<ReadableStream<Uint8Array>> {
+  let response: Response;
+  try {
+    response = await input.fetcher(`${input.baseUrl}${input.path}`, {
+      method: 'POST',
+      headers: {
+        accept: 'text/event-stream',
+        'content-type': 'application/json',
+        'x-request-id': crypto.randomUUID(),
+      },
+      body: JSON.stringify(input.body),
+      ...(input.options?.signal === undefined ? {} : { signal: input.options.signal }),
+    });
+  } catch {
+    throw new ApiError('network', 'NETWORK_ERROR');
+  }
+  if (!response.ok) throw httpError(response.status, await parseJson(response));
+  if (response.body === null) throw new ApiError('malformed', 'MALFORMED_RESPONSE');
+  return response.body;
 }
 
 async function parseJson(response: Response): Promise<unknown> {

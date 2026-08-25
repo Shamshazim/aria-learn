@@ -2,7 +2,7 @@ import type { MoveKind, TutorMove } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
 import type { RespondPromptInput } from '@/ai/prompts/types';
-import type { ApiModelContext } from '@/services/content/turn-content.service';
+import type { ApiModelContext, MoveIdentity } from '@/services/content/turn-content.types';
 import { eventText } from '@/services/content/turn-fallback';
 import type { MoveFactory } from '@/services/moves/move-factory';
 
@@ -57,10 +57,15 @@ export function isDetour(turn: PlannedTurn<ApiModelContext>): boolean {
   return turn.plan.kind === 'SAY' && DETOUR_APPROACHES.has(turn.plan.approach);
 }
 
+/**
+ * `identity` is set when the move's sentences were already streamed under that id (P2H-07), so
+ * the move that finally arrives is recognisably the same one the child has been listening to.
+ */
 export function responseMove(
   factory: MoveFactory,
   turn: PlannedTurn<ApiModelContext>,
   text: string,
+  identity?: MoveIdentity,
 ): TutorMove {
   const common = {
     kind: turn.plan.kind,
@@ -68,6 +73,7 @@ export function responseMove(
     display: [{ type: 'text', body: text, markdown: false }],
     expects: turn.plan.approach === 'confirm-spoken-answer' ? 'speech' : 'none',
     skillId: turn.plan.skillCode ?? undefined,
+    ...(identity ?? {}),
   };
   return factory.make({ ...common, ...(MOVE_FIELDS[turn.plan.kind]?.(turn) ?? {}) });
 }

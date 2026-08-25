@@ -1,4 +1,4 @@
-import type { AiClient } from '@/ai';
+import { createRespondStreamer, type AiClient, type RespondStreamer } from '@/ai';
 import {
   createContentCacheService,
   createFallbackService,
@@ -9,7 +9,7 @@ import type { InventoryService } from '@/curriculum';
 import { ServiceUnavailableError } from '@/errors';
 import { createGateObserver } from '@/observability/gate-metrics';
 import { scrubLearnerContext } from '@/privacy';
-import { createQualityGate } from '@/quality';
+import { createQualityGate, speakableGate, type QualityGate } from '@/quality';
 import { isUnsafeChildFacingText } from '@/safety/crisis/detect';
 import { createAheadService } from '@/services/content/ahead.service';
 import { contentScope } from '@/services/content/personalise';
@@ -20,6 +20,8 @@ export type ContentServices = Readonly<{
   gate: ReturnType<typeof createQualityGate>;
   reliable: ReturnType<typeof createReliableContentService>;
   ahead: ReturnType<typeof createAheadService>;
+  /** P2H-07: present only when the deployment can stream; absent means every move arrives whole. */
+  respond?: RespondStreamer;
 }>;
 
 export function buildContentServices(
@@ -57,7 +59,16 @@ export function buildContentServices(
       deps.logger.warn({ err: error, sessionId }, 'Ahead content generation failed');
     },
   });
-  return { gate, reliable, ahead };
+  return { gate, reliable, ahead, ...respondStreamer(deps, gate) };
+}
+
+function respondStreamer(
+  deps: Phase1RuntimeDeps,
+  gate: QualityGate,
+): Readonly<{ respond?: RespondStreamer }> {
+  return deps.gatedStreamer === undefined
+    ? {}
+    : { respond: createRespondStreamer(deps.gatedStreamer(speakableGate(gate))) };
 }
 
 async function generatePractice(

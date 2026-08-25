@@ -53,7 +53,7 @@ export function createWorkerTurnService(deps: {
           skillCode: null,
           correct: null,
           latencyMs: null,
-          evidence: {},
+          evidence: truncation(input),
           payload: { ...input.event, sessionId: protocolSessionId },
           at: deps.clock.now(),
         });
@@ -72,4 +72,18 @@ export function createWorkerTurnService(deps: {
       return { connectionEpoch: input.connectionEpoch, moves: replay.map((item) => item.move) };
     },
   };
+}
+
+/**
+ * P2H-07: what the child heard before they talked over Aria.
+ *
+ * The worker knows, because it is the thing that stopped speaking. Writing it on the event that
+ * interrupted keeps the transcript honest: the stored move is the whole answer Aria wrote, and
+ * `truncatedAt` is how far into it anybody actually got.
+ */
+function truncation(input: VoiceTurnRequest): Readonly<Record<string, string | number>> {
+  const prefix = input.spokenPrefix;
+  return prefix === undefined
+    ? {}
+    : { generationId: prefix.generationId, truncatedAt: prefix.index };
 }

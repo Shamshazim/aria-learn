@@ -2,37 +2,25 @@ import {
   PROTOCOL_VERSION,
   type TutorInputEvent,
   type TutorMove,
+  type VoiceTurnRequest,
   type VoiceTurnResponse,
 } from '@aria/shared';
 import { decideInterruption, spokenForm } from '@aria/voice';
 
 import type { TutorVoiceClient } from '@/api/tutor-client';
+import { createMoveStreamState, type MoveStreamState } from '@/session/move-stream.state';
 import type { VoiceRoomContext } from '@/session/session-context';
 
 export type MovePublisher = Readonly<{ publish(move: TutorMove): Promise<void> }>;
 
 type MoveStreamInput = Readonly<{
   room: VoiceRoomContext;
-  client: Pick<TutorVoiceClient, 'turn'>;
+  client: Pick<TutorVoiceClient, 'turn' | 'turnStream'>;
   publisher: MovePublisher;
   nextId(): string;
   now(): Date;
 }>;
 
-type MoveStreamState = Readonly<{
-  acknowledgedSeq(): number;
-  acknowledge(serverSeq: number): void;
-  deliveredSeq(): number;
-  markDelivered(serverSeq: number): void;
-  activeGenerationId(): string | null;
-  activate(generationId: string | null): void;
-  terminalSpeechPending(): boolean;
-  terminalDelivered(): boolean;
-  markTerminalSpeechPending(pending: boolean): void;
-  pendingPlaybackSeq(): number;
-  markPendingPlayback(serverSeq: number): void;
-  takePendingPlaybackSeq(): number;
-}>;
 type CommonVoiceEvent = Readonly<{
   id: string;
   at: string;
@@ -56,6 +44,8 @@ export type MoveStream = Readonly<{
   terminalDelivered(): boolean;
   takePendingPlaybackSeq(): number;
   clearGeneration(): void;
+  /** P2H-07: the child talked over this generation; its late sentences are dropped. */
+  cancelGeneration(generationId: string): void;
 }>;
 
 export function createMoveStream(input: MoveStreamInput): MoveStream {
@@ -100,6 +90,10 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
     terminalDelivered: state.terminalDelivered,
     takePendingPlaybackSeq: state.takePendingPlaybackSeq,
     clearGeneration: () => {
+      state.activate(null);
+    },
+    cancelGeneration: (generationId) => {
+      state.order.cancel(generationId);
       state.activate(null);
     },
   };
@@ -151,19 +145,37 @@ function createStreamSerializer(): (stream: () => AsyncIterable<string>) => Asyn
   });
 }
 
+/**
+ * P2H-07: speaks Aria's sentences as they arrive, then publishes the moves they belonged to.
+ *
+ * A sentence is spoken the moment every sentence before it has been — the segment order decides
+ * that, not the network. The closing frame carries the same moves the buffered response always
+ * did; a move whose own sentences were already spoken is still published, so the transcript and
+ * the outbox are complete, but it is not said twice.
+ */
 async function* send(
   input: MoveStreamInput,
   state: MoveStreamState,
   request: Readonly<{ event: TutorInputEvent; replayOnly: boolean; signal?: AbortSignal }>,
 ): AsyncIterable<string> {
-  const response = await requestTurn(input, state, request);
-  if (response.connectionEpoch !== input.room.connectionEpoch) {
-    throw new Error('Tutor API returned a stale voice connection epoch');
-  }
-  for (const move of response.moves) {
-    if (move.serverSeq !== undefined && move.serverSeq <= state.deliveredSeq()) continue;
-    const speech = await applyMove(input.publisher, state, move);
-    if (speech !== null) yield speech;
+  for await (const frame of input.client.turnStream(
+    input.room.sessionId,
+    turnRequest(input, state, request),
+    request.signal,
+  )) {
+    if (frame.kind === 'MOVE_SEGMENT') {
+      state.activate(frame.generationId);
+      for (const ready of state.order.accept(frame)) yield ready.speech;
+      continue;
+    }
+    if (frame.turn.connectionEpoch !== input.room.connectionEpoch) {
+      throw new Error('Tutor API returned a stale voice connection epoch');
+    }
+    for (const move of frame.turn.moves) {
+      if (move.serverSeq !== undefined && move.serverSeq <= state.deliveredSeq()) continue;
+      const speech = await applyMove(input.publisher, state, move);
+      if (speech !== null) yield speech;
+    }
   }
 }
 
@@ -179,16 +191,27 @@ function requestTurn(
 ): Promise<VoiceTurnResponse> {
   return input.client.turn(
     input.room.sessionId,
-    {
-      protocolVersion: PROTOCOL_VERSION,
-      event: request.event,
-      replayOnly: request.replayOnly,
-      authorizeOnly: request.authorizeOnly ?? false,
-      acknowledgedSeq: state.acknowledgedSeq(),
-      connectionEpoch: input.room.connectionEpoch,
-    },
+    turnRequest(input, state, request),
     request.signal,
   );
+}
+
+function turnRequest(
+  input: MoveStreamInput,
+  state: MoveStreamState,
+  request: Readonly<{ event: TutorInputEvent; replayOnly: boolean; authorizeOnly?: boolean }>,
+): VoiceTurnRequest {
+  // P2H-07: how far into an interrupted answer the child got, so the API can record it.
+  const spokenPrefix = state.order.takeInterruptedPrefix();
+  return {
+    protocolVersion: PROTOCOL_VERSION,
+    event: request.event,
+    replayOnly: request.replayOnly,
+    authorizeOnly: request.authorizeOnly ?? false,
+    acknowledgedSeq: state.acknowledgedSeq(),
+    connectionEpoch: input.room.connectionEpoch,
+    ...(spokenPrefix === null ? {} : { spokenPrefix }),
+  };
 }
 
 async function applyMove(
@@ -203,6 +226,8 @@ async function applyMove(
   }
   if (move.speech === null) return null;
   if (move.serverSeq !== undefined) state.markPendingPlayback(move.serverSeq);
+  // P2H-07: the child already heard this one, a sentence at a time.
+  if (state.order.wasSpoken(move.id)) return null;
   state.activate(move.generationId ?? null);
   return spokenForm(move.speech.text);
 }
@@ -241,43 +266,5 @@ function commonEvent(input: MoveStreamInput, state: MoveStreamState): CommonVoic
     sessionId: input.room.sessionId,
     connectionEpoch: input.room.connectionEpoch,
     acknowledgedSeq: state.acknowledgedSeq(),
-  };
-}
-
-function createMoveStreamState(): MoveStreamState {
-  let acknowledgedSeq = 0;
-  let deliveredSeq = 0;
-  let activeGenerationId: string | null = null;
-  let terminalSpeechPending = false;
-  let terminalDelivered = false;
-  let pendingPlaybackSeq = 0;
-  return {
-    acknowledgedSeq: () => acknowledgedSeq,
-    acknowledge: (serverSeq) => {
-      acknowledgedSeq = Math.max(acknowledgedSeq, serverSeq);
-    },
-    deliveredSeq: () => deliveredSeq,
-    markDelivered: (serverSeq) => {
-      deliveredSeq = Math.max(deliveredSeq, serverSeq);
-    },
-    activeGenerationId: () => activeGenerationId,
-    activate: (generationId) => {
-      activeGenerationId = generationId;
-    },
-    terminalSpeechPending: () => terminalSpeechPending,
-    terminalDelivered: () => terminalDelivered,
-    markTerminalSpeechPending: (pending) => {
-      terminalDelivered = true;
-      terminalSpeechPending = pending;
-    },
-    pendingPlaybackSeq: () => pendingPlaybackSeq,
-    markPendingPlayback: (serverSeq) => {
-      pendingPlaybackSeq = Math.max(pendingPlaybackSeq, serverSeq);
-    },
-    takePendingPlaybackSeq: () => {
-      const result = pendingPlaybackSeq;
-      pendingPlaybackSeq = 0;
-      return result;
-    },
   };
 }

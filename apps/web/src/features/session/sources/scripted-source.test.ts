@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { EVENT_KINDS, MOVE_KINDS, type TutorInputEvent, type TutorMove } from '@aria/shared';
 
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
+import { isTutorMove } from '@/features/session/model/tutor-source';
 import { createScriptedSource } from '@/features/session/sources/scripted-source';
 
 const EVENTS: readonly EventPayload[] = [
@@ -46,7 +47,7 @@ describe('scripted tutor source', () => {
       eventFactory()({ kind: 'ARRIVED', grade: '4' }),
       controller.signal,
     )) {
-      seen.push(move);
+      if (isTutorMove(move)) seen.push(move);
       controller.abort();
     }
 
@@ -60,7 +61,9 @@ async function play(payloads: readonly EventPayload[]): Promise<readonly TutorMo
   const make = eventFactory();
   const moves: TutorMove[] = [];
   for (const payload of payloads) {
-    for await (const move of source.send(make(payload))) moves.push(move);
+    for await (const output of source.send(make(payload))) {
+      if (isTutorMove(output)) moves.push(output);
+    }
   }
   source.close();
   return moves;

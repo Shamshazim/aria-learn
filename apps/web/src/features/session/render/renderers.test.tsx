@@ -8,6 +8,7 @@ import { AskAriaPanel } from '@/features/session/components/AskAriaPanel';
 import { InputSurface } from '@/features/session/components/InputSurface';
 import { TutorStatus } from '@/features/session/components/TutorStatus';
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
+import { isTutorMove } from '@/features/session/model/tutor-source';
 import { MoveView } from '@/features/session/render/registry';
 import { createScriptedSource } from '@/features/session/sources/scripted-source';
 
@@ -161,7 +162,9 @@ async function allMoveKinds(): Promise<readonly TutorMove[]> {
   ];
   const byKind = new Map<TutorMove['kind'], TutorMove>();
   for (const payload of payloads) {
-    for await (const move of source.send(make(payload))) byKind.set(move.kind, move);
+    for await (const output of source.send(make(payload))) {
+      if (isTutorMove(output)) byKind.set(output.kind, output);
+    }
   }
   source.close();
   return MOVE_KINDS.flatMap((kind) => {
