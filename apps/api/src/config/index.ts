@@ -5,3 +5,4 @@ export type { AuthConfig, AuthEnv } from './auth';
 export { databaseEnvSchema, toDatabaseConfig } from './database';
 export type { DatabaseConfig, DatabaseEnv } from './database';
 export { readConfig, readConfigOrExit } from './read';
+export { loadRepoEnvFile } from './dotenv';

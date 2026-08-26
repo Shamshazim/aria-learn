@@ -1,7 +1,7 @@
 import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
-import { readConfigOrExit } from '@/config';
+import { loadRepoEnvFile, readConfigOrExit } from '@/config';
 import { createInventoryService } from '@/curriculum';
 import { closePool, createPool, runMigrations, verifyConnection } from '@/db';
 import { systemClock } from '@/lib/clock';
@@ -25,6 +25,9 @@ import type { Pool } from 'pg';
  * the port opens, so a broken deployment stops here — never later, in front of a child.
  */
 export async function start(): Promise<void> {
+  // First, before anything reads `process.env`: the AI endpoints are checked before the app's
+  // own configuration is, and they would otherwise only see what the shell exported.
+  loadRepoEnvFile();
   const aiConfig = readAiConfigOrExit();
   const config = readConfigOrExit();
   // Authored graph defects must stop boot before the API can serve curriculum.
