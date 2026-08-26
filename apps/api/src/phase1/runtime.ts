@@ -24,6 +24,7 @@ import {
 import type { StreamingDeps } from '@/services/content/turn-content.types';
 import { createMemoryRetrievalService } from '@/services/memory/retrieve.service';
 import { createMoveFactory } from '@/services/moves/move-factory';
+import { buildRecap } from '@/services/session/recap';
 import { createTurnCommitService } from '@/services/tutor/commit.service';
 import { createTutorContextLoader } from '@/services/tutor/context.loader';
 import { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
@@ -55,6 +56,7 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
     tutor,
     crisis,
     gate: content.gate,
+    skillName: (code) => inventory.getSkill(code)?.name ?? null,
     cancelAhead: (sessionId) => {
       content.ahead.cancel(sessionId);
     },
@@ -95,7 +97,7 @@ function buildTutor(
     misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
     lesson: (skillCode) => inventory.getLesson(skillCode),
   });
-  const turnContent = buildTurnContent(deps, inventory, content);
+  const turnContent = buildTurnContent(deps, repositories, inventory, content);
   const commit = createTurnCommitService({
     pool: deps.pool,
     events: repositories.events,
@@ -129,6 +131,7 @@ function buildTutor(
 
 function buildTurnContent(
   deps: Phase1RuntimeDeps,
+  repositories: Phase1Repositories,
   inventory: InventoryService,
   content: ContentServices,
 ): TurnContentService {
@@ -138,6 +141,14 @@ function buildTurnContent(
     gate: content.gate,
     moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
     remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
+    // P2H-11: the wrong idea by name, for a REVEAL that says what the child was thinking.
+    misconceptionIdea: (id) => inventory.getMisconception(id)?.name ?? null,
+    skillName: (code) => inventory.getSkill(code)?.name ?? null,
+    recap: async (sessionId) =>
+      buildRecap(
+        await repositories.events.list(sessionId),
+        (code) => inventory.getSkill(code)?.name ?? null,
+      ),
     visual: (input) => visualFor(inventory, input),
     observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
     ...streamingDeps(deps, content),

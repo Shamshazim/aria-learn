@@ -48,12 +48,9 @@ export async function resolveQuestion(
   const body = questionBodySchema.parse(content.body);
   const display = questionDisplay(body);
   for (const childText of [body.prompt, ...(body.choices ?? [])]) {
-    requiredGatedText(
-      deps.gate,
-      childText,
-      turn.context.session.band,
-      content.source === 'generated',
-    );
+    requiredGatedText(deps.gate, childText, turn.context.session.band, {
+      generated: content.source === 'generated',
+    });
   }
   const move = deps.moves(turn.context.session.id).make({
     kind: 'ASK',

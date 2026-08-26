@@ -54,6 +54,8 @@ export type RespondPromptInput = ContextInput &
     skill?: string | undefined;
     /** P2H-10: the skill's teaching note, rendered. Absent where no note applies. */
     lesson?: string | undefined;
+    /** P2H-11: what this turn knows the child did, for the moves that make claims about them. */
+    moveInputs?: string | undefined;
     question?: string | undefined;
     learnerSaid?: string | undefined;
     answerKey?: string | undefined;

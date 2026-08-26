@@ -92,14 +92,16 @@ of that, so this phase comes first.
 **Status 2026-08-25:** P2H-01 … P2H-06 are code complete on `docs/harness-review-fixes`,
 P2H-07 on `feat/P2H-07-sentence-streaming` stacked on it, P2H-08 on
 `feat/P2H-08-voice-identity-and-prosody` stacked on that, P2H-09 on
-`feat/P2H-09-bridges-and-backchannels` stacked on that, and P2H-10 on
-`feat/P2H-10-content-depth` stacked on that (no PRs yet). Five tickets are additionally
+`feat/P2H-09-bridges-and-backchannels` stacked on that, P2H-10 on
+`feat/P2H-10-content-depth` stacked on that, and P2H-11 on `feat/P2H-11-specific-praise`
+stacked on that (no PRs yet). Six tickets are additionally
 blocked on human judgement rather than on code: P2H-03 on the `aria.md` persona review and
 the >= 80% rubric round in `../golden/tutoring/scores.md`, P2H-08 on the listening review in
 `../voice-review.md` and the still-open provider decision (P2-01), P2H-09 on the human review
 of its 88 seed lines — none has been recorded, and the synthesiser refuses to run until a
-provider exists — and P2H-10 on the teacher review of its sixteen lesson notes and its 72 new
-golden cases. P2H-11 … P2H-15 are not started. Each ticket's "Status" section says exactly
+provider exists — P2H-10 on the teacher review of its sixteen lesson notes and its 72 new
+golden cases, and P2H-11 on the review of its 360 fallback sentences. P2H-12 … P2H-15 are not
+started. Each ticket's "Status" section says exactly
 what is left.
 
 | Id     | Track        | Depends on       | Ticket                                                                                         |

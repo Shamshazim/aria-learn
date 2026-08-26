@@ -4,6 +4,7 @@ import {
   createTutorHarness,
   type Intent,
   type LoadedTurnContext,
+  type PolicyDecision,
   type TutorHarness,
   type TutorPorts,
 } from '@aria/tutor';
@@ -15,6 +16,7 @@ import type { Logger } from '@/lib/logger';
 import { checkArithmetic } from '@/quality/arithmetic';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import { isStaleSilence, type LatestMoveLookup } from '@/services/tutor/stale-silence';
+import { strategiesFor } from '@/services/tutor/strategy-evidence';
 
 export type TutorService = Readonly<{
   handle(
@@ -100,7 +102,7 @@ function grade(
   event: Extract<TutorInputEvent, { kind: 'ANSWER' | 'SPEECH_FINAL' }>,
   context: ApiModelContext,
   skill: Readonly<{ code: string | null; repeatedMisconception: string | null }>,
-): Readonly<{ correct: boolean; misconception: string | null }> | null {
+): NonNullable<PolicyDecision['graded']> | null {
   const answer = event.kind === 'ANSWER' ? (event.text ?? event.choiceId ?? '') : event.text;
   if (context.completionOnly) return null;
   const correct =
@@ -121,7 +123,7 @@ function grade(
         },
         skill.repeatedMisconception === null ? [] : [skill.repeatedMisconception],
       );
-  return { correct, misconception };
+  return { correct, misconception, strategies: strategiesFor(skill.code, correct) };
 }
 
 function normalise(value: string): string {

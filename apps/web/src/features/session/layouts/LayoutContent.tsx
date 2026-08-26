@@ -5,13 +5,16 @@ import { TutorStatus } from '@/features/session/components/TutorStatus';
 import type { TutorSession } from '@/features/session/hooks/useTutorSession';
 import { MoveView } from '@/features/session/render/registry';
 
-function CurrentMove(props: { session: TutorSession }): React.JSX.Element {
+function CurrentMove(props: { session: TutorSession }): React.JSX.Element | null {
   const move = props.session.state.currentMove;
   const streaming = props.session.state.streaming;
   // P2H-07: the sentences Aria has already said. No input surface until the move arrives —
   // a half-written answer has nothing to answer yet.
   if (move === null && streaming !== null) return <p aria-live="polite">{streaming.text}</p>;
-  if (move === null) return <p aria-live="polite">Take your time.</p>;
+  // P2H-11: nothing at all while there is no move. The status line above already says Aria is
+  // listening; a filler sentence on top of it is the app talking to cover a silence, and the
+  // silence ladder is what decides whether that silence needs anything said about it.
+  if (move === null) return null;
   return (
     <>
       <MoveView band={props.session.state.band} move={moveWithSupportingVisual(props.session)} />

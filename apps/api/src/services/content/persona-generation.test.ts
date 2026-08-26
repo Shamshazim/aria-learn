@@ -86,20 +86,30 @@ function serviceWith(ai: AiClient) {
   });
 }
 
+/**
+ * A reply every move will accept, including the two P2H-11 checks a bare sentence would fail:
+ * REVEAL must say the answer and then say why, and END must not carry a digit.
+ */
+function acceptableReply(kind: MoveKind): string {
+  if (kind === 'REVEAL') return 'The answer is 7. Count on from four.';
+  if (kind === 'END') return 'You stayed with the hard ones today. See you next time.';
+  return 'Count on from four.';
+}
+
 describe('persona generation', () => {
   it.each(SPOKEN_KINDS)('calls the model exactly once for %s', async (kind) => {
-    const ai = recordingClient(() => 'Count on from four.');
+    const ai = recordingClient(() => acceptableReply(kind));
     const service = serviceWith(ai.client);
 
     const resolved = await service.resolve(turn(kind, 'early'));
 
     expect(ai.complete).toHaveBeenCalledOnce();
-    expect(resolved.moves[0]?.speech?.text).toBe('Count on from four.');
+    expect(resolved.moves[0]?.speech?.text).toBe(acceptableReply(kind));
     expect(resolved.privateEvidence).toMatchObject({ responseSource: 'model' });
   });
 
   it.each(SPOKEN_KINDS)('sends the persona and a move instruction for %s', async (kind) => {
-    const ai = recordingClient(() => 'Count on from four.');
+    const ai = recordingClient(() => acceptableReply(kind));
 
     await serviceWith(ai.client).resolve(turn(kind, 'middle'));
 

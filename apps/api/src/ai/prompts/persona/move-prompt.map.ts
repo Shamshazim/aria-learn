@@ -20,12 +20,14 @@ export const MOVE_INSTRUCTIONS: Readonly<Record<MoveKind, string>> = {
   RETEACH:
     'The child is stuck. Explain the idea again a different way than before, using the given approach. Keep it to the one idea they need right now.',
   REVEAL:
-    'Reveal the answer kindly and show in one or two sentences why it is the answer. Do not scold.',
+    'Say the answer, then in one sentence say why it is the answer, then offer one more of the same kind. Do not scold, and do not call anything the child did wrong.',
   PRAISE:
-    'The child got it right. Praise the specific thing they did well, naming what was right about their answer. No generic praise.',
-  SWITCH: 'Tell the child, kindly, that you are going to try a different step first.',
-  BREAK: 'Say goodbye for now warmly, in one or two sentences, as a person would.',
-  END: 'End the session warmly. Name one real thing the child worked on today, then say goodbye.',
+    'The child got it right. Name the one thing they did — the step, or the way they went about it — using only what you have been told they did. Never praise how clever or how good they are, and never say "good job" or anything like it. One sentence for a young child.',
+  SWITCH:
+    'Tell the child you are taking a different step first, and say why in a way that is about the work and not about them. One or two sentences, then move on.',
+  BREAK:
+    'Say goodbye for now warmly, in one or two sentences, as a person would. Do not say a number or a score.',
+  END: 'End the session. Two or three sentences, in the past tense, naming one real thing that actually happened today. Never say a number, a count, or a percentage. Finish with goodbye, and with when you will see them next if you know it.',
 };
 
 /**

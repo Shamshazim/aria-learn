@@ -14,6 +14,8 @@ export type {
   GateInput,
   GatePass,
   GateVerdict,
+  MoveClaims,
+  MustMention,
   SafetyAssessment,
   SafetyChecker,
 } from '@/quality/gate.types';

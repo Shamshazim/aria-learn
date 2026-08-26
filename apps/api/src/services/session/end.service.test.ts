@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { fixedClock } from '@/lib/clock';
 import { createLogger } from '@/lib/logger';
+import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
 import { createEndService } from '@/services/session/end.service';
 import type { TutorSessionRecord } from '@/types/session';
@@ -17,6 +18,8 @@ describe('session end', () => {
     const closeVoiceSession = vi.fn(() => Promise.resolve());
     const service = createEndService({
       sessions: repository(session),
+      events: events(),
+      skillName: () => null,
       clock: fixedClock(NOW),
       consolidation: { consolidate },
       logger: createLogger({ level: 'silent' }),
@@ -47,6 +50,17 @@ function repository(session: TutorSessionRecord): SessionRepository {
     findById: vi.fn(() => Promise.resolve(session)),
     findLatestEnded: vi.fn(() => Promise.resolve(null)),
     end: vi.fn(() => Promise.resolve(ended)),
+    saveSummary: vi.fn((_id: string, summary: string) => Promise.resolve({ ...ended, summary })),
+  };
+  return value;
+}
+
+function events(): SessionEventRepository {
+  const value: SessionEventRepository = {
+    withDb: () => value,
+    append: vi.fn(),
+    list: vi.fn(() => Promise.resolve([])),
+    findLatestEvidence: vi.fn(() => Promise.resolve(null)),
   };
   return value;
 }

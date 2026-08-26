@@ -9,13 +9,27 @@ import {
 import type { FallbackReason } from '@/observability/content-metrics';
 import type { GenerationOutcome } from '@/services/content/generate-text';
 import { throwIfAborted } from '@/services/content/generate-text';
+import type { MoveInputs } from '@/services/content/move-inputs';
 import type {
   ApiModelContext,
   MoveIdentity,
   StreamingDeps,
 } from '@/services/content/turn-content.types';
-import { fallbackText } from '@/services/content/turn-fallback';
 import { respondInput } from '@/services/content/turn-response';
+
+/**
+ * Everything the stream needs that is decided before the first token (P2H-07, P2H-11).
+ *
+ * The reviewed closing sentence is chosen up front rather than when the stream breaks: the
+ * picker is the only thing that knows which variant this session heard last, and asking it
+ * mid-failure would mean building a fallback while handling one.
+ */
+export type StreamRelease = Readonly<{
+  identity: MoveIdentity;
+  contentKind: StreamContentKind;
+  inputs: MoveInputs;
+  fallbackText: string;
+}>;
 
 /**
  * A streamed answer, and — when the stream stopped after the child had already heard some of it
@@ -39,14 +53,14 @@ export type StreamedText = GenerationOutcome &
 export async function streamGatedText(
   deps: StreamingDeps,
   turn: PlannedTurn<ApiModelContext>,
-  release: Readonly<{ identity: MoveIdentity; contentKind: StreamContentKind }>,
+  release: StreamRelease,
   signal?: AbortSignal,
 ): Promise<StreamedText> {
-  const { identity, contentKind } = release;
+  const { identity } = release;
   const written: string[] = [];
   let failure: unknown = null;
   try {
-    for await (const segment of deps.respond.stream(streamInput(turn, contentKind, signal))) {
+    for await (const segment of deps.respond.stream(streamInput(turn, release, signal))) {
       throwIfAborted(signal);
       written.push(segment.written);
       deps.segments.publish(turn.context.session.id, published(identity, segment));
@@ -95,12 +109,13 @@ function providerReason(error: unknown): FallbackReason {
 
 function streamInput(
   turn: PlannedTurn<ApiModelContext>,
-  contentKind: StreamContentKind,
+  release: StreamRelease,
   signal?: AbortSignal,
 ): Parameters<RespondStreamer['stream']>[0] {
   const band = turn.context.session.band;
+  const claims = release.inputs.claims;
   return {
-    promptInput: respondInput(turn),
+    promptInput: respondInput(turn, release.inputs),
     studentId: turn.context.session.studentId,
     plan: {
       moveKind: turn.plan.kind,
@@ -109,7 +124,7 @@ function streamInput(
       teachingClaim: turn.plan.reason,
       responseType: 'none',
     },
-    contentKind,
+    contentKind: release.contentKind,
     gateInput: (text) => ({
       id: 'turn-text',
       kind: 'text',
@@ -117,8 +132,9 @@ function streamInput(
       childText: text,
       factual: false,
       grounding: 'unsupported',
+      ...(claims === undefined ? {} : { claims }),
     }),
-    fallbackText: fallbackText(turn),
+    fallbackText: release.fallbackText,
     ...(signal === undefined ? {} : { signal }),
   };
 }

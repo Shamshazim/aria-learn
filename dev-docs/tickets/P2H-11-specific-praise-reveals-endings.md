@@ -80,27 +80,65 @@ ladder output (P2H-01) — the UI shows nothing but the listening indicator when
 
 ## Acceptance criteria
 
-- [ ] `turn-fallback.ts` no longer exists; every static string lives in `fallback.data.ts`
-      with ≥ 6 band variants and a human review recorded.
-- [ ] A nominal 20-turn scripted session with the model available produces
-      `fallback_used_total == 0`.
-- [ ] PRAISE fixtures: output never contains "good job", "great job", "smart"; contains a
-      reference to the grader's strategy evidence (grounding test).
-- [ ] REVEAL includes the answer and at least one reasoning sentence; when a misconception
-      matched, the reveal names the idea (fixture).
-- [ ] END summary is stored in `session.summary`, is ≤ 3 sentences and contains no digits
-      or percentages (test).
-- [ ] Ungrounded praise claim → gate failure → regeneration (test with a fake model).
-- [ ] The UI shows no placeholder sentence when `currentMove` is null.
+- [x] `turn-fallback.ts` no longer exists; every static string lives in
+      `services/content/fallback/` with ≥ 6 band variants per move — exhaustive over `MoveKind`
+      by type — and a review record in `fallback/REVIEW.md`. **The record says `pending`:** the
+      wording is drafted and machine-checked, and no person has signed it off.
+- [x] A nominal 20-turn scripted session with the model available produces
+      `fallback_used_total == 0` (`nominal-session.test.ts`).
+- [x] PRAISE fixtures: `__fixtures__/praise.fixtures.ts` — ten cases, three of them the banned
+      phrases, three of them invented strategies. The grounding list is the grader's own
+      `strategies`, so the praise can only name what the item proved.
+- [x] REVEAL includes the answer and at least one reasoning sentence; when a misconception
+      matched, the reveal names the idea (`__fixtures__/reveal.fixtures.ts`, five cases).
+- [x] END summary is stored in `session.summary`, is ≤ 3 sentences and contains no digits or
+      percentages (`recap.test.ts`).
+- [x] Ungrounded praise claim → gate failure → regeneration
+      (`nominal-session.test.ts`, both the recovery and the give-up path).
+- [x] The UI shows no placeholder sentence when `currentMove` is null
+      (`LayoutContent.test.tsx`).
+
+## Status
+
+**Code complete 2026-08-25** on `feat/P2H-11-specific-praise`.
+
+Recorded numbers: `npm run typecheck` 0 errors, `npm run lint` 0 errors, `npm test` 1411 tests
+across 191 files pass, `npm run golden:tutoring -w @aria/api` "PASS: 9 tutoring scenario(s)",
+no source file over 300 lines.
+
+Left open, and not fixable in code:
+
+- **The 360 fallback sentences are unreviewed.** `fallback/REVIEW.md` records every set as
+  `pending`. Machine checks prove the count, the gate, the digit rule and the banned phrases;
+  they cannot prove a child hears warmth. This is the same bar P2H-09's seed lines and
+  P2H-10's lesson notes are waiting on.
+- **Strategy evidence is thinner than the ticket assumes.** The grader is deterministic — an
+  arithmetic checker or an exact match — so it can vouch for a *method the item requires*
+  (`ADD.REGROUP.2D` cannot be answered right without regrouping) and for the shape of the
+  attempt (how long, how many tries, whether the child said more than the answer). It cannot
+  see a strategy. `ADD.FACT.10` therefore vouches for nothing at all, and praise on that skill
+  names what was right rather than how. That is the honest reading of "strategy evidence from
+  grader" with today's grader; a model grader (P4-06) would widen it.
+- **END allows no strategy claims.** The recap carries skills and counts, not methods, so an
+  ending names what was worked on and the one moment worth naming. Widening this needs the
+  recap to carry per-answer strategies, which is a `session_event.evidence` change.
+
+## What the review pass changed
+
+Nothing yet — the two-axis review runs after this commit.
 
 ## Verification
 
 ```bash
-npm run test -w @aria/api -- content
-npm run test -w @aria/api -- session
-npm run test -w @aria/web -- LayoutContent
-npm run golden:tutoring -w @aria/api
+npx vitest run --project api --project api-db src/services/content test/   # 247 passed
+npx vitest run --project api src/services/session                          # 10 passed
+npx vitest run --project web LayoutContent                                 # 2 passed
+npm run golden:tutoring -w @aria/api                                       # PASS: 9 scenarios
 ```
+
+The workspace-filtered forms in the original ticket (`npm run test -w @aria/api -- content`)
+select by workspace, and this repo's Vitest projects are configured at the root, so the
+project-filtered forms above are what actually run.
 
 ## References
 

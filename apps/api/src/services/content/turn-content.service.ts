@@ -1,10 +1,10 @@
 import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
-import type { StreamContentKind } from '@/ai';
 import {
   NULL_TURN_CONTENT_OBSERVER,
   type TurnContentObserver,
 } from '@/observability/content-metrics';
+import { createFallbackPicker, type FallbackPicker } from '@/services/content/fallback';
 import { fixedText } from '@/services/content/fixed-text';
 import {
   generateGatedText,
@@ -12,6 +12,7 @@ import {
   throwIfAborted,
   type GenerationOutcome,
 } from '@/services/content/generate-text';
+import { moveInputsFor, type MoveInputs } from '@/services/content/move-inputs';
 import { segmentContentKind } from '@/services/content/streaming-kinds';
 import type {
   ApiModelContext,
@@ -19,10 +20,9 @@ import type {
   StreamingDeps,
   TurnContentDeps,
 } from '@/services/content/turn-content.types';
-import { fallbackText } from '@/services/content/turn-fallback';
 import { contextEvidence, resolveQuestion, retryAsk } from '@/services/content/turn-question';
 import { isDetour, responseMove } from '@/services/content/turn-response';
-import { streamGatedText } from '@/services/content/turn-stream';
+import { streamGatedText, type StreamRelease } from '@/services/content/turn-stream';
 import { visualMove } from '@/services/content/turn-visual';
 
 export type { ApiModelContext } from '@/services/content/turn-content.types';
@@ -32,9 +32,12 @@ export type TurnContentService = Readonly<{
 }>;
 
 export function createTurnContentService(deps: TurnContentDeps): TurnContentService {
+  // P2H-11: one picker per service, because "never the one you said last time" is state that
+  // has to outlive a turn. It is the only place a static sentence can come from now.
+  const picker = createFallbackPicker({ gate: deps.gate });
   return {
     resolve: (turn: PlannedTurn<ApiModelContext>, signal?: AbortSignal) =>
-      resolve(deps, turn, signal),
+      resolve(deps, picker, turn, signal),
   };
 }
 
@@ -47,6 +50,7 @@ type Said = Readonly<{
 
 async function resolve(
   deps: TurnContentDeps,
+  picker: FallbackPicker,
   turn: PlannedTurn<ApiModelContext>,
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
@@ -57,9 +61,37 @@ async function resolve(
     const text = requiredGatedText(deps.gate, reviewed.text, turn.context.session.band);
     return responseWithContinuation(deps, turn, { text, provenance: reviewed.provenance }, signal);
   }
-  const said = await generated(deps, turn, signal);
+  const said = await generated(
+    deps,
+    turn,
+    { picker, inputs: await moveInputs(deps, turn) },
+    signal,
+  );
   throwIfAborted(signal);
   return responseWithContinuation(deps, turn, said, signal);
+}
+
+/**
+ * P2H-11: the evidence this move is allowed to be specific with, gathered once.
+ *
+ * Once, because the prompt and the gate have to be looking at the same list — a model offered a
+ * strategy the gate would then refuse would regenerate forever.
+ */
+async function moveInputs(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): Promise<MoveInputs> {
+  const closing = turn.plan.kind === 'END' || turn.plan.kind === 'BREAK';
+  const recap = closing ? ((await deps.recap?.(turn.context.session.id)) ?? null) : null;
+  return moveInputsFor(turn, { misconceptionIdea: misconceptionIdea(deps, turn), recap });
+}
+
+function misconceptionIdea(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): string | null {
+  const id = turn.decision.graded?.misconception ?? turn.context.session.repeatedMisconception;
+  return id === null ? null : (deps.misconceptionIdea?.(id) ?? null);
 }
 
 /** A sentence somebody already approved: the scripted one, or a misconception's remediation. */
@@ -78,12 +110,16 @@ function reviewedText(
 async function generated(
   deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
+  say: Readonly<{ picker: FallbackPicker; inputs: MoveInputs }>,
   signal?: AbortSignal,
 ): Promise<Said> {
-  const streaming = streamingFor(deps, turn);
-  if (streaming === null) return buffered(deps, turn, await generateGatedText(deps, turn, signal));
-  const outcome = await streamGatedText(streaming.deps, turn, streaming, signal);
-  if (outcome.kind !== 'generated') return buffered(deps, turn, outcome);
+  const { picker, inputs } = say;
+  const streaming = streamingFor(deps, picker, turn, inputs);
+  if (streaming === null) {
+    return buffered(deps, picker, turn, await generateGatedText(deps, turn, inputs, signal));
+  }
+  const outcome = await streamGatedText(streaming.deps, turn, streaming.release, signal);
+  if (outcome.kind !== 'generated') return buffered(deps, picker, turn, outcome);
   if (outcome.truncated !== undefined) {
     observerFor(deps).streamTruncated(
       turn.plan.kind,
@@ -97,13 +133,14 @@ async function generated(
       ...provenance(outcome),
       ...(outcome.truncated === undefined ? {} : { streamTruncated: outcome.truncated.reason }),
     },
-    identity: streaming.identity,
+    identity: streaming.release.identity,
   };
 }
 
 /** The turn said nothing of its own, so a reviewed sentence says it instead. */
 function buffered(
   deps: TurnContentDeps,
+  picker: FallbackPicker,
   turn: PlannedTurn<ApiModelContext>,
   outcome: GenerationOutcome,
 ): Said {
@@ -111,10 +148,31 @@ function buffered(
     return { text: outcome.text, provenance: provenance(outcome) };
   }
   observerFor(deps).fallbackUsed(turn.plan.kind, outcome.reason);
-  return {
-    text: requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band),
-    provenance: provenance(outcome),
-  };
+  return { text: fallbackFor(deps, picker, turn), provenance: provenance(outcome) };
+}
+
+/** The reviewed sentence for this move, this band, this session — never the last one used. */
+function fallbackFor(
+  deps: TurnContentDeps,
+  picker: FallbackPicker,
+  turn: PlannedTurn<ApiModelContext>,
+): string {
+  const session = turn.context.session;
+  const skillCode = turn.plan.skillCode ?? session.skillCode;
+  const name = turn.context.modelContext.scrubbed.value.pseudonymousFirstName;
+  const skillName = skillCode === null ? undefined : (deps.skillName?.(skillCode) ?? undefined);
+  const answer = turn.context.modelContext.answerKey ?? undefined;
+  return picker.pick({
+    sessionId: session.id,
+    move: turn.plan.kind,
+    approach: turn.plan.approach,
+    band: session.band,
+    parameters: {
+      ...(name === undefined ? {} : { name }),
+      ...(skillName === undefined ? {} : { skillName }),
+      ...(answer === undefined ? {} : { answer }),
+    },
+  });
 }
 
 function observerFor(deps: TurnContentDeps): TurnContentObserver {
@@ -130,12 +188,10 @@ function observerFor(deps: TurnContentDeps): TurnContentObserver {
  */
 function streamingFor(
   deps: TurnContentDeps,
+  picker: FallbackPicker,
   turn: PlannedTurn<ApiModelContext>,
-): Readonly<{
-  deps: StreamingDeps;
-  identity: MoveIdentity;
-  contentKind: StreamContentKind;
-}> | null {
+  inputs: MoveInputs,
+): Readonly<{ deps: StreamingDeps; release: StreamRelease }> | null {
   const streaming = deps.streaming;
   if (streaming === undefined) return null;
   const contentKind = segmentContentKind(turn.plan.kind, turn.context.session.band);
@@ -143,8 +199,12 @@ function streamingFor(
   if (!streaming.segments.listening(turn.context.session.id)) return null;
   return {
     deps: streaming,
-    identity: { id: streaming.ids.next(), generationId: streaming.ids.next() },
-    contentKind,
+    release: {
+      identity: { id: streaming.ids.next(), generationId: streaming.ids.next() },
+      contentKind,
+      inputs,
+      fallbackText: fallbackFor(deps, picker, turn),
+    },
   };
 }
 

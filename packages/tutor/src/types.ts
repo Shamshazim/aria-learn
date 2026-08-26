@@ -46,7 +46,18 @@ export type MovePlan = Readonly<{
 export type PolicyDecision = Readonly<{
   allowedMoves: readonly MoveKind[];
   defaultPlan: MovePlan;
-  graded: Readonly<{ correct: boolean; misconception: string | null }> | null;
+  graded: Readonly<{
+    correct: boolean;
+    misconception: string | null;
+    /**
+     * P2H-11: the strategies a correct answer on this skill actually proves the child used.
+     *
+     * Praise is only allowed to name one of these. It is the grader's list rather than the
+     * prompt's because the grader is the only part of the turn that knows what the item
+     * required — everything downstream is guessing.
+     */
+    strategies?: readonly string[];
+  }> | null;
   terminal: boolean;
   /**
    * The policy has already decided and the planner is skipped: safety, a limit, a ladder rung,

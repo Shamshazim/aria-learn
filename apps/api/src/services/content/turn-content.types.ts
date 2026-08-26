@@ -10,6 +10,7 @@ import type { QualityGate } from '@/quality';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import type { SegmentBus } from '@/services/content/segment-bus';
 import type { MoveFactory } from '@/services/moves/move-factory';
+import type { SessionRecap } from '@/services/session/recap.types';
 
 export type ApiModelContext = Readonly<{
   scrubbed: ScrubbedContext;
@@ -33,6 +34,20 @@ export type TurnContentDeps = Readonly<{
   gate: QualityGate;
   moves(sessionId: string): MoveFactory;
   remediation(misconceptionId: string): string | null;
+  /**
+   * P2H-11: the wrong idea itself, in words, so a REVEAL can name it without calling it wrong.
+   *
+   * Separate from `remediation`, which is the sentence that fixes it. A reveal that recited the
+   * fix would be a reteach; it needs the name of the thing the child was thinking.
+   */
+  misconceptionIdea?(misconceptionId: string): string | null;
+  /** P2H-11: the display name of a skill, for the moves that say what we worked on. */
+  skillName?(skillCode: string): string | null;
+  /**
+   * P2H-11: what happened this session, for an ending that is about today rather than about
+   * endings. Absent in call sites with no session store; the ending then says less, honestly.
+   */
+  recap?(sessionId: string): Promise<SessionRecap | null>;
   /**
    * P2H-10: the visual model for this skill, drawn for the open item, or nothing.
    *

@@ -1,3 +1,4 @@
+import { checkClaims } from '@/quality/checks/claims.check';
 import { checkCorrectness } from '@/quality/checks/correctness.check';
 import { checkLevel } from '@/quality/checks/level.check';
 import { checkSafety } from '@/quality/checks/safety.check';
@@ -36,6 +37,7 @@ function runChecks(input: GateInput, safetyChecker: SafetyChecker): GateVerdict 
   const checks: readonly ((value: GateInput) => GateCheckResult)[] = [
     checkStructural,
     checkCorrectness,
+    checkClaims,
     checkLevel,
     (value) => checkSafety(value, safetyChecker),
   ];

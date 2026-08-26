@@ -32,6 +32,8 @@ type ControllerRuntime = Readonly<{
   tutor: ReturnType<typeof createTutorService>;
   crisis: ReturnType<typeof createCrisisTurnService>;
   gate: QualityGate;
+  /** P2H-11: the display name of a skill, for the summary written when a session ends. */
+  skillName(skillCode: string): string | null;
   cancelAhead(sessionId: string): void;
 }>;
 
@@ -109,6 +111,8 @@ function buildLifecycle(runtime: ControllerRuntime) {
   });
   const end = createEndService({
     sessions: repositories.sessions,
+    events: repositories.events,
+    skillName: runtime.skillName,
     consolidation,
     clock: deps.clock,
     logger: deps.logger,

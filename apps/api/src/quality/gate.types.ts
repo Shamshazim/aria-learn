@@ -2,7 +2,7 @@ import type { Band } from '@aria/shared';
 
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
-export type GateCheckName = 'structural' | 'correctness' | 'level' | 'safety';
+export type GateCheckName = 'structural' | 'correctness' | 'claims' | 'level' | 'safety';
 export type Grounding = 'approved-source' | 'reviewed-bank' | 'unsupported';
 
 export type GateOption = Readonly<{
@@ -11,12 +11,36 @@ export type GateOption = Readonly<{
   isCorrect: boolean;
 }>;
 
+/**
+ * What a move is allowed to say about what just happened (P2H-11).
+ *
+ * Supplied by the turn that is generating the text, never by the model: the whole point is
+ * that the list comes from evidence. Omitted where a move makes no claims about the child.
+ */
+export type MoveClaims = Readonly<{
+  /** Which move's own rules apply on top of the grounding check. */
+  move: 'praise' | 'reveal' | 'end';
+  /** Ids from `STRATEGY_CLAIMS` this turn actually saw the child do. Checked for praise only. */
+  allowed: readonly string[];
+  /** Things the move must get said, each with the failure it reports when it does not. */
+  mustMention?: readonly MustMention[];
+}>;
+
+export type MustMention = Readonly<{
+  code: string;
+  message: string;
+  /** Any one of these appearing in the text satisfies the requirement. */
+  any: readonly string[];
+}>;
+
 type GateInputBase = Readonly<{
   id: string;
   band: Band;
   childText: string;
   factual: boolean;
   grounding: Grounding;
+  /** P2H-11: present only for the moves that make claims about the child. */
+  claims?: MoveClaims;
 }>;
 
 export type GateInput =

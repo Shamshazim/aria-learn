@@ -12,6 +12,7 @@ import {
 } from '@/observability/content-metrics';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate } from '@/quality';
+import { ANSWER_QUESTION_FALLBACKS } from '@/services/content/fallback/say.data';
 import { createSegmentBus } from '@/services/content/segment-bus';
 import {
   createTurnContentService,
@@ -198,9 +199,7 @@ describe('a move that is said while it is written', () => {
       turn('SAY', 'middle'),
     );
 
-    expect(resolved.moves[0]?.speech?.text).toBe(
-      'Good thinking to ask. We can find out together as we go.',
-    );
+    expect(ANSWER_QUESTION_FALLBACKS.middle).toContain(resolved.moves[0]?.speech?.text);
   });
 });
 

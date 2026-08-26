@@ -24,7 +24,7 @@ Situation:
 - What the child just said or did: {{learnerSaid}}
 - Grading: {{grading}}
 - Approach to use: {{approach}}
-{{answerKey}}
+{{answerKey}}{{moveInputs}}
 Your move now: {{move}}
 Instruction: {{instruction}}
 
@@ -37,6 +37,8 @@ export function renderRespondPrompt(input: RespondPromptInput, closing: string):
     subject: input.subject,
     // Blank rather than absent when there is no note, so the prompt has no dangling heading.
     lesson: input.lesson === undefined ? '' : `${input.lesson}\n`,
+    // Blank rather than absent for the same reason as the lesson note: no dangling heading.
+    moveInputs: input.moveInputs === undefined ? '' : `${input.moveInputs}\n`,
     skill: input.skill ?? 'general practice',
     question: input.question ?? 'no open item yet',
     learnerSaid: input.learnerSaid ?? '(nothing yet)',

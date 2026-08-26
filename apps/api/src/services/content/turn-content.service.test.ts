@@ -8,6 +8,7 @@ import { fixedClock } from '@/lib/clock';
 import { sequentialIds } from '@/lib/ids';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate } from '@/quality';
+import { PRAISE_FALLBACKS } from '@/services/content/fallback/feedback.data';
 import {
   createTurnContentService,
   type ApiModelContext,
@@ -50,7 +51,9 @@ describe('turn content', () => {
     const result = await service.resolve(turn(kind));
     expect(result.moves[0]?.kind).toBe(kind);
     expect(gate).toHaveBeenCalled();
-    if (kind === 'PRAISE') expect(result.moves[0]?.speech?.text).toContain('7');
+    // P2H-11: with nothing generated, what a child hears is one of the reviewed variants —
+    // never an invented sentence, and never the same one twice running.
+    if (kind === 'PRAISE') expect(PRAISE_FALLBACKS.early).toContain(result.moves[0]?.speech?.text);
   });
 
   it('uses the authored misconception fix instead of another generic hint', async () => {

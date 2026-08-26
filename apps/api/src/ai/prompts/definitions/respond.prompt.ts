@@ -22,6 +22,7 @@ export const respondInputSchema: z.ZodType<RespondPromptInput> = z
     subject: promptTextSchema,
     skill: promptTextSchema.optional(),
     lesson: z.string().max(4_000).optional(),
+    moveInputs: z.string().max(2_000).optional(),
     question: promptTextSchema.optional(),
     learnerSaid: promptTextSchema.optional(),
     answerKey: promptTextSchema.optional(),

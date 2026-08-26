@@ -20,7 +20,7 @@ describe('quality gate', () => {
     }
   });
 
-  it('runs all four checks in order and always calls safety for a passing item', () => {
+  it('runs every check in order and always calls safety for a passing item', () => {
     safe.mockClear();
     const verdict = createQualityGate(safe)(VALID_ARITHMETIC_ITEM);
 
@@ -28,6 +28,7 @@ describe('quality gate', () => {
     expect(verdict.checks.map((check) => check.check)).toEqual([
       'structural',
       'correctness',
+      'claims',
       'level',
       'safety',
     ]);

@@ -3,8 +3,9 @@ import type { PlannedTurn } from '@aria/tutor';
 
 import type { AiClient } from '@/ai';
 import type { FallbackReason } from '@/observability/content-metrics';
-import type { QualityGate } from '@/quality';
+import type { MoveClaims, QualityGate } from '@/quality';
 import { registerFailures } from '@/quality/checks/level/register';
+import type { MoveInputs } from '@/services/content/move-inputs';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import { respondInput } from '@/services/content/turn-response';
 
@@ -29,17 +30,19 @@ const MAX_ATTEMPTS = 2;
 export async function generateGatedText(
   deps: Readonly<{ ai: AiClient | null; gate: QualityGate }>,
   turn: PlannedTurn<ApiModelContext>,
+  inputs: MoveInputs,
   signal?: AbortSignal,
 ): Promise<GenerationOutcome> {
   if (deps.ai === null) return { kind: 'fallback', reason: 'ai_disabled' };
   let lastReason: FallbackReason = 'gate_failed';
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
-    const candidate = await generateOnce(deps.ai, turn, signal);
+    const candidate = await generateOnce(deps.ai, turn, inputs, signal);
     if (candidate === null) {
       lastReason = 'provider_error';
       continue;
     }
-    if (isSpeakable(deps.gate, candidate.text, turn.context.session.band)) return candidate;
+    // P2H-11: a praise that named a strategy nobody saw is regenerated here, not shipped.
+    if (isSpeakable(deps.gate, candidate.text, turn.context.session.band, inputs)) return candidate;
     lastReason = 'gate_failed';
   }
   return { kind: 'fallback', reason: lastReason };
@@ -48,10 +51,11 @@ export async function generateGatedText(
 async function generateOnce(
   ai: AiClient,
   turn: PlannedTurn<ApiModelContext>,
+  inputs: MoveInputs,
   signal?: AbortSignal,
 ): Promise<Extract<GenerationOutcome, { kind: 'generated' }> | null> {
   try {
-    const result = await ai.run('respond', respondInput(turn), {
+    const result = await ai.run('respond', respondInput(turn, inputs), {
       studentId: turn.context.session.studentId,
       ...(signal === undefined ? {} : { signal }),
     });
@@ -79,16 +83,24 @@ export function throwIfAborted(signal: AbortSignal | undefined): void {
  * safeguarding response is deliberately longer than two sentences. Only model-written prose is
  * held to "calm and adult" or "at most two sentences".
  */
-function isSpeakable(gate: QualityGate, text: string, band: Band): boolean {
-  return registerFailures(text, band).length === 0 && passesGate(gate, text, band);
+function isSpeakable(gate: QualityGate, text: string, band: Band, inputs: MoveInputs): boolean {
+  const claims = inputs.claims;
+  return (
+    registerFailures(text, band).length === 0 &&
+    passesGate(gate, text, band, { generated: true, ...(claims === undefined ? {} : { claims }) })
+  );
 }
+
+/** Whether the text is generated, and what it is allowed to claim (P2H-11). */
+export type GateOptions = Readonly<{ generated?: boolean; claims?: MoveClaims }>;
 
 export function passesGate(
   gate: QualityGate,
   text: string,
-  band: PlannedTurn<ApiModelContext>['context']['session']['band'],
-  generated = true,
+  band: Band,
+  options: GateOptions = {},
 ): boolean {
+  const claims = options.claims;
   return (
     gate({
       id: 'turn-text',
@@ -96,7 +108,8 @@ export function passesGate(
       band,
       childText: text,
       factual: false,
-      grounding: generated ? 'unsupported' : 'reviewed-bank',
+      grounding: options.generated === false ? 'reviewed-bank' : 'unsupported',
+      ...(claims === undefined ? {} : { claims }),
     }).verdict === 'pass'
   );
 }
@@ -104,10 +117,10 @@ export function passesGate(
 export function requiredGatedText(
   gate: QualityGate,
   text: string,
-  band: PlannedTurn<ApiModelContext>['context']['session']['band'],
-  generated = false,
+  band: Band,
+  options: GateOptions = { generated: false },
 ): string {
-  if (!passesGate(gate, text, band, generated))
+  if (!passesGate(gate, text, band, options))
     throw new Error('Child-facing turn content failed the quality gate');
   return text;
 }
