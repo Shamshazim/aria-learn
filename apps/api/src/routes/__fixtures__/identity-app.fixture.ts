@@ -12,9 +12,9 @@ import { createParentControllers } from '@/controllers/parent.controller';
 import { NotFoundError } from '@/errors';
 import { sequentialUuids } from '@/lib/ids';
 import { sequentialTokens } from '@/lib/tokens';
+import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import type { StudentRepository } from '@/repositories/student.repository';
 import type { RouterDeps } from '@/routes';
-import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
 import { createChildLoginService } from '@/services/auth/child-login.service';
 import { createParentChildrenService } from '@/services/parent/children.service';
 import type { Student } from '@/types/student';
@@ -129,12 +129,13 @@ export function buildIdentity(
     identity: {
       auth: {
         parentAuth,
-        controller: createAuthControllers({ children, login, sessions, secureCookies: false }),
+        controller: createAuthControllers({ login, sessions, secureCookies: false }),
       },
       parent: {
         parentAuth,
         controller: createParentControllers({
           children,
+          sessions,
           ...(options.consent === undefined ? {} : { consent: options.consent }),
         }),
       },

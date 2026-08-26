@@ -1,5 +1,5 @@
-import { childListResponseSchema, childSessionResponseSchema } from '@aria/shared';
-import type { ChildListResponse, ChildSessionResponse } from '@aria/shared';
+import { childSessionResponseSchema } from '@aria/shared';
+import type { ChildSessionResponse } from '@aria/shared';
 
 import {
   clearChildCookie,
@@ -12,7 +12,6 @@ import {
 import { UnauthorizedError } from '@/errors';
 import { childLoginRequestSchema } from '@/schemas/auth.schema';
 import type { ChildLoginResult, ChildLoginService } from '@/services/auth/child-login.service';
-import type { ParentChildrenService } from '@/services/parent/children.service';
 import type { ApiResponse } from '@/types/http';
 
 import type { Request, RequestHandler, Response } from 'express';
@@ -25,27 +24,18 @@ import type { Request, RequestHandler, Response } from 'express';
  * network tab is not a way into a child's account.
  */
 export type AuthControllers = Readonly<{
-  /** The picker: this device's children, by first name and picture. */
-  children: RequestHandler;
   login: RequestHandler;
   logout: RequestHandler;
   refresh: RequestHandler;
 }>;
 
 export function createAuthControllers(deps: {
-  children: ParentChildrenService;
   login: ChildLoginService;
   sessions: ChildSessionService;
   /** False only in local development, where there is no TLS for a secure cookie to need. */
   secureCookies: boolean;
 }): AuthControllers {
   return {
-    children: async (request: Request, response: Response<ApiResponse<ChildListResponse>>) => {
-      const parent = requireParent(request);
-      const children = await deps.children.list(parent.id);
-      response.status(200).json({ data: childListResponseSchema.parse({ children }) });
-    },
-
     login: async (request: Request, response: Response<ApiResponse<ChildSessionResponse>>) => {
       const parent = requireParent(request);
       const body = childLoginRequestSchema.parse(request.validated?.body);

@@ -50,6 +50,7 @@ function memoryStore(seed: ParentTokens | null): ParentSessionStore {
 function identity(overrides: Partial<IdentityApi> = {}): IdentityApi {
   return {
     children: () => Promise.resolve([SAM]),
+    revokeAllSessions: () => Promise.resolve(0),
     login: () => Promise.resolve(SESSION),
     logout: () => Promise.resolve(),
     refresh: () => Promise.resolve(null),
@@ -62,7 +63,7 @@ function identity(overrides: Partial<IdentityApi> = {}): IdentityApi {
 
 /** A consumer that renders the state and offers the two actions worth driving from a test. */
 function Probe(): React.JSX.Element {
-  const { state, signInChild, signInParent } = useAuth();
+  const { state, signInChild, signInParent, signOutParent } = useAuth();
   return (
     <div>
       <p data-testid="state">
@@ -86,6 +87,9 @@ function Probe(): React.JSX.Element {
       >
         sign in child
       </button>
+      <button type="button" onClick={signOutParent}>
+        sign out parent
+      </button>
     </div>
   );
 }
@@ -105,6 +109,7 @@ function mount(
   );
 }
 
+/** `textContent` is non-null on a rendered element; the probe always writes one. */
 const state = (): string => screen.getByTestId('state').textContent;
 
 describe('who is using this device', () => {
@@ -196,6 +201,59 @@ describe('who is using this device', () => {
     await waitFor(() => {
       expect(state()).toContain('problem:child-locked');
     });
+  });
+
+  /**
+   * A Supabase access token lasts about an hour. Throwing the session away at expiry would
+   * make a grown-up retype a password on the family tablet every hour.
+   */
+  it('renews a remembered token that has lapsed rather than discarding it', async () => {
+    const renewed = { ...TOKENS, accessToken: 'renewed', expiresAt: NOW.getTime() + 3_600_000 };
+    const refresh = vi.fn(() => Promise.resolve(renewed));
+    const store = memoryStore({ ...TOKENS, expiresAt: NOW.getTime() - 1 });
+    mount({ store, supabase: { signIn: () => Promise.resolve(TOKENS), refresh } });
+
+    await waitFor(() => {
+      expect(state()).toContain('parent:true');
+    });
+    expect(refresh).toHaveBeenCalledExactlyOnceWith('refresh');
+    expect(store.read()).toEqual(renewed);
+  });
+
+  /** The ticket's "parent deleted in Supabase" case, as far as this device can see it. */
+  it('forgets the parent and signs the child out when the token cannot be renewed', async () => {
+    const logout = vi.fn(() => Promise.resolve());
+    const store = memoryStore({ ...TOKENS, expiresAt: NOW.getTime() - 1 });
+    mount({
+      identity: identity({ logout, refresh: () => Promise.resolve(SESSION) }),
+      store,
+      supabase: {
+        signIn: () => Promise.resolve(TOKENS),
+        refresh: () => Promise.reject(new Error('user deleted')),
+      },
+    });
+
+    await waitFor(() => {
+      expect(state()).toContain('parent:false');
+    });
+    expect(store.read()).toBeNull();
+    expect(logout).toHaveBeenCalled();
+  });
+
+  /** "A parent can revoke all child sessions" — the device is being handed back. */
+  it('ends every session on the account when the grown-up signs the device out', async () => {
+    const revokeAllSessions = vi.fn(() => Promise.resolve(2));
+    mount({ identity: identity({ revokeAllSessions }), store: memoryStore(TOKENS) });
+    await waitFor(() => {
+      expect(state()).toContain('children:1');
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'sign out parent' }));
+
+    await waitFor(() => {
+      expect(state()).toContain('parent:false');
+    });
+    expect(revokeAllSessions).toHaveBeenCalledExactlyOnceWith('access');
   });
 
   it('reports a wrong PIN as its own problem', async () => {

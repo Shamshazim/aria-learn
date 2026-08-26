@@ -36,6 +36,9 @@ export function createParentRouter(
     validate(updateChildRequestSchema, 'body'),
     asyncHandler(deps.controller.updateChild),
   );
+  // Not under `/parent/children`: it is about the devices the family is signed in on, and it
+  // names no child because it ends every one of them.
+  router.post('/parent/sessions/revoke', asyncHandler(deps.controller.revokeSessions));
   router.post(
     '/parent/children/:id/consent/voice',
     validate(childParamsSchema, 'params'),

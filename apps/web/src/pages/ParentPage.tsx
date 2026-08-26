@@ -1,15 +1,8 @@
 import { Link } from 'react-router-dom';
 
-import { createApiClient } from '@/api';
-import { webConfig } from '@/app/config';
-import { createIdentityApi } from '@/features/auth';
-import { AddChildForm } from '@/features/auth/components/AddChildForm';
-import { ChildSettingsRow } from '@/features/auth/components/ChildSettingsRow';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useParentChildren } from '@/features/auth/hooks/useParentChildren';
+import { identityApi } from '@/app/services';
+import { AddChildForm, ChildSettingsRow, useAuth, useParentChildren } from '@/features/auth';
 import '@/features/auth/styles/auth.css';
-
-const identityApi = createIdentityApi(createApiClient({ baseUrl: webConfig.apiBaseUrl }));
 
 /**
  * The grown-up's screen (P2H-12): the children on this account, and how each one signs in.

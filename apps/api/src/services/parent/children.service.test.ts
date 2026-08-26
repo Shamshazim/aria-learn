@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createChildCredentialService } from '@/auth';
 import { fakeChildCredentials, plainHasher } from '@/auth/__fixtures__/identity.fixture';
-import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
+import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import { createParentChildrenService } from '@/services/parent/children.service';
 import type { Student } from '@/types/student';
 

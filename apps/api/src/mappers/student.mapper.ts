@@ -1,9 +1,18 @@
 import { bandSchema, parseGrade } from '@aria/shared';
 
 import { studentSettingsSchema } from '@/schemas/student-settings.schema';
-import type { Student } from '@/types/student';
+import type { Student, StudentSettings } from '@/types/student';
 
 import { unmappableRow } from './row';
+
+/**
+ * What a child's profile is before a parent has said anything about it (P2H-12).
+ *
+ * It lives beside the mapper because it is the value an empty `settings` column maps to, and
+ * the repository writes the same object when it inserts a row — one default, in the layer that
+ * owns the shape, rather than one in `schemas/` that a repository has to reach up for.
+ */
+export const DEFAULT_STUDENT_SETTINGS: StudentSettings = studentSettingsSchema.parse({});
 
 export type StudentRow = {
   id: string;

@@ -17,6 +17,17 @@ export type StudentSettings = Readonly<{
 }>;
 
 /**
+ * What a parent may change: any subset of the settings, and nothing else.
+ *
+ * `| undefined` is spelled out on every key because `exactOptionalPropertyTypes` makes an
+ * absent key and an explicit `undefined` different things, and a parsed request body is the
+ * second of those.
+ */
+export type StudentSettingsPatch = {
+  [K in keyof StudentSettings]?: StudentSettings[K] | undefined;
+};
+
+/**
  * A student, as the rest of the service sees it.
  *
  * `grade` and `band` are the shared vocabulary from `@aria/shared`, not strings: a value that

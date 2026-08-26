@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { childPictureSchema } from '@aria/shared';
 
-import type { StudentSettings } from '@/types/student';
+import type { StudentSettings, StudentSettingsPatch } from '@/types/student';
 
 /**
  * The `student.settings` JSONB column, parsed both ways (P2H-12).
@@ -22,14 +22,12 @@ export const studentSettingsSchema: z.ZodType<StudentSettings> = z
   .strict()
   .readonly();
 
-export const DEFAULT_STUDENT_SETTINGS: StudentSettings = studentSettingsSchema.parse({});
-
 /**
  * What a parent may change, all of it optional.
  *
  * `.partial()` rather than a second literal, so a key added above cannot be forgotten here.
  */
-export const studentSettingsPatchSchema = z
+export const studentSettingsPatchSchema: z.ZodType<StudentSettingsPatch> = z
   .object({
     shareFirstName: z.boolean(),
     pronunciation: z.string().trim().min(1).max(64).nullable(),
@@ -37,5 +35,3 @@ export const studentSettingsPatchSchema = z
   })
   .partial()
   .strict();
-
-export type StudentSettingsPatch = z.infer<typeof studentSettingsPatchSchema>;

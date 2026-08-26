@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, type PropsWithChildren } from 'react';
 
+import type { ChildSessionResponse } from '@aria/shared';
+
 import { ApiError } from '@/api';
 import type { IdentityApi } from '@/features/auth/api/identity.api';
-import type { SupabaseApi } from '@/features/auth/api/supabase.api';
+import type { ParentTokens, SupabaseApi } from '@/features/auth/api/supabase.api';
 import {
   AuthContext,
   type AuthContextValue,
@@ -34,6 +36,7 @@ export function AuthProvider({
   const parentToken = state.parent?.accessToken;
 
   useRestore(deps, now, dispatch);
+  useParentRefresh(deps, state.parent, now, dispatch);
   useChildList(deps.identity, parentToken, state.child !== null, dispatch);
 
   const signInParent = useCallback(
@@ -104,9 +107,16 @@ function sessionActions(
   dispatch: Dispatch,
 ): Pick<AuthContextValue, 'signOutParent' | 'signOutChild' | 'keepAlive'> {
   return {
+    /**
+     * Handing the device back ends every session on the account, not just this one. A tablet
+     * that was signed in in another room stops working too, which is what "a parent can revoke
+     * all child sessions" is for.
+     */
     signOutParent: () => {
+      const token = deps.store.read()?.accessToken;
       deps.store.clear();
-      void deps.identity.logout();
+      if (token !== undefined) void deps.identity.revokeAllSessions(token).catch(() => undefined);
+      void deps.identity.logout().catch(() => undefined);
       dispatch({ kind: 'PARENT_SIGNED_OUT' });
     },
     signOutChild: async () => {
@@ -141,17 +151,9 @@ type Dispatch = (event: AuthEvent) => void;
 function useRestore(deps: AuthProviderDeps, now: () => Date, dispatch: Dispatch): void {
   useEffect(() => {
     let cancelled = false;
-    const remembered = deps.store.read();
-    const parent = remembered !== null && isUsable(remembered, now()) ? remembered : null;
-    if (remembered !== null && parent === null) deps.store.clear();
-    void deps.identity.refresh().then(
-      (child) => {
+    void Promise.all([rememberedParent(deps, now()), childSession(deps)]).then(
+      ([parent, child]) => {
         if (!cancelled) dispatch({ kind: 'RESTORED', parent, child });
-      },
-      () => {
-        // Unreachable at boot is not "signed out", but there is nothing else we can know
-        // yet: the picker is where a device with no answer belongs.
-        if (!cancelled) dispatch({ kind: 'RESTORED', parent, child: null });
       },
     );
     return () => {
@@ -161,6 +163,85 @@ function useRestore(deps: AuthProviderDeps, now: () => Date, dispatch: Dispatch)
     // dependency's identity changed, which is what the module-scope api objects exist to
     // prevent — but a deliberately empty dependency list says so where it cannot be missed.
   }, []);
+}
+
+/**
+ * The remembered parent, renewed rather than discarded where it can be.
+ *
+ * A Supabase access token lasts about an hour and the picker sits behind it, so throwing the
+ * session away at expiry would mean a grown-up retyping a password on the family tablet every
+ * hour — which is the opposite of what "the picker alone suffices" is for.
+ */
+async function rememberedParent(deps: AuthProviderDeps, at: Date): Promise<ParentTokens | null> {
+  const remembered = deps.store.read();
+  if (remembered === null) return null;
+  if (isUsable(remembered, at)) return remembered;
+  return renewParent(deps, remembered);
+}
+
+/**
+ * A refusal to renew is the answer to the ticket's "parent deleted in Supabase" case, as far
+ * as this device can see it: the remembered token goes, and the child on this device is signed
+ * out with it. Sessions on *other* devices end when those devices next fail to renew — there
+ * is no push from Supabase telling us sooner.
+ */
+async function renewParent(
+  deps: AuthProviderDeps,
+  remembered: ParentTokens,
+): Promise<ParentTokens | null> {
+  const supabase = deps.supabase;
+  if (supabase === undefined) {
+    deps.store.clear();
+    return null;
+  }
+  try {
+    const renewed = await supabase.refresh(remembered.refreshToken);
+    deps.store.write(renewed);
+    return renewed;
+  } catch {
+    deps.store.clear();
+    await deps.identity.logout().catch(() => undefined);
+    return null;
+  }
+}
+
+/** Whether this device already holds a child session. Unreachable is not "signed out". */
+async function childSession(deps: AuthProviderDeps): Promise<ChildSessionResponse | null> {
+  try {
+    return await deps.identity.refresh();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Renews the parent's token a few minutes before it lapses, so nothing a family is in the
+ * middle of is interrupted by an expiry they cannot see.
+ */
+const RENEW_MARGIN_MS = 5 * 60 * 1_000;
+
+function useParentRefresh(
+  deps: AuthProviderDeps,
+  parent: ParentTokens | null,
+  now: () => Date,
+  dispatch: Dispatch,
+): void {
+  useEffect(() => {
+    if (parent === null) return;
+    const delay = Math.max(0, parent.expiresAt - RENEW_MARGIN_MS - now().getTime());
+    const timer = window.setTimeout(() => {
+      void renewParent(deps, parent).then((renewed) => {
+        dispatch(
+          renewed === null
+            ? { kind: 'PARENT_SIGNED_OUT' }
+            : { kind: 'PARENT_SIGNED_IN', parent: renewed },
+        );
+      });
+    }, delay);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [deps, dispatch, now, parent]);
 }
 
 /** The picker's list, loaded whenever a parent is signed in and no child is yet. */

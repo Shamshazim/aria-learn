@@ -27,7 +27,7 @@ export const createChildRequestSchema = z
  * `null` clears a login method, an absent key leaves it alone. The two are different
  * instructions, which is why this is not simply a partial of the credential shape.
  */
-export const childLoginPatchSchema = z
+const childLoginPatchSchema = z
   .object({
     pin: pinSchema.nullable(),
     pictureSequence: pictureSequenceSchema.nullable(),

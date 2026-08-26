@@ -122,7 +122,6 @@ function buildRouterDeps(
     auth: {
       parentAuth,
       controller: createAuthControllers({
-        children,
         login: parts.login,
         sessions: parts.sessions,
         secureCookies: deps.config.isProduction,
@@ -132,6 +131,7 @@ function buildRouterDeps(
       parentAuth,
       controller: createParentControllers({
         children,
+        sessions: parts.sessions,
         ...(consent === undefined ? {} : { consent }),
       }),
     },

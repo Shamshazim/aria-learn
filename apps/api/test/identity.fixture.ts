@@ -13,6 +13,7 @@ import { createParentIdentityService } from '@/auth/parent-identity.service';
 import { loadConfig } from '@/config';
 import { createAuthControllers } from '@/controllers/auth.controller';
 import { createParentControllers } from '@/controllers/parent.controller';
+import { ForbiddenError, NotFoundError } from '@/errors';
 import { sequentialIds, uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
 import { randomTokens } from '@/lib/tokens';
@@ -22,9 +23,12 @@ import { createParentRepository } from '@/repositories/parent.repository';
 import { createSessionEventRepository } from '@/repositories/session-event.repository';
 import { createSessionRepository } from '@/repositories/session.repository';
 import { createStudentRepository } from '@/repositories/student.repository';
+import type { RouterDeps } from '@/routes';
+import { endSessionRequestSchema } from '@/schemas/session.schema';
 import { createChildLoginService } from '@/services/auth/child-login.service';
 import { createParentChildrenService } from '@/services/parent/children.service';
 import { createIdleExpiryService } from '@/services/session/idle-expiry.service';
+import type { EndSession } from '@/services/session/idle-expiry.service';
 
 import type { TestDatabase } from './db.harness';
 import type { Express, RequestHandler } from 'express';
@@ -114,6 +118,7 @@ export function buildHarness(database: TestDatabase): Harness {
       login: createChildLoginService({ children, credentials, sessions, students }),
       sessions,
       expiry,
+      end: ownershipCheckedEnd(sessionRepo, clock),
     }),
   };
 }
@@ -127,6 +132,7 @@ function identityApp(
     login: ReturnType<typeof createChildLoginService>;
     sessions: ReturnType<typeof createChildSessionService>;
     expiry: ReturnType<typeof createIdleExpiryService>;
+    end: EndSession;
   }>,
 ): Express {
   const { children, sessions } = parts;
@@ -148,15 +154,14 @@ function identityApp(
       auth: {
         parentAuth,
         controller: createAuthControllers({
-          children,
           login: parts.login,
           sessions,
           secureCookies: false,
         }),
       },
-      parent: { parentAuth, controller: createParentControllers({ children }) },
+      parent: { parentAuth, controller: createParentControllers({ children, sessions }) },
     },
-    student: studentRoutes(requireChildSession({ sessions, expiry: parts.expiry })),
+    student: studentRoutes(requireChildSession({ sessions, expiry: parts.expiry }), parts.end),
   });
 }
 
@@ -168,19 +173,49 @@ function createParentIdentity(database: TestDatabase, ids: typeof uuidGenerator)
 }
 
 /**
- * The student surface, gated for real and answered by a stub. What is under test here is who
- * gets through, not what the tutor says once they do.
+ * The student surface: gated for real, and answered by a stub except where ownership is the
+ * thing under test.
+ *
+ * `end` is the real controller over the real ownership check, because the ticket's stale-device
+ * edge case — "cookie present but the tutor session belongs to another child" — is a claim
+ * about that check and a stub would only agree with itself. Everything else echoes, because
+ * what those routes say once a child is through is another ticket's suite.
  */
-function studentRoutes(authorize: RequestHandler) {
+function studentRoutes(
+  authorize: RequestHandler,
+  end: EndSession,
+): NonNullable<RouterDeps['student']> {
   const echo: RequestHandler = (req, response) => {
     response.status(200).json({
       data: { studentId: req.studentId, protocolVersion: PROTOCOL_VERSION },
     });
   };
+  const endSession: RequestHandler = async (req, response) => {
+    const body = endSessionRequestSchema.parse(req.validated?.body);
+    await end({ sessionId: body.sessionId, studentId: req.studentId ?? '', reason: 'timeout' });
+    response.status(200).json({ data: { ended: true } });
+  };
   return {
     authorize,
     arrival: echo,
-    sessions: { create: echo, current: echo, end: echo, turn: echo },
+    sessions: { create: echo, current: echo, end: endSession, turn: echo },
+  };
+}
+
+/**
+ * The one ownership rule the stale-device case rests on, taken from the real end service so
+ * the test is not asserting against a copy of it.
+ */
+export function ownershipCheckedEnd(
+  sessions: ReturnType<typeof createSessionRepository>,
+  clock: Readonly<{ now(): Date }>,
+): EndSession {
+  return async (input) => {
+    const session = await sessions.findById(input.sessionId);
+    if (session === null) throw new NotFoundError('session not found');
+    if (session.studentId !== input.studentId)
+      throw new ForbiddenError('session ownership mismatch');
+    return sessions.end(session.id, input.reason, clock.now());
   };
 }
 

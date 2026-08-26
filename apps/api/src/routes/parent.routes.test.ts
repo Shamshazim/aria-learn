@@ -63,6 +63,8 @@ const authed = (app: Express) => ({
   patch: (path: string) => request(app).patch(path).set('authorization', `Bearer ${PARENT_TOKEN}`),
 });
 
+/** The picker's list, which is this route: `GET /parent/children` and no second copy of it. */
+
 describe('the parent surface', () => {
   it('refuses every route without a parent token', async () => {
     const app = buildApp(buildIdentity());
@@ -72,6 +74,7 @@ describe('the parent surface', () => {
       request(app).post('/api/v1/parent/children').send({ displayName: 'Ada', grade: '2' }),
       request(app).patch(`/api/v1/parent/children/${SAM_ID}`).send({ displayName: 'Sammy' }),
       request(app).post(`/api/v1/parent/children/${SAM_ID}/consent/voice`).send({}),
+      request(app).post('/api/v1/parent/sessions/revoke').send({}),
     ]) {
       await expect(call.then((response) => response.status)).resolves.toBe(401);
     }
@@ -128,6 +131,28 @@ describe('the parent surface', () => {
       grade: '7',
       band: 'senior',
     });
+  });
+
+  /** P2H-12: "a parent can revoke all child sessions". */
+  it('ends every device the family is signed in on, and says how many', async () => {
+    const fixture = buildIdentity();
+    const app = buildApp(fixture);
+    await authed(app)
+      .patch(`/api/v1/parent/children/${SAM_ID}`)
+      .send({ login: { pin: '4321' } })
+      .expect(200);
+    const login = await authed(app)
+      .post('/api/v1/auth/child/login')
+      .send({ childId: SAM_ID, pin: '4321' })
+      .expect(200);
+    const cookie = login.headers['set-cookie']?.[0]?.split(';')[0] ?? '';
+
+    const revoked = await authed(app).post('/api/v1/parent/sessions/revoke').send({});
+
+    expect(revoked.status).toBe(200);
+    expect(revoked.body).toEqual({ data: { revoked: 1 } });
+    // The cookie stops working the moment the parent says so.
+    await request(app).post('/api/v1/auth/child/refresh').set('Cookie', cookie).expect(401);
   });
 
   it('records who granted voice consent and what wording they were shown', async () => {

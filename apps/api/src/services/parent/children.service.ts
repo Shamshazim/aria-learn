@@ -3,12 +3,9 @@ import type { ChildPicture, ChildSummary, Grade } from '@aria/shared';
 import type { ChildCredentialService } from '@/auth';
 import { NotFoundError, ValidationError } from '@/errors';
 import { toChildSummary } from '@/mappers/child-summary.mapper';
+import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import type { StudentRepository } from '@/repositories/student.repository';
-import {
-  DEFAULT_STUDENT_SETTINGS,
-  type StudentSettingsPatch,
-} from '@/schemas/student-settings.schema';
-import type { Student } from '@/types/student';
+import type { Student, StudentSettingsPatch } from '@/types/student';
 
 /**
  * The child list a parent owns (P2H-12).

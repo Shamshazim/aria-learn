@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { fixedClock } from '@/lib/clock';
 import { sequentialIds } from '@/lib/ids';
+import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import { createQualityGate } from '@/quality';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
-import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
 import { createArrivalService } from '@/services/arrival/arrival.service';
 import type { ArrivalContext } from '@/services/arrival/context.loader';
 import { createMoveFactory } from '@/services/moves/move-factory';

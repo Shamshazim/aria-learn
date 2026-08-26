@@ -4,9 +4,8 @@ import { runQuery } from '@/db/run-query';
 import type { Queryable } from '@/db/types';
 import { NotFoundError } from '@/errors';
 import type { IdGenerator } from '@/lib/ids';
-import { toStudent } from '@/mappers/student.mapper';
 import type { StudentRow } from '@/mappers/student.mapper';
-import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
+import { toStudent, DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import type { NewStudent, Student, StudentSettings } from '@/types/student';
 
 /**

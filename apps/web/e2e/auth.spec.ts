@@ -35,7 +35,7 @@ async function stubApi(page: Page, options: Readonly<{ pinAccepted: boolean }>):
       body: JSON.stringify({ error: { code: 'UNAUTHORIZED', message: 'Please sign in again.' } }),
     }),
   );
-  await page.route('**/api/v1/auth/children', (route) =>
+  await page.route('**/api/v1/parent/children', (route) =>
     route.fulfill({
       status: 200,
       contentType: 'application/json',

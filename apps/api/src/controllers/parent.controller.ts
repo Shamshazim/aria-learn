@@ -1,7 +1,7 @@
 import { childListResponseSchema, childSummarySchema } from '@aria/shared';
 import type { ChildListResponse, ChildSummary } from '@aria/shared';
 
-import { requireParent } from '@/auth';
+import { requireParent, type ChildSessionService } from '@/auth';
 import { NotFoundError } from '@/errors';
 import {
   childParamsSchema,
@@ -27,7 +27,11 @@ export type ParentControllers = Readonly<{
   addChild: RequestHandler;
   updateChild: RequestHandler;
   grantVoiceConsent: RequestHandler;
+  /** Every device, at once. The rule this exists for: "a parent can revoke all child sessions". */
+  revokeSessions: RequestHandler;
 }>;
+
+type RevokedSessions = Readonly<{ revoked: number }>;
 
 /** Present only where the deployment has voice configured; absent means the route is not mounted. */
 export type VoiceConsentGrant = (
@@ -44,9 +48,16 @@ export type VoiceConsentGrant = (
 
 export function createParentControllers(deps: {
   children: ParentChildrenService;
+  sessions: Pick<ChildSessionService, 'endAllForParent'>;
   consent?: Readonly<{ grant: VoiceConsentGrant; processorMapVersion: string }>;
 }): ParentControllers {
   return {
+    revokeSessions: async (request: Request, response: Response<ApiResponse<RevokedSessions>>) => {
+      const revoked = await deps.sessions.endAllForParent(requireParent(request).id);
+      // A count, never the sessions: a device label is a fact about a family's home.
+      response.status(200).json({ data: { revoked: revoked.length } });
+    },
+
     listChildren: async (request: Request, response: Response<ApiResponse<ChildListResponse>>) => {
       const children = await deps.children.list(requireParent(request).id);
       response.status(200).json({ data: childListResponseSchema.parse({ children }) });

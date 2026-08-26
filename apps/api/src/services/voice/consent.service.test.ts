@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
+import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 
 import { createVoiceConsentService } from './consent.service';
 

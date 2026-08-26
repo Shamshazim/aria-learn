@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import { childListResponseSchema, childSessionResponseSchema } from '@aria/shared';
+import { childSessionResponseSchema } from '@aria/shared';
 
 import { createApp } from '@/app';
 import { CHILD_SESSION_IDLE_MS } from '@/auth';
@@ -12,7 +12,6 @@ import { createLogger } from '@/lib/logger';
 import {
   buildIdentity,
   NOW,
-  PARENT_EMAIL,
   PARENT_TOKEN,
   SAM_ID,
   type IdentityFixture,
@@ -53,7 +52,6 @@ const asParent = (app: Express, path: string) =>
  * clock in 2026 — so a jar would quietly drop the session and every assertion after it would
  * be testing that a signed-out device is signed out.
  */
-const childList = (response: request.Response) => parseEnvelope(childListResponseSchema, response);
 const childSession = (response: request.Response) =>
   parseEnvelope(childSessionResponseSchema, response);
 
@@ -80,22 +78,10 @@ async function setPin(app: Express, pin: string): Promise<void> {
 }
 
 describe('signing a child in', () => {
-  it('shows the picker a first name and a picture, and nothing about the grown-up', async () => {
-    const app = buildApp(buildIdentity());
-
-    const response = await request(app)
-      .get('/api/v1/auth/children')
-      .set('authorization', `Bearer ${PARENT_TOKEN}`);
-
-    expect(response.status).toBe(200);
-    expect(childList(response).children).toEqual([
-      expect.objectContaining({ firstName: 'Sam', avatar: 'fox', loginMethod: 'none' }),
-    ]);
-    expect(response.text).not.toContain(PARENT_EMAIL);
-  });
-
-  it('refuses the picker to a device nobody has signed in on', async () => {
-    const response = await request(buildApp(buildIdentity())).get('/api/v1/auth/children');
+  it('refuses a login from a device nobody has signed in on', async () => {
+    const response = await request(buildApp(buildIdentity()))
+      .post('/api/v1/auth/child/login')
+      .send({ childId: SAM_ID, pin: '4321' });
 
     expect(response.status).toBe(401);
     expect(parseError(response).code).toBe('UNAUTHORIZED');
@@ -103,8 +89,9 @@ describe('signing a child in', () => {
 
   it('refuses a token that is not ours', async () => {
     const response = await request(buildApp(buildIdentity()))
-      .get('/api/v1/auth/children')
-      .set('authorization', 'Bearer forged');
+      .post('/api/v1/auth/child/login')
+      .set('authorization', 'Bearer forged')
+      .send({ childId: SAM_ID, pin: '4321' });
 
     expect(response.status).toBe(401);
   });

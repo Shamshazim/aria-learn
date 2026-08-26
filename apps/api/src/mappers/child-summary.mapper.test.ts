@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
+import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import type { Student } from '@/types/student';
 
 import { toChildSummary } from './child-summary.mapper';

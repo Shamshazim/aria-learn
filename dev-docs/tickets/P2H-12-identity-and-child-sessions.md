@@ -151,9 +151,16 @@ Left open, and not fixable in this ticket:
   `verificationReference` is `supabase-authenticated-parent` — which is true, and is weaker
   than P2-03 will eventually want. Strengthening it is a change to the verification, not to
   this schema.
-- **A parent cannot revoke every device from the UI.** The service and repository can
-  (`endAllForParent`), and signing the device out uses it; a "sign out everywhere" button
-  belongs with the parent dashboard in P6-01.
+- **"Family device" is a flag on the child, not on the device.** `child_credential.family_device`
+  says "this child needs no PIN"; the spec says "the parent marks *the device* 'family
+  device'". In practice the two nearly coincide, because a child can only sign in where their
+  parent's own session is live — but a parent who marks it on the kitchen tablet has marked it
+  on every tablet they are signed in on. A genuinely per-device flag needs a device registry,
+  which is a concept this ticket was not asked to add; it is recorded here rather than faked.
+- **Only this device notices a deleted Supabase account.** The web app renews the parent token
+  before it lapses, and a refusal to renew clears the remembered parent and signs this device's
+  child out. Sessions on *other* devices end when those devices next fail to renew. Ending them
+  sooner needs a webhook from Supabase, which is a deployment concern rather than a code one.
 - **Two e2e specs were already failing before this ticket** and still are, for reasons that
   have nothing to do with identity: `arrival.spec.ts` asserts a session URL that lost its
   shape when `voice=1` was added in `bdea10d`, and `failure.spec.ts` trips an axe
@@ -173,3 +180,47 @@ npm run e2e -w @aria/web -- auth
 
 - `master-plan.md` §2, §12
 - P0-26, P0-28, P2-03, P2-14
+
+## What the review pass changed
+
+Two reviews ran against `e01196c`, on the standards axis and the spec axis. What they found,
+and what happened to it:
+
+- **`endAllForParent` had no caller, and the Status section above claimed it did.** The rule
+  it exists for — "a parent can revoke all child sessions" — was half built: the service and
+  the repository could do it and nothing ever asked them to. There is now
+  `POST /parent/sessions/revoke`, and signing the device out from the picker calls it, so
+  handing a tablet back ends every session on the account rather than the one in front of you.
+  The false sentence in this file was the worst part of the finding and is gone.
+- **The parent's token was never renewed.** `SupabaseApi.refresh` was dead code, and both the
+  picker and child login sit behind the parent's token — so about an hour after signing in, a
+  family tablet stopped being able to sign a child in until a grown-up retyped a password.
+  That is the opposite of the shared-tablet arrangement the ticket is built around. The
+  session is now renewed five minutes before it lapses, and a refusal to renew is what this
+  device makes of "the parent was deleted in Supabase".
+- **`GET /auth/children` duplicated `GET /parent/children`.** One list, one route; the picker
+  uses the one the Design block names.
+- **The stale-device edge case had no test**, which the ticket asks for by name. There is one
+  now, against a real database: one child's cookie cannot end another child's lesson, and the
+  other child's lesson is still open afterwards.
+- **`ParentPage` deep-imported four internals of `features/auth` and built a second api
+  client.** The singletons moved to `app/services.ts`, which is where composition belongs, and
+  the page now goes through the barrel like every other consumer.
+- **Two barrels were wider than their consumers, and one export was unused.**
+  `apps/api/src/auth/index.ts` no longer exports what nothing outside it imports, and
+  `childLoginPatchSchema` is internal to its own module again.
+- **The domain default lived in `schemas/`.** `DEFAULT_STUDENT_SETTINGS` moved next to the
+  mapper that produces it, and `StudentSettingsPatch` is a domain type in `types/student.ts`;
+  neither the repository nor the service reaches into an HTTP schema module now.
+- **Six modules had no unit tests.** `secret-hasher` (against the real Argon2), `lib/tokens`,
+  `useParentChildren`, `useIdleWatch`, `AddChildForm` and `ChildSettingsRow` do now.
+
+Declined, with reasons:
+
+- **Controllers re-parsing what `validate` middleware already checked.** It is the repo's
+  existing idiom for recovering the type — `session.controller.ts` and `voice.controller.ts`
+  do the same — and changing it is a tree-wide refactor, not this ticket's.
+- **Migration 009 dropping `student_parent_display_name_key`.** Flagged as unrequested schema
+  change; it is what makes the ticket's own edge case ("two children with the same first name
+  under one parent") reachable at all, and the replacement index keeps the pair the picker
+  actually shows unique.

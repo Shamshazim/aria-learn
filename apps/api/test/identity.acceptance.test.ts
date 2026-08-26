@@ -144,6 +144,35 @@ suite('a family signing in', () => {
     expect(parseError(last).message).toBe('Ask a grown-up for help.');
   }, 30_000);
 
+  /**
+   * The ticket's stale-device edge case: "child session cookie present but tutor session
+   * belongs to another child → 403 and picker".
+   */
+  it('refuses one child the lesson of another, even with a good cookie', async () => {
+    const sam = await addChild('Sam', 'owl');
+    const ada = await addChild('Ada', 'whale');
+    await setPin(sam, '4321');
+    const cookie = await signIn(sam, '4321');
+    const adasSession = await harness.sessions.create({
+      studentId: ada,
+      subject: 'math',
+      grade: '4',
+      band: 'middle',
+    });
+
+    const refused = await request(harness.app)
+      .post('/api/v1/student/session/end')
+      .set('Cookie', cookie)
+      .send({ sessionId: adasSession.id, reason: 'complete' });
+
+    expect(refused.status).toBe(403);
+    expect(parseError(refused).code).toBe('FORBIDDEN');
+    // Ada's lesson is untouched.
+    await expect(harness.sessions.findById(adasSession.id)).resolves.toMatchObject({
+      endedAt: null,
+    });
+  });
+
   /** P2H-12: thirty minutes with nobody in it ends the cookie and the lesson behind it. */
   it('ends the tutor session behind a cookie nobody came back to', async () => {
     const childId = await addChild();

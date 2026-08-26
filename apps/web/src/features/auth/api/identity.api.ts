@@ -43,6 +43,11 @@ export type ChildProfileInput = Readonly<{
 
 export type IdentityApi = Readonly<{
   children(token: string): Promise<readonly ChildSummary[]>;
+  /**
+   * Ends every child session on the account, on every device. The rule it exists for:
+   * "a parent can revoke all child sessions."
+   */
+  revokeAllSessions(token: string): Promise<number>;
   login(token: string, input: ChildLoginInput): Promise<ChildSessionResponse>;
   logout(): Promise<void>;
   /** Resolves to the live session, or null when this device has none. */
@@ -60,6 +65,7 @@ export type IdentityApi = Readonly<{
 }>;
 
 const signedOutSchema = z.object({ signedOut: z.literal(true) });
+const revokedSchema = z.object({ revoked: z.number().int().nonnegative() });
 /** The API answers with the whole consent record; the UI only needs to know it landed. */
 const consentSchema = z.object({ id: z.string() }).loose();
 
@@ -80,11 +86,15 @@ export function createIdentityApi(client: ApiClient): IdentityApi {
   const asParent = (token: string) => ({ headers: { authorization: `Bearer ${token}` } });
   return {
     children: async (token) =>
-      (await client.get('/api/v1/auth/children', childListResponseSchema, asParent(token)))
+      (await client.get('/api/v1/parent/children', childListResponseSchema, asParent(token)))
         .children,
 
     login: (token, input) =>
       client.post('/api/v1/auth/child/login', input, childSessionResponseSchema, asParent(token)),
+
+    revokeAllSessions: async (token) =>
+      (await client.post('/api/v1/parent/sessions/revoke', {}, revokedSchema, asParent(token)))
+        .revoked,
 
     logout: async () => {
       await client.post('/api/v1/auth/child/logout', {}, signedOutSchema);
