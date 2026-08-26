@@ -10,6 +10,7 @@ import { createTestDatabase, shouldSkipDatabaseTests } from './db.harness';
 import {
   createPhase1Fixture,
   parseArrival,
+  answerKeyFor,
   requireAsk,
   sendTurn,
   startSession,
@@ -146,7 +147,9 @@ suite('Phase 1 exit acceptance', () => {
     await sendTurn(fixture, started.session.sessionId, {
       kind: 'ANSWER',
       respondsTo: ask.id,
-      text: '10',
+      // P2H-10: arithmetic items are generated now, so the right answer is whatever the server
+      // recorded for this item rather than the one the old six-item bank always had.
+      text: await answerKeyFor(database, started.session.sessionId, ask.id),
     });
     await request(fixture.app)
       .post('/api/v1/student/session/end')

@@ -52,6 +52,8 @@ export type RespondPromptInput = ContextInput &
     approach: string;
     subject: string;
     skill?: string | undefined;
+    /** P2H-10: the skill's teaching note, rendered. Absent where no note applies. */
+    lesson?: string | undefined;
     question?: string | undefined;
     learnerSaid?: string | undefined;
     answerKey?: string | undefined;

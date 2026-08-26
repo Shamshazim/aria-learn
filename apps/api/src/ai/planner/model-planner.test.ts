@@ -73,6 +73,7 @@ function context(): LoadedTurnContext<ApiModelContext> {
       recentContentItemIds: [],
       recentIntents: [],
       arithmeticProblem: null,
+      lesson: null,
       completionOnly: false,
       latestAsk: null,
     },

@@ -130,6 +130,28 @@ export function requireAsk(moves: readonly TutorMove[]): Extract<TutorMove, { ki
   return ask;
 }
 
+/**
+ * The key the server recorded for an item, read back from its private evidence.
+ *
+ * P2H-10 made arithmetic items generated rather than a fixed bank of six, so a test that
+ * wants to answer *correctly* has to ask what the item's answer actually is. The key never
+ * travels to the browser, so the evidence row is the only honest place to read it.
+ */
+export async function answerKeyFor(
+  database: TestDatabase,
+  sessionId: string,
+  moveId: string,
+): Promise<string> {
+  const result = await database.pool.query<{ answerKey: string | null }>(
+    `SELECT evidence ->> 'answerKey' AS "answerKey" FROM session_event
+     WHERE session_id = $1 AND actor = 'aria' AND kind = 'ASK' AND payload ->> 'id' = $2`,
+    [sessionId, moveId],
+  );
+  const key = result.rows[0]?.answerKey;
+  if (key == null) throw new Error(`No recorded answer key for ask ${moveId}`);
+  return key;
+}
+
 export async function waitForFact(database: TestDatabase, studentId: string): Promise<string> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const result = await database.pool.query<{ id: string }>(

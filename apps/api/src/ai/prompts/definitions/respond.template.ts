@@ -16,6 +16,7 @@ const SITUATION = `{{register}}
 
 {{dialogue}}
 
+{{lesson}}
 Situation:
 - Subject: {{subject}}
 - Skill: {{skill}}
@@ -34,6 +35,8 @@ export function renderRespondPrompt(input: RespondPromptInput, closing: string):
     register: REGISTERS[input.band],
     dialogue: renderDialogue(input.context),
     subject: input.subject,
+    // Blank rather than absent when there is no note, so the prompt has no dangling heading.
+    lesson: input.lesson === undefined ? '' : `${input.lesson}\n`,
     skill: input.skill ?? 'general practice',
     question: input.question ?? 'no open item yet',
     learnerSaid: input.learnerSaid ?? '(nothing yet)',

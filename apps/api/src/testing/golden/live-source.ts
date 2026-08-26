@@ -28,6 +28,8 @@ export function createLiveGoldenSource(dependencies: {
   const context = scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' });
   return {
     generate: async (item) => {
+      // P2H-10: the loader guarantees this, but the port is typed for both origins.
+      if (item.input === undefined) throw new Error(`Golden case ${item.id} has no prompt input`);
       const response = await provider.complete({
         tier: definition.tier,
         system: definition.system,

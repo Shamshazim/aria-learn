@@ -1,13 +1,15 @@
-import { tutorMoveSchema, type TutorInputEvent } from '@aria/shared';
+import { tutorMoveSchema, type TutorInputEvent, type VisualContent } from '@aria/shared';
 import type { LoadedTurnContext, PlannedTurn } from '@aria/tutor';
 
 import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { createModelPlanner } from '@/ai/planner/model-planner';
 import { plannerBudgetMs } from '@/ai/planner/planner.budget';
 import { createInventoryService, type InventoryService } from '@/curriculum';
+import { buildVisual, firstVisualFor } from '@/curriculum/visuals/show-payloads';
 import { ForbiddenError } from '@/errors';
 import { createTurnContentObserver } from '@/observability/content-metrics';
 import { createIntentFallbackObserver } from '@/observability/intent-metrics';
+import type { ArithmeticProblem } from '@/quality/arithmetic';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
 import {
@@ -87,6 +89,7 @@ function buildTutor(
     students: repositories.students,
     retrieve: memory.retrieve,
     misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
+    lesson: (skillCode) => inventory.getLesson(skillCode),
   });
   const turnContent = buildTurnContent(deps, inventory, content);
   const commit = createTurnCommitService({
@@ -131,6 +134,7 @@ function buildTurnContent(
     gate: content.gate,
     moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
     remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
+    visual: (skillCode, problem) => visualFor(inventory, skillCode, problem),
     observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
     ...streamingDeps(deps, content),
   });
@@ -212,4 +216,22 @@ function buildCrisis(
     clock: deps.clock,
     logger: deps.logger,
   });
+}
+
+/**
+ * P2H-10: the picture a skill is shown with, captioned from its lesson note.
+ *
+ * The caption is the note's first concrete model rather than a generic label, so the child
+ * hears the same words about the picture that the explanation used about the idea.
+ */
+function visualFor(
+  inventory: InventoryService,
+  skillCode: string,
+  problem: ArithmeticProblem | null,
+): VisualContent | null {
+  const skill = inventory.getSkill(skillCode);
+  const kind = firstVisualFor(skill);
+  if (kind === null) return null;
+  const caption = inventory.getLesson(skillCode)?.models[0] ?? skill?.name ?? skillCode;
+  return buildVisual({ kind, caption, problem });
 }

@@ -23,6 +23,7 @@ import { fallbackText } from '@/services/content/turn-fallback';
 import { contextEvidence, resolveQuestion, retryAsk } from '@/services/content/turn-question';
 import { isDetour, responseMove } from '@/services/content/turn-response';
 import { streamGatedText } from '@/services/content/turn-stream';
+import { visualMove } from '@/services/content/turn-visual';
 
 export type { ApiModelContext } from '@/services/content/turn-content.types';
 
@@ -190,9 +191,13 @@ async function responseWithContinuation(
   const evidence = { ...contextEvidence(turn), ...said.provenance };
   const detour = isDetour(turn);
   if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH' || detour) {
+    // P2H-10: the picture goes between the explanation and the question it was about, so the
+    // child is looking at it while the item comes back.
+    const shown = visualMove(deps, turn);
     const prior = turn.context.modelContext.latestAsk;
+    const followUp = prior === null ? [] : [retryAsk(deps, turn, prior, !detour)];
     return {
-      moves: prior === null ? [feedback] : [feedback, retryAsk(deps, turn, prior, !detour)],
+      moves: [feedback, ...(shown === null ? [] : [shown]), ...followUp],
       privateEvidence: evidence,
     };
   }

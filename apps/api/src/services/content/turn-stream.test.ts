@@ -95,6 +95,7 @@ function streamingService(
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
+    visual: () => null,
     streaming: { respond, segments, ids: sequentialIds('stream') },
     ...(observer === undefined ? {} : { observer: { ...NULL_TURN_CONTENT_OBSERVER, ...observer } }),
   });
@@ -244,6 +245,7 @@ function turn(kind: MoveKind, band: Band): PlannedTurn<ApiModelContext> {
         recentContentItemIds: [],
         recentIntents: [],
         arithmeticProblem: null,
+        lesson: null,
         completionOnly: false,
         latestAsk: null,
       },

@@ -1,7 +1,8 @@
-import type { TutorMove } from '@aria/shared';
+import type { TutorMove, VisualContent } from '@aria/shared';
 
 import type { AiClient, RespondStreamer } from '@/ai';
 import type { ReliableContentService } from '@/content/content.service';
+import type { LessonNote } from '@/curriculum';
 import type { IdGenerator } from '@/lib/ids';
 import type { TurnContentObserver } from '@/observability/content-metrics';
 import type { ScrubbedContext } from '@/privacy';
@@ -20,6 +21,8 @@ export type ApiModelContext = Readonly<{
   /** P2H-06: the child's last few classified intents, oldest first, for the planner. */
   recentIntents: readonly string[];
   arithmeticProblem: ArithmeticProblem | null;
+  /** P2H-10: the teaching note for the skill in play, so a prompt is grounded in it. */
+  lesson: LessonNote | null;
   completionOnly: boolean;
   latestAsk: Extract<TutorMove, { kind: 'ASK' }> | null;
 }>;
@@ -30,6 +33,14 @@ export type TurnContentDeps = Readonly<{
   gate: QualityGate;
   moves(sessionId: string): MoveFactory;
   remediation(misconceptionId: string): string | null;
+  /**
+   * P2H-10: the visual model for this skill, drawn for the open item, or nothing.
+   *
+   * Injected rather than imported so the turn path stays free of the curriculum: which
+   * picture a skill gets is an authoring decision, and this service only decides *whether*
+   * the move it is building should carry one.
+   */
+  visual(skillCode: string, problem: ArithmeticProblem | null): VisualContent | null;
   observer?: TurnContentObserver;
   /**
    * P2H-07: everything needed to say an answer before it is finished, or nothing.

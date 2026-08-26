@@ -14,7 +14,8 @@ export type { ProtocolVersion } from './version';
 export { BANDS, GRADES, bandSchema, gradeSchema, bandForGrade, parseGrade } from './band/band';
 export type { Band, Grade } from './band/band';
 
-export type { Misconception, Skill, SkillSubject } from './curriculum';
+export { VISUAL_KINDS } from './curriculum';
+export type { Misconception, Skill, SkillSubject, VisualKind } from './curriculum';
 
 export * from './protocol/events';
 export * from './protocol/moves';

@@ -39,6 +39,7 @@ function contentService() {
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
+    visual: () => null,
   });
 }
 
@@ -68,6 +69,7 @@ function context(band: Band, consecutiveSilences: number): LoadedTurnContext<Api
       recentContentItemIds: [],
       recentIntents: [],
       arithmeticProblem: null,
+      lesson: null,
       completionOnly: false,
       latestAsk: null,
     },

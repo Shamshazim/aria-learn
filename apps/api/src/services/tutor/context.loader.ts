@@ -1,6 +1,7 @@
 import { tutorMoveSchema, type TutorInputEvent } from '@aria/shared';
 import type { LoadedTurnContext } from '@aria/tutor';
 
+import type { LessonNote } from '@/curriculum';
 import { NotFoundError, ValidationError } from '@/errors';
 import type { RawDialogueTurn } from '@/privacy';
 import { arithmeticProblemSchema } from '@/quality/arithmetic';
@@ -21,6 +22,8 @@ export function createTutorContextLoader(deps: {
   skills: SkillStateRepository;
   students: StudentRepository;
   misconceptionIds(skillCode: string): readonly string[];
+  /** P2H-10: the teaching note for a skill, or nothing where the skill has no note. */
+  lesson(skillCode: string): LessonNote | null;
   retrieve(
     input: Readonly<{
       sessionId: string;
@@ -89,6 +92,7 @@ async function load(
       recentContentItemIds: recentEvidenceStrings(records, 'contentItemId', 5),
       recentIntents: [...recentEvidenceStrings(records, 'intent', 3)].reverse(),
       arithmeticProblem: askArithmeticProblem(ask),
+      lesson: skillCode === null ? null : deps.lesson(skillCode),
       completionOnly: askEvidenceBoolean(ask, 'completionOnly') ?? false,
       latestAsk: parsedAskMove(ask),
     },

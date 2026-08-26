@@ -58,7 +58,11 @@ function buildHarness(
       // runs rather than inside it: the model second pass is asynchronous, the policy is pure.
       const intent = await resolveIntent(deps, context, event);
       return createTeachingPolicy<ApiModelContext>({
-        gradeAnswer: (answer) => grade(answer, context.modelContext, context.session.skillCode),
+        gradeAnswer: (answer) =>
+          grade(answer, context.modelContext, {
+            code: context.session.skillCode,
+            repeatedMisconception: context.session.repeatedMisconception,
+          }),
         classifyIntent: () => intent,
         sessionLimitMs: (band) => deps.sessionLimitMs(band),
         now: () => deps.clock.now(),
@@ -95,7 +99,7 @@ async function resolveIntent(
 function grade(
   event: Extract<TutorInputEvent, { kind: 'ANSWER' | 'SPEECH_FINAL' }>,
   context: ApiModelContext,
-  skillCode: string | null,
+  skill: Readonly<{ code: string | null; repeatedMisconception: string | null }>,
 ): Readonly<{ correct: boolean; misconception: string | null }> | null {
   const answer = event.kind === 'ANSWER' ? (event.text ?? event.choiceId ?? '') : event.text;
   if (context.completionOnly) return null;
@@ -103,14 +107,20 @@ function grade(
     context.arithmeticProblem === null
       ? context.answerKey !== null && normalise(answer) === normalise(context.answerKey)
       : checkArithmetic(context.arithmeticProblem, answer).verdict === 'correct';
+  // P2H-10: several signatures can fit one answer, so the wrong idea this child has already
+  // shown outranks a first sighting rather than authored order deciding it silently.
   const misconception = correct
     ? null
-    : matchMisconception({
-        skillCode,
-        question: context.latestQuestion,
-        expectedAnswer: context.answerKey,
-        learnerAnswer: answer,
-      });
+    : matchMisconception(
+        {
+          skillCode: skill.code,
+          question: context.latestQuestion,
+          expectedAnswer: context.answerKey,
+          learnerAnswer: answer,
+          problem: context.arithmeticProblem,
+        },
+        skill.repeatedMisconception === null ? [] : [skill.repeatedMisconception],
+      );
   return { correct, misconception };
 }
 

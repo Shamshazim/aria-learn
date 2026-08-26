@@ -1,6 +1,7 @@
 import type { MoveKind, TutorMove } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
+import { renderLessonGrounding } from '@/ai/prompts/render/lesson.render';
 import type { RespondPromptInput } from '@/ai/prompts/types';
 import type { ApiModelContext, MoveIdentity } from '@/services/content/turn-content.types';
 import { eventText } from '@/services/content/turn-fallback';
@@ -90,6 +91,7 @@ export function respondInput(turn: PlannedTurn<ApiModelContext>): RespondPromptI
     approach: turn.plan.approach,
     subject: turn.context.session.subject,
     ...(turn.context.session.skillCode === null ? {} : { skill: turn.context.session.skillCode }),
+    ...(model.lesson === null ? {} : { lesson: renderLessonGrounding(model.lesson) }),
     ...(model.latestQuestion === null ? {} : { question: model.latestQuestion }),
     ...(said === undefined || said === '' ? {} : { learnerSaid: said }),
     ...(model.answerKey === null || turn.plan.kind === 'SAY' ? {} : { answerKey: model.answerKey }),

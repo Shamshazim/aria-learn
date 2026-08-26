@@ -16,7 +16,8 @@
     "start": "tsx src/index.ts",
     "test": "cd ../.. && vitest run --project api",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "synth:bridges": "tsx src/scripts/synth-bridges.ts"
+    "synth:bridges": "tsx src/scripts/synth-bridges.ts",
+    "prewarm:content": "tsx src/scripts/prewarm-content.ts"
   },
   "dependencies": {
     "@aria/shared": "*",

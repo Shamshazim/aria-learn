@@ -94,6 +94,7 @@ function turnFor(text: string, band: Band) {
       recentContentItemIds: [],
       recentIntents: [],
       arithmeticProblem: null,
+      lesson: null,
       completionOnly: false,
       latestAsk: null,
     },
@@ -117,6 +118,7 @@ function service(ai: AiClient) {
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
+    visual: () => null,
   });
 }
 

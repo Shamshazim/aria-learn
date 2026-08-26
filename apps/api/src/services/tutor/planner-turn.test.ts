@@ -85,6 +85,7 @@ function context() {
       recentContentItemIds: [],
       recentIntents: [],
       arithmeticProblem: null,
+      lesson: null,
       completionOnly: false,
       latestAsk: null,
     } satisfies ApiModelContext,

@@ -63,6 +63,7 @@ function serviceWith(ai: AiClient | null) {
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
+    visual: () => null,
     observer: createTurnContentObserver({ metrics, logger }),
   });
   return { service, metrics, logger };
@@ -162,6 +163,7 @@ function turn(): PlannedTurn<ApiModelContext> {
         recentContentItemIds: [],
         recentIntents: [],
         arithmeticProblem: null,
+        lesson: null,
         completionOnly: false,
         latestAsk: null,
       },

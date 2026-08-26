@@ -44,6 +44,7 @@ describe('turn content', () => {
       moves: (sessionId) =>
         createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
       remediation: () => null,
+      visual: () => null,
     });
 
     const result = await service.resolve(turn(kind));
@@ -62,6 +63,7 @@ describe('turn content', () => {
       moves: (sessionId) =>
         createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
       remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
+      visual: () => null,
     });
     const base = turn('RETEACH');
     const input = {
@@ -177,6 +179,7 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
         recentContentItemIds: [],
         recentIntents: [],
         arithmeticProblem: null,
+        lesson: null,
         completionOnly: false,
         latestAsk: null,
       },
@@ -216,6 +219,7 @@ function serviceWithFallback() {
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
+    visual: () => null,
   });
 }
 
