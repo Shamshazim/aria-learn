@@ -32,6 +32,12 @@ export function createBridgeClient(
     fetcher: typeof fetch;
     /** A clip whose audio has gone missing; the session plays on without it. */
     onUnavailable(clipId: string): void;
+    /**
+     * The library itself could not be read. Separate from an empty one on purpose: an API that
+     * is broken and a deployment that has recorded nothing sound identical to a child, and
+     * they are not the same thing to fix.
+     */
+    onLibraryUnreadable(reason: string): void;
   }>,
 ): BridgeClient {
   return {
@@ -60,9 +66,16 @@ async function fetchLibrary(
     headers: { authorization: `Bearer ${input.token}` },
   });
   // A deployment with no library is a deployment with no bridges, not a failed session.
-  if (!response.ok) return null;
+  if (!response.ok) {
+    input.onLibraryUnreadable(`the control plane answered ${String(response.status)}`);
+    return null;
+  }
   const parsed = envelopeSchema.safeParse(await response.json());
-  return parsed.success ? parsed.data.data : null;
+  if (!parsed.success) {
+    input.onLibraryUnreadable('the control plane sent a library this build cannot read');
+    return null;
+  }
+  return parsed.data.data;
 }
 
 async function loadOne(

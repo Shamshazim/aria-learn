@@ -55,16 +55,20 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
   const serialize = createStreamSerializer();
   return {
     authorize: (signal) => authorize(input, state, signal),
-    handleTranscript: (text, confidence, signal) =>
-      serialize(() => {
-        // P2H-09: before the request, not after it. The gap opens the moment the child stops.
+    handleTranscript: (text, confidence, signal) => {
+      // P2H-09: stamped here, outside the queue, so rule 3 can tell speech that started after
+      // this transcript from speech that started before it.
+      input.bridge?.observeTranscript();
+      return serialize(() => {
+        // Before the request, not after it: the gap opens the moment the child stops.
         input.bridge?.cover({ text, confidence });
         return send(input, state, {
           event: transcriptEvent(input, state, text, confidence),
           replayOnly: false,
           ...(signal === undefined ? {} : { signal }),
         });
-      }),
+      });
+    },
     silence: (payload) =>
       serialize(() =>
         send(input, state, {
@@ -170,13 +174,16 @@ async function* send(
   state.order.begin();
   input.bridge?.turnStarted();
   let spoken = false;
-  // A bridge that is still playing finishes first: clips are short by construction, and a
-  // sentence that cuts across one is exactly the seam P2H-09 exists to avoid.
   const onFirstSentence = async (): Promise<void> => {
     if (spoken) return;
     spoken = true;
-    await input.bridge?.settle();
+    // Stopped before the wait, not after it: the API had this sentence ready now, and a first
+    // audio figure that includes the bridge's own clip would make rule 1 stop firing exactly
+    // when a bridge has just played.
     input.bridge?.firstSpoken();
+    // A bridge that is still playing finishes first: clips are short by construction, and a
+    // sentence that cuts across one is exactly the seam P2H-09 exists to avoid.
+    await input.bridge?.settle();
   };
   try {
     const request$ = turnRequest(input, state, request);

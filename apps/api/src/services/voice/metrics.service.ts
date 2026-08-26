@@ -1,4 +1,4 @@
-import type { Band, VoiceMetric, VoiceMetricRequest } from '@aria/shared';
+import type { Band, BridgeMetric, VoiceMetricRequest } from '@aria/shared';
 
 import { ForbiddenError, NotFoundError, ValidationError } from '@/errors';
 import type { Clock } from '@/lib/clock';
@@ -40,8 +40,6 @@ export function createVoiceMetricsService(deps: {
     },
   };
 }
-
-type BridgeMetric = Extract<VoiceMetric, { kind: 'bridge' }>;
 
 /** A bridge has no latency of its own to record; it is the thing that fills somebody else's. */
 function primaryLatency(metric: VoiceMetricRequest['metric']): number | null {

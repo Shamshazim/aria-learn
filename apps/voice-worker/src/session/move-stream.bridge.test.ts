@@ -28,6 +28,7 @@ const ROOM: VoiceRoomContext = {
 function fakeBridge(order: string[]): BridgeTurn {
   return {
     observeMove: () => order.push('observeMove'),
+    observeTranscript: () => order.push('observeTranscript'),
     observeSpeechStarted: () => order.push('observeSpeechStarted'),
     cover: () => order.push('cover'),
     turnStarted: () => order.push('turnStarted'),
@@ -67,7 +68,7 @@ describe('the bridge in the turn path', () => {
 
     // `cover` before `turnStarted` is the point: the gap opens when the child stops speaking,
     // not when the API gets round to answering.
-    expect(order).toEqual(['cover', 'turnStarted', 'settle', 'firstSpoken']);
+    expect(order).toEqual(['observeTranscript', 'cover', 'turnStarted', 'firstSpoken', 'settle']);
   });
 
   it('waits for a playing clip before the first sentence, and only for the first', async () => {

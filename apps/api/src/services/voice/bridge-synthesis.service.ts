@@ -126,7 +126,7 @@ async function synthesiseOne(
 }
 
 /** Signed 16-bit mono: two bytes a sample, and the rate says how many make a second. */
-export function durationMs(byteLength: number): number {
+function durationMs(byteLength: number): number {
   return Math.round((byteLength / 2 / BRIDGE_SAMPLE_RATE) * 1_000);
 }
 

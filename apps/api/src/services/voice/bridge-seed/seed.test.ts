@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { BANDS } from '@aria/shared';
-import { BRIDGE_BUCKETS, bridgeTextIsNonCommittal } from '@aria/voice';
+import { BRIDGE_BUCKETS, bridgeTextIsNonCommittal, playableBuckets } from '@aria/voice';
 
 import { bridgeSeedFor, MIN_CLIPS_PER_BUCKET } from '.';
 
@@ -9,10 +9,17 @@ describe('bridge seed texts', () => {
   it.each(BANDS)('gives the %s band enough to choose from in every bucket', (band) => {
     const seed = bridgeSeedFor(band);
 
-    for (const bucket of BRIDGE_BUCKETS) {
+    for (const bucket of playableBuckets(band)) {
       const lines = seed.filter((line) => line.bucket === bucket);
       expect(lines.length).toBeGreaterThanOrEqual(MIN_CLIPS_PER_BUCKET);
     }
+  });
+
+  it.each(BANDS)('writes no %s line for a bucket the rules will never play', (band) => {
+    const playable = new Set<string>(playableBuckets(band));
+    const unplayable = BRIDGE_BUCKETS.filter((bucket) => !playable.has(bucket));
+
+    expect(bridgeSeedFor(band).filter((line) => unplayable.includes(line.bucket))).toEqual([]);
   });
 
   it.each(BANDS)('never lets the %s band judge an answer before the answer exists', (band) => {

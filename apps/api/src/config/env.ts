@@ -53,6 +53,30 @@ const envObjectSchema = z.object({
 
 export const envSchema = envObjectSchema.superRefine(validateEnvironment);
 
+/**
+ * Just the per-band voice ids, parsed on their own (P2H-09).
+ *
+ * `synth-bridges.ts --dry-run` needs to know which voices a library would be recorded for and
+ * nothing else; making it satisfy the whole environment — a database URL above all — to print a
+ * list of sentences is what would push a reviewer into reading `process.env` by hand instead.
+ */
+export const voiceIdEnvSchema = envObjectSchema.pick({
+  VOICE_TTS_VOICE_EARLY: true,
+  VOICE_TTS_VOICE_MIDDLE: true,
+  VOICE_TTS_VOICE_SENIOR: true,
+});
+
+export function readVoiceIds(
+  source: NodeJS.ProcessEnv,
+): Readonly<Record<Band, string | undefined>> {
+  const env = voiceIdEnvSchema.parse(source);
+  return {
+    early: env.VOICE_TTS_VOICE_EARLY,
+    middle: env.VOICE_TTS_VOICE_MIDDLE,
+    senior: env.VOICE_TTS_VOICE_SENIOR,
+  };
+}
+
 type ParsedEnvironment = z.infer<typeof envObjectSchema>;
 
 function validateEnvironment(env: ParsedEnvironment, context: z.RefinementCtx): void {

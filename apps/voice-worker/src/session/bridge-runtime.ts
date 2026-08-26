@@ -1,6 +1,6 @@
 import { log } from '@livekit/agents';
 
-import type { VoiceMetric } from '@aria/shared';
+import type { BridgeMetric } from '@aria/shared';
 
 import { createBridgeClient } from '@/api/bridge-client';
 import { voiceProfileFor, type VoiceWorkerConfig } from '@/config';
@@ -9,8 +9,6 @@ import { createBridgePlayer } from '@/session/bridge-player';
 import { createBridgeTurn, type BridgeTurn } from '@/session/bridge-turn';
 import { createFirstAudioEstimate } from '@/session/first-audio-estimate';
 import type { VoiceRoomContext } from '@/session/session-context';
-
-type BridgeMetric = Extract<VoiceMetric, { kind: 'bridge' }>;
 
 /**
  * Builds this session's bridge path, or nothing at all (P2H-09).
@@ -25,6 +23,7 @@ export async function createSessionBridge(
     room: VoiceRoomContext;
     session: Pick<AriaAgentSession, 'say'>;
     fetcher: typeof fetch;
+    now(): number;
     report(metric: BridgeMetric): void;
   }>,
 ): Promise<BridgeTurn | undefined> {
@@ -35,6 +34,9 @@ export async function createSessionBridge(
     fetcher: input.fetcher,
     onUnavailable: (clipId) => {
       log().warn({ clipId }, 'A reviewed bridge clip has no audio and will not be played');
+    },
+    onLibraryUnreadable: (reason) => {
+      log().warn({ reason }, 'The bridge library could not be read; this session will play none');
     },
   });
   const clips = await client.load({ band: input.room.band, voice });
@@ -52,9 +54,12 @@ export async function createSessionBridge(
       clips,
       seed: seedFor(input.room.sessionId),
       report: input.report,
+      onError: (error) => {
+        log().warn({ err: error }, 'A bridge clip failed to play');
+      },
     }),
     estimate: createFirstAudioEstimate(),
-    now: () => Date.now(),
+    now: input.now,
   });
 }
 

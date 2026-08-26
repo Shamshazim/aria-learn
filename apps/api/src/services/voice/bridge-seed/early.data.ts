@@ -6,7 +6,7 @@ import type { BridgeBucket } from '@aria/voice';
  * Short, warm, and never a judgement: a child this age hears "okay!" as approval, so nothing
  * here may sound like a verdict on the answer. Every line is under a second when spoken.
  */
-export const EARLY_BRIDGE_SEED: Readonly<Record<BridgeBucket, readonly string[]>> = {
+export const EARLY_BRIDGE_SEED: Readonly<Partial<Record<BridgeBucket, readonly string[]>>> = {
   acknowledge: [
     'Okay!',
     'Mm-hmm.',

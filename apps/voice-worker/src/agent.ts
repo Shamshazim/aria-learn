@@ -102,8 +102,13 @@ async function startSession(
     room,
     session,
     fetcher: globalThis.fetch,
+    now: () => Date.now(),
     report: (metric) => {
-      void client.metric(room.sessionId, { connectionEpoch: room.connectionEpoch, metric });
+      // A counter the control plane never receives is a counter, not a session: the turn goes
+      // on either way, and the failure is already visible as a gap in the series.
+      client
+        .metric(room.sessionId, { connectionEpoch: room.connectionEpoch, metric })
+        .catch(() => undefined);
     },
   });
   const runtime = createRuntime({

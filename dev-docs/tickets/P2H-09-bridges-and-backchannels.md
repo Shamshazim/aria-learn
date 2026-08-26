@@ -81,8 +81,9 @@ Clips are synthesised with the same voice as the session so the seam is not audi
       `handleTranscript`) and P2-11's row in BACKLOG is marked delivered.
 - [x] Skip rules 1–6 each have a test; rule 1 uses a fake latency estimate.
 - [ ] Seed texts reviewed by a human; review recorded in the PR; ≥ 8 per bucket per band. The
-      counts, the non-committal rule and the length are enforced by test; **the human review
-      has not happened** and no clip may be synthesised until it does.
+      counts, the non-committal rule and the length are enforced by test, for every bucket a
+      band can actually play; **the human review has not happened** and no clip may be
+      synthesised until it does. 88 lines, not 120: see the review pass below.
 - [x] `synth-bridges.ts` is idempotent (re-run creates no duplicate `speech_asset` rows).
 - [x] A 30-turn bot session plays no clip twice within 10 turns (picker test with seed).
 - [x] Bridge + segment seam: no overlapping `say` calls (worker test with fake session).
@@ -138,6 +139,9 @@ when a final transcript opens a gap, and holds the turn's first sentence until t
 - **Rule 6's early-band clause is not written twice.** "At most every other turn" is the
   cadence rule 2 already enforces on every band; `bridge-rules.ts` says so where the rule
   would otherwise sit.
+- **"Senior band only `thinking`" is read as a skip, not a substitution.** A senior hears a
+  bridge on a `QUESTION` turn and on nothing else. `playableBuckets()` is the single place
+  that says so, and the seed files and the synthesiser both read it.
 - **No `duration_ms` column.** Clip length is derived from the PCM byte count, so P2H-09 needs
   no migration and does not take the `009` number P2H-12 owns.
 - **Recency is per bucket, not overall.** The Design says "not in last 6 used" and the
@@ -159,15 +163,51 @@ when a final transcript opens a gap, and holds the turn's first sentence until t
 
 A clip whose audio 404s is dropped for the life of the session and logged, and the picker never
 offers it again. Marking the row itself unhealthy needs a column, and a 404 is not a review
-outcome, so `review_status` is left alone.
+outcome, so `review_status` is left alone. The 404 can only be seen at session start, because
+that is the only time a clip is fetched — a clip fetched when the gap opens would be the wait
+this ticket exists to cover.
+
+## What the review pass changed
+
+Reviewed on both axes against `132c03b`; ten findings fixed.
+
+- **The first-audio estimate counted the bridge's own clip.** `firstSpoken()` fired after the
+  wait for the clip to finish, so a turn that played a bridge recorded up to 1.2 s of Aria
+  talking as the API's latency — and rule 1 stopped firing exactly when a bridge had just
+  played. It is stamped before the wait now.
+- **Rule 3 could not mean what it says.** "SPEECH_STARTED since the transcript" was a flag
+  that never cleared, so a false interruption silenced every gap after it. Both events now
+  carry a stamp off one counter and rule 3 compares them, which is the rule as written and
+  self-clearing. `bridge-turn.test.ts` covers before, after and stale.
+- **32 senior clips nobody could play.** The seed file wrote all five buckets for a band whose
+  rules only ever play one. `playableBuckets()` now drives the seed, the plan and the test; the
+  dry run went from 120 clips to 88, and the human review shrank with it.
+- **Bridges were being written into the agent's chat context.** `addToChatCtx: false`: the
+  harness rule is that the bridge path changes no state of its own, and a mis-bucketed clip
+  must not become something the tutor can read back as though Aria had meant it.
+- **A clip that failed to play took the sentence with it.** Playback now reports through an
+  injected `onError` and is let go, so the answer behind the bridge still arrives.
+- **`process.env` read raw in the synthesiser.** `readVoiceIds()` in `config/env.ts` parses the
+  three ids with the schema they already have, so a dry run still needs no database and a wet
+  run can no longer fold a placeholder id into a content hash.
+- Five copies of `Extract<VoiceMetric, { kind: 'bridge' }>` became one exported
+  `BridgeMetric`; `bridgeLibrarySchema.band` became `bandSchema` rather than a bare string;
+  seven unused exports left `@aria/voice`'s and `@aria/shared`'s surfaces; the worker's clock
+  is injected from the composition root; the worker router stopped branching on an optional
+  controller; the audio route gained its 400 and 403 tests; the picker gained the run that
+  actually happens (one bucket, thirty turns); and `apps/api/package.json`'s em dash, which a
+  scripted edit had re-encoded, is an em dash again.
+
+Declined: rule 4's crisis clause still cannot be enforced in the worker, and adding a second
+crisis detector next to `apps/api/src/safety/crisis/` to enforce it would be worse than the gap.
 
 ## Verification run 2026-08-25
 
 ```
-npm run typecheck        0 errors
-npx eslint apps packages 0 errors
-npx vitest run           1152 tests / 170 files pass
-npm run synth:bridges -w @aria/api -- --dry-run   120 clips planned across 3 bands
+npm run typecheck   0 errors
+npm run lint        0 errors
+npx vitest run      1162 tests / 176 files pass
+npm run synth:bridges -w @aria/api -- --dry-run   88 clips planned across 3 bands
 npm run voice:golden -w @aria/voice-worker        reports bridgesPlayed / bridgeRepeats /
                                                   bridgesByBucket; still exits 1 on the
                                                   pre-existing unreviewedSpokenTeachingCount

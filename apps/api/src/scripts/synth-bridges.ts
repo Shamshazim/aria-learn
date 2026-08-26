@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import type { Band } from '@aria/shared';
 
-import { readConfig } from '@/config';
+import { readConfig, readVoiceIds } from '@/config';
 import { closePool, createPool } from '@/db';
 import { createLogger } from '@/lib/logger';
 import { createSpeechAssetRepository } from '@/repositories/speech-asset.repository';
@@ -25,12 +25,14 @@ async function main(): Promise<void> {
   if (process.argv.includes('--dry-run')) {
     // Straight from the environment, not through `readConfig`: a reviewer checking what would be
     // recorded should not need a database URL to see a list of sentences.
-    const plan = planBridgeSynthesis(voicesFromEnv(process.env));
+    const plan = planBridgeSynthesis(planningVoices(readVoiceIds(process.env)));
     process.stdout.write(`${JSON.stringify(summary(plan), null, 2)}\n`);
     return;
   }
   const config = readConfig();
-  const voices = config.voice?.ttsVoices ?? voicesFromEnv(process.env);
+  // A wet run records real audio under a hash that includes the voice id, so a band without one
+  // is left out rather than recorded against a placeholder nobody could ever play.
+  const voices = config.voice?.ttsVoices ?? readVoiceIds(process.env);
   const logger = createLogger({ level: config.logLevel });
   const pool = createPool(config.database, logger);
   try {
@@ -47,12 +49,18 @@ async function main(): Promise<void> {
   }
 }
 
-/** A band with no voice configured yet is planned against a placeholder, and says so. */
-function voicesFromEnv(env: NodeJS.ProcessEnv): Readonly<Record<Band, string | undefined>> {
+/**
+ * A dry run shows the whole plan, including bands P2-01 has not chosen a voice for yet: the
+ * placeholder is what makes "this band is unconfigured" visible in the output rather than an
+ * absence a reviewer has to notice. It never reaches a wet run, and so never reaches a hash.
+ */
+function planningVoices(
+  voices: Readonly<Record<Band, string | undefined>>,
+): Readonly<Record<Band, string>> {
   return {
-    early: env.VOICE_TTS_VOICE_EARLY ?? 'unconfigured-early',
-    middle: env.VOICE_TTS_VOICE_MIDDLE ?? 'unconfigured-middle',
-    senior: env.VOICE_TTS_VOICE_SENIOR ?? 'unconfigured-senior',
+    early: voices.early ?? 'unconfigured-early',
+    middle: voices.middle ?? 'unconfigured-middle',
+    senior: voices.senior ?? 'unconfigured-senior',
   };
 }
 

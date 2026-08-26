@@ -1,7 +1,7 @@
 import type { Band, TutorMove } from '@aria/shared';
 import type { Intent } from '@aria/tutor';
 
-import { bucketFor, type BridgeBucket } from './bridge-buckets';
+import { BRIDGE_BUCKETS, bucketFor, type BridgeBucket } from './bridge-buckets';
 
 /**
  * Why a bridge did not play. Every one of these is a counter label, so a deployment can see
@@ -79,5 +79,15 @@ export function decideBridge(context: BridgeContext): BridgeDecision {
  * rule 2 is ever relaxed for older children, the early floor becomes a rule of its own here.
  */
 function bandCadence(context: BridgeContext, bucket: BridgeBucket): BridgeSkipRule | null {
-  return context.band === 'senior' && bucket !== 'thinking' ? 'band-cadence' : null;
+  return playableBuckets(context.band).includes(bucket) ? null : 'band-cadence';
+}
+
+/**
+ * Which buckets a band can ever hear, so nobody records clips it will never play.
+ *
+ * The seed files and the synthesiser both read this rather than listing buckets of their own:
+ * a bucket the rules will not play is a clip nobody should have to sit and review.
+ */
+export function playableBuckets(band: Band): readonly BridgeBucket[] {
+  return band === 'senior' ? ['thinking'] : BRIDGE_BUCKETS;
 }

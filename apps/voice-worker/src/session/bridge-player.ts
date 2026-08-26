@@ -1,4 +1,4 @@
-import type { TutorMove, VoiceMetric } from '@aria/shared';
+import type { BridgeMetric, TutorMove } from '@aria/shared';
 import {
   chooseBridge,
   createBridgePicker,
@@ -11,8 +11,6 @@ import type { LoadedBridge } from '@/api/bridge-client';
 import type { AriaAgentSession } from '@/session/agent-session';
 
 import type { AudioFrame } from '@livekit/rtc-node';
-
-type BridgeMetric = Extract<VoiceMetric, { kind: 'bridge' }>;
 
 export type BridgePlayer = Readonly<{
   /**
@@ -40,6 +38,8 @@ export function createBridgePlayer(
     clips: readonly LoadedBridge[];
     seed: number;
     report(metric: BridgeMetric): void;
+    /** Playback failed. Never swallowed: a clip that will not play is a library going bad. */
+    onError(error: unknown): void;
   }>,
 ): BridgePlayer {
   const picker = createBridgePicker({ seed: input.seed });
@@ -64,7 +64,13 @@ export function createBridgePlayer(
         return;
       }
       lastBridgeTurn = turnIndex - 1;
-      playing = play(input.session, choice.clip, audio.get(choice.clip.id) ?? []);
+      // The failure is reported and then let go: the answer behind the bridge is what the child
+      // is waiting for, and a clip that would not play must not take the sentence with it.
+      playing = play(input.session, choice.clip, audio.get(choice.clip.id) ?? []).catch(
+        (error: unknown) => {
+          input.onError(error);
+        },
+      );
       input.report({
         kind: 'bridge',
         played: true,
@@ -91,8 +97,10 @@ async function play(
   const handle = session.say(clip.text, {
     audio: audioStream(frames),
     allowInterruptions: true,
-    // The transcript is Aria's; a bridge is something she said, and the child heard it.
-    addToChatCtx: true,
+    // Out of the chat context on purpose. The harness rule is that the bridge path changes no
+    // state of its own; a bucket the classifier got wrong must not become something the tutor
+    // can later read back as though Aria had meant it.
+    addToChatCtx: false,
   });
   await handle.waitForPlayout();
 }

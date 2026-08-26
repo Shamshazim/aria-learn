@@ -61,14 +61,25 @@ describe('Phase 2 voice HTTP surface', () => {
     expect(audio.headers['content-type']).toContain('application/octet-stream');
   });
 
-  it('rejects a bridge library request without a worker token or with a bad band', async () => {
+  it('rejects a bridge request without a worker token, a bad band or a bad asset id', async () => {
     expect(
       (await request(buildApp()).get('/api/v1/internal/voice/bridges?band=middle&voice=v')).status,
+    ).toBe(403);
+    expect(
+      (await request(buildApp()).get(`/api/v1/internal/voice/bridges/${BRIDGE_ASSET_ID}/audio`))
+        .status,
     ).toBe(403);
     expect(
       (
         await request(buildApp())
           .get('/api/v1/internal/voice/bridges?band=not-a-band&voice=v')
+          .set('authorization', `Bearer ${WORKER_TOKEN}`)
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request(buildApp())
+          .get('/api/v1/internal/voice/bridges/not-a-uuid/audio')
           .set('authorization', `Bearer ${WORKER_TOKEN}`)
       ).status,
     ).toBe(400);

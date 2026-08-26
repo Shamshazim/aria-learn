@@ -1,13 +1,11 @@
 import { AudioFrame } from '@livekit/rtc-node';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { VoiceMetric } from '@aria/shared';
+import type { BridgeMetric } from '@aria/shared';
 
 import type { LoadedBridge } from '@/api/bridge-client';
 import type { AriaAgentSession } from '@/session/agent-session';
 import { createBridgePlayer } from '@/session/bridge-player';
-
-type BridgeMetric = Extract<VoiceMetric, { kind: 'bridge' }>;
 
 function clips(count: number): readonly LoadedBridge[] {
   return Array.from({ length: count }, (_value, index) => ({
@@ -47,14 +45,16 @@ function fakeSession() {
 
 function player(session: ReturnType<typeof fakeSession>, count = 8) {
   const reported: BridgeMetric[] = [];
+  const errors: unknown[] = [];
   const instance = createBridgePlayer({
     session: session as unknown as Pick<AriaAgentSession, 'say'>,
     band: 'middle',
     clips: clips(count),
     seed: 5,
     report: (metric) => reported.push(metric),
+    onError: (error) => errors.push(error),
   });
-  return { instance, reported };
+  return { instance, reported, errors };
 }
 
 describe('bridge player', () => {
@@ -109,6 +109,24 @@ describe('bridge player', () => {
     expect(reported).toEqual([
       { kind: 'bridge', played: false, bucket: null, rule: 'segment-imminent', repeat: false },
     ]);
+  });
+
+  it('reports a clip that will not play and lets the answer through anyway', async () => {
+    const session = fakeSession();
+    session.say.mockImplementationOnce(() => {
+      throw new Error('the speaker is gone');
+    });
+    const { instance, errors } = player(session);
+
+    instance.cover({
+      intent: 'ANSWER',
+      afterMoveKind: 'ASK',
+      expectedFirstAudioMs: 1_400,
+      childSpeaking: false,
+    });
+
+    await expect(instance.settle()).resolves.toBeUndefined();
+    expect(errors).toHaveLength(1);
   });
 
   it('never plays two turns running', async () => {

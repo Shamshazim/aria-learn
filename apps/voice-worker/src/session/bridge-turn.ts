@@ -7,7 +7,12 @@ import type { FirstAudioEstimate } from '@/session/first-audio-estimate';
 export type BridgeTurn = Readonly<{
   /** A move went out. Its kind is what makes the next gap a transition rather than a reply. */
   observeMove(move: TutorMove): void;
-  /** The child started speaking again after their transcript closed; rule 3. */
+  /**
+   * A final transcript arrived. Called the moment it does, before the turn queues behind
+   * whatever is still speaking, because rule 3 is about what happens in exactly that window.
+   */
+  observeTranscript(): void;
+  /** The child started speaking again; rule 3, if it happened after the transcript. */
   observeSpeechStarted(): void;
   /** A final transcript arrived: cover the gap it just opened, if the rules allow one. */
   cover(input: Readonly<{ text: string; confidence?: number | undefined }>): void;
@@ -35,23 +40,32 @@ export function createBridgeTurn(
   }>,
 ): BridgeTurn {
   let afterMoveKind: TutorMove['kind'] | null = null;
-  let childSpeaking = false;
+  // Two stamps off one counter rather than a flag: a turn queues behind whatever is still
+  // speaking, so "the child started again" only means anything relative to *which* transcript.
+  // A flag would carry a false interruption from three turns ago into a gap that is nobody's.
+  let tick = 0;
+  let transcriptAt = 0;
+  let speechStartedAt = 0;
   return {
     observeMove: (move) => {
       afterMoveKind = move.kind;
     },
+    observeTranscript: () => {
+      tick += 1;
+      transcriptAt = tick;
+    },
     observeSpeechStarted: () => {
-      childSpeaking = true;
+      tick += 1;
+      speechStartedAt = tick;
     },
     cover: ({ text, confidence }) => {
       const intent = classifyIntent(text, { answerKey: null, speechConfidence: confidence }).intent;
       input.player.cover({
         intent,
         afterMoveKind,
-        childSpeaking,
+        childSpeaking: speechStartedAt > transcriptAt,
         expectedFirstAudioMs: input.estimate.expectedMs(),
       });
-      childSpeaking = false;
     },
     turnStarted: () => {
       input.estimate.started(input.now());

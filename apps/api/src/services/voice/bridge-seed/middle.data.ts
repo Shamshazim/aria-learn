@@ -6,7 +6,7 @@ import type { BridgeBucket } from '@aria/voice';
  * A little longer than the early band and a little drier: this age hears a sing-song "okay!" as
  * talking down. Still nothing that judges the answer.
  */
-export const MIDDLE_BRIDGE_SEED: Readonly<Record<BridgeBucket, readonly string[]>> = {
+export const MIDDLE_BRIDGE_SEED: Readonly<Partial<Record<BridgeBucket, readonly string[]>>> = {
   acknowledge: [
     'Okay.',
     'Mm-hmm.',

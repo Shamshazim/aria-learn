@@ -1,12 +1,10 @@
-import type { Band, VoiceMetric } from '@aria/shared';
+import type { Band, BridgeMetric } from '@aria/shared';
 
 import type { Metrics } from '@/observability/metrics';
 
 export const BRIDGE_PLAYED_TOTAL = 'bridge_played_total';
 export const BRIDGE_SKIPPED_TOTAL = 'bridge_skipped_total';
 export const BRIDGE_REPEAT_TOTAL = 'bridge_repeat_total';
-
-type BridgeMetric = Extract<VoiceMetric, { kind: 'bridge' }>;
 
 /**
  * What the bridge path did, per turn (P2H-09).

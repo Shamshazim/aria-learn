@@ -36,26 +36,23 @@ export function createVoiceWorkerRouter(
   input: Readonly<{
     authorize: RequestHandler;
     controller: VoiceControllers;
-    /** P2H-09: absent in a deployment that has recorded no bridge clips. */
-    bridges?: VoiceBridgeControllers;
+    /** P2H-09. Always mounted: a deployment with no clips answers with an empty library. */
+    bridges: VoiceBridgeControllers;
   }>,
 ): Router {
   const router = Router();
-  const bridges = input.bridges;
-  if (bridges !== undefined) {
-    router.get(
-      '/internal/voice/bridges',
-      input.authorize,
-      validate(bridgeLibraryQuerySchema, 'query'),
-      asyncHandler(bridges.library),
-    );
-    router.get(
-      '/internal/voice/bridges/:assetId/audio',
-      input.authorize,
-      validate(bridgeAudioParamsSchema, 'params'),
-      asyncHandler(bridges.audio),
-    );
-  }
+  router.get(
+    '/internal/voice/bridges',
+    input.authorize,
+    validate(bridgeLibraryQuerySchema, 'query'),
+    asyncHandler(input.bridges.library),
+  );
+  router.get(
+    '/internal/voice/bridges/:assetId/audio',
+    input.authorize,
+    validate(bridgeAudioParamsSchema, 'params'),
+    asyncHandler(input.bridges.audio),
+  );
   router.post(
     '/internal/voice/session/:id/turn',
     input.authorize,

@@ -35,6 +35,23 @@ describe('bridge picker', () => {
     expect(picker.repeats()).toBe(0);
   });
 
+  it('holds up on the run that actually happens: one bucket, thirty turns', () => {
+    const picker = createBridgePicker({ seed: 11 });
+    // A real session is mostly the child answering, so `acknowledge` is almost every bridge.
+    const clips = library('acknowledge', 8);
+    const playedAt = new Map<string, number>();
+
+    for (let turnIndex = 0; turnIndex < 30; turnIndex += 2) {
+      const clip = picker.pick({ bucket: 'acknowledge', clips, turnIndex });
+      const id = clip?.id ?? '';
+      const previous = playedAt.get(id);
+      expect(previous === undefined || turnIndex - previous >= 10).toBe(true);
+      playedAt.set(id, turnIndex);
+    }
+
+    expect(picker.repeats()).toBe(0);
+  });
+
   it('is reproducible from its seed and different between seeds', () => {
     const clips = library('acknowledge', 8);
     const run = (seed: number): readonly (string | null)[] => {

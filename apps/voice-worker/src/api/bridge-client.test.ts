@@ -41,6 +41,7 @@ describe('bridge client', () => {
       token: 'worker-token',
       fetcher: transport.fetch,
       onUnavailable,
+      onLibraryUnreadable: vi.fn(),
     });
 
     const loaded = await client.load({ band: 'middle', voice: 'voice-middle' });
@@ -60,6 +61,7 @@ describe('bridge client', () => {
       token: 'worker-token',
       fetcher: transport.fetch,
       onUnavailable,
+      onLibraryUnreadable: vi.fn(),
     });
 
     await expect(client.load({ band: 'middle', voice: 'voice-middle' })).resolves.toEqual([]);
@@ -68,13 +70,17 @@ describe('bridge client', () => {
 
   it('plays no bridges at all when the deployment serves no library', async () => {
     const transport = fetcher({});
+    const onLibraryUnreadable = vi.fn();
     const client = createBridgeClient({
       baseUrl: 'https://api.test',
       token: 'worker-token',
       fetcher: transport.fetch,
       onUnavailable: vi.fn(),
+      onLibraryUnreadable,
     });
 
     await expect(client.load({ band: 'early', voice: 'voice-early' })).resolves.toEqual([]);
+    // An API that answered 404 is not a deployment that recorded nothing; say which happened.
+    expect(onLibraryUnreadable).toHaveBeenCalledWith(expect.stringContaining('404'));
   });
 });
