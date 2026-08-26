@@ -40,6 +40,8 @@ export type StreamedText = GenerationOutcome &
   Readonly<{
     identity: MoveIdentity;
     truncated?: Readonly<{ reason: FallbackReason; error: unknown }>;
+    /** P2H-11: the turn was closed with the reviewed static sentence, and a child heard it. */
+    substituted?: boolean;
   }>;
 
 /**
@@ -59,10 +61,12 @@ export async function streamGatedText(
   const { identity } = release;
   const written: string[] = [];
   let failure: unknown = null;
+  let substituted = false;
   try {
     for await (const segment of deps.respond.stream(streamInput(turn, release, signal))) {
       throwIfAborted(signal);
       written.push(segment.written);
+      substituted ||= segment.substituted === true;
       deps.segments.publish(turn.context.session.id, published(identity, segment));
     }
   } catch (error) {
@@ -78,6 +82,7 @@ export async function streamGatedText(
     promptName: 'respond-stream',
     promptVersion: '1.0.0',
     identity,
+    ...(substituted ? { substituted: true } : {}),
     // The child heard the sentences before the break; the record has to say the rest never came.
     ...(failure === null ? {} : { truncated: { reason: providerReason(failure), error: failure } }),
   };

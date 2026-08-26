@@ -3,8 +3,7 @@ import type { PlannedTurn } from '@aria/tutor';
 
 import type { AiClient } from '@/ai';
 import type { FallbackReason } from '@/observability/content-metrics';
-import type { MoveClaims, QualityGate } from '@/quality';
-import { registerFailures } from '@/quality/checks/level/register';
+import { registerFailures, type MoveClaims, type QualityGate } from '@/quality';
 import type { MoveInputs } from '@/services/content/move-inputs';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import { respondInput } from '@/services/content/turn-response';

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
-import type { TutorSession } from '@/features/session/hooks/useTutorSession';
+import { stubSession } from '@/features/session/__fixtures__/session.fixture';
 import { LayoutContent } from '@/features/session/layouts/LayoutContent';
 
 /**
@@ -17,59 +17,26 @@ describe('the session card with no move', () => {
   it('shows the listening indicator and no placeholder sentence', () => {
     render(
       <MemoryRouter>
-        <LayoutContent session={waiting()} />
+        <LayoutContent session={stubSession()} />
       </MemoryRouter>,
     );
 
     expect(screen.getByRole('status')).toHaveTextContent('Aria is listening');
     expect(screen.queryByText('Take your time.')).not.toBeInTheDocument();
-    // The card is there and empty: nothing is rendered in the child's place while we wait.
     expect(document.querySelector('.session-card')?.textContent).toBe('');
   });
 
   it('still shows the sentences of an answer that is still being written', () => {
+    const session = stubSession({
+      streaming: { moveId: 'move-1', text: 'Let us count on from four.' },
+    });
+
     render(
       <MemoryRouter>
-        <LayoutContent session={{ ...waiting(), state: streamingState() }} />
+        <LayoutContent session={session} />
       </MemoryRouter>,
     );
 
     expect(screen.getByText('Let us count on from four.')).toBeInTheDocument();
   });
 });
-
-function baseState(): TutorSession['state'] {
-  return {
-    band: 'early',
-    ended: false,
-    moves: [],
-    currentMove: null,
-    status: 'listening',
-    paused: false,
-    streaming: null,
-  } as unknown as TutorSession['state'];
-}
-
-function streamingState(): TutorSession['state'] {
-  return {
-    ...baseState(),
-    streaming: { text: 'Let us count on from four.' },
-  } as unknown as TutorSession['state'];
-}
-
-function waiting(): TutorSession {
-  const noop = (): Promise<void> => Promise.resolve();
-  return {
-    state: baseState(),
-    answer: noop,
-    completeDrag: noop,
-    speak: noop,
-    backchannel: noop,
-    confused: noop,
-    interrupt: noop,
-    pause: noop,
-    askQuestion: noop,
-    resume: noop,
-    leave: noop,
-  } as unknown as TutorSession;
-}

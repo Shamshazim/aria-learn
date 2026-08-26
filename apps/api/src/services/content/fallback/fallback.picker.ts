@@ -10,7 +10,7 @@ const PARAMETER = /\{(name|skillName|answer)\}/gu;
 
 export type FallbackRequest = Readonly<{
   sessionId: string;
-  move: string;
+  move: MoveKind;
   approach: string;
   band: Band;
   parameters: FallbackParameters;
@@ -25,24 +25,41 @@ export type FallbackPicker = Readonly<{ pick(request: FallbackRequest): string }
  * it cannot repeat, and it walks the whole set before coming back round. Randomness would need
  * injecting anyway, and would still say the same thing twice sooner or later.
  *
+ * What it remembers is the *sentence*, not its index. The eligible list changes shape between
+ * turns — a variant naming the answer key drops out of a turn that has no answer key — so an
+ * index remembered against one list points somewhere else in the next, and two turns running
+ * can land on the same words.
+ *
+ * The memory is per instance and per process. A second API instance rotates independently,
+ * which means a child whose turns land on different instances can hear a repeat; the fix for
+ * that is the fallback not firing at all, which is what `fallback_used_total == 0` is for.
+ *
  * Every sentence goes through the gate on the way out. They are reviewed, so this should never
  * fire — but "reviewed once, a year ago, before the band thresholds moved" is exactly the case
  * where a child would otherwise hear it.
  */
 export function createFallbackPicker(deps: Readonly<{ gate: QualityGate }>): FallbackPicker {
-  const lastUsed = new Map<string, number>();
+  const lastSaid = new Map<string, string>();
   return {
     pick: (request) => {
       const variants = eligible(request);
       // Keyed on the move rather than the approach: two RETEACH moves in a row are two
       // repetitions to a child however differently the policy justified them.
       const key = `${request.sessionId}:${request.move}`;
-      const index = nextIndex(lastUsed, key, variants.length);
-      const chosen = variants[index] ?? variants[0];
+      const chosen = nextVariant(variants, lastSaid.get(key));
       if (chosen === undefined) throw new Error(`No fallback text for ${request.move}`);
+      remember(lastSaid, key, chosen);
       return gated(deps.gate, fill(chosen, request.parameters), request.band);
     },
   };
+}
+
+/** The one after whatever was said last, wrapping round, or the first if nothing was. */
+function nextVariant(variants: readonly string[], last: string | undefined): string | undefined {
+  if (last === undefined) return variants[0];
+  const previous = variants.indexOf(last);
+  if (previous === -1) return variants.find((variant) => variant !== last) ?? variants[0];
+  return variants[(previous + 1) % variants.length];
 }
 
 /**
@@ -61,15 +78,8 @@ function eligible(request: FallbackRequest): readonly string[] {
     : usable;
 }
 
-function variantsFor(move: string, approach: string): BandVariants {
-  const byApproach = APPROACH_FALLBACKS[`${move}:${approach}`];
-  if (byApproach !== undefined) return byApproach;
-  if (!isMoveKind(move)) throw new Error(`No fallback text for move ${move}`);
-  return MOVE_FALLBACKS[move];
-}
-
-function isMoveKind(value: string): value is MoveKind {
-  return Object.hasOwn(MOVE_FALLBACKS, value);
+function variantsFor(move: MoveKind, approach: string): BandVariants {
+  return APPROACH_FALLBACKS[`${move}:${approach}`] ?? MOVE_FALLBACKS[move];
 }
 
 function parameterValue(parameters: FallbackParameters, name: string): string | undefined {
@@ -89,16 +99,14 @@ function known(parameters: FallbackParameters, name: string): boolean {
   return value !== undefined && value.trim() !== '';
 }
 
-function nextIndex(lastUsed: Map<string, number>, key: string, length: number): number {
-  const previous = lastUsed.get(key);
-  const index = previous === undefined ? 0 : (previous + 1) % length;
-  lastUsed.delete(key);
-  lastUsed.set(key, index);
-  if (lastUsed.size > TRACKED_KEYS) {
-    const oldest = lastUsed.keys().next();
-    if (!(oldest.done ?? false)) lastUsed.delete(oldest.value);
+/** Newest last, oldest first, so the map forgets the sessions nobody is in any more. */
+function remember(lastSaid: Map<string, string>, key: string, chosen: string): void {
+  lastSaid.delete(key);
+  lastSaid.set(key, chosen);
+  if (lastSaid.size > TRACKED_KEYS) {
+    const oldest = lastSaid.keys().next();
+    if (!(oldest.done ?? false)) lastSaid.delete(oldest.value);
   }
-  return index;
 }
 
 function fill(variant: string, parameters: FallbackParameters): string {

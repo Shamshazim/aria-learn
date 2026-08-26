@@ -1,4 +1,4 @@
-import { sentencesOf } from '@/quality/checks/level/readability';
+import { sentencesOf } from '@/quality';
 import type { RecapMoment, SessionRecap } from '@/services/session/recap.types';
 
 const MAX_SENTENCES = 3;

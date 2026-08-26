@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sentencesOf } from '@/quality/checks/level/readability';
+import { sentencesOf } from '@/quality';
 import { buildRecap } from '@/services/session/recap';
 import { sessionSummary } from '@/services/session/recap-text';
 import type { SessionEventRecord } from '@/types/session';

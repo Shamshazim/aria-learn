@@ -14,8 +14,7 @@ import type { LlmResponse } from '@/ai/provider';
 import { fixedClock } from '@/lib/clock';
 import { sequentialIds } from '@/lib/ids';
 import { scrubLearnerContext } from '@/privacy';
-import { createQualityGate } from '@/quality';
-import { registerFailures } from '@/quality/checks/level/register';
+import { createQualityGate, registerFailures } from '@/quality';
 import {
   createTurnContentService,
   type ApiModelContext,

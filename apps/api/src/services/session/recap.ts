@@ -1,8 +1,6 @@
 import type { RecapMoment, RecapSkill, SessionRecap } from '@/services/session/recap.types';
 import type { SessionEventRecord } from '@/types/session';
 
-export type { RecapMoment, RecapSkill, SessionRecap } from '@/services/session/recap.types';
-
 /** The Aria moves that mean the child was taught the idea again before the next attempt. */
 const RETEACH_KINDS: ReadonlySet<string> = new Set(['RETEACH', 'REVEAL', 'SHOW']);
 

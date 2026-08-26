@@ -125,7 +125,53 @@ Left open, and not fixable in code:
 
 ## What the review pass changed
 
-Nothing yet — the two-axis review runs after this commit.
+**The worst thing either axis found: a static string reached a child unlogged.** When the gate
+refuses a sentence mid-stream, `gated-stream.ts` closes the turn with the reviewed fallback
+text. `turn-stream.ts` then saw sentences in the buffer and reported `generated`, so the turn
+recorded `responseSource: 'model'` and `fallback_used_total` never moved — after *one* failed
+attempt, not two, and with nothing in the record to say it happened. The released segment now
+carries `substituted`, the turn counts it, and the evidence says
+`model-with-fallback-tail`. `turn-stream.test.ts` covers it; the 20-turn bar could not, because
+that bar only walks the buffered path.
+
+**The picker could repeat itself.** It remembered the *index* it chose, and the eligible list
+changes shape between turns — a variant naming the answer key drops out of a turn with no
+answer key. Two turns running could land on the same words; the reviewer found seven reachable
+repeats in the shipped data. It now remembers the sentence.
+
+Also from the two reports:
+
+- Every strategy claim id is now a type derived from the vocabulary, so a typo in the skill
+  table cannot compile. `strategy-evidence.test.ts` checks the table against the inventory.
+- `praise.inputs.ts` stopped over-claiming three ways: `tried-another-way` is gone entirely
+  (Aria changing approach is Aria's second way, not the child's), `used-the-picture` needs a
+  `SHOW` still on screen rather than one from any point in the session, and
+  `explained-your-thinking` needs a word that introduces a method rather than a longer answer.
+- Early-band endings are capped at twenty words, which §14's "Early band spoken, ≤ 20 words"
+  asked for and the sentence cap did not enforce.
+- REVEAL gets the structured problem and what the child actually put. The spec's "reasoning
+  from the skill's checker trace (P0-16 exposes steps)" is **not** implemented as written:
+  P0-16 returns a verdict, an expected answer and a one-line reason ("Exact integer addition
+  matches"), not steps. Extending it belongs to P0-16.
+- PRAISE is told to confirm what it heard when the transcript confidence is below 0.9.
+- The prompt no longer promises to say when we will continue: nothing supplies a next session
+  time, so the clause could never have fired.
+- `@/quality` now exports the vocabulary, `sentencesOf` and `registerFailures`, so nothing
+  reaches past the barrel — including the one call site that already did before this ticket.
+- The web test builds a whole `TutorSession` from a fixture instead of three
+  `as unknown as` casts.
+- `move-inputs/select.ts` is a `Record<MoveKind, builder>` rather than a chain of `if`s.
+
+Declined, with reasons:
+
+- **The six SAY-approach fallback sets are not scope creep.** `turn-fallback.ts` already had
+  approach-specific text for them, and the criterion is that *every* static string moves. A
+  confirm-what-I-heard and a still-there-check are different acts; one set of six could not
+  do both.
+- **`recap-text.ts`'s four summary sentences stay where they are.** They are written to
+  `session.summary` for the grown-ups who read a session back, and are never spoken, so they do
+  not belong in the child-facing fallback data. `fallback/REVIEW.md` lists them anyway, because
+  a reviewer looking for "everything Aria says from a script" should not have to know that.
 
 ## Verification
 

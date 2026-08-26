@@ -1,3 +1,5 @@
+import type { Band } from '@aria/shared';
+
 import { failedMany, passed } from '@/quality/checks/check-result';
 import { EMPTY_PRAISE, STRATEGY_CLAIMS } from '@/quality/checks/claims/claim-vocabulary.data';
 import { sentencesOf } from '@/quality/checks/level/readability';
@@ -9,6 +11,8 @@ import type {
 } from '@/quality/gate.types';
 
 const MAX_END_SENTENCES = 3;
+/** P2H-11: an early-band ending is spoken to a five-year-old, so it is short as well as brief. */
+const MAX_EARLY_END_WORDS = 20;
 const MIN_REVEAL_SENTENCES = 2;
 const DIGITS = /\d/u;
 const PERCENT = /\bpercent\b|%/u;
@@ -31,7 +35,7 @@ export function checkClaims(input: GateInput): GateCheckResult {
   // maths, and refusing it would be refusing the one thing a reveal exists to do.
   const reasons: Omit<GateFailureReason, 'check'>[] = [
     ...(claims.move === 'praise' ? ungrounded(input.childText, claims.allowed) : []),
-    ...moveRules(input.childText, claims),
+    ...moveRules(input.childText, claims, input.band),
   ];
   return reasons.length === 0 ? passed('claims') : failedMany('claims', reasons);
 }
@@ -49,9 +53,13 @@ function ungrounded(
   }));
 }
 
-function moveRules(text: string, claims: MoveClaims): readonly Omit<GateFailureReason, 'check'>[] {
+function moveRules(
+  text: string,
+  claims: MoveClaims,
+  band: Band,
+): readonly Omit<GateFailureReason, 'check'>[] {
   if (claims.move === 'praise') return emptyPraise(text);
-  if (claims.move === 'end') return endRules(text);
+  if (claims.move === 'end') return endRules(text, band);
   return revealRules(text, claims);
 }
 
@@ -66,7 +74,7 @@ function emptyPraise(text: string): readonly Omit<GateFailureReason, 'check'>[] 
   ];
 }
 
-function endRules(text: string): readonly Omit<GateFailureReason, 'check'>[] {
+function endRules(text: string, band: Band): readonly Omit<GateFailureReason, 'check'>[] {
   const reasons: Omit<GateFailureReason, 'check'>[] = [];
   if (DIGITS.test(text) || PERCENT.test(text.toLowerCase())) {
     reasons.push({ code: 'scored_ending', message: 'An ending names the work, not a score.' });
@@ -77,7 +85,17 @@ function endRules(text: string): readonly Omit<GateFailureReason, 'check'>[] {
       message: `An ending is at most ${String(MAX_END_SENTENCES)} sentences.`,
     });
   }
+  if (band === 'early' && wordCount(text) > MAX_EARLY_END_WORDS) {
+    reasons.push({
+      code: 'ending_too_long_for_band',
+      message: `An early-band ending is at most ${String(MAX_EARLY_END_WORDS)} words.`,
+    });
+  }
   return reasons;
+}
+
+function wordCount(text: string): number {
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/u).length;
 }
 
 function revealRules(

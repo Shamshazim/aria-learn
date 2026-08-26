@@ -2,9 +2,9 @@ import type { PlannedTurn } from '@aria/tutor';
 
 import type { MoveInputs } from '@/services/content/move-inputs/move-inputs.types';
 import type { ApiModelContext } from '@/services/content/turn-content.types';
-import type { SessionRecap } from '@/services/session/recap.types';
+import type { RecapMoment, SessionRecap } from '@/services/session/recap.types';
 
-const MOMENT_LINE: Readonly<Record<string, string>> = {
+const MOMENT_LINE: Readonly<Record<RecapMoment['kind'], string>> = {
   'after-reteach': 'came back to {skill} after you explained it a second way, and got it',
   persistence: 'stayed with {skill} through several wrong tries and got there',
   'first-correct': 'worked out {skill} without being told',
@@ -50,7 +50,6 @@ export function endInputs(
 function momentLine(recap: SessionRecap): readonly string[] {
   const moment = recap.moment;
   if (moment === null) return [];
-  const template = MOMENT_LINE[moment.kind];
-  if (template === undefined) return [];
-  return [`The moment worth naming: they ${template.replace('{skill}', moment.skillName)}.`];
+  const template = MOMENT_LINE[moment.kind].replace('{skill}', moment.skillName);
+  return [`The moment worth naming: they ${template}.`];
 }

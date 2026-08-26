@@ -156,7 +156,15 @@ describe('gated streaming', () => {
         index: 0,
         isLast: false,
       },
-      { written: 'We can add.', spoken: 'We can add.', gateMs: 0, index: 1, isLast: true },
+      // P2H-11: marked, so the turn above knows a child heard a static string and can log it.
+      {
+        written: 'We can add.',
+        spoken: 'We can add.',
+        gateMs: 0,
+        index: 1,
+        isLast: true,
+        substituted: true,
+      },
     ]);
   });
 

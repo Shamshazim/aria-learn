@@ -1,3 +1,4 @@
+import type { MoveKind } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
 import { endInputs } from '@/services/content/move-inputs/end.inputs';
@@ -8,21 +9,35 @@ import { switchInputs } from '@/services/content/move-inputs/switch.inputs';
 import type { ApiModelContext } from '@/services/content/turn-content.types';
 import type { SessionRecap } from '@/services/session/recap.types';
 
+/** What the builders are given beyond the turn: the things only the caller can look up. */
+export type MoveInputExtras = Readonly<{
+  misconceptionIdea: string | null;
+  recap: SessionRecap | null;
+}>;
+
+type Builder = (turn: PlannedTurn<ApiModelContext>, extras: MoveInputExtras) => MoveInputs;
+
 /**
- * The evidence a move gets to be specific with, or nothing (P2H-11).
+ * Which moves get evidence, and which builder gives it to them (P2H-11).
  *
- * Five moves have inputs because five moves make claims about the child or the session. The
- * rest — a hint, a re-ask — are about the item in front of them, which the prompt already has.
+ * Five moves are here because five moves make claims about the child or the session. The rest
+ * — a hint, a re-ask — are about the item in front of them, which the prompt already carries.
+ * A map rather than a chain of `if`s, matching `MOVE_INSTRUCTIONS` and `MOVE_FALLBACKS`: the
+ * question "what does this move get?" should be answerable by reading one table.
  */
+const BUILDERS: Partial<Readonly<Record<MoveKind, Builder>>> = {
+  PRAISE: (turn) => praiseInputs(turn),
+  REVEAL: (turn, extras) => revealInputs(turn, extras.misconceptionIdea),
+  SWITCH: (turn) => switchInputs(turn),
+  END: (turn, extras) => endInputs(turn, extras.recap),
+  BREAK: (turn, extras) => endInputs(turn, extras.recap),
+};
+
 export function moveInputsFor(
   turn: PlannedTurn<ApiModelContext>,
-  extras: Readonly<{ misconceptionIdea: string | null; recap: SessionRecap | null }>,
+  extras: MoveInputExtras,
 ): MoveInputs {
-  if (turn.plan.kind === 'PRAISE') return praiseInputs(turn);
-  if (turn.plan.kind === 'REVEAL') return revealInputs(turn, extras.misconceptionIdea);
-  if (turn.plan.kind === 'SWITCH') return switchInputs(turn);
-  if (turn.plan.kind === 'END' || turn.plan.kind === 'BREAK') return endInputs(turn, extras.recap);
-  return NO_MOVE_INPUTS;
+  return BUILDERS[turn.plan.kind]?.(turn, extras) ?? NO_MOVE_INPUTS;
 }
 
 /** The inputs as the prompt sees them: one fact per line, under a heading it can ignore. */

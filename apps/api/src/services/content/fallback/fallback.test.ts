@@ -2,16 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import { BANDS, MOVE_KINDS, type Band } from '@aria/shared';
 
-import { createQualityGate } from '@/quality';
-import { EMPTY_PRAISE } from '@/quality/checks/claims/claim-vocabulary.data';
-import { sentencesOf } from '@/quality/checks/level/readability';
+import { createQualityGate, EMPTY_PRAISE, sentencesOf } from '@/quality';
 import {
   APPROACH_FALLBACKS,
   MIN_VARIANTS,
   MOVE_FALLBACKS,
   createFallbackPicker,
 } from '@/services/content/fallback';
-import type { BandVariants } from '@/services/content/fallback';
+import type { BandVariants, FallbackRequest } from '@/services/content/fallback';
 
 const gate = createQualityGate(() => ({ safe: true, categories: [] }));
 const SETS: readonly (readonly [string, BandVariants])[] = [
@@ -119,6 +117,27 @@ describe('the fallback picker', () => {
     expect(heard.every((text) => !text.includes('{'))).toBe(true);
   });
 
+  /**
+   * The list a variant sits in changes shape between turns: one that names the answer key drops
+   * out of a turn that has no answer key. Remembering the *index* meant the next turn's index
+   * pointed at different words — and, twice in the shipped data, at the same ones.
+   */
+  it('never repeats even when the answer key comes and goes', () => {
+    const picker = createFallbackPicker({ gate });
+    const heard: string[] = [];
+    for (let turn = 0; turn < 12; turn += 1) {
+      heard.push(
+        picker.pick({
+          ...request('senior'),
+          parameters: turn % 2 === 0 ? { answer: '7' } : {},
+        }),
+      );
+    }
+    for (const [index, text] of heard.entries()) {
+      if (index > 0) expect(text, heard.join(' | ')).not.toBe(heard[index - 1]);
+    }
+  });
+
   /** A variant that names something we do not know is dropped, not filled with a blank. */
   it('never offers a sentence with a hole in it', () => {
     const picker = createFallbackPicker({ gate });
@@ -129,7 +148,7 @@ describe('the fallback picker', () => {
   });
 });
 
-function request(band: Band) {
+function request(band: Band): FallbackRequest {
   return {
     sessionId: 'session-1',
     move: 'PRAISE',

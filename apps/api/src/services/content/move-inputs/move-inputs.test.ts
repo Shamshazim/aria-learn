@@ -1,22 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
-import { PROTOCOL_VERSION, tutorInputEventSchema, type MoveKind } from '@aria/shared';
-import type { PlannedTurn } from '@aria/tutor';
+import type { Band, MoveKind } from '@aria/shared';
 
-import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate, type MoveClaims } from '@/quality';
-import {
-  praiseInputs,
-  praiseStreak,
-  revealInputs,
-  endInputs,
-} from '@/services/content/move-inputs';
 import { PRAISE_CASES } from '@/services/content/move-inputs/__fixtures__/praise.fixtures';
 import { REVEAL_CASES } from '@/services/content/move-inputs/__fixtures__/reveal.fixtures';
-import type { ApiModelContext } from '@/services/content/turn-content.types';
+import {
+  endTurn,
+  praiseTurn,
+  recap,
+  spokenTurn,
+} from '@/services/content/move-inputs/__fixtures__/turns.fixture';
+import { endInputs } from '@/services/content/move-inputs/end.inputs';
+import { praiseInputs, praiseStreak } from '@/services/content/move-inputs/praise.inputs';
+import { revealInputs } from '@/services/content/move-inputs/reveal.inputs';
 import type { SessionRecap } from '@/services/session/recap.types';
 
-const NOW = new Date('2026-08-25T10:00:00.000Z');
 const gate = createQualityGate(() => ({ safe: true, categories: [] }));
 
 function verdictFor(text: string, claims: MoveClaims): readonly string[] {
@@ -24,6 +23,19 @@ function verdictFor(text: string, claims: MoveClaims): readonly string[] {
     id: 'case',
     kind: 'text',
     band: 'senior',
+    childText: text,
+    factual: false,
+    grounding: 'unsupported',
+    claims,
+  });
+  return verdict.verdict === 'fail' ? verdict.reasons.map((reason) => reason.code) : [];
+}
+
+function verdictIn(band: Band, text: string, claims: MoveClaims): readonly string[] {
+  const verdict = gate({
+    id: 'case',
+    kind: 'text',
+    band,
     childText: text,
     factual: false,
     grounding: 'unsupported',
@@ -67,9 +79,34 @@ describe('praise grounding', () => {
         session: { ...base.context.session, consecutiveWrong: 2, lastApproach: 'simpler-case' },
       },
     };
-    expect(praiseInputs(turn).claims?.allowed).toEqual(
-      expect.arrayContaining(['kept-going', 'tried-another-way']),
-    );
+    const allowed = praiseInputs(turn).claims?.allowed ?? [];
+    expect(allowed).toContain('kept-going');
+    // Aria changing her approach is Aria's second way, not the child's. Nothing here saw the
+    // child try one, so nothing may say they did.
+    expect(allowed).not.toContain('tried-another-way');
+  });
+
+  it('claims the picture only while a picture is still on the screen', () => {
+    const base = praiseTurn([]);
+    const showing = {
+      ...base,
+      context: { ...base.context, recentKinds: ['RETEACH', 'SHOW', 'ASK'] },
+    };
+    const longAgo = {
+      ...base,
+      context: { ...base.context, recentKinds: ['SHOW', 'ASK', 'PRAISE', 'ASK'] },
+    };
+    expect(praiseInputs(showing).claims?.allowed).toContain('used-the-picture');
+    expect(praiseInputs(longAgo).claims?.allowed).not.toContain('used-the-picture');
+  });
+
+  it('claims an explanation only from an answer that explains something', () => {
+    expect(
+      praiseInputs(praiseTurn([], 4_000, 'because i added the tens first')).claims?.allowed,
+    ).toContain('explained-your-thinking');
+    expect(
+      praiseInputs(praiseTurn([], 4_000, 'um i think it is forty two')).claims?.allowed,
+    ).not.toContain('explained-your-thinking');
   });
 
   /** P2H-11: the fourth cheer in a row is noise. */
@@ -81,6 +118,12 @@ describe('praise grounding', () => {
     };
     expect(praiseStreak(turn.context.recentKinds)).toBe(3);
     expect(praiseInputs(turn).lines.join(' ')).toContain('Say less this time');
+  });
+
+  /** The child was heard, not read, and not heard well: check before you congratulate. */
+  it('asks Aria to confirm what she heard before praising an uncertain transcript', () => {
+    expect(praiseInputs(spokenTurn(0.6)).lines.join(' ')).toContain('Say back what you heard');
+    expect(praiseInputs(spokenTurn(0.98)).lines.join(' ')).not.toContain('Say back what you heard');
   });
 
   it('refuses to praise an answer the child was just handed', () => {
@@ -131,6 +174,19 @@ describe('the ending', () => {
     );
   });
 
+  /** §14 again, in the band where it bites: an ending spoken to a five-year-old is short. */
+  it('holds an early-band ending to twenty words', () => {
+    const claims = endInputs(endTurn(), recap()).claims;
+    if (claims === undefined) throw new Error('An ending always carries claims');
+    const long =
+      'You worked really hard on the adding today and you stayed with it right to the end, which was lovely to see.';
+    expect(verdictIn('early', long, claims)).toContain('ending_too_long_for_band');
+    expect(verdictIn('early', 'You stuck with the adding today. See you soon.', claims)).toEqual(
+      [],
+    );
+    expect(verdictIn('senior', long, claims)).toEqual([]);
+  });
+
   it('does not pretend work was done in a session with no answers', () => {
     const empty: SessionRecap = {
       skills: [],
@@ -144,91 +200,3 @@ describe('the ending', () => {
     );
   });
 });
-
-function recap(): SessionRecap {
-  return {
-    skills: [{ code: 'ADD.REGROUP.2D', name: 'Add two-digit numbers with regrouping' }],
-    attempted: 4,
-    correct: 3,
-    finalStreak: 2,
-    moment: {
-      kind: 'after-reteach',
-      skillCode: 'ADD.REGROUP.2D',
-      skillName: 'Add two-digit numbers with regrouping',
-    },
-  };
-}
-
-function endTurn(): PlannedTurn<ApiModelContext> {
-  const base = praiseTurn([]);
-  return { ...base, plan: { ...base.plan, kind: 'END' } };
-}
-
-function praiseTurn(
-  strategies: readonly string[],
-  elapsedMs = 4_000,
-): PlannedTurn<ApiModelContext> {
-  const event = tutorInputEventSchema.parse({
-    id: 'event-1',
-    at: NOW.toISOString(),
-    protocolVersion: PROTOCOL_VERSION,
-    kind: 'ANSWER',
-    sessionId: '00000000-0000-4000-8000-000000000001',
-    respondsTo: 'move-1',
-    text: '42',
-    elapsedMs,
-  });
-  const plan = {
-    kind: 'PRAISE' as MoveKind,
-    approach: 'default',
-    reason: 'test',
-    skillCode: 'ADD.REGROUP.2D',
-    attempt: 1,
-  };
-  return {
-    event,
-    plan,
-    decision: {
-      allowedMoves: ['PRAISE'],
-      graded: { correct: true, misconception: null, strategies },
-      terminal: false,
-      decisive: true,
-      reasons: [],
-      defaultPlan: plan,
-    },
-    context: {
-      recentKinds: [],
-      session: {
-        id: 'session-1',
-        studentId: 'student-1',
-        subject: 'math',
-        grade: '4',
-        band: 'middle',
-        skillCode: 'ADD.REGROUP.2D',
-        startedAt: NOW,
-        attempts: 1,
-        consecutiveWrong: 0,
-        consecutiveSilences: 0,
-        repeatedMisconception: null,
-        lastApproach: null,
-        unmetPrerequisite: null,
-      },
-      modelContext: {
-        scrubbed: scrubLearnerContext(
-          { identifiers: {}, gradeBand: 'middle' },
-          { pseudonym: 'omit' },
-        ),
-        answerKey: '42',
-        latestQuestion: 'What is 27 plus 15?',
-        estimatedTokens: 0,
-        retrievedFactIds: [],
-        recentContentItemIds: [],
-        recentIntents: [],
-        arithmeticProblem: null,
-        lesson: null,
-        completionOnly: false,
-        latestAsk: null,
-      },
-    },
-  };
-}

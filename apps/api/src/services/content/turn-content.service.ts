@@ -127,11 +127,16 @@ async function generated(
       outcome.truncated.error,
     );
   }
+  // P2H-11: the gate refused a sentence mid-stream and the reviewed closing text went out in
+  // its place. The child heard a static string, so it is counted like every other one — most
+  // of the answer having been Aria's own does not make it not have happened.
+  if (outcome.substituted === true) observerFor(deps).fallbackUsed(turn.plan.kind, 'gate_failed');
   return {
     text: outcome.text,
     provenance: {
       ...provenance(outcome),
       ...(outcome.truncated === undefined ? {} : { streamTruncated: outcome.truncated.reason }),
+      ...(outcome.substituted === true ? { responseSource: 'model-with-fallback-tail' } : {}),
     },
     identity: streaming.release.identity,
   };

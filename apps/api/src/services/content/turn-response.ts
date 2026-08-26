@@ -3,7 +3,7 @@ import type { PlannedTurn } from '@aria/tutor';
 
 import { renderLessonGrounding } from '@/ai/prompts/render/lesson.render';
 import type { RespondPromptInput } from '@/ai/prompts/types';
-import { STRATEGY_CLAIMS } from '@/quality/checks/claims/claim-vocabulary.data';
+import { STRATEGY_CLAIMS } from '@/quality';
 import { renderMoveInputs } from '@/services/content/move-inputs';
 import type { MoveInputs } from '@/services/content/move-inputs';
 import type { ApiModelContext, MoveIdentity } from '@/services/content/turn-content.types';

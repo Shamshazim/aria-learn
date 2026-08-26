@@ -18,7 +18,7 @@ export type StrategyClaim = Readonly<{
   cues: readonly RegExp[];
 }>;
 
-export const STRATEGY_CLAIMS: readonly StrategyClaim[] = [
+export const STRATEGY_CLAIMS = [
   {
     id: 'counted-on',
     says: 'counted on from the bigger number',
@@ -99,7 +99,16 @@ export const STRATEGY_CLAIMS: readonly StrategyClaim[] = [
     says: 'knew it straight away',
     cues: [/straight away|right away|without stopping|knew it at once/u],
   },
-];
+] as const satisfies readonly StrategyClaim[];
+
+/**
+ * The ids, as a type.
+ *
+ * Derived rather than written twice: a typo in the skill table below would otherwise compile,
+ * vouch for a claim that does not exist, and quietly make that skill's praise unspecific
+ * forever — with nothing failing anywhere to say so.
+ */
+export type StrategyClaimId = (typeof STRATEGY_CLAIMS)[number]['id'];
 
 /**
  * Praise that says nothing, and praise that rates the child instead of the work (P2H-11).

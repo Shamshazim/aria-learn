@@ -217,5 +217,6 @@ function fallbackSegment(
 ): Released {
   const released = releaseOne(dependencies, input, input.fallbackText);
   if (released === null) throw new StreamGateError();
-  return released;
+  // P2H-11: marked, so the turn above can count and log the static string the child heard.
+  return { ...released, substituted: true };
 }

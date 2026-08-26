@@ -17,6 +17,12 @@ variant says "good job" or rates the child. It cannot prove that a real child he
 | WELCOME, CHECK_IN, RECOMMEND, ASK, SHOW, LISTEN | `arrival.data.ts` | 6 per band | pending |
 | BREAK, END | `closing.data.ts` | 6 per band | pending |
 | SAY and its six approaches | `say.data.ts` | 6 per band | pending |
+| Written-down session summary | `../../session/recap-text.ts` | 4 sentences | pending |
+
+The last row is not child-facing: those sentences are written to `session.summary` for the
+grown-ups who read a session back, and are never spoken. They are listed here because they are
+still static text somebody has to have agreed to, and a reviewer looking for "everything Aria
+says from a script" should not have to know they live somewhere else.
 
 ## What a reviewer is being asked
 

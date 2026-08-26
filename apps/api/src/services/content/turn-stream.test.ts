@@ -12,6 +12,12 @@ import {
 } from '@/observability/content-metrics';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate } from '@/quality';
+import {
+  failingAfter,
+  FOUR_SENTENCES,
+  scriptedStreamer,
+  substitutingAfter,
+} from '@/services/content/__fixtures__/streamers.fixture';
 import { ANSWER_QUESTION_FALLBACKS } from '@/services/content/fallback/say.data';
 import { createSegmentBus } from '@/services/content/segment-bus';
 import {
@@ -21,60 +27,6 @@ import {
 import { createMoveFactory } from '@/services/moves/move-factory';
 
 const NOW = new Date('2026-08-24T20:00:00.000Z');
-
-const FOUR_SENTENCES = [
-  'Four plus three is seven.',
-  'You can count on from four.',
-  'Five, six, seven.',
-  'That is the whole idea.',
-];
-
-/**
- * A streamer that has already done its job: these sentences passed the gate (P2H-07).
- *
- * What the gate does to a stream is proved where the stream lives — `ai/streaming` — and what
- * matters here is what the turn does with what comes out of it: who the sentences belong to,
- * which moves get to have them, and whether anyone was listening.
- */
-function scriptedStreamer(sentences: readonly string[] = FOUR_SENTENCES): RespondStreamer {
-  return {
-    stream: (input) =>
-      (async function* () {
-        // The real streamer buffers anything that is not sentence-streamable, so this one does
-        // too: what the turn asks for is what decides how many segments come back.
-        const released =
-          input.contentKind === 'explanation' ? sentences : [sentences.join(' ')].filter(Boolean);
-        for (const [index, written] of released.entries()) {
-          yield await Promise.resolve({
-            written,
-            spoken: written,
-            gateMs: 0,
-            index,
-            isLast: index === released.length - 1,
-          });
-        }
-      })(),
-  };
-}
-
-/** A stream that dies part-way through, after the child has already heard something. */
-function failingAfter(sentences: number): RespondStreamer {
-  return {
-    stream: () =>
-      (async function* () {
-        for (const [index, written] of FOUR_SENTENCES.slice(0, sentences).entries()) {
-          yield await Promise.resolve({
-            written,
-            spoken: written,
-            gateMs: 0,
-            index,
-            isLast: false,
-          });
-        }
-        throw new Error('safe test failure: the provider dropped the stream');
-      })(),
-  };
-}
 
 function streamingService(
   segments: ReturnType<typeof createSegmentBus>,
@@ -189,6 +141,27 @@ describe('a move that is said while it is written', () => {
       streamTruncated: 'provider_error',
     });
     expect(streamTruncated).toHaveBeenCalledWith('SAY', 'provider_error', expect.any(Error));
+  });
+
+  /**
+   * P2H-11: the static-text policy says no static string reaches a child unless generation and
+   * the cache both failed, *and that it is logged*. A stream that ends on the reviewed sentence
+   * used to come back as `responseSource: 'model'` with the counter untouched — most of the
+   * answer having been Aria's own does not make the last sentence not have happened.
+   */
+  it('counts the reviewed sentence a stream ended on', async () => {
+    const segments = createSegmentBus();
+    heard(segments);
+    const fallbackUsed = vi.fn();
+
+    const resolved = await streamingService(segments, substitutingAfter(2), {
+      fallbackUsed,
+    }).resolve(turn('SAY', 'middle'));
+
+    expect(fallbackUsed).toHaveBeenCalledWith('SAY', 'gate_failed');
+    expect(resolved.privateEvidence).toMatchObject({
+      responseSource: 'model-with-fallback-tail',
+    });
   });
 
   it('falls back to a reviewed sentence when the stream produced nothing at all', async () => {

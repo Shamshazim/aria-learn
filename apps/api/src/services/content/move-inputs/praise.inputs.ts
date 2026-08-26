@@ -1,15 +1,23 @@
 import type { PlannedTurn } from '@aria/tutor';
 
-import { STRATEGY_CLAIMS } from '@/quality/checks/claims/claim-vocabulary.data';
+import { STRATEGY_CLAIMS } from '@/quality';
 import type { MoveInputs } from '@/services/content/move-inputs/move-inputs.types';
 import type { ApiModelContext } from '@/services/content/turn-content.types';
 
 /** An answer inside this is fast enough to call fast, and slow enough not to be a mis-tap. */
 const QUICK_MS = 6_000;
-/** Beyond this many words, the child said more than the answer and explained something. */
-const EXPLAINED_WORDS = 4;
+/**
+ * What a child saying how they did it sounds like.
+ *
+ * Length alone is not evidence — "um i think it is forty two" is seven words and explains
+ * nothing — so the claim needs a word that introduces a method, not just a longer answer.
+ */
+const EXPLAINED =
+  /\bbecause\b|\bso i\b|\bfirst i\b|\bthen i\b|\bi (?:counted|added|took|split|drew|used)\b/u;
 /** After this many praises in a row, the next one is worth less than a quieter "next one". */
 const STREAK_BEFORE_VARYING = 3;
+/** Below this, what the child said is not certain enough to praise without checking. */
+const CONFIDENT = 0.9;
 
 /** The Aria moves that answer an attempt, so a run of them is a run of feedback. */
 const FEEDBACK_KINDS: ReadonlySet<string> = new Set([
@@ -37,6 +45,7 @@ export function praiseInputs(turn: PlannedTurn<ApiModelContext>): MoveInputs {
         : [`The child answered "${turn.context.modelContext.answerKey}", which is right.`]),
       ...struggleLine(turn),
       ...streakLine(turn),
+      ...confidenceLine(turn),
       ...(afterReveal(turn)
         ? [
             'You have just told them this answer. Do not praise the answer itself — praise that they stayed with it.',
@@ -48,19 +57,34 @@ export function praiseInputs(turn: PlannedTurn<ApiModelContext>): MoveInputs {
   };
 }
 
-/** Claims the shape of this attempt earns, whatever the skill was. */
+/**
+ * Claims the shape of this attempt earns, whatever the skill was.
+ *
+ * `tried-another-way` is deliberately not here. Aria changing her approach is Aria's second
+ * way, not the child's, and nothing in the turn records what the child tried the first time.
+ * The vocabulary keeps the claim for a grader that can see it; today nothing may make it.
+ */
 function behaviours(turn: PlannedTurn<ApiModelContext>): readonly string[] {
   const earned: string[] = [];
   if (turn.context.session.consecutiveWrong > 0 || turn.plan.attempt > 1) earned.push('kept-going');
-  if (turn.context.session.lastApproach !== null && turn.context.session.consecutiveWrong > 0) {
-    earned.push('tried-another-way');
-  }
   if (answeredWithin(turn, QUICK_MS) && turn.context.session.consecutiveWrong === 0) {
     earned.push('answered-quickly');
   }
-  if (wordsSaid(turn) > EXPLAINED_WORDS) earned.push('explained-your-thinking');
-  if (turn.context.recentKinds.includes('SHOW')) earned.push('used-the-picture');
+  if (EXPLAINED.test(saidText(turn).toLowerCase())) earned.push('explained-your-thinking');
+  if (showingNow(turn.context.recentKinds)) earned.push('used-the-picture');
   return earned;
+}
+
+/**
+ * Is a picture still the thing in front of the child?
+ *
+ * A `SHOW` from twenty minutes ago is not, and "you used the picture" said over a bare question
+ * is the same invention as any other. A visual is drawn between a feedback move and the re-ask
+ * it belongs to, so the one still on screen is the one after the last feedback move.
+ */
+function showingNow(recentKinds: readonly string[]): boolean {
+  const lastFeedback = recentKinds.findLastIndex((kind) => FEEDBACK_KINDS.has(kind));
+  return recentKinds.slice(lastFeedback + 1).includes('SHOW');
 }
 
 function answeredWithin(turn: PlannedTurn<ApiModelContext>, ms: number): boolean {
@@ -68,11 +92,10 @@ function answeredWithin(turn: PlannedTurn<ApiModelContext>, ms: number): boolean
   return elapsed !== undefined && elapsed <= ms;
 }
 
-function wordsSaid(turn: PlannedTurn<ApiModelContext>): number {
+function saidText(turn: PlannedTurn<ApiModelContext>): string {
   const event = turn.event;
-  const said =
-    event.kind === 'ANSWER' ? (event.text ?? '') : event.kind === 'SPEECH_FINAL' ? event.text : '';
-  return said.trim() === '' ? 0 : said.trim().split(/\s+/u).length;
+  if (event.kind === 'ANSWER') return event.text ?? '';
+  return event.kind === 'SPEECH_FINAL' ? event.text : '';
 }
 
 function struggleLine(turn: PlannedTurn<ApiModelContext>): readonly string[] {
@@ -100,6 +123,23 @@ export function praiseStreak(recentKinds: readonly string[]): number {
     streak += 1;
   }
   return streak;
+}
+
+/**
+ * P2H-11: the answer was heard, not read, and not heard well.
+ *
+ * The policy usually diverts a low-confidence utterance to `SAY:confirm-spoken-answer` before
+ * it is ever graded. Where it does not — a confident-enough transcript that is still not
+ * certain — praising an answer we may have misheard is worse than asking again.
+ */
+function confidenceLine(turn: PlannedTurn<ApiModelContext>): readonly string[] {
+  const event = turn.event;
+  if (event.kind !== 'SPEECH_FINAL') return [];
+  const confidence = event.confidence;
+  if (confidence === undefined || confidence >= CONFIDENT) return [];
+  return [
+    'You are not certain you heard this right. Say back what you heard before you praise it.',
+  ];
 }
 
 /** P2H-11: praise for an answer the child was just handed is praise for listening. */

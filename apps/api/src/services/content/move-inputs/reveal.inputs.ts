@@ -38,6 +38,8 @@ export function revealInputs(turn: PlannedTurn<ApiModelContext>, idea: string | 
       ...(answer === null
         ? []
         : [`The answer is "${answer}". Say it, then say in one sentence why.`]),
+      ...workingLine(turn),
+      ...saidLine(turn),
       ...(idea === null
         ? []
         : [`This child's mistake was: ${idea}. Name that idea plainly, without calling it wrong.`]),
@@ -49,6 +51,31 @@ export function revealInputs(turn: PlannedTurn<ApiModelContext>, idea: string | 
       mustMention: [...answerMention(answer), ...ideaMention(idea)],
     },
   };
+}
+
+/**
+ * The numbers the answer comes out of, so the reasoning is about this item and not about the
+ * idea in general.
+ *
+ * The spec asks for "the skill's checker trace"; P0-16 returns a verdict, an expected answer
+ * and a one-line reason ("Exact integer addition matches"), not steps a child could follow.
+ * The structured problem is what it does expose, and it is the part that makes the sentence
+ * concrete — extending the checker to emit steps belongs to P0-16, not here.
+ */
+function workingLine(turn: PlannedTurn<ApiModelContext>): readonly string[] {
+  const problem = turn.context.modelContext.arithmeticProblem;
+  if (problem === null) return [];
+  if (problem.kind === 'sequence') {
+    return [`The working: the run is ${problem.values.join(', ')}, going up in ${problem.step}s.`];
+  }
+  return [`The working: it comes from ${problem.left} and ${problem.right}.`];
+}
+
+/** What the child put, so the reveal answers their answer rather than a generic wrong one. */
+function saidLine(turn: PlannedTurn<ApiModelContext>): readonly string[] {
+  const event = turn.event;
+  const said = event.kind === 'ANSWER' ? (event.text ?? event.choiceId) : undefined;
+  return said === undefined || said === '' ? [] : [`What this child put: "${said}".`];
 }
 
 function answerMention(answer: string | null): readonly MustMention[] {
@@ -75,7 +102,7 @@ function ideaMention(idea: string | null): readonly MustMention[] {
 }
 
 /** The words in a misconception's name that would show up if the reveal really named it. */
-export function ideaWords(idea: string): readonly string[] {
+function ideaWords(idea: string): readonly string[] {
   return [...idea.toLowerCase().matchAll(/[a-z]+/gu)]
     .map((match) => match[0])
     .filter((word) => word.length >= MIN_IDEA_WORD && !FILLER.has(word));

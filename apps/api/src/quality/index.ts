@@ -4,6 +4,10 @@ export type {
   ResolvedContent,
   VerifiedContent,
 } from '@/quality/content-policy';
+export { EMPTY_PRAISE, STRATEGY_CLAIMS } from '@/quality/checks/claims/claim-vocabulary.data';
+export type { StrategyClaim, StrategyClaimId } from '@/quality/checks/claims/claim-vocabulary.data';
+export { sentencesOf } from '@/quality/checks/level/readability';
+export { registerFailures } from '@/quality/checks/level/register';
 export { createQualityGate } from '@/quality/gate';
 export type { QualityGate } from '@/quality/gate';
 export { speakableGate } from '@/quality/speakable-gate';

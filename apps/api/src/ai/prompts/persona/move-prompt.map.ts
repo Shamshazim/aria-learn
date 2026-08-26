@@ -27,7 +27,7 @@ export const MOVE_INSTRUCTIONS: Readonly<Record<MoveKind, string>> = {
     'Tell the child you are taking a different step first, and say why in a way that is about the work and not about them. One or two sentences, then move on.',
   BREAK:
     'Say goodbye for now warmly, in one or two sentences, as a person would. Do not say a number or a score.',
-  END: 'End the session. Two or three sentences, in the past tense, naming one real thing that actually happened today. Never say a number, a count, or a percentage. Finish with goodbye, and with when you will see them next if you know it.',
+  END: 'End the session. Two or three sentences, in the past tense, naming one real thing that actually happened today. Never say a number, a count, or a percentage. Finish with goodbye. For a young child keep the whole thing under twenty words.',
 };
 
 /**

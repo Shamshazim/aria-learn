@@ -28,6 +28,14 @@ export type ReleasedSegment = Readonly<{
   index: number;
   /** P2H-07: known-final. See `moveSegmentSchema` for why a stream may never set it. */
   isLast: boolean;
+  /**
+   * P2H-11: this sentence is the reviewed closing text, not the model's.
+   *
+   * The gate refused what the model wrote next, so the turn was closed with a static string.
+   * The child heard one, which means it has to be counted and logged like any other — a
+   * segment that says nothing about where it came from is how that stopped happening.
+   */
+  substituted?: boolean;
 }>;
 
 export type GatedStreamInput = Readonly<{
