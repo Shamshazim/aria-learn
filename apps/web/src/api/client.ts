@@ -8,9 +8,19 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 export type ApiClient = Readonly<{
   get<T>(path: string, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
   post<T>(path: string, body: unknown, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
+  del<T>(path: string, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
 }>;
 
-type RequestOptions = Readonly<{ signal?: AbortSignal; timeoutMs?: number }>;
+/**
+ * `headers` carries the credential for a request that needs one — the device secret, the
+ * child's session token, an adult's bearer token (P0-28). Per request rather than per client,
+ * because a device holds more than one and the page decides which applies.
+ */
+export type RequestOptions = Readonly<{
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  headers?: Readonly<Record<string, string>>;
+}>;
 
 export function createApiClient(dependencies: {
   baseUrl: string;
@@ -37,6 +47,15 @@ export function createApiClient(dependencies: {
         body,
         ...(options === undefined ? {} : { options }),
       }),
+    del: (path, schema, options) =>
+      request({
+        fetcher,
+        baseUrl: dependencies.baseUrl,
+        path,
+        schema,
+        method: 'DELETE',
+        ...(options === undefined ? {} : { options }),
+      }),
   };
 }
 
@@ -45,7 +64,7 @@ async function request<T>(input: {
   baseUrl: string;
   path: string;
   schema: ZodType<T>;
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'DELETE';
   body?: unknown;
   options?: RequestOptions;
 }): Promise<T> {
@@ -59,12 +78,14 @@ async function request<T>(input: {
         accept: 'application/json',
         'content-type': 'application/json',
         'x-request-id': crypto.randomUUID(),
+        ...options.headers,
       },
       ...(input.body === undefined ? {} : { body: JSON.stringify(input.body) }),
       signal: timeout.signal,
     });
-    const body = await parseJson(response);
-    if (!response.ok) throw httpError(response.status, body);
+    // 204 has no body to parse, and a schema that accepts `null` is what a caller uses for it.
+    const body = response.status === 204 ? { data: null } : await parseJson(response);
+    if (!response.ok) throw httpError(response, body);
     const envelope = z.object({ data: input.schema }).safeParse(body);
     if (!envelope.success) throw new ApiError('malformed', 'MALFORMED_RESPONSE');
     return envelope.data.data;
@@ -86,9 +107,13 @@ async function parseJson(response: Response): Promise<unknown> {
   }
 }
 
-function httpError(status: number, body: unknown): ApiError {
+function httpError(response: Response, body: unknown): ApiError {
   const parsed = errorSchema.safeParse(body);
-  return new ApiError('http', parsed.success ? parsed.data.error.code : 'HTTP_ERROR', status);
+  const code = parsed.success ? parsed.data.error.code : 'HTTP_ERROR';
+  const retryAfter = Number(response.headers.get('retry-after'));
+  return Number.isFinite(retryAfter) && retryAfter > 0
+    ? new ApiError('http', code, response.status, retryAfter)
+    : new ApiError('http', code, response.status);
 }
 
 function createTimeout(options: RequestOptions): Readonly<{

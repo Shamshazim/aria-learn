@@ -5,6 +5,11 @@ export class ApiError extends Error {
     readonly kind: ApiErrorKind,
     readonly code: string,
     readonly status?: number,
+    /**
+     * `Retry-After`, in seconds, when the server sent one. A throttled child is told how long
+     * to wait (P0-28), and a screen cannot count down what it was never given.
+     */
+    readonly retryAfterSeconds?: number,
   ) {
     super(safeMessage(kind));
     this.name = 'ApiError';

@@ -10,12 +10,20 @@ import { RecommendationCard } from '@/features/arrival/components/Recommendation
 import { WelcomeBanner } from '@/features/arrival/components/WelcomeBanner';
 import { useArrival } from '@/features/arrival/hooks/useArrival';
 import type { ArrivalState } from '@/features/arrival/model/arrival.machine';
+import {
+  createChildAuthApi,
+  credentialStore,
+  SignOutButton,
+  withChildSession,
+} from '@/features/child-sign-in';
 import { AriaOwl } from '@/features/session';
 import '@/features/session/styles/session.css';
 import '@/features/session/styles/session-chrome.css';
 import '@/features/session/styles/subject-picker.css';
 
-const arrivalApi = createArrivalApi(createApiClient({ baseUrl: webConfig.apiBaseUrl }));
+const apiClient = createApiClient({ baseUrl: webConfig.apiBaseUrl });
+const arrivalApi = createArrivalApi(withChildSession(apiClient, credentialStore));
+const childAuthApi = createChildAuthApi(apiClient);
 
 const CLASSES: readonly Readonly<{
   subject: string;
@@ -77,6 +85,7 @@ export default function SubjectPickerPage(): React.JSX.Element {
           {view.showOwl ? <AriaOwl avatar size={34} /> : null} Aria Learn
         </Link>
         <span className="class-picker-topbar__note">Your classes</span>
+        <SignOutButton api={childAuthApi} store={credentialStore} />
       </header>
       <main className="class-picker">
         <div aria-live="polite" className="class-picker__hello">

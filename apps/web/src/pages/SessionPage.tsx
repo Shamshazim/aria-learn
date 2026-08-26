@@ -5,6 +5,7 @@ import { bandForGrade, parseGrade } from '@aria/shared';
 
 import { createApiClient } from '@/api';
 import { webConfig } from '@/app/config';
+import { credentialStore, withChildSession } from '@/features/child-sign-in';
 import {
   EarlyLayout,
   MiddleLayout,
@@ -24,7 +25,9 @@ import '@/features/session/styles/session-chrome.css';
 import '@/features/session/styles/session-controls.css';
 import '@/features/session/styles/session-feedback.css';
 
-const sessionApi = createSessionApi(createApiClient({ baseUrl: webConfig.apiBaseUrl }));
+const sessionApi = createSessionApi(
+  withChildSession(createApiClient({ baseUrl: webConfig.apiBaseUrl }), credentialStore),
+);
 
 export default function SessionPage(): React.JSX.Element {
   const params = useParams();
