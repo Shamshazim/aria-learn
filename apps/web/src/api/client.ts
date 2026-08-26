@@ -9,6 +9,8 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 export type ApiClient = Readonly<{
   get<T>(path: string, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
   post<T>(path: string, body: unknown, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
+  /** P2H-12: the parent app edits a child profile in place. */
+  patch<T>(path: string, body: unknown, schema: ZodType<T>, options?: RequestOptions): Promise<T>;
   /**
    * P2H-07: the same POST, read as it arrives.
    *
@@ -23,7 +25,15 @@ export type ApiClient = Readonly<{
   ): AsyncIterable<T>;
 }>;
 
-type RequestOptions = Readonly<{ signal?: AbortSignal; timeoutMs?: number }>;
+type RequestOptions = Readonly<{
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  /**
+   * P2H-12: the parent's bearer token, on the routes that need one. The child's session is a
+   * cookie and never passes through here — no script should be able to read or set it.
+   */
+  headers?: Readonly<Record<string, string>>;
+}>;
 
 export function createApiClient(dependencies: {
   baseUrl: string;
@@ -59,6 +69,16 @@ export function createApiClient(dependencies: {
         body,
         ...(options === undefined ? {} : { options }),
       }),
+    patch: (path, body, schema, options) =>
+      request({
+        fetcher,
+        baseUrl: dependencies.baseUrl,
+        path,
+        schema,
+        method: 'PATCH',
+        body,
+        ...(options === undefined ? {} : { options }),
+      }),
   };
 }
 
@@ -67,7 +87,7 @@ async function request<T>(input: {
   baseUrl: string;
   path: string;
   schema: ZodType<T>;
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'PATCH';
   body?: unknown;
   options?: RequestOptions;
 }): Promise<T> {
@@ -81,7 +101,10 @@ async function request<T>(input: {
         accept: 'application/json',
         'content-type': 'application/json',
         'x-request-id': crypto.randomUUID(),
+        ...options.headers,
       },
+      // P2H-12: the child session is an http-only cookie, so every call has to carry it.
+      credentials: 'include',
       ...(input.body === undefined ? {} : { body: JSON.stringify(input.body) }),
       signal: timeout.signal,
     });
@@ -137,8 +160,10 @@ async function openStream(input: {
         accept: 'text/event-stream',
         'content-type': 'application/json',
         'x-request-id': crypto.randomUUID(),
+        ...input.options?.headers,
       },
       body: JSON.stringify(input.body),
+      credentials: 'include',
       ...(input.options?.signal === undefined ? {} : { signal: input.options.signal }),
     });
   } catch {

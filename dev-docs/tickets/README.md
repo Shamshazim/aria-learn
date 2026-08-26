@@ -45,6 +45,7 @@ is wrong.
 | P0-25 | FE + BE    | 09, 13, 20 | [What the child sees when it fails](P0-25-failure-experience.md)             |
 | P0-26 | Decision   | —          | [Identity and accounts](P0-26-decision-identity.md)                          |
 | P0-27 | Shared     | 02         | [Voice protocol amendment](P0-27-voice-protocol-amendment.md)                |
+| P0-28 | FE + BE    | 04, 26     | [Adult identity and child sessions](P0-28-identity-and-child-sessions.md) — **delivered by [P2H-12](P2H-12-identity-and-child-sessions.md)** |
 
 > **Phase 0 exit:** the four session screens render in all three bands; scripted arrival,
 > conversation and interruption render without the old `SessionSource` contract; switching
@@ -93,14 +94,16 @@ of that, so this phase comes first.
 P2H-07 on `feat/P2H-07-sentence-streaming` stacked on it, P2H-08 on
 `feat/P2H-08-voice-identity-and-prosody` stacked on that, P2H-09 on
 `feat/P2H-09-bridges-and-backchannels` stacked on that, P2H-10 on
-`feat/P2H-10-content-depth` stacked on that, and P2H-11 on `feat/P2H-11-specific-praise`
-stacked on that (no PRs yet). Six tickets are additionally
+`feat/P2H-10-content-depth` stacked on that, P2H-11 on `feat/P2H-11-specific-praise` stacked
+on that, and P2H-12 on `feat/P2H-12-identity-and-child-sessions` stacked on that (no PRs yet).
+P2H-12 also delivers P0-28, which had never been implemented: until it, every student route
+answered 503 in production. Six tickets are additionally
 blocked on human judgement rather than on code: P2H-03 on the `aria.md` persona review and
 the >= 80% rubric round in `../golden/tutoring/scores.md`, P2H-08 on the listening review in
 `../voice-review.md` and the still-open provider decision (P2-01), P2H-09 on the human review
 of its 88 seed lines — none has been recorded, and the synthesiser refuses to run until a
 provider exists — P2H-10 on the teacher review of its sixteen lesson notes and its 72 new
-golden cases, and P2H-11 on the review of its 360 fallback sentences. P2H-12 … P2H-15 are not
+golden cases, and P2H-11 on the review of its 360 fallback sentences. P2H-13 … P2H-15 are not
 started. Each ticket's "Status" section says exactly
 what is left.
 

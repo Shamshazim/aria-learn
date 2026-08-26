@@ -1,5 +1,6 @@
 import { bandSchema, parseGrade } from '@aria/shared';
 
+import { studentSettingsSchema } from '@/schemas/student-settings.schema';
 import type { Student } from '@/types/student';
 
 import { unmappableRow } from './row';
@@ -10,6 +11,7 @@ export type StudentRow = {
   display_name: string;
   grade: string;
   band: string;
+  settings: unknown;
   created_at: Date;
 };
 
@@ -32,12 +34,18 @@ export function toStudent(row: StudentRow): Student {
     throw unmappableRow('student', 'created_at', row.id);
   }
 
+  // A settings object that does not parse is a row we wrote wrong, not a request we were
+  // sent wrong, so it fails loudly here rather than silently falling back to defaults.
+  const settings = studentSettingsSchema.safeParse(row.settings ?? {});
+  if (!settings.success) throw unmappableRow('student', 'settings', row.id);
+
   return {
     id: row.id,
     parentId: row.parent_id,
     displayName: row.display_name,
     grade,
     band: band.data,
+    settings: settings.data,
     createdAt: row.created_at,
   };
 }

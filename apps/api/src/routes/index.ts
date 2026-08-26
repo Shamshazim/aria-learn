@@ -3,7 +3,9 @@ import { Router } from 'express';
 import type { HealthController } from '@/controllers/health.controller';
 import type { StatusController } from '@/controllers/status.controller';
 
+import { createAuthRouter } from './auth.routes';
 import { createHealthRouter } from './health.routes';
+import { createParentRouter } from './parent.routes';
 import { createStatusRouter } from './status.routes';
 import { createStudentRouter } from './student.routes';
 import {
@@ -24,6 +26,11 @@ export const API_PREFIX = '/api/v1';
 
 export type RouterDeps = {
   healthController: HealthController;
+  /** P2H-12. Absent where no Supabase project is configured — nobody can sign in at all. */
+  identity?: Readonly<{
+    auth: Parameters<typeof createAuthRouter>[0];
+    parent: Parameters<typeof createParentRouter>[0];
+  }>;
   status?: Readonly<{ controller: StatusController; authorize: RequestHandler }>;
   student?: Parameters<typeof createStudentRouter>[0];
   voice?: Readonly<{
@@ -33,10 +40,20 @@ export type RouterDeps = {
   }>;
 };
 
-export function createApiRouter({ healthController, status, student, voice }: RouterDeps): Router {
+export function createApiRouter({
+  healthController,
+  identity,
+  status,
+  student,
+  voice,
+}: RouterDeps): Router {
   const router = Router();
 
   router.use(createHealthRouter(healthController));
+  if (identity !== undefined) {
+    router.use(createAuthRouter(identity.auth));
+    router.use(createParentRouter(identity.parent));
+  }
   if (status !== undefined) router.use(createStatusRouter(status.controller, status.authorize));
   if (student !== undefined) router.use(createStudentRouter(student));
   if (voice !== undefined) {

@@ -11,7 +11,6 @@ import type { Logger } from '@/lib/logger';
 import { createMetrics } from '@/observability/metrics';
 import type { Metrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
-import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
 import { createPhase2Runtime } from '@/phase2/runtime';
 import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
 import { createSegmentBus } from '@/services/content/segment-bus';
@@ -55,6 +54,8 @@ export async function start(): Promise<void> {
 
   const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger, metrics: createMetrics() });
   const phase1 = await createPhase1Runtime(runtimeDeps);
+  const voice = config.voice === undefined ? undefined : createPhase2Runtime(runtimeDeps, phase1);
+  const identity = phase1.identity.routerDeps(voice?.consent);
   const app = createApp({
     config,
     logger,
@@ -62,8 +63,10 @@ export async function start(): Promise<void> {
     ids: uuidGenerator,
     statusService: ai.status,
     student: phase1.student,
-    ...(config.voice === undefined ? {} : { voice: createPhase2Runtime(runtimeDeps, phase1) }),
+    ...(identity === undefined ? {} : { identity }),
+    ...(voice === undefined ? {} : { voice: voice.routes }),
   });
+  const stopSweeper = startIdleSweeper(phase1.identity.expiry, logger);
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
   });
@@ -72,8 +75,40 @@ export async function start(): Promise<void> {
     server,
     logger,
     timeoutMs: config.shutdownTimeoutMs,
-    onDrained: () => closePool(pool, logger),
+    onDrained: async () => {
+      stopSweeper();
+      await closePool(pool, logger);
+    },
   });
+}
+
+/**
+ * P2H-12: a child who closes the tab sends no further request, so nothing would notice.
+ *
+ * The middleware ends an idle session the moment somebody asks with a stale cookie; this is
+ * what ends the ones nobody ever asks about again. It is `unref`d, so it never holds the
+ * process open, and it logs only counts.
+ */
+const IDLE_SWEEP_INTERVAL_MS = 5 * 60 * 1_000;
+
+function startIdleSweeper(
+  expiry: Readonly<{ sweep(): Promise<number> }>,
+  logger: Logger,
+): () => void {
+  const timer = setInterval(() => {
+    void expiry.sweep().then(
+      (ended) => {
+        if (ended > 0) logger.info({ ended }, 'Ended idle child sessions');
+      },
+      (error: unknown) => {
+        logger.warn({ err: error }, 'Idle session sweep failed');
+      },
+    );
+  }, IDLE_SWEEP_INTERVAL_MS);
+  timer.unref();
+  return () => {
+    clearInterval(timer);
+  };
 }
 
 function createRuntimeDeps(input: {
@@ -91,7 +126,6 @@ function createRuntimeDeps(input: {
     ids: uuidGenerator,
     clock: systemClock,
     logger: input.logger,
-    access: createConfiguredStudentAccess(input.config),
     metrics: input.metrics,
     // P2H-07: one bus per process; a subscription lasts exactly as long as one request.
     gatedStreamer: input.ai.gatedStreamer,

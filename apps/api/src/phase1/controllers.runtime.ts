@@ -9,7 +9,6 @@ import {
 import { createArrivalController } from '@/controllers/arrival.controller';
 import { createSessionControllers } from '@/controllers/session.controller';
 import { ForbiddenError, ValidationError } from '@/errors';
-import { requireStudentAccess } from '@/middleware/student-access';
 import type { QualityGate } from '@/quality';
 import type { RouterDeps } from '@/routes';
 import { createArrivalService } from '@/services/arrival/arrival.service';
@@ -23,6 +22,8 @@ import { createSessionService } from '@/services/session/session.service';
 import type { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
 import { turnMoves } from '@/services/tutor/safety-first';
 import type { createTutorService } from '@/services/tutor/tutor.service';
+
+import { createIdentityRuntime, type IdentityRuntime } from './identity.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
@@ -40,8 +41,16 @@ type ControllerRuntime = Readonly<{
 export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
   student: NonNullable<RouterDeps['student']>;
   turn(studentId: string, request: TurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
+  identity: IdentityRuntime;
 }> {
   const lifecycle = buildLifecycle(runtime);
+  // P2H-12: identity is built here because the idle sweep has to be able to end a tutor
+  // session, and `end` is the first thing in the graph that can.
+  const identity = createIdentityRuntime({
+    deps: runtime.deps,
+    repositories: runtime.repositories,
+    end: lifecycle.end,
+  });
   const arrival = buildArrival(runtime, runtime.gate);
   const serialize = createSessionTurnQueue();
   const turn = (studentId: string, request: TurnRequest, signal?: AbortSignal) =>
@@ -50,7 +59,7 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
     );
   return {
     student: {
-      authorize: requireStudentAccess(runtime.deps.access),
+      authorize: identity.childAuth,
       arrival: createArrivalController(arrival),
       sessions: createSessionControllers({
         sessions: lifecycle.sessions,
@@ -61,6 +70,7 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
       }),
     },
     turn,
+    identity,
   };
 }
 

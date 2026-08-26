@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { PROTOCOL_VERSION, type Band, type Grade } from '@aria/shared';
 
+import { signedInChild } from './fixtures/signed-in';
+
 const SESSION_ID = '00000000-0000-4000-8000-000000000301';
 type Profile = Readonly<{ band: Band; grade: Grade }>;
 const PROFILES: readonly Profile[] = [
@@ -13,6 +15,8 @@ const PROFILES: readonly Profile[] = [
 for (const profile of PROFILES) {
   test(`${profile.band} real HTTP source completes a wrong-answer session`, async ({ page }) => {
     await setupSessionRoutes(page, profile);
+
+    await signedInChild(page);
 
     await page.goto(`/session/${profile.grade}/math`);
     await page.getByText('What is four plus three?').waitFor();

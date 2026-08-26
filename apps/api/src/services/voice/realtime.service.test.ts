@@ -6,7 +6,7 @@ import { PROTOCOL_VERSION, tutorMoveSchema, type TutorMove } from '@aria/shared'
 import type { Queryable } from '@/db/types';
 import type { TutorSessionRecord } from '@/types/session';
 
-import { createRealtimeService, NO_PRONUNCIATION_SOURCE } from './realtime.service';
+import { createRealtimeService } from './realtime.service';
 
 const session: TutorSessionRecord = {
   id: 'session-1',
@@ -50,6 +50,8 @@ function service(
             processorCategories: ['media', 'stt', 'tts'],
             retainReadingAudio: false,
             verificationReference: 'verified-check-1',
+            grantedBy: null,
+            processorMapVersion: null,
             verifiedAt: new Date(),
             withdrawnAt: null,
           },
@@ -231,6 +233,5 @@ describe('realtime negotiation', () => {
         metadata: { sessionId: 'session-1', connectionEpoch: 2, band: 'early' },
       }),
     );
-    await expect(NO_PRONUNCIATION_SOURCE.forStudent('student-1')).resolves.toEqual({});
   });
 });

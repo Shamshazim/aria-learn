@@ -31,6 +31,9 @@ export function createVoiceConsentService(deps: {
       processorCategories: readonly string[];
       retainReadingAudio: boolean;
       verificationReference: string;
+      /** P2H-12: the signed-in adult who clicked, and the wording they were shown. */
+      grantedBy?: string | null;
+      processorMapVersion?: string | null;
     }>,
   ): Promise<VoiceConsent>;
   withdraw(parentId: string, studentId: string): Promise<boolean>;
@@ -43,7 +46,13 @@ export function createVoiceConsentService(deps: {
   return {
     grant: async (input) => {
       await requireRelationship(input.parentId, input.studentId);
-      return deps.consent.grant({ ...input, id: deps.ids.next(), at: deps.clock.now() });
+      return deps.consent.grant({
+        ...input,
+        grantedBy: input.grantedBy ?? null,
+        processorMapVersion: input.processorMapVersion ?? null,
+        id: deps.ids.next(),
+        at: deps.clock.now(),
+      });
     },
     withdraw: async (parentId, studentId) => {
       await requireRelationship(parentId, studentId);

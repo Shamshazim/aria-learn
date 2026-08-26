@@ -1,9 +1,10 @@
 import type { AiClient, GatedStreamer, SpendService } from '@/ai';
+import type { SecretHasher, ParentTokenVerifier } from '@/auth';
 import type { AppConfig } from '@/config';
 import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
 import type { Logger } from '@/lib/logger';
-import type { StudentAccessResolver } from '@/middleware/student-access';
+import type { TokenGenerator } from '@/lib/tokens';
 import type { Metrics } from '@/observability/metrics';
 import type { QualityGate } from '@/quality';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
@@ -27,7 +28,13 @@ export type Phase1RuntimeDeps = Readonly<{
   ids: IdGenerator;
   clock: Clock;
   logger: Logger;
-  access: StudentAccessResolver;
+  /**
+   * P2H-12: the three ports identity needs. Each defaults to the real one in
+   * `identity.runtime.ts`; a test supplies its own so a login is deterministic and fast.
+   */
+  tokens?: TokenGenerator;
+  hasher?: SecretHasher;
+  tokenVerifier?: ParentTokenVerifier;
   /** Process-wide counters; supplied by the composition root (P1-14, P2H-02). */
   metrics: Metrics;
   /** P2H-07: builds the sentence streamer once the child-facing gate exists. */

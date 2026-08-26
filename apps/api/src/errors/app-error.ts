@@ -43,6 +43,25 @@ export class NotFoundError extends AppError {
   }
 }
 
+/**
+ * Nobody is signed in, or their proof did not check out (P2H-12).
+ *
+ * The safe message says nothing about which half failed. A response that distinguished "no
+ * such child" from "wrong PIN" would turn the picker into a way of enumerating a family.
+ */
+export class UnauthorizedError extends AppError {
+  constructor(logMessage: string, cause?: unknown) {
+    super(ERROR_CODES.UNAUTHORIZED, 401, 'Please sign in again.', { cause, logMessage });
+  }
+}
+
+/** Too many wrong attempts (P2H-12). The child screen renders one fixed sentence for this. */
+export class LockedError extends AppError {
+  constructor(logMessage: string) {
+    super(ERROR_CODES.LOCKED, 423, 'Ask a grown-up for help.', { logMessage });
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(logMessage: string) {
     super(ERROR_CODES.FORBIDDEN, 403, 'You cannot access that.', { logMessage });

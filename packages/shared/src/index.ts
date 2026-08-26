@@ -14,6 +14,16 @@ export type { ProtocolVersion } from './version';
 export { BANDS, GRADES, bandSchema, gradeSchema, bandForGrade, parseGrade } from './band/band';
 export type { Band, Grade } from './band/band';
 
+export {
+  CHILD_PICTURES,
+  PICTURE_SEQUENCE_LENGTH,
+  PIN_LENGTH,
+  childPictureSchema,
+  pictureSequenceSchema,
+  pinSchema,
+} from './identity/pictures';
+export type { ChildPicture } from './identity/pictures';
+
 export { VISUAL_KINDS } from './curriculum';
 export type {
   Misconception,
@@ -28,6 +38,16 @@ export * from './protocol/moves';
 export * from './protocol/content';
 export * from './protocol/session';
 export * from './protocol/realtime';
+export {
+  childListResponseSchema,
+  childSessionResponseSchema,
+  childSummarySchema,
+} from './protocol/schemas/identity.schema';
+export type {
+  ChildListResponse,
+  ChildSessionResponse,
+  ChildSummary,
+} from './protocol/schemas/identity.schema';
 export {
   arrivalResponseSchema,
   currentSessionResponseSchema,

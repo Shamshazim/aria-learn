@@ -87,17 +87,79 @@ apps/web/src/
 
 ## Acceptance criteria
 
-- [ ] Migration 009 applies; `child_session` rows are created on login and revoked on logout.
-- [ ] Every student route rejects requests without a valid child session (router walk test).
-- [ ] Production boot with `demoStudentId` set fails; development with the flag works.
-- [ ] PIN: wrong 5 times → locked 15 min; correct after lock time → succeeds (fake clock).
-- [ ] Picture login for early band; PIN for middle/senior; family-device mode skips both.
-- [ ] Idle 30 min → tutor session paused and child session ended; picker resume restores.
-- [ ] Voice consent can only be granted by the parent; realtime negotiation without it → 403.
-- [ ] Parent email never appears in any response served to a child route (fixture test).
-- [ ] Web: parent sign-in → add child → child picker → PIN → arrival screen works end to end
-      in a browser test.
-- [ ] P0-28 is marked delivered in README.
+- [x] Migration 009 applies; `child_session` rows are created on login and revoked on logout.
+      `test/identity.repository.test.ts` against a real PostgreSQL.
+- [x] Every student route rejects requests without a valid child session (router walk test).
+      `src/routes/student-guard.test.ts` walks the mounted router and asserts on what it finds,
+      so a route added later is checked without anybody remembering to list it.
+- [x] Production boot with `demoStudentId` set fails; development with the flag works. It now
+      takes *both* `NODE_ENV=development` and `ALLOW_DEMO_STUDENT=true` (`config/auth.ts`).
+- [x] PIN: wrong 5 times → locked 15 min; correct after lock time → succeeds (fake clock).
+      `auth/pin.service.test.ts`, and again through HTTP with real Argon2 in
+      `test/identity.acceptance.test.ts`.
+- [x] Picture login for early band; PIN for middle/senior; family-device mode skips both.
+      The method is per child rather than per band — see the note below.
+- [x] Idle 30 min → tutor session paused and child session ended; picker resume restores.
+      Both halves: the middleware ends it on the next stale request, and a sweeper in
+      `server.ts` ends the ones nobody comes back to.
+- [x] Voice consent can only be granted by the parent; realtime negotiation without it → 403.
+      `POST /parent/children/{id}/consent/voice` behind `parent-auth`; the negotiation check
+      was already in `realtime.service.ts` and is unchanged.
+- [x] Parent email never appears in any response served to a child route (fixture test).
+      Asserted on the raw response text in both the route tests and the database acceptance
+      test — `childSummarySchema` is strict, so there is no field for it to arrive in.
+- [x] Web: parent sign-in → add child → child picker → PIN → arrival screen works end to end
+      in a browser test. `apps/web/e2e/auth.spec.ts`.
+- [x] P0-28 is marked delivered in README.
+
+## Status
+
+**Code complete 2026-08-25** on `feat/P2H-12-identity-and-child-sessions`.
+
+Recorded numbers: `npm run typecheck` 0 errors, `npm run lint` 0 errors, `npm test` 1576 tests
+across 216 files pass, `npx playwright test auth.spec.ts` 2 passed, no source file over 300
+lines.
+
+Decisions this ticket made that the plan left open, or read differently:
+
+- **Login is per child, not per band.** The plan says "early band login is a picture sequence,
+  PIN for middle/senior". A band is derived from a grade, and a nine-year-old who cannot read
+  is not served by being told their band says otherwise, so the *parent* chooses the method and
+  the picker reports which one this child has. Every band can do either.
+- **Two children in one family may now share a name.** Migration 001 forbade it, for a stated
+  reason: the parent and the child have to be able to tell the rows apart. Migration 009 drops
+  that index and answers the same objection with a picture and a grade, because refusing an
+  account to step-siblings called the same thing is the worse answer. What must still be
+  distinct is name *and* picture — that pair is what the picker shows.
+- **No Supabase SDK.** Two typed calls against Supabase's own auth endpoint instead. The SDK's
+  job is session management — where a token is kept, when it refreshes, what else is stored —
+  and those are exactly the decisions this ticket exists to make deliberately.
+- **`student.settings` is one JSONB column**, parsed through one schema. It carries
+  `shareFirstName`, `pronunciation` and `avatar`; the first two are wired all the way through
+  (the model context and P2H-08's `PronunciationSource`, which was written waiting for it).
+- **Credentials live in `child_credential`, beside the student rather than on it.** Every
+  existing read of `student` would otherwise drag a password hash up through the mappers, and
+  the lockout counters are written on failed logins — a hot path with no business touching the
+  profile row.
+- **A network failure is not a sign-out.** `identity.refresh()` returns `null` only on a 401.
+  A child losing signal for ten seconds keeps their session; the server's own deadline decides.
+
+Left open, and not fixable in this ticket:
+
+- **Adult verification is "signed in", not P2-03's card check.** The consent record now says
+  who granted it and which processor-map wording they were shown, and its
+  `verificationReference` is `supabase-authenticated-parent` — which is true, and is weaker
+  than P2-03 will eventually want. Strengthening it is a change to the verification, not to
+  this schema.
+- **A parent cannot revoke every device from the UI.** The service and repository can
+  (`endAllForParent`), and signing the device out uses it; a "sign out everywhere" button
+  belongs with the parent dashboard in P6-01.
+- **Two e2e specs were already failing before this ticket** and still are, for reasons that
+  have nothing to do with identity: `arrival.spec.ts` asserts a session URL that lost its
+  shape when `voice=1` was added in `bdea10d`, and `failure.spec.ts` trips an axe
+  colour-contrast rule on `.voice-controls__stop`. `phase1-session.spec.ts` needs a live API
+  and times out without one. All three are recorded here rather than fixed, because each
+  belongs to the ticket that owns the code it is about.
 
 ## Verification
 

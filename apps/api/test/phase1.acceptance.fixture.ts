@@ -1,7 +1,6 @@
 import { setImmediate } from 'node:timers/promises';
 
 import request, { type Response } from 'supertest';
-import { z } from 'zod';
 
 import {
   PROTOCOL_VERSION,
@@ -25,6 +24,7 @@ import { createMetrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
 import { createParentRepository } from '@/repositories/parent.repository';
 import { createStudentRepository } from '@/repositories/student.repository';
+import { parseEnvelope } from '@/testing/envelope';
 
 import { databaseUrl } from './db.harness';
 
@@ -47,8 +47,17 @@ export async function createPhase1Fixture(
   });
   const student = await students.insert({ parentId: parent.id, displayName: 'Sam', grade });
   const spend = noSpend();
+  // P2H-12: the demo student, asked for the way the product now demands — development plus
+  // the explicit flag. These acceptance tests are about what a session does, not about how a
+  // child signs in; `auth/` has its own tests, and `config` refuses this pair in production.
   const config = loadConfig(
-    { NODE_ENV: 'test', DATABASE_URL: requiredDatabaseUrl(), LOG_LEVEL: 'silent' },
+    {
+      NODE_ENV: 'development',
+      DATABASE_URL: requiredDatabaseUrl(),
+      LOG_LEVEL: 'silent',
+      ALLOW_DEMO_STUDENT: 'true',
+      ARIA_DEMO_STUDENT_ID: student.id,
+    },
     'test',
   );
   const logger = createLogger({ level: 'silent' });
@@ -62,7 +71,6 @@ export async function createPhase1Fixture(
     ids,
     clock,
     logger,
-    access: { resolve: () => Promise.resolve({ studentId: student.id }) },
     metrics,
     scheduleBackground: background.schedule,
   });
@@ -162,10 +170,6 @@ export async function waitForFact(database: TestDatabase, studentId: string): Pr
     await setImmediate();
   }
   throw new Error('Consolidation did not write an evidence-backed fact');
-}
-
-function parseEnvelope<Output>(schema: z.ZodType<Output>, response: Response): Output {
-  return z.object({ data: schema }).parse(JSON.parse(response.text)).data;
 }
 
 function mutableClock(start: Date) {

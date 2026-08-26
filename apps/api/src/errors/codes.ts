@@ -8,7 +8,14 @@
 export const ERROR_CODES = {
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   NOT_FOUND: 'NOT_FOUND',
+  /** P2H-12: nobody is signed in, or the proof they offered did not check out. */
+  UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
+  /**
+   * P2H-12: too many wrong PINs. Its own code because the child screen shows one fixed
+   * sentence for it — "Ask a grown-up" — and must not be able to show a countdown.
+   */
+  LOCKED: 'LOCKED',
   /** The request was well formed but conflicts with what is already stored (P0-04). */
   CONFLICT: 'CONFLICT',
   INTERNAL: 'INTERNAL',

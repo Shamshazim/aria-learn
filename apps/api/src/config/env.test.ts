@@ -10,6 +10,16 @@ import { ConfigError, loadConfig } from '@/config';
 /** The minimum a real environment must supply. Everything else has a defensible default. */
 const REQUIRED = { DATABASE_URL: 'postgresql://aria:aria@localhost:5432/aria_dev' };
 
+/** What production additionally insists on, so a test about one of them names only that one. */
+const PRODUCTION = {
+  NODE_ENV: 'production',
+  STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
+  SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
+  SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+  SUPABASE_URL: 'https://project.supabase.co',
+  CHILD_SESSION_SECRET: 'z'.repeat(32),
+};
+
 function env(overrides: Record<string, string> = {}): Record<string, string> {
   return { ...REQUIRED, ...overrides };
 }
@@ -57,10 +67,7 @@ describe('loadConfig', () => {
     expect(
       loadConfig(
         env({
-          NODE_ENV: 'production',
-          STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
-          SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
-          SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+          ...PRODUCTION,
         }),
         '1.0.0',
       ).isProduction,
@@ -90,10 +97,7 @@ describe('loadConfig', () => {
     expect(() =>
       loadConfig(
         env({
-          NODE_ENV: 'production',
-          STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
-          SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
-          SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+          ...PRODUCTION,
           LIVEKIT_URL: 'wss://voice.example.test',
           LIVEKIT_API_KEY: 'key',
           LIVEKIT_API_SECRET: 's'.repeat(16),

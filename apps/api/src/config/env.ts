@@ -2,8 +2,10 @@ import { z } from 'zod';
 
 import type { Band } from '@aria/shared';
 
+import { authEnvSchema, toAuthConfig, toDemoStudentId } from './auth';
 import { databaseEnvSchema, toDatabaseConfig } from './database';
 
+import type { AuthConfig } from './auth';
 import type { DatabaseConfig } from './database';
 
 /**
@@ -31,7 +33,6 @@ const envObjectSchema = z.object({
   SESSION_LIMIT_MIDDLE_MINUTES: z.coerce.number().int().min(15).max(20).default(20),
   SESSION_LIMIT_SENIOR_MINUTES: z.coerce.number().int().min(20).max(30).default(30),
   MEMORY_REPETITIONS_FOR_DURABLE_FACT: z.coerce.number().int().min(1).max(10).default(1),
-  ARIA_DEMO_STUDENT_ID: z.uuid().optional(),
   SAFEGUARDING_WEBHOOK_URL: z.url().optional(),
   SAFEGUARDING_WEBHOOK_TOKEN: z.string().min(32).max(512).optional(),
   LIVEKIT_URL: z.url().optional(),
@@ -48,6 +49,7 @@ const envObjectSchema = z.object({
   VOICE_TTS_VOICE_MIDDLE: z.string().min(1).max(128).optional(),
   VOICE_TTS_VOICE_SENIOR: z.string().min(1).max(128).optional(),
 
+  ...authEnvSchema.shape,
   ...databaseEnvSchema.shape,
 });
 
@@ -81,7 +83,26 @@ type ParsedEnvironment = z.infer<typeof envObjectSchema>;
 
 function validateEnvironment(env: ParsedEnvironment, context: z.RefinementCtx): void {
   validateProductionEnvironment(env, context);
+  validateIdentityEnvironment(env, context);
   validateVoiceEnvironment(env, context);
+}
+
+/**
+ * P2H-12: the demo student needs the flag, and the flag needs development.
+ *
+ * Stated as its own rule rather than folded into the production check so the error a
+ * developer sees names the thing they forgot, not the environment they are already in.
+ */
+function validateIdentityEnvironment(env: ParsedEnvironment, context: z.RefinementCtx): void {
+  if (env.ARIA_DEMO_STUDENT_ID !== undefined && !env.ALLOW_DEMO_STUDENT) {
+    addIssue(context, 'ARIA_DEMO_STUDENT_ID', 'needs ALLOW_DEMO_STUDENT=true to take effect');
+  }
+  if (env.ALLOW_DEMO_STUDENT && env.NODE_ENV !== 'development') {
+    addIssue(context, 'ALLOW_DEMO_STUDENT', 'is only honoured when NODE_ENV=development');
+  }
+  if (env.SUPABASE_URL !== undefined && env.CHILD_SESSION_SECRET === undefined) {
+    addIssue(context, 'CHILD_SESSION_SECRET', 'is required wherever parents can sign in');
+  }
 }
 
 function validateProductionEnvironment(env: ParsedEnvironment, context: z.RefinementCtx): void {
@@ -90,6 +111,11 @@ function validateProductionEnvironment(env: ParsedEnvironment, context: z.Refine
     addIssue(context, 'STATUS_OPERATOR_TOKEN', 'is required in production');
   if (env.ARIA_DEMO_STUDENT_ID !== undefined)
     addIssue(context, 'ARIA_DEMO_STUDENT_ID', 'is forbidden in production');
+  if (env.ALLOW_DEMO_STUDENT) addIssue(context, 'ALLOW_DEMO_STUDENT', 'is forbidden in production');
+  if (env.SUPABASE_URL === undefined)
+    addIssue(context, 'SUPABASE_URL', 'is required in production: parents must be able to sign in');
+  if (env.CHILD_SESSION_SECRET === undefined)
+    addIssue(context, 'CHILD_SESSION_SECRET', 'is required in production');
   if (env.SAFEGUARDING_WEBHOOK_URL === undefined || env.SAFEGUARDING_WEBHOOK_TOKEN === undefined) {
     addIssue(
       context,
@@ -143,6 +169,8 @@ export type AppConfig = {
   sessionLimitMinutes: Readonly<Record<'early' | 'middle' | 'senior', number>>;
   memoryRepetitionsForDurableFact: number;
   demoStudentId: string | undefined;
+  /** P2H-12. Absent means no parent can sign in and no child session can be issued. */
+  auth: AuthConfig | undefined;
   safeguardingWebhookUrl: string | undefined;
   safeguardingWebhookToken: string | undefined;
   voice:
@@ -203,7 +231,8 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
       senior: env.SESSION_LIMIT_SENIOR_MINUTES,
     },
     memoryRepetitionsForDurableFact: env.MEMORY_REPETITIONS_FOR_DURABLE_FACT,
-    demoStudentId: env.ARIA_DEMO_STUDENT_ID,
+    demoStudentId: toDemoStudentId(env),
+    auth: toAuthConfig(env),
     safeguardingWebhookUrl: env.SAFEGUARDING_WEBHOOK_URL,
     safeguardingWebhookToken: env.SAFEGUARDING_WEBHOOK_TOKEN,
     voice:

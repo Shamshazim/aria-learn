@@ -41,6 +41,8 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
   Readonly<{
     student: NonNullable<RouterDeps['student']>;
     turn: ReturnType<typeof buildPhase1Controllers>['turn'];
+    /** P2H-12: the child gate, the idle sweep, and the routers a signed-in parent uses. */
+    identity: ReturnType<typeof buildPhase1Controllers>['identity'];
     repositories: Phase1Repositories;
   }>
 > {

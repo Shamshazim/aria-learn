@@ -1,5 +1,5 @@
 import { tutorMoveSchema, voiceRoomName } from '@aria/shared';
-import { NO_PRONUNCIATION_HINTS, type PronunciationHints } from '@aria/voice';
+import type { PronunciationHints } from '@aria/voice';
 
 import type { Queryable } from '@/db/types';
 import { ForbiddenError, NotFoundError, ServiceUnavailableError, ValidationError } from '@/errors';
@@ -17,18 +17,14 @@ const TOKEN_TTL_SECONDS = 300;
 /**
  * P2H-08: how this child's name is said, if anyone has told us.
  *
- * It is a port rather than a query because the field it reads — `student.settings.pronunciation`
- * — arrives with P2H-12's migration and its profile UI. Until then `NO_PRONUNCIATION_SOURCE`
- * answers "nothing known", and the rest of the path from profile to synthesis is already here
- * and tested.
+ * A port rather than a query, because the field it reads — `student.settings.pronunciation` —
+ * belongs to the profile and not to a voice session. P2H-12 supplies the implementation that
+ * reads it; a deployment with nothing in the profile still gets `NO_PRONUNCIATION_HINTS` and
+ * sends no hints at all.
  */
 export type PronunciationSource = Readonly<{
   forStudent(studentId: string): Promise<PronunciationHints>;
 }>;
-
-export const NO_PRONUNCIATION_SOURCE: PronunciationSource = {
-  forStudent: () => Promise.resolve(NO_PRONUNCIATION_HINTS),
-};
 
 export type RealtimeTokenProvider = Readonly<{
   mint(

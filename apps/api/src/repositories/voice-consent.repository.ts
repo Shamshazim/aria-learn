@@ -14,11 +14,17 @@ const rowSchema = z.object({
   processor_categories: z.array(z.string()),
   retain_reading_audio: z.boolean(),
   verification_reference: z.string(),
+  granted_by: z.string().nullable(),
+  processor_map_version: z.string().nullable(),
   verified_at: z.coerce.date(),
   withdrawn_at: z.coerce.date().nullable(),
 });
 
 type VoiceConsentRow = QueryResultRow & z.infer<typeof rowSchema>;
+
+const COLUMNS = `id, parent_id, student_id, status, processor_categories,
+  retain_reading_audio, verification_reference, granted_by, processor_map_version,
+  verified_at, withdrawn_at`;
 
 export type VoiceConsentRepository = Readonly<{
   withDb(db: Queryable): VoiceConsentRepository;
@@ -31,6 +37,8 @@ export type VoiceConsentRepository = Readonly<{
       processorCategories: readonly string[];
       retainReadingAudio: boolean;
       verificationReference: string;
+      grantedBy: string | null;
+      processorMapVersion: string | null;
       at: Date;
     }>,
   ): Promise<VoiceConsent>;
@@ -50,9 +58,7 @@ async function findGranted(db: Queryable, studentId: string): Promise<VoiceConse
   const result = await runQuery<VoiceConsentRow>({
     db,
     operation: 'voiceConsent.findGranted',
-    sql: `SELECT id, parent_id, student_id, status, processor_categories,
-                 retain_reading_audio, verification_reference, verified_at, withdrawn_at
-          FROM voice_consent WHERE student_id = $1 AND status = 'granted'`,
+    sql: `SELECT ${COLUMNS} FROM voice_consent WHERE student_id = $1 AND status = 'granted'`,
     params: [studentId],
   });
   return result.rows[0] === undefined ? null : toConsent(result.rows[0]);
@@ -67,16 +73,18 @@ async function grant(
     operation: 'voiceConsent.grant',
     sql: `INSERT INTO voice_consent
             (id, parent_id, student_id, status, processor_categories,
-            retain_reading_audio, verification_reference, verified_at, withdrawn_at)
-          VALUES ($1, $2, $3, 'granted', $4, $5, $6, $7, NULL)
+            retain_reading_audio, verification_reference, granted_by,
+            processor_map_version, verified_at, withdrawn_at)
+          VALUES ($1, $2, $3, 'granted', $4, $5, $6, $7, $8, $9, NULL)
           ON CONFLICT (student_id) DO UPDATE SET
             parent_id = EXCLUDED.parent_id, status = 'granted',
             processor_categories = EXCLUDED.processor_categories,
             retain_reading_audio = EXCLUDED.retain_reading_audio,
             verification_reference = EXCLUDED.verification_reference,
+            granted_by = EXCLUDED.granted_by,
+            processor_map_version = EXCLUDED.processor_map_version,
             verified_at = EXCLUDED.verified_at, withdrawn_at = NULL
-          RETURNING id, parent_id, student_id, status, processor_categories,
-                    retain_reading_audio, verification_reference, verified_at, withdrawn_at`,
+          RETURNING ${COLUMNS}`,
     params: [
       input.id,
       input.parentId,
@@ -84,6 +92,8 @@ async function grant(
       [...input.processorCategories],
       input.retainReadingAudio,
       input.verificationReference,
+      input.grantedBy,
+      input.processorMapVersion,
       input.at,
     ],
   });
@@ -113,6 +123,8 @@ function toConsent(raw: VoiceConsentRow): VoiceConsent {
     processorCategories: row.processor_categories,
     retainReadingAudio: row.retain_reading_audio,
     verificationReference: row.verification_reference,
+    grantedBy: row.granted_by,
+    processorMapVersion: row.processor_map_version,
     verifiedAt: row.verified_at,
     withdrawnAt: row.withdrawn_at,
   };

@@ -9,6 +9,7 @@ import { unmappableRow } from './row';
 export type ParentRow = {
   id: string;
   email: string | null;
+  supabase_user_id: string | null;
   display_name: string;
   created_at: Date;
 };
@@ -22,6 +23,7 @@ export function toParent(row: ParentRow): Parent {
   return {
     id: row.id,
     email: row.email,
+    supabaseUserId: row.supabase_user_id,
     displayName: row.display_name,
     createdAt: row.created_at,
   };

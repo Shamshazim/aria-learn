@@ -1,6 +1,8 @@
 import { Pool } from 'pg';
 import { describe, expect, it, vi } from 'vitest';
 
+import { DEFAULT_STUDENT_SETTINGS } from '@/schemas/student-settings.schema';
+
 import { createVoiceConsentService } from './consent.service';
 
 const transactionDb = new Pool();
@@ -25,6 +27,7 @@ describe('voice consent withdrawal', () => {
             displayName: 'Sam',
             grade: '1',
             band: 'early',
+            settings: DEFAULT_STUDENT_SETTINGS,
             createdAt: new Date('2026-08-24T00:00:00.000Z'),
           }),
       },
@@ -69,6 +72,7 @@ describe('voice consent withdrawal', () => {
             displayName: 'Sam',
             grade: '1',
             band: 'early',
+            settings: DEFAULT_STUDENT_SETTINGS,
             createdAt: new Date(),
           }),
       },

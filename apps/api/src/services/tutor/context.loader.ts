@@ -62,7 +62,8 @@ async function load(
       skillCode,
       identifiers: { fullName: student.displayName },
       recentDialogue: dialogueWindow(records, session.band),
-      shareFirstName: true,
+      // P2H-12: the parent's answer, not ours.
+      shareFirstName: student.settings.shareFirstName,
       ...checkInEvidence(session.plan),
     }),
   ]);

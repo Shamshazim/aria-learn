@@ -1,5 +1,10 @@
 # P0-28 — Implement adult identity and child device sessions
 
+> **Delivered 2026-08-25 by [P2H-12](P2H-12-identity-and-child-sessions.md).** P2H-12 restates
+> this ticket against the tree as it now stands — migration 009, `auth/`, the child picker —
+> and its Status section records what was built, what was decided differently and what is left.
+> This file stays as the original statement of the requirement.
+
 | | |
 |---|---|
 | **Phase** | 0 — Foundation |

@@ -8,6 +8,12 @@ export type VoiceConsent = Readonly<{
   processorCategories: readonly string[];
   retainReadingAudio: boolean;
   verificationReference: string;
+  /**
+   * P2H-12: the parent who actually granted it, and the wording of the processor map they
+   * were shown. `parentId` says whose child this is; these two say what happened and when.
+   */
+  grantedBy: string | null;
+  processorMapVersion: string | null;
   verifiedAt: Date;
   withdrawnAt: Date | null;
 }>;

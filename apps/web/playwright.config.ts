@@ -19,6 +19,12 @@ export default defineConfig({
     { name: 'laptop', use: { viewport: { width: 1440, height: 900 } } },
   ],
   webServer: {
+    // P2H-12: a Supabase project has to be configured for the sign-in screen to exist at all.
+    // The values are fictional and every call to them is intercepted by the tests.
+    env: {
+      VITE_SUPABASE_URL: 'https://project.supabase.test',
+      VITE_SUPABASE_ANON_KEY: 'anon-key-for-tests',
+    },
     command: 'npm run dev -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: !process.env.CI,

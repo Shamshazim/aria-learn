@@ -1,12 +1,14 @@
+import { createHash } from 'node:crypto';
+
 import type { Band } from '@aria/shared';
 
 import { createVoiceBridgeControllers } from '@/controllers/voice-bridge.controller';
 import { createVoiceControllers } from '@/controllers/voice.controller';
 import { ServiceUnavailableError } from '@/errors';
 import { operatorOnly } from '@/middleware/operator-only';
-import { requireStudentAccess } from '@/middleware/student-access';
 import { workerOnly } from '@/middleware/worker-only';
 import { createBridgeObserver } from '@/observability/bridge-metrics';
+import type { ParentConsentDeps } from '@/phase1/identity.runtime';
 import type { createPhase1Runtime } from '@/phase1/runtime';
 import type { Phase1RuntimeDeps } from '@/phase1/runtime.types';
 import { createRetainedAudioRepository } from '@/repositories/retained-audio.repository';
@@ -27,17 +29,30 @@ import { createVoiceConsentService } from '@/services/voice/consent.service';
 import { createLivekitRoomCloser } from '@/services/voice/livekit-room.provider';
 import { createLivekitTokenProvider } from '@/services/voice/livekit-token.provider';
 import { createVoiceMetricsService } from '@/services/voice/metrics.service';
-import { createRealtimeService, NO_PRONUNCIATION_SOURCE } from '@/services/voice/realtime.service';
+import { createStudentPronunciationSource } from '@/services/voice/pronunciation.source';
+import { createRealtimeService } from '@/services/voice/realtime.service';
 import { createWorkerTurnService } from '@/services/voice/worker-turn.service';
 
 type Phase1Runtime = Awaited<ReturnType<typeof createPhase1Runtime>>;
+
+/**
+ * The voice runtime, plus the one part of it a parent route needs (P2H-12).
+ *
+ * Consent used to be granted through the operator router with a shared token. It still can
+ * be, for support; what this exposes is the same service reached by a signed-in parent, which
+ * is what P2-03 asked for and what the operator route was standing in for.
+ */
+export type Phase2Runtime = Readonly<{
+  routes: NonNullable<RouterDeps['voice']>;
+  consent: ParentConsentDeps;
+}>;
 
 export function createPhase2Runtime(
   deps: Phase1RuntimeDeps,
   phase1: Phase1Runtime,
   deletion: AudioDeletionPort = unavailableDeletionPort(),
   speechAudio: SpeechAudioPort = unavailableSpeechAudio(),
-): NonNullable<RouterDeps['voice']> {
+): Phase2Runtime {
   const { voiceConfig, operatorToken } = requireVoiceConfig(deps);
   const consentRepo = createVoiceConsentRepository(deps.pool);
   const voiceSessions = createVoiceSessionRepository(deps.pool);
@@ -73,11 +88,35 @@ export function createPhase2Runtime(
       audio: speechAudio,
     }),
   });
+  const processors = processorMap(voiceConfig);
   return {
-    student: { authorize: requireStudentAccess(deps.access), controller },
-    worker: { authorize: workerOnly(voiceConfig.workerToken), controller, bridges },
-    admin: { authorize: operatorOnly(operatorToken), controller },
+    routes: {
+      // P2H-12: the same gate the student routes run, so a realtime token cannot be
+      // negotiated by anything that could not have asked for the turn it belongs to.
+      student: { authorize: phase1.identity.childAuth, controller },
+      worker: { authorize: workerOnly(voiceConfig.workerToken), controller, bridges },
+      admin: { authorize: operatorOnly(operatorToken), controller },
+    },
+    consent: {
+      grant: (input) => consent.grant(input),
+      processorMapVersion: processorMapVersion(processors),
+    },
   };
+}
+
+/**
+ * A short digest of the processor map, stored on the consent record.
+ *
+ * Not a hand-maintained version number: the map is reworded whenever a region, a model or a
+ * voice changes, and a number somebody has to remember to bump is a number that will say a
+ * family agreed to wording they never saw.
+ */
+function processorMapVersion(processors: Readonly<Record<string, string>>): string {
+  const canonical = Object.entries(processors)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n');
+  return createHash('sha256').update(canonical, 'utf8').digest('hex').slice(0, 16);
 }
 
 function buildVoiceController(
@@ -147,8 +186,8 @@ function buildRealtime(input: {
     rooms: input.rooms,
     lifecycle: input.lifecycle,
     tokens: createLivekitTokenProvider(input.voiceConfig),
-    // P2H-12 stores the parent's spelling; until then nothing is known and nothing is sent.
-    pronunciation: NO_PRONUNCIATION_SOURCE,
+    // P2H-12: the parent's spelling, from the profile P2H-08 was waiting for.
+    pronunciation: createStudentPronunciationSource(input.phase1.repositories.students),
     clock: input.deps.clock,
     livekitUrl: input.voiceConfig.livekitUrl,
     region: input.voiceConfig.region,

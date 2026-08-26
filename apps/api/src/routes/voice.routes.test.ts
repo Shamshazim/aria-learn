@@ -153,6 +153,8 @@ function buildApp(denyStudent = false) {
         id: '00000000-0000-4000-8000-000000000104',
         ...input,
         status: 'granted',
+        grantedBy: null,
+        processorMapVersion: null,
         verifiedAt: NOW,
         withdrawnAt: null,
       }),
