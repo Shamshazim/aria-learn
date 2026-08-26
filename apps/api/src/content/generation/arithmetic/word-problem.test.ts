@@ -1,60 +1,44 @@
 import { describe, expect, it } from 'vitest';
 
 import { acceptWordProblem } from '@/content/generation/arithmetic';
-import type { ArithmeticProblem } from '@/quality/arithmetic';
+import {
+  WORD_PROBLEM_CASES,
+  WORD_PROBLEM_PROBLEM,
+} from '@/content/generation/arithmetic/__fixtures__/word-problem.fixtures';
+import { outputSafety } from '@/content/output-safety';
+import { createQualityGate } from '@/quality';
 
-const REGROUP: ArithmeticProblem = {
-  skillCode: 'ADD.REGROUP.2D',
-  kind: 'addition',
-  left: '48',
-  right: '37',
-};
+const GATE = createQualityGate(outputSafety);
 
 describe('word-problem wrapping', () => {
-  it('accepts a story that keeps every number', () => {
-    expect(
-      acceptWordProblem(REGROUP, 'Maya had 48 marbles and won 37 more. How many now?'),
-    ).toEqual({ accepted: true, prompt: 'Maya had 48 marbles and won 37 more. How many now?' });
-  });
+  it.each(WORD_PROBLEM_CASES.map((testCase) => [testCase.name, testCase] as const))(
+    '%s',
+    (_name, testCase) => {
+      const verdict = acceptWordProblem({
+        problem: testCase.problem ?? WORD_PROBLEM_PROBLEM,
+        wrapper: testCase.wrapper,
+        band: testCase.band,
+        gate: GATE,
+      });
 
-  it('rejects a story that changes a number', () => {
-    // The failure this exists for: the key is still 85 and the child is reading 47.
-    expect(acceptWordProblem(REGROUP, 'Maya had 47 marbles and won 37 more.')).toEqual({
-      accepted: false,
-      reason: 'numbers-changed',
+      expect(verdict.accepted).toBe(testCase.accepted);
+      if (!verdict.accepted && testCase.reason !== undefined) {
+        expect(verdict.reason).toBe(testCase.reason);
+      }
+    },
+  );
+
+  it('names the gate check that refused, so the retry has something to go on', () => {
+    const verdict = acceptWordProblem({
+      problem: WORD_PROBLEM_PROBLEM,
+      // Numbers intact, but nobody would read this sentence to a six-year-old.
+      wrapper:
+        'Maya, having previously accumulated 48 marbles through assorted playground negotiations, subsequently acquired an additional 37 marbles, whereupon she endeavoured to ascertain the aggregate.',
+      band: 'early',
+      gate: GATE,
     });
-  });
 
-  it('rejects a story that drops a number', () => {
-    expect(acceptWordProblem(REGROUP, 'Maya had 48 marbles and won some more.')).toEqual({
-      accepted: false,
-      reason: 'numbers-missing',
-    });
-  });
-
-  it('rejects a story that adds a number of its own', () => {
-    expect(acceptWordProblem(REGROUP, 'Maya had 48 marbles, won 37, and 2 rolled away.')).toEqual({
-      accepted: false,
-      reason: 'numbers-changed',
-    });
-  });
-
-  it('rejects an empty wrapper', () => {
-    expect(acceptWordProblem(REGROUP, '   ')).toEqual({ accepted: false, reason: 'empty' });
-  });
-
-  it('keeps the digits of a fraction rather than its words', () => {
-    const fractions: ArithmeticProblem = {
-      skillCode: 'FRAC.COMPARE',
-      kind: 'fraction-comparison',
-      left: '5/8',
-      right: '3/8',
-    };
-    expect(
-      acceptWordProblem(fractions, 'Sam ate 5/8 and Lee ate 3/8. Who ate more?').accepted,
-    ).toBe(true);
-    expect(
-      acceptWordProblem(fractions, 'Sam ate five eighths and Lee ate three eighths.').accepted,
-    ).toBe(false);
+    expect(verdict.accepted).toBe(false);
+    expect(verdict.accepted ? [] : verdict.codes).not.toEqual([]);
   });
 });

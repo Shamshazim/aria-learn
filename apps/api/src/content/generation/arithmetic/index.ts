@@ -5,6 +5,9 @@ export { generateItem, parameterSpaceSize } from '@/content/generation/arithmeti
 export type { GenerateInput } from '@/content/generation/arithmetic/generate-item';
 export { phraseItem } from '@/content/generation/arithmetic/phrasing';
 export { acceptWordProblem } from '@/content/generation/arithmetic/word-problem';
-export type { WordProblemVerdict } from '@/content/generation/arithmetic/word-problem';
+export type {
+  WordProblemInput,
+  WordProblemVerdict,
+} from '@/content/generation/arithmetic/word-problem';
 export { ARITHMETIC_SKILL_CODES } from '@/content/generation/arithmetic/params';
 export type { CandidateItem, GeneratedItem } from '@/content/generation/arithmetic/types';

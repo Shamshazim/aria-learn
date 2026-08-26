@@ -1,6 +1,6 @@
 import { type Band, type Misconception, type Skill } from '@aria/shared';
 
-import type { LessonNote } from '@/curriculum/lessons/lesson.types';
+import type { LessonNote } from '@/curriculum/lessons';
 
 const BAND_RANK: Readonly<Record<Band, number>> = {
   early: 0,

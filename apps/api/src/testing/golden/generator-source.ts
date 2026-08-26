@@ -1,4 +1,4 @@
-import { generateItem } from '@/content/generation/arithmetic';
+import { ARITHMETIC_SKILL_CODES, generateItem } from '@/content/generation/arithmetic';
 import type { ArithmeticSkillCode } from '@/quality/arithmetic';
 import type { GoldenSource } from '@/testing/golden/types';
 
@@ -42,21 +42,14 @@ export function createGeneratorGoldenSource(
   };
 }
 
-const CODES: Readonly<Record<ArithmeticSkillCode, true>> = {
-  'NUM.CNT.20': true,
-  'NUM.CNT.SKIP5': true,
-  'ADD.FACT.10': true,
-  'ADD.REGROUP.2D': true,
-  'FRAC.EQUAL': true,
-  'FRAC.COMPARE': true,
-};
-
 function skillCodeOf(code: string, itemId: string): ArithmeticSkillCode {
-  if (!isSkillCode(code))
+  if (!isSkillCode(code)) {
     throw new Error(`Golden case ${itemId} names ${code}, which has no generator`);
+  }
   return code;
 }
 
+/** One source of truth for which codes have a generator: the registry that holds them. */
 function isSkillCode(code: string): code is ArithmeticSkillCode {
-  return Object.hasOwn(CODES, code);
+  return ARITHMETIC_SKILL_CODES.some((candidate) => candidate === code);
 }

@@ -8,6 +8,8 @@ export const ADD_FACT_10_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Lands one short of the answer',
     signature: 'Counts the starting number as the first step, so the total is one less',
     remediation: 'Start on the bigger number and count on. Do not count it again.',
+    approach: 'visual-model',
+    model: 'a number line started on the larger number, counting on',
     detects: { kind: 'off-by', delta: -1 },
   },
   {
@@ -17,6 +19,8 @@ export const ADD_FACT_10_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     signature: 'Repeats an operand instead of combining the two',
     remediation:
       'Both numbers go in. Fill the ten-frame with the first, then keep adding the second.',
+    approach: 'visual-model',
+    model: 'a ten-frame filled with the first number, then the second',
     detects: { kind: 'derived', rule: 'names-an-operand' },
   },
   {
@@ -25,6 +29,8 @@ export const ADD_FACT_10_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Takes away instead of adding',
     signature: 'Answers with the difference between the two numbers',
     remediation: 'Add means the pile gets bigger. Put both groups together and count them all.',
+    approach: 'concrete-story',
+    model: 'two groups of counters pushed together into one pile',
     detects: { kind: 'derived', rule: 'subtracted-instead' },
   },
 ];

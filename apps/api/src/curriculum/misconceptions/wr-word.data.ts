@@ -8,6 +8,8 @@ export const WR_WORD_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Writes a word with no vowel in it',
     signature: 'The written word contains only consonants',
     remediation: 'Say it slowly. Which sound is in the middle? That one needs a letter too.',
+    approach: 'worked-example',
+    model: 'the word said slowly, one letter written per sound heard',
     detects: { kind: 'pattern', pattern: '^[bcdfghjklmnpqrstvwxyz]+$' },
   },
   {
@@ -16,6 +18,8 @@ export const WR_WORD_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Copies the prompt instead of choosing a word',
     signature: 'Writes the question back rather than a word for the idea',
     remediation: 'That is my question. What is your word for it?',
+    approach: 'concrete-story',
+    model: 'the idea named out loud before anything is written',
     detects: { kind: 'derived', rule: 'echoes-the-question' },
   },
   {
@@ -24,6 +28,8 @@ export const WR_WORD_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Writes a run of repeated letters',
     signature: 'The written word repeats one letter three or more times',
     remediation: 'One letter for each sound you hear. Say the word slowly and count them.',
+    approach: 'worked-example',
+    model: 'the sounds counted on fingers, then one letter written per finger',
     detects: { kind: 'pattern', pattern: '(.)\\1{2,}' },
   },
 ];

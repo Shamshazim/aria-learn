@@ -5,7 +5,7 @@ import type { ContentDraft } from '@/content/types';
 import { createQualityGate } from '@/quality';
 import {
   createPrewarmService,
-  emptyBank,
+  dryRunBank,
   prewarmTargets,
   PREWARM_TARGET,
   type ContentBank,
@@ -16,15 +16,17 @@ function bank(): ContentBank & Readonly<{ rows: ContentDraft[] }> {
   const rows: ContentDraft[] = [];
   return {
     rows,
-    listPrompts: (target) =>
+    listContentHashes: (target) =>
       Promise.resolve(
         rows
           .filter((row) => row.skillCode === target.skillCode && row.band === target.band)
           .flatMap((row) => {
             const body: unknown = row.body;
-            const prompt =
-              typeof body === 'object' && body !== null && 'prompt' in body ? body.prompt : null;
-            return typeof prompt === 'string' ? [prompt] : [];
+            const hash =
+              typeof body === 'object' && body !== null && 'contentHash' in body
+                ? body.contentHash
+                : null;
+            return typeof hash === 'string' ? [hash] : [];
           }),
       ),
     insert: (draft) => {
@@ -74,7 +76,7 @@ describe('pre-warming the content bank', () => {
   });
 
   it('reports a skill whose whole parameter space is smaller than the target', async () => {
-    const outcomes = await service(emptyBank()).run();
+    const outcomes = await service(dryRunBank()).run();
     const short = outcomes.filter((outcome) => outcome.exhausted);
 
     // Counting by five within fifty genuinely has fewer than forty questions in it. That is an
@@ -86,7 +88,7 @@ describe('pre-warming the content bank', () => {
   });
 
   it('stores nothing that fails the gate', async () => {
-    const outcomes = await service(emptyBank()).run();
+    const outcomes = await service(dryRunBank()).run();
     expect(outcomes.every((outcome) => outcome.rejected === 0)).toBe(true);
   });
 });

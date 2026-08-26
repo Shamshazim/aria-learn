@@ -71,10 +71,17 @@ export function parameterSpaceSize(skillCode: ArithmeticSkillCode): number {
  * not have to inject a seed to know what it will get.
  */
 function orderOptions<T>(options: readonly T[], seed: string): readonly T[] {
-  const rotation = hash(seed).charCodeAt(0) % options.length;
+  // A whole word of the digest, not one hex character of it: sixteen hex values do not divide
+  // evenly by three, and a bank where the answer is first 38% of the time is a bank a child can
+  // beat by always tapping first.
+  const rotation = digest(seed).readUInt32BE(0) % options.length;
   return [...options.slice(rotation), ...options.slice(0, rotation)];
 }
 
 function hash(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
+  return digest(value).toString('hex');
+}
+
+function digest(value: string): Buffer {
+  return createHash('sha256').update(value).digest();
 }

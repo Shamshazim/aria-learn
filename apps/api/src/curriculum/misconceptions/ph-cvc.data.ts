@@ -8,6 +8,8 @@ export const PH_CVC_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Reads the letter names instead of their sounds',
     signature: 'Answers with letter names such as see ay tee',
     remediation: 'That is what the letter is called. What sound does it make?',
+    approach: 'worked-example',
+    model: 'each letter pointed at and its sound said, then the whole word swept',
     detects: {
       kind: 'pattern',
       pattern:
@@ -20,6 +22,8 @@ export const PH_CVC_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Guesses the word from its first letter',
     signature: 'Offers a word that starts correctly but was not read through',
     remediation: 'Good start. Now read every letter before you say the word.',
+    approach: 'worked-example',
+    model: 'a finger sliding left to right under every letter before the word is said',
     detects: { kind: 'shares-key-prefix', length: 1 },
   },
   {
@@ -28,6 +32,8 @@ export const PH_CVC_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Reads the middle vowel as a different vowel',
     signature: 'Answers with the same word shape but the wrong vowel sound',
     remediation: 'Cover the ends and read just the middle letter. Now put it back.',
+    approach: 'simpler-case',
+    model: 'the ends covered so only the middle letter is read',
     detects: { kind: 'derived', rule: 'swapped-vowel' },
   },
 ];

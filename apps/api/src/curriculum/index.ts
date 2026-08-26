@@ -3,4 +3,5 @@ export { createInventoryService } from '@/curriculum/inventory.service';
 export type { InventoryService, LessonReviewReport } from '@/curriculum/inventory.service';
 export { loadLessonNotes } from '@/curriculum/lessons';
 export type { LessonNote } from '@/curriculum/lessons';
-export { visualsFor } from '@/curriculum/visuals/show-payloads';
+export { buildVisual, firstVisualFor, visualsFor } from '@/curriculum/visuals';
+export type { VisualRequest } from '@/curriculum/visuals';

@@ -66,7 +66,7 @@ describe('lesson notes', () => {
 
   it('has a note for every skill in the inventory', () => {
     const notes = loadLessonNotes();
-    for (const skill of createInventoryService(notes).listSkills()) {
+    for (const skill of createInventoryService({ lessons: notes }).listSkills()) {
       expect(notes.get(skill.code), skill.code).toBeDefined();
     }
   });
@@ -76,7 +76,7 @@ describe('lesson notes', () => {
     const first = [...notes.values()][0];
     if (first === undefined) throw new Error('no notes loaded');
     notes.set(first.skillCode, { ...first, id: 'lesson-somewhere-else' });
-    expect(() => createInventoryService(notes)).toThrow(/points at/u);
+    expect(() => createInventoryService({ lessons: notes })).toThrow(/points at/u);
   });
 
   it('reports the review backlog rather than hiding it', () => {

@@ -37,10 +37,17 @@ export type TurnContentDeps = Readonly<{
    * P2H-10: the visual model for this skill, drawn for the open item, or nothing.
    *
    * Injected rather than imported so the turn path stays free of the curriculum: which
-   * picture a skill gets is an authoring decision, and this service only decides *whether*
-   * the move it is building should carry one.
+   * picture a skill gets, and what it is captioned, are authoring decisions. This service
+   * only decides *whether* the move it is building should carry one.
    */
-  visual(skillCode: string, problem: ArithmeticProblem | null): VisualContent | null;
+  visual(
+    input: Readonly<{
+      skillCode: string;
+      problem: ArithmeticProblem | null;
+      /** The wrong idea being reteached, whose own model captions the picture when there is one. */
+      misconceptionId: string | null;
+    }>,
+  ): VisualContent | null;
   observer?: TurnContentObserver;
   /**
    * P2H-07: everything needed to say an answer before it is finished, or nothing.

@@ -11,7 +11,7 @@
 
 ## Why
 
-The inventory has 18 skills and 3 misconceptions; arithmetic item generation throws by design
+The inventory has 16 skills and 3 misconceptions; arithmetic item generation throws by design
 (`content.runtime.ts`) so six hand-written items are all there is; explanations are prompted
 with a bare code like `ADD.REGROUP.2D`. A tutor with nothing to say about a skill cannot be
 warm about it. This ticket gives every inventory skill items, misconceptions, lesson notes and
@@ -102,8 +102,8 @@ Recorded 2026-08-25 on `feat/P2H-10-content-depth`:
 ```
 npm run typecheck                                          0 errors
 npm run lint                                               0 errors
-npm test                                              1272 passed, 184 files
-npm run test -w @aria/api -- content                   136 passed
+npm test                                              1285 passed, 186 files
+npm run test -w @aria/api -- content                   149 passed
 npm run test -w @aria/api -- curriculum                 73 passed
 npm run golden:tutoring -w @aria/api          PASS: 9 tutoring scenario(s)
 npm run golden:content -w @aria/api -- --generator-only
@@ -130,9 +130,39 @@ npm run prewarm:content -w @aria/api -- --dry-run
 
 **Deliberately not built.** No new skills (P3-07 owns that). No reading passages (P4-03). The
 model-written word-problem wrapper for the older bands is *gated* but not *wired*:
-`acceptWordProblem` proves a wrapper kept every number and rejects it otherwise, and nothing
-calls it yet, because generating a story per item costs a model call per item and the bank is
-pre-warmed offline. Wiring it is a decision about spend, not a missing check.
+`acceptWordProblem` pins the numbers and then puts the wrapper through the same structural,
+level and safety gate every other child-facing sentence faces, and nothing calls it yet,
+because generating a story per item costs a model call per item and the bank is pre-warmed
+offline. Wiring it is a decision about spend, not a missing check.
+
+## What the review pass changed
+
+A two-axis review (standards, spec) against `d80a69f` ran after the first commit. What it
+found, and what it cost:
+
+- **Generation ignored what the bank already held.** The cache excludes the items a child has
+  just seen; on the miss, the generator rebuilt one of them and `cache.store` inserted a second
+  row for content already there. The ticket's own edge case — "deduplicates by content hash and
+  returns *no new item*" — was written and not wired. The item's `contentHash` is now stored in
+  the body, the repository lists the hashes for a skill and band, and both the live path and the
+  pre-warm run walk past what is already there. Four tests, including the exhaustion case.
+- **The answer sat in the first slot 38% of the time.** Option order rotated on one hex
+  character of the digest, and sixteen hex values do not divide by three. A bank a child can
+  beat by always tapping first is not a bank. Now rotates on a full word: 1737/1795/1730.
+- **"Gated" overstated what the word-problem check did** — it pinned the numbers and stopped.
+  It now runs the quality gate too, and names the failing check when the gate is what refused.
+- **Misconceptions had no remediation approach or model**, which the Design section asks for by
+  name. All 48 now carry both, and the `SHOW` that accompanies a reteach is captioned from the
+  misconception's own model rather than the skill's, so the picture addresses the wrong idea
+  the child actually had.
+- **`SHOW` was early-band only.** Every maths skill declares visual kinds in every band; the
+  acceptance criterion names the early band as a *must*, not as a ceiling. All bands now get it.
+- Structural: three barrels held data or logic, two modules were imported past their public
+  entry, the golden source re-listed the six skill codes, a local orchestrator shadowed the
+  name of the exported `generateItem`, and `visuals/` had no entry point. All fixed.
+- Two claims corrected in this document rather than in code: the Why said 18 inventory skills
+  and there are 16, and the 500-per-skill test walks all three bands now, so its distinctness
+  assertion says how much of the 500 was actually new rather than reading as 500 problems.
 
 **One thing the ticket did not settle.** `NUM.CNT.SKIP5` has fourteen questions in its whole
 parameter space, so it cannot reach forty and the pre-warm run says so by name. Counting by

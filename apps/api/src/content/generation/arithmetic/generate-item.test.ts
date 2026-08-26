@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { BANDS, type Band } from '@aria/shared';
+import { BANDS } from '@aria/shared';
 
 import {
   ARITHMETIC_SKILL_CODES,
@@ -13,10 +13,20 @@ import { checkArithmetic } from '@/quality/arithmetic';
 /** The ticket's bar: five hundred per skill, every one solved independently. */
 const SAMPLE = 500;
 
-function sample(skillCode: (typeof ARITHMETIC_SKILL_CODES)[number], band: Band): GeneratedItem[] {
+/**
+ * Five hundred generations per skill, walking every band as well as every index.
+ *
+ * A skill whose whole space is smaller than five hundred is covered exhaustively and then
+ * repeats — `NUM.CNT.SKIP5` has forty-two distinct items across the three bands and no more.
+ * The distinctness assertion says exactly how much of the five hundred was new, so nobody
+ * reads this as five hundred different problems when it is not.
+ */
+function sample(skillCode: (typeof ARITHMETIC_SKILL_CODES)[number]): GeneratedItem[] {
   const size = parameterSpaceSize(skillCode);
   const items: GeneratedItem[] = [];
   for (let attempt = 0; attempt < SAMPLE; attempt += 1) {
+    const band = BANDS[Math.floor(attempt / size) % BANDS.length];
+    if (band === undefined) continue;
     const item = generateItem({ skillCode, band, index: attempt % size });
     if (item !== null) items.push(item);
   }
@@ -24,12 +34,12 @@ function sample(skillCode: (typeof ARITHMETIC_SKILL_CODES)[number], band: Band):
 }
 
 describe.each(ARITHMETIC_SKILL_CODES)('%s items', (skillCode) => {
-  const items = sample(skillCode, 'middle');
+  const items = sample(skillCode);
 
-  it('produces items across the whole parameter space', () => {
+  it('produces items across the whole parameter space, in every band', () => {
     expect(items).toHaveLength(SAMPLE);
     const distinct = new Set(items.map((item) => item.contentHash));
-    expect(distinct.size).toBe(Math.min(SAMPLE, parameterSpaceSize(skillCode)));
+    expect(distinct.size).toBe(Math.min(SAMPLE, parameterSpaceSize(skillCode) * BANDS.length));
   });
 
   it('has a key the checker proves, every time', () => {
@@ -78,6 +88,20 @@ describe('generation boundaries', () => {
       const second = generateItem({ skillCode, band: 'early', index: 3 });
       expect(second).toEqual(first);
     }
+  });
+
+  it('does not park the answer in one slot a child could learn to tap', () => {
+    const positions = [0, 0, 0];
+    for (const skillCode of ARITHMETIC_SKILL_CODES) {
+      for (let index = 0; index < parameterSpaceSize(skillCode); index += 1) {
+        const item = generateItem({ skillCode, band: 'middle', index });
+        if (item?.choices.length !== 3) continue;
+        const slot = item.choices.indexOf(item.answerKey);
+        positions[slot] = (positions[slot] ?? 0) + 1;
+      }
+    }
+    const total = positions.reduce((sum, count) => sum + count, 0);
+    for (const count of positions) expect(count / total).toBeGreaterThan(0.28);
   });
 
   it('phrases the same maths differently for each band', () => {

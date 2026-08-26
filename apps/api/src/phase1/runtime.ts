@@ -4,8 +4,12 @@ import type { LoadedTurnContext, PlannedTurn } from '@aria/tutor';
 import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { createModelPlanner } from '@/ai/planner/model-planner';
 import { plannerBudgetMs } from '@/ai/planner/planner.budget';
-import { createInventoryService, type InventoryService } from '@/curriculum';
-import { buildVisual, firstVisualFor } from '@/curriculum/visuals/show-payloads';
+import {
+  buildVisual,
+  createInventoryService,
+  firstVisualFor,
+  type InventoryService,
+} from '@/curriculum';
 import { ForbiddenError } from '@/errors';
 import { createTurnContentObserver } from '@/observability/content-metrics';
 import { createIntentFallbackObserver } from '@/observability/intent-metrics';
@@ -134,7 +138,7 @@ function buildTurnContent(
     gate: content.gate,
     moves: (sessionId) => createMoveFactory({ ids: deps.ids, clock: deps.clock, sessionId }),
     remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
-    visual: (skillCode, problem) => visualFor(inventory, skillCode, problem),
+    visual: (input) => visualFor(inventory, input),
     observer: createTurnContentObserver({ metrics: deps.metrics, logger: deps.logger }),
     ...streamingDeps(deps, content),
   });
@@ -219,19 +223,29 @@ function buildCrisis(
 }
 
 /**
- * P2H-10: the picture a skill is shown with, captioned from its lesson note.
+ * P2H-10: the picture a skill is shown with, and the words on it.
  *
- * The caption is the note's first concrete model rather than a generic label, so the child
- * hears the same words about the picture that the explanation used about the idea.
+ * The caption is the misconception's own model where one is in play and the lesson note's
+ * first model otherwise — never a generic label. A child reteaching a specific wrong idea
+ * should be shown the thing that addresses it, described in the words the fix is written in.
  */
 function visualFor(
   inventory: InventoryService,
-  skillCode: string,
-  problem: ArithmeticProblem | null,
+  input: Readonly<{
+    skillCode: string;
+    problem: ArithmeticProblem | null;
+    misconceptionId: string | null;
+  }>,
 ): VisualContent | null {
-  const skill = inventory.getSkill(skillCode);
+  const skill = inventory.getSkill(input.skillCode);
   const kind = firstVisualFor(skill);
   if (kind === null) return null;
-  const caption = inventory.getLesson(skillCode)?.models[0] ?? skill?.name ?? skillCode;
-  return buildVisual({ kind, caption, problem });
+  const misconception =
+    input.misconceptionId === null ? null : inventory.getMisconception(input.misconceptionId);
+  const caption =
+    misconception?.model ??
+    inventory.getLesson(input.skillCode)?.models[0] ??
+    skill?.name ??
+    input.skillCode;
+  return buildVisual({ kind, caption, problem: input.problem });
 }

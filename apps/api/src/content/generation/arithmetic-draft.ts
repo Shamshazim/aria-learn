@@ -47,6 +47,9 @@ export function toGeneratedContent(item: GeneratedItem, kind: ContentKind): Gene
         answerKey: item.answerKey,
         arithmeticProblem: problemJson(item.arithmeticProblem),
         distractorMisconceptions: [...item.distractorMisconceptions],
+        // Stored so a later run can recognise this exact item without re-deriving it from the
+        // prompt: the bank is what the generator dedupes against.
+        contentHash: item.contentHash,
       },
       // Deterministically generated and checker-proven, so no model and no prompt was involved.
       scope: { kind: 'shareable' },
@@ -83,18 +86,23 @@ function problemJson(problem: ArithmeticProblem): JsonValue {
  *
  * Two children on the same skill start at different indices, so the bank does not serve
  * everyone item one; the same child always starts at the same place, so the walk is
- * reproducible from a session log. `null` means the space is exhausted, and the caller falls
- * back to the cache rather than inventing an item.
+ * reproducible from a session log.
+ *
+ * `storedHashes` is what the bank already holds for this skill and band. Without it the walk
+ * would return the same item every time the cache excluded it, and `cache.store` would insert
+ * a second row for content that is already there. `null` means every point in the space is
+ * already stored — "no new item" — and the caller falls back to the cache rather than
+ * inventing one.
  */
 export function nextItemFor(
   lookup: Readonly<{ skillCode: ArithmeticSkillCode; band: Band; studentId: string }>,
-  taken: ReadonlySet<string>,
+  storedHashes: ReadonlySet<string>,
 ): GeneratedItem | null {
   const size = parameterSpaceSize(lookup.skillCode);
   const start = offset(`${lookup.studentId}|${lookup.skillCode}|${lookup.band}`, size);
   for (let step = 0; step < size; step += 1) {
     const item = generateItem({ ...lookup, index: (start + step) % size });
-    if (item !== null && !taken.has(item.contentHash)) return item;
+    if (item !== null && !storedHashes.has(item.contentHash)) return item;
   }
   return null;
 }

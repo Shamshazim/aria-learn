@@ -17,6 +17,7 @@ import { ServiceUnavailableError } from '@/errors';
 import { createGateObserver } from '@/observability/gate-metrics';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate, speakableGate, type QualityGate } from '@/quality';
+import type { ContentItemRepository } from '@/repositories/content-item.repository';
 import { createAheadService } from '@/services/content/ahead.service';
 import { contentScope } from '@/services/content/personalise';
 
@@ -48,7 +49,14 @@ export function buildContentServices(
     cache,
     fallback,
     gate,
-    generate: (input, signal) => generateItem(deps.ai, inventory, input, signal),
+    generate: (input, signal) =>
+      generateContent({
+        ai: deps.ai,
+        inventory,
+        bank: repositories.content,
+        input,
+        ...(signal === undefined ? {} : { signal }),
+      }),
     recordFailure: (verdict) => {
       deps.logger.warn(
         { checks: verdict.reasons.map((reason) => reason.code) },
@@ -88,23 +96,45 @@ type ContentRequest = Parameters<ContentServices['reliable']['resolve']>[0];
  * should never be phrased by a model that might change a number, and a rhyme cannot be
  * enumerated.
  */
-async function generateItem(
-  ai: AiClient,
-  inventory: InventoryService,
-  input: ContentRequest,
-  signal?: AbortSignal,
+async function generateContent(
+  request: Readonly<{
+    ai: AiClient;
+    inventory: InventoryService;
+    bank: ContentItemRepository;
+    input: ContentRequest;
+    signal?: AbortSignal;
+  }>,
 ): Promise<GeneratedContent> {
+  const { ai, inventory, bank, input, signal } = request;
   const skill = inventory.getSkill(input.skillCode);
   if (skill === null) throw new ServiceUnavailableError('use verified fallback');
-  if (skill.subject === 'arithmetic') return generateArithmetic(input);
+  if (skill.subject === 'arithmetic') return generateArithmetic(bank, input);
   return generatePrompted({ ai, skill, input, ...(signal === undefined ? {} : { signal }) });
 }
 
-function generateArithmetic(input: ContentRequest): GeneratedContent {
+/**
+ * The next item of this skill the bank does not already hold.
+ *
+ * Reading the bank first is what stops a cache miss becoming a duplicate row: the cache
+ * excludes the items this child has just seen, so without this the generator would rebuild
+ * one of them and store it a second time. When every point in the space is already stored
+ * there is no new item, and the caller falls back to what is cached.
+ */
+async function generateArithmetic(
+  bank: ContentItemRepository,
+  input: ContentRequest,
+): Promise<GeneratedContent> {
   if (!isArithmeticLookup(input, ARITHMETIC_SKILL_CODES)) {
     throw new ServiceUnavailableError('use verified arithmetic fallback');
   }
-  const item = nextItemFor(input, new Set());
+  const stored = new Set(
+    await bank.listContentHashes({
+      skillCode: input.skillCode,
+      band: input.band,
+      kind: input.kind,
+    }),
+  );
+  const item = nextItemFor(input, stored);
   if (item === null) throw new ServiceUnavailableError('arithmetic parameter space exhausted');
   return toGeneratedContent(item, input.kind);
 }

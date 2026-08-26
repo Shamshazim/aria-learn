@@ -6,7 +6,7 @@ import { createQualityGate } from '@/quality';
 import { createContentItemRepository } from '@/repositories/content-item.repository';
 import {
   createPrewarmService,
-  emptyBank,
+  dryRunBank,
   PREWARM_TARGET,
   type ContentBank,
   type PrewarmOutcome,
@@ -23,7 +23,7 @@ import {
 async function main(): Promise<void> {
   const dryRun = process.argv.includes('--dry-run');
   if (dryRun) {
-    const outcomes = await service(emptyBank()).run();
+    const outcomes = await service(dryRunBank()).run();
     process.stdout.write(`${JSON.stringify(summary(outcomes), null, 2)}\n`);
     return;
   }
@@ -49,8 +49,12 @@ function bankFor(pool: Parameters<typeof createContentItemRepository>[0]['db']):
     clock: { now: () => new Date() },
   });
   return {
-    listPrompts: (target) =>
-      repository.listPrompts({ skillCode: target.skillCode, band: target.band, kind: 'question' }),
+    listContentHashes: (target) =>
+      repository.listContentHashes({
+        skillCode: target.skillCode,
+        band: target.band,
+        kind: 'question',
+      }),
     insert: async (draft) => {
       await repository.insert(draft, null);
     },

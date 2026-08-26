@@ -8,8 +8,7 @@ import {
 } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
-import { createInventoryService } from '@/curriculum';
-import { buildVisual, firstVisualFor } from '@/curriculum/visuals/show-payloads';
+import { buildVisual, createInventoryService, firstVisualFor } from '@/curriculum';
 import { fixedClock } from '@/lib/clock';
 import { sequentialIds } from '@/lib/ids';
 import { scrubLearnerContext } from '@/privacy';
@@ -30,19 +29,25 @@ function deps(): TurnContentDeps {
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
-    visual: (skillCode, problem) => productionVisual(skillCode, problem),
+    visual: (input) => productionVisual(input),
   };
 }
 
 /** The same wiring `runtime.ts` uses, so the test is about the decision and not a stub. */
 function productionVisual(
-  skillCode: string,
-  problem: ApiModelContext['arithmeticProblem'],
+  input: Readonly<{
+    skillCode: string;
+    problem: ApiModelContext['arithmeticProblem'];
+    misconceptionId: string | null;
+  }>,
 ): VisualContent | null {
-  const kind = firstVisualFor(INVENTORY.getSkill(skillCode));
+  const kind = firstVisualFor(INVENTORY.getSkill(input.skillCode));
   if (kind === null) return null;
-  const caption = INVENTORY.getLesson(skillCode)?.models[0] ?? skillCode;
-  return buildVisual({ kind, caption, problem });
+  const misconception =
+    input.misconceptionId === null ? null : INVENTORY.getMisconception(input.misconceptionId);
+  const caption =
+    misconception?.model ?? INVENTORY.getLesson(input.skillCode)?.models[0] ?? input.skillCode;
+  return buildVisual({ kind, caption, problem: input.problem });
 }
 
 describe('the visual that goes with a reteach', () => {
@@ -76,13 +81,34 @@ describe('the visual that goes with a reteach', () => {
     expect(visualMove(deps(), rhyme)).toBeNull();
   });
 
-  it('is an early-band promise: older bands get the words alone', () => {
-    expect(visualMove(deps(), turn({ band: 'middle', approach: 'visual-model' }))).toBeNull();
+  it('shows the older bands the same model, because they declare one too', () => {
+    expect(visualMove(deps(), turn({ band: 'middle', approach: 'visual-model' }))).toMatchObject({
+      kind: 'SHOW',
+      display: [{ type: 'visual', visual: 'ten-frame' }],
+    });
+  });
+
+  it('captions it from the wrong idea being reteached, not the skill in general', () => {
+    const graded = turn({
+      band: 'early',
+      approach: 'visual-model',
+      misconceptionId: 'misconception-add-fact-10-subtracted',
+    });
+    const shown = visualMove(deps(), graded)?.display[0];
+
+    expect(shown?.type === 'visual' ? shown.alt : '').toBe(
+      INVENTORY.getMisconception('misconception-add-fact-10-subtracted')?.model,
+    );
   });
 });
 
 function turn(
-  input: Readonly<{ band: Band; approach: string; skillCode?: string }>,
+  input: Readonly<{
+    band: Band;
+    approach: string;
+    skillCode?: string;
+    misconceptionId?: string;
+  }>,
 ): PlannedTurn<ApiModelContext> {
   const skillCode = input.skillCode ?? 'ADD.FACT.10';
   const plan = {
@@ -132,7 +158,10 @@ function turn(
     },
     decision: {
       allowedMoves: ['RETEACH'],
-      graded: null,
+      graded:
+        input.misconceptionId === undefined
+          ? null
+          : { correct: false, misconception: input.misconceptionId },
       terminal: false,
       decisive: true,
       reasons: ['test_fixture'],

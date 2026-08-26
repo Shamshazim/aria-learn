@@ -8,6 +8,8 @@ export const PA_BLEND_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Repeats the sounds instead of blending them',
     signature: 'Answers with separated single sounds rather than one word',
     remediation: 'Say them faster, then with no gap at all. Now it is a word.',
+    approach: 'worked-example',
+    model: 'the same three sounds said with shrinking gaps until they are a word',
     detects: { kind: 'pattern', pattern: '^[a-z](?: [a-z])+$' },
   },
   {
@@ -16,6 +18,8 @@ export const PA_BLEND_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Loses the middle sound',
     signature: 'Answers with the first and last sounds only',
     remediation: 'Three sounds go in, three come out. Say the middle one on its own first.',
+    approach: 'concrete-story',
+    model: 'one counter per sound, slid together as the word is said',
     detects: { kind: 'derived', rule: 'drops-middle-letter' },
   },
   {
@@ -24,6 +28,8 @@ export const PA_BLEND_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Guesses from the first sound',
     signature: 'Offers a word that starts correctly but is not the one blended',
     remediation: 'You have the first sound. Now wait for all three before you decide.',
+    approach: 'simpler-case',
+    model: 'two words that share a first sound, blended one at a time',
     detects: { kind: 'shares-key-prefix', length: 1 },
   },
 ];

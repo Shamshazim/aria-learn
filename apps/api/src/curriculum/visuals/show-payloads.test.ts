@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { VISUAL_KINDS } from '@aria/shared';
 
-import { createInventoryService } from '@/curriculum';
-import { buildVisual, firstVisualFor, visualsFor } from '@/curriculum/visuals/show-payloads';
+import { buildVisual, createInventoryService, firstVisualFor, visualsFor } from '@/curriculum';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
 const REGROUP: ArithmeticProblem = {

@@ -24,10 +24,16 @@ export type InventoryService = Readonly<{
   lessonReview(): LessonReviewReport;
 }>;
 
-/** Creates the sole read path over the authored curriculum inventory. */
+/**
+ * Creates the sole read path over the authored curriculum inventory.
+ *
+ * `lessons` defaults to the notes on disk, which is what production wants and what a test
+ * pointing at a fixture directory overrides.
+ */
 export function createInventoryService(
-  lessons: ReadonlyMap<string, LessonNote> = loadLessonNotes(),
+  dependencies: Readonly<{ lessons?: ReadonlyMap<string, LessonNote> }> = {},
 ): InventoryService {
+  const lessons = dependencies.lessons ?? loadLessonNotes();
   const skills = freezeSkills([...ARITHMETIC_SKILLS, ...READING_SKILLS, ...WRITING_SKILLS]);
   const misconceptions = freezeMisconceptions(AUTHORED_MISCONCEPTIONS.map(toMisconception));
   validateInventory(skills, misconceptions, lessons);

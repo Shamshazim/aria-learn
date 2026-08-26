@@ -32,7 +32,13 @@ export type PrewarmOutcome = PrewarmTarget &
  * need a database to see it.
  */
 export type ContentBank = Readonly<{
-  listPrompts(target: PrewarmTarget): Promise<readonly string[]>;
+  /** The `contentHash` of every shareable item already stored for this skill and band. */
+  listContentHashes(target: PrewarmTarget): Promise<readonly string[]>;
+  /**
+   * The `GatePass` is a brand the quality gate alone can mint, so a draft cannot reach the
+   * bank without having been gated. The store does not persist it — the row's existence is
+   * what the pass bought.
+   */
   insert(draft: ContentDraft, pass: GatePass): Promise<void>;
 }>;
 
@@ -70,13 +76,13 @@ async function fill(
   dependencies: Readonly<{ bank: ContentBank; gate: QualityGate }>,
   target: PrewarmTarget,
 ): Promise<PrewarmOutcome> {
-  const prompts = new Set(await dependencies.bank.listPrompts(target));
-  const existing = prompts.size;
+  const stored = new Set(await dependencies.bank.listContentHashes(target));
+  const existing = stored.size;
   const size = parameterSpaceSize(target.skillCode);
   let rejected = 0;
-  for (let index = 0; index < size && prompts.size < PREWARM_TARGET; index += 1) {
+  for (let index = 0; index < size && stored.size < PREWARM_TARGET; index += 1) {
     const item = generateItem({ ...target, index });
-    if (item === null || prompts.has(item.prompt)) continue;
+    if (item === null || stored.has(item.contentHash)) continue;
     const content = toGeneratedContent(item, 'question');
     const verdict = dependencies.gate(content.gateInput);
     if (verdict.verdict === 'fail') {
@@ -84,21 +90,27 @@ async function fill(
       continue;
     }
     await dependencies.bank.insert(content.draft, verdict.pass);
-    prompts.add(item.prompt);
+    stored.add(item.contentHash);
   }
   return {
     ...target,
     existing,
-    inserted: prompts.size - existing,
+    inserted: stored.size - existing,
     rejected,
-    exhausted: prompts.size < PREWARM_TARGET,
+    exhausted: stored.size < PREWARM_TARGET,
   };
 }
 
-/** A bank that reads empty and writes nowhere: what `--dry-run` counts against. */
-export function emptyBank(): ContentBank {
+/**
+ * The bank a `--dry-run` counts against: nothing stored, nothing written.
+ *
+ * It is a production mode rather than a test double. A reviewer needs to see what a real run
+ * would insert without a database in front of them, and reading empty is what makes the
+ * printed plan the whole plan.
+ */
+export function dryRunBank(): ContentBank {
   return {
-    listPrompts: () => Promise.resolve([]),
+    listContentHashes: () => Promise.resolve([]),
     insert: () => Promise.resolve(),
   };
 }

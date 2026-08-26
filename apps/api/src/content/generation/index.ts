@@ -16,5 +16,6 @@ export type {
   Distractor,
   GeneratedItem,
   GenerateInput,
+  WordProblemInput,
   WordProblemVerdict,
 } from '@/content/generation/arithmetic';

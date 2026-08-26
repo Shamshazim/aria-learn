@@ -8,6 +8,8 @@ export const NUM_CNT_SKIP5_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Counts on by one instead of by five',
     signature: 'Adds one to the last number when the step is five',
     remediation: 'Each jump is a whole hand. Count the hand, not the finger.',
+    approach: 'visual-model',
+    model: 'a number line marked only at the fives, so one jump is one hand',
     detects: { kind: 'derived', rule: 'counted-by-one' },
   },
   {
@@ -16,6 +18,8 @@ export const NUM_CNT_SKIP5_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Restarts the chant at five',
     signature: 'Answers with the first number of the sequence instead of continuing it',
     remediation: 'We are already at fifteen. Start the next jump from there.',
+    approach: 'visual-model',
+    model: 'a number line with the jumps already taken shaded in',
     detects: { kind: 'derived', rule: 'restarted-count' },
   },
   {
@@ -24,6 +28,8 @@ export const NUM_CNT_SKIP5_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
     name: 'Repeats the last number of the chant',
     signature: 'Answers with the last number in the sequence rather than the one after it',
     remediation: 'Say the last number. Now take one whole jump of five.',
+    approach: 'visual-model',
+    model: 'a number line, one whole jump of five from the last mark',
     detects: { kind: 'derived', rule: 'repeats-last' },
   },
 ];
