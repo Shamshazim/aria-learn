@@ -26,10 +26,14 @@ export const API_PREFIX = '/api/v1';
 
 export type RouterDeps = {
   healthController: HealthController;
-  /** P2H-12. Absent where no Supabase project is configured — nobody can sign in at all. */
+  /**
+   * P2H-12. Absent where no Supabase project is configured *and* no demo child is allowed —
+   * nobody can sign in at all. `parent` is absent in development's demo mode, where there is
+   * no adult to authenticate and nothing for a parent route to act on.
+   */
   identity?: Readonly<{
     auth: Parameters<typeof createAuthRouter>[0];
-    parent: Parameters<typeof createParentRouter>[0];
+    parent?: Parameters<typeof createParentRouter>[0];
   }>;
   status?: Readonly<{ controller: StatusController; authorize: RequestHandler }>;
   student?: Parameters<typeof createStudentRouter>[0];
@@ -52,7 +56,7 @@ export function createApiRouter({
   router.use(createHealthRouter(healthController));
   if (identity !== undefined) {
     router.use(createAuthRouter(identity.auth));
-    router.use(createParentRouter(identity.parent));
+    if (identity.parent !== undefined) router.use(createParentRouter(identity.parent));
   }
   if (status !== undefined) router.use(createStatusRouter(status.controller, status.authorize));
   if (student !== undefined) router.use(createStudentRouter(student));

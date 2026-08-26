@@ -8,6 +8,7 @@ import {
   requireChildSession,
   requireParentAuth,
 } from '@/auth';
+import { createDemoAuthControllers } from '@/auth/demo-session.controller';
 import { createAuthControllers } from '@/controllers/auth.controller';
 import { createParentControllers, type VoiceConsentGrant } from '@/controllers/parent.controller';
 import { randomTokens } from '@/lib/tokens';
@@ -96,7 +97,11 @@ export function createIdentityRuntime(input: {
         : { demoStudentId: deps.config.demoStudentId }),
     }),
     expiry,
-    routerDeps: (consent) => buildRouterDeps({ deps, children, login, sessions }, consent),
+    routerDeps: (consent) =>
+      buildRouterDeps(
+        { deps, children, login, sessions, students: repositories.students },
+        consent,
+      ),
   };
 }
 
@@ -106,12 +111,29 @@ function buildRouterDeps(
     children: ReturnType<typeof createParentChildrenService>;
     login: ReturnType<typeof createChildLoginService>;
     sessions: ReturnType<typeof createChildSessionService>;
+    students: Phase1Repositories['students'];
   }>,
   consent: ParentConsentDeps | undefined,
 ): RouterDeps['identity'] {
   const { deps, children } = parts;
   const auth = deps.config.auth;
-  if (auth === undefined) return undefined;
+  const demoStudentId = deps.config.demoStudentId;
+  // Development with the demo flag and no Supabase project: the child routes still have to be
+  // able to answer "is anybody signed in here", or the web app sends its developer to a
+  // sign-in screen that cannot work.
+  if (auth === undefined) {
+    if (demoStudentId === undefined) return undefined;
+    return {
+      auth: {
+        parentAuth: refuseParent,
+        controller: createDemoAuthControllers({
+          students: parts.students,
+          demoStudentId,
+          clock: deps.clock,
+        }),
+      },
+    };
+  }
   const parentAuth = requireParentAuth({
     verifier: deps.tokenVerifier ?? createSupabaseTokenVerifier(auth),
     identity: createParentIdentityService({
@@ -159,6 +181,13 @@ function expiredSessions(
     },
   };
 }
+
+/** In demo mode there is no adult to authenticate, so the routes that need one are not there. */
+const refuseParent: RequestHandler = (_request, response) => {
+  response
+    .status(404)
+    .json({ error: { code: 'NOT_FOUND', message: 'Not found.', requestId: 'demo' } });
+};
 
 /** One pass over the table. The sweeper runs often enough that a backlog is not expected. */
 const SWEEP = 200;
