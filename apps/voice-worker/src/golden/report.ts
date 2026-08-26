@@ -14,6 +14,9 @@ export type VoiceGoldenReport = Readonly<{
   falseTeachingCount: number;
   lowConfidenceDurableUpdateCount: number;
   unreviewedSpokenTeachingCount: number;
+  bridgesPlayed: number;
+  bridgeRepeats: number;
+  bridgesByBucket: Readonly<Record<string, number>>;
   estimatedCostUsd: number;
   eligibleForProviderDecision: boolean;
 }>;
@@ -46,6 +49,9 @@ export function buildVoiceGoldenReport(result: VoiceCandidateResult): VoiceGolde
     falseTeachingCount,
     lowConfidenceDurableUpdateCount,
     unreviewedSpokenTeachingCount,
+    bridgesPlayed: count(result.observations, (item) => item.bridgeBucket !== null),
+    bridgeRepeats: count(result.observations, (item) => item.bridgeRepeat),
+    bridgesByBucket: bucketCounts(result.observations),
     estimatedCostUsd: result.observations.reduce((total, item) => total + item.estimatedCostUsd, 0),
     eligibleForProviderDecision:
       human.length > 0 &&
@@ -53,6 +59,22 @@ export function buildVoiceGoldenReport(result: VoiceCandidateResult): VoiceGolde
       lowConfidenceDurableUpdateCount === 0 &&
       unreviewedSpokenTeachingCount === 0,
   };
+}
+
+/**
+ * How often each kind of bridge played (P2H-09).
+ *
+ * Per bucket rather than as one total, because the shape is the finding: a run that is all
+ * `confirm-heard` is a run where the child could not be understood, and that is a transcription
+ * problem wearing a bridge's clothes.
+ */
+function bucketCounts(items: readonly VoiceObservation[]): Readonly<Record<string, number>> {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    if (item.bridgeBucket === null) continue;
+    counts.set(item.bridgeBucket, (counts.get(item.bridgeBucket) ?? 0) + 1);
+  }
+  return Object.fromEntries([...counts].sort(([left], [right]) => left.localeCompare(right)));
 }
 
 function accuracy(

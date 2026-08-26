@@ -7,6 +7,7 @@ import {
 import { spokenForm } from '@aria/voice';
 
 import type { TutorVoiceClient } from '@/api/tutor-client';
+import type { BridgeTurn } from '@/session/bridge-turn';
 import {
   commonEvent,
   resumeEvent,
@@ -25,6 +26,8 @@ type MoveStreamInput = Readonly<{
   publisher: MovePublisher;
   /** P2H-08: names respelled and prosody rendered, once, on the way out. */
   renderer: SpeechRenderer;
+  /** P2H-09: absent where no clips are recorded, and then no gap is ever covered. */
+  bridge?: BridgeTurn | undefined;
   nextId(): string;
   now(): Date;
 }>;
@@ -53,13 +56,15 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
   return {
     authorize: (signal) => authorize(input, state, signal),
     handleTranscript: (text, confidence, signal) =>
-      serialize(() =>
-        send(input, state, {
+      serialize(() => {
+        // P2H-09: before the request, not after it. The gap opens the moment the child stops.
+        input.bridge?.cover({ text, confidence });
+        return send(input, state, {
           event: transcriptEvent(input, state, text, confidence),
           replayOnly: false,
           ...(signal === undefined ? {} : { signal }),
-        }),
-      ),
+        });
+      }),
     silence: (payload) =>
       serialize(() =>
         send(input, state, {
@@ -76,12 +81,13 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
         }),
       ),
     speechStarted: () =>
-      serialize(() =>
-        observe(input, state, {
+      serialize(() => {
+        input.bridge?.observeSpeechStarted();
+        return observe(input, state, {
           event: { ...commonEvent(input, state), kind: 'SPEECH_STARTED' },
           replayOnly: true,
-        }),
-      ),
+        });
+      }),
     acceptAcknowledgement: state.acknowledge,
     acknowledgedSeq: state.acknowledgedSeq,
     activeGenerationId: state.activeGenerationId,
@@ -162,16 +168,45 @@ async function* send(
 ): AsyncIterable<string> {
   const generation = state.beginGeneration(request.signal);
   state.order.begin();
+  input.bridge?.turnStarted();
+  let spoken = false;
+  // A bridge that is still playing finishes first: clips are short by construction, and a
+  // sentence that cuts across one is exactly the seam P2H-09 exists to avoid.
+  const onFirstSentence = async (): Promise<void> => {
+    if (spoken) return;
+    spoken = true;
+    await input.bridge?.settle();
+    input.bridge?.firstSpoken();
+  };
   try {
     const request$ = turnRequest(input, state, request);
     for await (const frame of input.client.turnStream(input.room.sessionId, request$, generation)) {
-      yield* frame.kind === 'MOVE_SEGMENT'
-        ? spokenSegments(input, state, frame)
-        : closeTurn(input, state, frame.turn);
+      yield* afterBridge(
+        frame.kind === 'MOVE_SEGMENT'
+          ? spokenSegments(input, state, frame)
+          : closeTurn(input, state, frame.turn),
+        onFirstSentence,
+      );
     }
   } catch (error) {
     // The child talked over the answer, so the request was pulled on purpose.
     if (!state.generationAborted()) throw error;
+  }
+}
+
+/**
+ * Holds the turn's first sentence until a playing bridge has finished (P2H-09).
+ *
+ * A clip is under 1.2 s and the answer is still being written while it plays, so waiting costs
+ * nothing a child can hear — and cutting across "let me think" is the one seam that would.
+ */
+async function* afterBridge(
+  speech: AsyncIterable<string> | Iterable<string>,
+  onFirstSentence: () => Promise<void>,
+): AsyncIterable<string> {
+  for await (const text of speech) {
+    await onFirstSentence();
+    yield text;
   }
 }
 

@@ -22,22 +22,22 @@ The design is in [`realtime-agent-harness.md`](../realtime-agent-harness.md); it
 ticket delta" section is the authority for what each ticket below contains. Rows amended
 2026-08-23 after that document's design review.
 
-| Id | Track | Scope |
-|---|---|---|
-| P2-01 | Decision | Speech and real-time provider selection, judged on measured latency, interruption, accuracy, safety and cost (`cloud-model-layer.md` §14). |
-| P2-02 | Backend | SFU (LiveKit) + `apps/voice-worker` + `packages/tutor` extraction. Week 1 is a five-point spike (gated segments as the LLM stage; browser-verified cancel; preemptive generation cannot bypass the gate; ordered de-duplicated reconnect; Node turn detector on the child set) plus the end-to-end latency measurement that sets the SLOs. Interfaces lock after it passes. Vendor APIs stay behind the ports. |
-| P2-03 | Backend | `POST /session/{id}/realtime` negotiation and short-lived credentials, gated on verified parental **voice** consent; region selection; processor list / deletion map; vendor retention terms recorded per endpoint. |
-| P2-04 | Backend | Streaming TTS through P0-19's segment gate and `spokenForm()`. Reusable audio cached by content hash; personalised dialogue streamed; pre-synthesis of next move / hint / welcome with a speculative-waste meter; reviewed audio set for the initial reading and arithmetic scope. |
-| P2-05 | Backend | Streaming ASR: partial transcripts, voice activity, `TurnDetector` port (LiveKit's detector first; Smart Turn only if measured necessary), per-band endpointing table, false-interrupt resume, server-confirmed interrupt cancelling by `generationId`. End-of-turn accuracy is reported with confidence intervals; ≥98% is a target, not an exit bar, until the set can support it. |
-| P2-06 | Frontend | Barge-in: client *ducks* on local VAD, server confirms and cancels; silence at the speaker in <250ms p95; visible stop button; echo cancellation and noise suppression on. |
-| P2-07 | Frontend | Microphone permission, device selection, parent-friendly sound check, captions, mute, device recovery, text/tap fallback. |
-| P2-08 | Frontend | Autoplay reality: visible welcome immediately, speech when the browser permits, unlocked by the child's natural class selection — **never** "press Aria's face". |
-| P2-09 | Backend | Oral-reading timing events captured, ahead of the full reading curriculum. WCPM is an estimate with a confidence band; miscues are unconfirmed observations; `ReadingStt` is never prompted with the passage; uncertain-speaker audio never becomes durable evidence. |
-| P2-10 | QA | Phase 2 exit: a five-year-old who cannot read completes a full session alone, **and** no false praise or reteach on the human-labelled core set, **and** no low-confidence reading result updates durable skill state, **and** human review finds no materially incorrect spoken teaching in the initial curriculum scope. |
-| P2-11 | Backend | The bridge system, v1: a hand-reviewed library of a few dozen clips per band and voice in `speech_asset`; `IntentClassifier` port that picks a bucket and nothing else; skip rules; seam quality. Personalised bridges, preloading and bulk generation are P2-11b, only on evidence of audible repetition. |
-| P2-12 | QA | Voice golden set (`dev-docs/golden/voice/`), `voice:golden` bot-to-bot runner, a small real-browser suite, per-turn latency spans. Blocks P2-10. |
-| P2-13 | Backend | Reconnect and worker-restart resume via the move outbox (`serverSeq` / `acknowledgedSeq` / `connectionEpoch`; at-least-once + de-dup by move id). No lost or duplicated move across `MEDIA_LOST` or a worker crash. |
-| P2-14 | Backend + Frontend | Child-audio privacy: transient audio, opt-in purpose-bound retention job, no-voiceprint assertion, parent transcript flags, consent-withdrawal deletion across the processor map, counsel sign-off before launch. |
+| Id    | Track              | Scope                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P2-01 | Decision           | Speech and real-time provider selection, judged on measured latency, interruption, accuracy, safety and cost (`cloud-model-layer.md` §14).                                                                                                                                                                                                                                                                     |
+| P2-02 | Backend            | SFU (LiveKit) + `apps/voice-worker` + `packages/tutor` extraction. Week 1 is a five-point spike (gated segments as the LLM stage; browser-verified cancel; preemptive generation cannot bypass the gate; ordered de-duplicated reconnect; Node turn detector on the child set) plus the end-to-end latency measurement that sets the SLOs. Interfaces lock after it passes. Vendor APIs stay behind the ports. |
+| P2-03 | Backend            | `POST /session/{id}/realtime` negotiation and short-lived credentials, gated on verified parental **voice** consent; region selection; processor list / deletion map; vendor retention terms recorded per endpoint.                                                                                                                                                                                            |
+| P2-04 | Backend            | Streaming TTS through P0-19's segment gate and `spokenForm()`. Reusable audio cached by content hash; personalised dialogue streamed; pre-synthesis of next move / hint / welcome with a speculative-waste meter; reviewed audio set for the initial reading and arithmetic scope.                                                                                                                             |
+| P2-05 | Backend            | Streaming ASR: partial transcripts, voice activity, `TurnDetector` port (LiveKit's detector first; Smart Turn only if measured necessary), per-band endpointing table, false-interrupt resume, server-confirmed interrupt cancelling by `generationId`. End-of-turn accuracy is reported with confidence intervals; ≥98% is a target, not an exit bar, until the set can support it.                           |
+| P2-06 | Frontend           | Barge-in: client _ducks_ on local VAD, server confirms and cancels; silence at the speaker in <250ms p95; visible stop button; echo cancellation and noise suppression on.                                                                                                                                                                                                                                     |
+| P2-07 | Frontend           | Microphone permission, device selection, parent-friendly sound check, captions, mute, device recovery, text/tap fallback.                                                                                                                                                                                                                                                                                      |
+| P2-08 | Frontend           | Autoplay reality: visible welcome immediately, speech when the browser permits, unlocked by the child's natural class selection — **never** "press Aria's face".                                                                                                                                                                                                                                               |
+| P2-09 | Backend            | Oral-reading timing events captured, ahead of the full reading curriculum. WCPM is an estimate with a confidence band; miscues are unconfirmed observations; `ReadingStt` is never prompted with the passage; uncertain-speaker audio never becomes durable evidence.                                                                                                                                          |
+| P2-10 | QA                 | Phase 2 exit: a five-year-old who cannot read completes a full session alone, **and** no false praise or reteach on the human-labelled core set, **and** no low-confidence reading result updates durable skill state, **and** human review finds no materially incorrect spoken teaching in the initial curriculum scope.                                                                                     |
+| P2-11 | Backend            | **Delivered by P2H-09** (2026-08-25), less the recordings themselves. The bridge system, v1: a hand-reviewed library of a few dozen clips per band and voice in `speech_asset`; `IntentClassifier` port that picks a bucket and nothing else; skip rules; seam quality. Personalised bridges, preloading and bulk generation are P2-11b, only on evidence of audible repetition.                               |
+| P2-12 | QA                 | Voice golden set (`dev-docs/golden/voice/`), `voice:golden` bot-to-bot runner, a small real-browser suite, per-turn latency spans. Blocks P2-10.                                                                                                                                                                                                                                                               |
+| P2-13 | Backend            | Reconnect and worker-restart resume via the move outbox (`serverSeq` / `acknowledgedSeq` / `connectionEpoch`; at-least-once + de-dup by move id). No lost or duplicated move across `MEDIA_LOST` or a worker crash.                                                                                                                                                                                            |
+| P2-14 | Backend + Frontend | Child-audio privacy: transient audio, opt-in purpose-bound retention job, no-voiceprint assertion, parent transcript flags, consent-withdrawal deletion across the processor map, counsel sign-off before launch.                                                                                                                                                                                              |
 
 Explicitly deferred out of Phase 2 (do not build by accident): thousands of bridge
 recordings, personalised speculative bridges, speculative TTS, custom child-ASR training, a
@@ -47,53 +47,53 @@ automated diagnosis from reading miscues.
 
 ## Phase 3 — Durable relationship memory and engagement
 
-| Id | Track | Scope |
-|---|---|---|
-| P3-01 | Backend | `learner_episode`, `learner_brief`, correction history. |
-| P3-02 | Backend | Consolidation expanded; expiry and conflict resolution; periodic rebuild from raw events so summary drift is detectable. |
-| P3-03 | Backend | The learner brief: generated from current evidence, **never** recursively summarised from the previous paragraph. Versioned by week, month and school year. |
-| P3-04 | Backend | The full skill graph and scheduler: spaced repetition, prerequisites, misconceptions. |
+| Id    | Track   | Scope                                                                                                                                                            |
+| ----- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P3-01 | Backend | `learner_episode`, `learner_brief`, correction history.                                                                                                          |
+| P3-02 | Backend | Consolidation expanded; expiry and conflict resolution; periodic rebuild from raw events so summary drift is detectable.                                         |
+| P3-03 | Backend | The learner brief: generated from current evidence, **never** recursively summarised from the previous paragraph. Versioned by week, month and school year.      |
+| P3-04 | Backend | The full skill graph and scheduler: spaced repetition, prerequisites, misconceptions.                                                                            |
 | P3-05 | Backend | Temporary, confidence-scored engagement state with check-ins — low confidence causes a question, never a declaration. No camera-based emotion recognition, ever. |
-| P3-06 | QA | Phase 3 exit: the tutor opens knowing the child without inventing facts. |
+| P3-06 | QA      | Phase 3 exit: the tutor opens knowing the child without inventing facts.                                                                                         |
 
 ## Phase 4 — Reading and writing to the real bar
 
-| Id | Track | Scope |
-|---|---|---|
-| P4-01 | Backend | The phonics ladder as skills and the taught-pattern list per child. |
-| P4-02 | Backend | The decodable-text filter: a deterministic gate rejecting any passage with a word outside this child's taught patterns. A model will break this rule constantly unless code enforces it. |
-| P4-03 | Backend | Oral reading assessment: WCPM, missed words, and the phonics patterns those words share, feeding skill state. |
-| P4-04 | Backend + Frontend | The writing coach loop: draft → **one** note → revision → acknowledgement. `child_writing` retained until the parent deletes it. |
-| P4-05 | QA | Phase 4 exit: a non-reader reaches decoding CVC text inside the product, and we can show the parent the week it happened. |
+| Id    | Track              | Scope                                                                                                                                                                                    |
+| ----- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P4-01 | Backend            | The phonics ladder as skills and the taught-pattern list per child.                                                                                                                      |
+| P4-02 | Backend            | The decodable-text filter: a deterministic gate rejecting any passage with a word outside this child's taught patterns. A model will break this rule constantly unless code enforces it. |
+| P4-03 | Backend            | Oral reading assessment: WCPM, missed words, and the phonics patterns those words share, feeding skill state.                                                                            |
+| P4-04 | Backend + Frontend | The writing coach loop: draft → **one** note → revision → acknowledgement. `child_writing` retained until the parent deletes it.                                                         |
+| P4-05 | QA                 | Phase 4 exit: a non-reader reaches decoding CVC text inside the product, and we can show the parent the week it happened.                                                                |
 
 ## Phase 5 — The Primer
 
-| Id | Track | Scope |
-|---|---|---|
+| Id    | Track   | Scope                                                                                                                               |
+| ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | P5-01 | Backend | `narrative_thread`: a continuing story built from this child's current interests that carries the lessons rather than framing them. |
-| P5-02 | Backend | The child's life appears only through consented, current relationship facts. |
-| P5-03 | QA | Phase 5 exit: the child asks to use it. |
+| P5-02 | Backend | The child's life appears only through consented, current relationship facts.                                                        |
+| P5-03 | QA      | Phase 5 exit: the child asks to use it.                                                                                             |
 
 ## Phase 6 — Parent and teacher agents
 
-| Id | Track | Scope |
-|---|---|---|
-| P6-01 | Backend | Weekly digest: five plain sentences, no charts. |
-| P6-02 | Backend | Ask-Aria for parents, grounded in the actual event log. |
-| P6-03 | Backend | Parent goals folded into the plan. |
-| P6-04 | Frontend | Full transcripts, learner memory view, and the correction path. |
-| P6-05 | Backend | Teacher class report, ask, directive and unprompted alerts with explicit notification rules. |
-| P6-06 | QA | Phase 6 exit: a parent renews without being asked. |
+| Id    | Track    | Scope                                                                                        |
+| ----- | -------- | -------------------------------------------------------------------------------------------- |
+| P6-01 | Backend  | Weekly digest: five plain sentences, no charts.                                              |
+| P6-02 | Backend  | Ask-Aria for parents, grounded in the actual event log.                                      |
+| P6-03 | Backend  | Parent goals folded into the plan.                                                           |
+| P6-04 | Frontend | Full transcripts, learner memory view, and the correction path.                              |
+| P6-05 | Backend  | Teacher class report, ask, directive and unprompted alerts with explicit notification rules. |
+| P6-06 | QA       | Phase 6 exit: a parent renews without being asked.                                           |
 
 ## Phase 7 — Scale
 
-| Id | Track | Scope |
-|---|---|---|
-| P7-01 | Backend | Expand and share verified non-personalised content across children. |
-| P7-02 | Backend | Optimise the cache and pre-generation built in Phase 0. |
+| Id    | Track   | Scope                                                                                                                                |
+| ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| P7-01 | Backend | Expand and share verified non-personalised content across children.                                                                  |
+| P7-02 | Backend | Optimise the cache and pre-generation built in Phase 0.                                                                              |
 | P7-03 | Backend | Tier routing tuned: cheap model for hints and grading, strong model for teaching and gating — every move backed by a golden-set run. |
-| P7-04 | Ops | Cost per child per month measured and driven down. |
-| P7-05 | QA | Phase 7 exit: unit economics work at a consumer price without weakening any quality bar. |
+| P7-04 | Ops     | Cost per child per month measured and driven down.                                                                                   |
+| P7-05 | QA      | Phase 7 exit: unit economics work at a consumer price without weakening any quality bar.                                             |
 
 ---
 

@@ -1,4 +1,7 @@
-export { bridgeTextIsNonCommittal, classifyBridgeByRule, mayPlayBridge } from './bridge';
+export { bridgeTextIsNonCommittal, chooseBridge } from './bridge';
+export { BRIDGE_BUCKETS, bucketFor } from './bridge-buckets';
+export { createBridgePicker } from './bridge-picker';
+export { BRIDGE_FLOOR_MS, BRIDGE_SKIP_RULES, decideBridge } from './bridge-rules';
 export { createMoveInbox } from './delivery';
 export { endpointingFor, silenceWindowSeconds } from './endpointing';
 export { proportion } from './golden';
@@ -16,13 +19,15 @@ export type { Phase2ExitEvidence, Phase2ExitReport } from './phase2-exit';
 export type { PreSynthesisSnapshot } from './pre-synthesis';
 export type { InterruptDecision } from './interruption';
 export type { AlignedWord, ReadingAssessment } from './reading';
+export type { BridgeChoice } from './bridge';
+export type { BridgeBucket } from './bridge-buckets';
+export type { BridgeClip, BridgePicker } from './bridge-picker';
+export type { BridgeContext, BridgeDecision, BridgeSkipRule } from './bridge-rules';
 export type { SpokenContext } from './spoken-form';
 export type { ProsodyMarker } from './prosody/markers';
 export type { PronunciationHints } from './pronunciation/names';
 export type {
-  BridgeIntent,
   ConversationalStt,
-  IntentClassifier,
   ReadingStt,
   SpeechAsset,
   SpeechAssetStore,

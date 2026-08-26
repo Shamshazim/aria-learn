@@ -12,6 +12,9 @@ export const voiceObservationSchema = z
     falseTeaching: z.boolean(),
     lowConfidenceDurableUpdate: z.boolean(),
     spokenTeachingApproved: z.boolean().nullable(),
+    /** P2H-09: whether a bridge covered this turn's gap, which bucket, and whether it repeated. */
+    bridgeBucket: z.string().min(1).max(32).nullable(),
+    bridgeRepeat: z.boolean(),
     estimatedCostUsd: z.number().nonnegative().max(10),
   })
   .strict();

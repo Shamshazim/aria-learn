@@ -1,9 +1,12 @@
 import { Router } from 'express';
 
+import type { VoiceBridgeControllers } from '@/controllers/voice-bridge.controller';
 import type { VoiceControllers } from '@/controllers/voice.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
 import {
+  bridgeAudioParamsSchema,
+  bridgeLibraryQuerySchema,
   realtimeParamsSchema,
   voiceConsentSchema,
   voiceConsentWithdrawSchema,
@@ -33,9 +36,26 @@ export function createVoiceWorkerRouter(
   input: Readonly<{
     authorize: RequestHandler;
     controller: VoiceControllers;
+    /** P2H-09: absent in a deployment that has recorded no bridge clips. */
+    bridges?: VoiceBridgeControllers;
   }>,
 ): Router {
   const router = Router();
+  const bridges = input.bridges;
+  if (bridges !== undefined) {
+    router.get(
+      '/internal/voice/bridges',
+      input.authorize,
+      validate(bridgeLibraryQuerySchema, 'query'),
+      asyncHandler(bridges.library),
+    );
+    router.get(
+      '/internal/voice/bridges/:assetId/audio',
+      input.authorize,
+      validate(bridgeAudioParamsSchema, 'params'),
+      asyncHandler(bridges.audio),
+    );
+  }
   router.post(
     '/internal/voice/session/:id/turn',
     input.authorize,

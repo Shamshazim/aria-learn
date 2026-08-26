@@ -93,11 +93,44 @@ export const voiceMetricSchema = z.discriminatedUnion('kind', [
     inferenceMs: boundedMetric,
     detectionMs: boundedMetric,
   }),
+  /**
+   * P2H-09: what the bridge path did with one turn's gap.
+   *
+   * `bucket` and `rule` are counter labels, not protocol vocabulary — the bucket names live in
+   * `@aria/voice`, which the shared package cannot import without inverting the dependency.
+   */
+  z.object({
+    kind: z.literal('bridge'),
+    played: z.boolean(),
+    bucket: z.string().min(1).max(32).nullable(),
+    rule: z.string().min(1).max(32).nullable(),
+    repeat: z.boolean(),
+  }),
 ]);
 
 export const voiceMetricRequestSchema = z.object({
   connectionEpoch: sequenceSchema,
   metric: voiceMetricSchema,
+});
+
+/**
+ * P2H-09: the reviewed bridge clips a worker may play, for its own band and voice only.
+ *
+ * Text, not audio: the worker fetches each clip's bytes separately, so a library with a
+ * hundred clips in it is one small response and not a hundred embedded blobs.
+ */
+export const bridgeClipDescriptorSchema = z.object({
+  id: z.string().min(1).max(128),
+  bucket: z.string().min(1).max(32),
+  text: z.string().min(1).max(200),
+});
+
+export const bridgeLibrarySchema = z.object({
+  band: z.string().min(1).max(16),
+  voice: z.string().min(1).max(64),
+  /** Mono signed 16-bit PCM; the worker needs the rate to build frames from the bytes. */
+  sampleRate: z.number().int().min(8_000).max(48_000),
+  clips: z.array(bridgeClipDescriptorSchema).max(2_000),
 });
 
 export type RealtimeCredentialsDto = z.infer<typeof realtimeCredentialsSchema>;
@@ -109,3 +142,5 @@ export type VoiceClientEvent = z.infer<typeof voiceClientEventSchema>;
 export type VoiceWorkerState = z.infer<typeof voiceWorkerStateSchema>;
 export type VoiceMetric = z.infer<typeof voiceMetricSchema>;
 export type VoiceMetricRequest = z.infer<typeof voiceMetricRequestSchema>;
+export type BridgeClipDescriptor = z.infer<typeof bridgeClipDescriptorSchema>;
+export type BridgeLibrary = z.infer<typeof bridgeLibrarySchema>;

@@ -7,6 +7,8 @@ import {
   updateEndpointing,
   type AriaAgentSession,
 } from '@/session/agent-session';
+import { createSessionBridge } from '@/session/bridge-runtime';
+import type { BridgeTurn } from '@/session/bridge-turn';
 import { createMoveStream, type MoveStream } from '@/session/move-stream';
 import { parseVoiceRoomContext, type VoiceRoomContext } from '@/session/session-context';
 import { createSilenceTimer, type SilenceTimer } from '@/session/silence-timer';
@@ -30,7 +32,7 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
     required(participant.metadata, 'participant metadata'),
   );
   const localParticipant = required(job.room.localParticipant, 'local participant');
-  const { client, session, runtime } = startSession(config, room, localParticipant);
+  const { client, session, runtime } = await startSession(config, room, localParticipant);
   let sessionStarted = false;
   const finish = (): void => {
     runtime.silence.stop();
@@ -76,26 +78,40 @@ async function runVoiceAgent(job: JobContext): Promise<void> {
  * Everything a session needs before the first word: the control-plane client, the LiveKit
  * session with this band's voice, and the move stream that feeds it.
  */
-function startSession(
+async function startSession(
   config: VoiceWorkerConfig,
   room: VoiceRoomContext,
   localParticipant: LocalParticipant,
-): Readonly<{
-  client: ReturnType<typeof createTutorVoiceClient>;
-  session: AriaAgentSession;
-  runtime: VoiceRuntime;
-}> {
+): Promise<
+  Readonly<{
+    client: ReturnType<typeof createTutorVoiceClient>;
+    session: AriaAgentSession;
+    runtime: VoiceRuntime;
+  }>
+> {
   const client = createTutorVoiceClient({
     baseUrl: config.apiUrl,
     token: config.workerToken,
     fetcher: globalThis.fetch,
   });
   const session = createAgentSession(config, room);
+  // P2H-09: fetched once, before the first word, because a clip fetched when the gap opens is
+  // the wait it was meant to cover.
+  const bridge = await createSessionBridge({
+    config,
+    room,
+    session,
+    fetcher: globalThis.fetch,
+    report: (metric) => {
+      void client.metric(room.sessionId, { connectionEpoch: room.connectionEpoch, metric });
+    },
+  });
   const runtime = createRuntime({
     room,
     localParticipant,
     client,
     session,
+    bridge,
     // P2H-08: built once per session, from this child's profile and this vendor's abilities.
     renderer: createSpeechRenderer({ ttsModel: config.ttsModel, hints: room.pronunciation }),
   });
@@ -116,6 +132,7 @@ function createRuntime(
     client: ReturnType<typeof createTutorVoiceClient>;
     session: AriaAgentSession;
     renderer: SpeechRenderer;
+    bridge: BridgeTurn | undefined;
   }>,
 ): VoiceRuntime {
   const runtime: { moves: MoveStream | null } = { moves: null };
@@ -130,6 +147,7 @@ function createRuntime(
     room: input.room,
     client: input.client,
     renderer: input.renderer,
+    bridge: input.bridge,
     publisher: { publish: (move) => publishMove(input, silence, move) },
     nextId: () => crypto.randomUUID(),
     now: () => new Date(),
@@ -143,6 +161,8 @@ async function publishMove(
   move: Parameters<Parameters<typeof createMoveStream>[0]['publisher']['publish']>[0],
 ): Promise<void> {
   updateEndpointing(input.session, input.room, move);
+  // P2H-09: a `SWITCH` or a `BREAK` makes the next gap a transition rather than a reply.
+  input.bridge?.observeMove(move);
   silence.armFor(move);
   await input.localParticipant.publishData(
     encoder.encode(JSON.stringify({ ...move, connectionEpoch: input.room.connectionEpoch })),

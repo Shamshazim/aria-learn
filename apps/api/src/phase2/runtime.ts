@@ -1,13 +1,16 @@
 import type { Band } from '@aria/shared';
 
+import { createVoiceBridgeControllers } from '@/controllers/voice-bridge.controller';
 import { createVoiceControllers } from '@/controllers/voice.controller';
 import { ServiceUnavailableError } from '@/errors';
 import { operatorOnly } from '@/middleware/operator-only';
 import { requireStudentAccess } from '@/middleware/student-access';
 import { workerOnly } from '@/middleware/worker-only';
+import { createBridgeObserver } from '@/observability/bridge-metrics';
 import type { createPhase1Runtime } from '@/phase1/runtime';
 import type { Phase1RuntimeDeps } from '@/phase1/runtime.types';
 import { createRetainedAudioRepository } from '@/repositories/retained-audio.repository';
+import { createSpeechAssetRepository } from '@/repositories/speech-asset.repository';
 import { createVoiceConsentRepository } from '@/repositories/voice-consent.repository';
 import { createVoiceLifecycleRepository } from '@/repositories/voice-lifecycle.repository';
 import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
@@ -16,6 +19,10 @@ import {
   createAudioDeletionService,
   type AudioDeletionPort,
 } from '@/services/voice/audio-deletion.service';
+import {
+  createBridgeLibraryService,
+  type SpeechAudioPort,
+} from '@/services/voice/bridge-library.service';
 import { createVoiceConsentService } from '@/services/voice/consent.service';
 import { createLivekitRoomCloser } from '@/services/voice/livekit-room.provider';
 import { createLivekitTokenProvider } from '@/services/voice/livekit-token.provider';
@@ -29,6 +36,7 @@ export function createPhase2Runtime(
   deps: Phase1RuntimeDeps,
   phase1: Phase1Runtime,
   deletion: AudioDeletionPort = unavailableDeletionPort(),
+  speechAudio: SpeechAudioPort = unavailableSpeechAudio(),
 ): NonNullable<RouterDeps['voice']> {
   const { voiceConfig, operatorToken } = requireVoiceConfig(deps);
   const consentRepo = createVoiceConsentRepository(deps.pool);
@@ -59,9 +67,15 @@ export function createPhase2Runtime(
     lifecycle,
   });
   const controller = buildVoiceController({ deps, phase1, voiceSessions, realtime, consent });
+  const bridges = createVoiceBridgeControllers({
+    bridges: createBridgeLibraryService({
+      assets: createSpeechAssetRepository(deps.pool),
+      audio: speechAudio,
+    }),
+  });
   return {
     student: { authorize: requireStudentAccess(deps.access), controller },
-    worker: { authorize: workerOnly(voiceConfig.workerToken), controller },
+    worker: { authorize: workerOnly(voiceConfig.workerToken), controller, bridges },
     admin: { authorize: operatorOnly(operatorToken), controller },
   };
 }
@@ -88,6 +102,7 @@ function buildVoiceController(
     sessions: phase1.repositories.sessions,
     voiceSessions,
     events: phase1.repositories.events,
+    observeBridge: createBridgeObserver({ metrics: deps.metrics }),
     clock: deps.clock,
   });
   return createVoiceControllers({
@@ -181,6 +196,13 @@ function describeVoices(voices: Readonly<Record<Band, string | undefined>>): str
   return Object.entries(voices)
     .map(([band, voice]) => `${band}=${voice ?? 'unset'}`)
     .join(' ');
+}
+
+/** No object store is configured, so every band's library is empty and no bridge ever plays. */
+function unavailableSpeechAudio(): SpeechAudioPort {
+  return {
+    read: () => Promise.reject(new ServiceUnavailableError('speech audio store is not configured')),
+  };
 }
 
 function unavailableDeletionPort(): AudioDeletionPort {

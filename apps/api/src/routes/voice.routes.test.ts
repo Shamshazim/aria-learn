@@ -5,6 +5,7 @@ import { PROTOCOL_VERSION, sessionIdSchema } from '@aria/shared';
 
 import { createApp } from '@/app';
 import { loadConfig } from '@/config';
+import { createVoiceBridgeControllers } from '@/controllers/voice-bridge.controller';
 import { createVoiceControllers } from '@/controllers/voice.controller';
 import { ForbiddenError } from '@/errors';
 import { fixedClock } from '@/lib/clock';
@@ -40,6 +41,37 @@ describe('Phase 2 voice HTTP surface', () => {
     expect(response.body).toMatchObject({
       data: { room: `aria_${SESSION_ID}`, connectionEpoch: 2, processors: ['media', 'stt', 'tts'] },
     });
+  });
+
+  it('serves the worker its own band library and the clip bytes behind it', async () => {
+    const library = await request(buildApp())
+      .get('/api/v1/internal/voice/bridges?band=middle&voice=voice-middle')
+      .set('authorization', `Bearer ${WORKER_TOKEN}`);
+
+    expect(library.status).toBe(200);
+    expect(library.body).toMatchObject({
+      data: { band: 'middle', clips: [{ bucket: 'thinking' }] },
+    });
+
+    const audio = await request(buildApp())
+      .get(`/api/v1/internal/voice/bridges/${BRIDGE_ASSET_ID}/audio`)
+      .set('authorization', `Bearer ${WORKER_TOKEN}`);
+
+    expect(audio.status).toBe(200);
+    expect(audio.headers['content-type']).toContain('application/octet-stream');
+  });
+
+  it('rejects a bridge library request without a worker token or with a bad band', async () => {
+    expect(
+      (await request(buildApp()).get('/api/v1/internal/voice/bridges?band=middle&voice=v')).status,
+    ).toBe(403);
+    expect(
+      (
+        await request(buildApp())
+          .get('/api/v1/internal/voice/bridges?band=not-a-band&voice=v')
+          .set('authorization', `Bearer ${WORKER_TOKEN}`)
+      ).status,
+    ).toBe(400);
   });
 
   it('validates ids and rejects unauthorized student, worker and operator calls', async () => {
@@ -122,8 +154,25 @@ function buildApp(denyStudent = false) {
     ids: sequentialIds('request'),
     voice: {
       student: { authorize, controller },
-      worker: { authorize: workerOnly(WORKER_TOKEN), controller },
+      worker: { authorize: workerOnly(WORKER_TOKEN), controller, bridges: bridgeControllers() },
       admin: { authorize: operatorOnly(OPERATOR_TOKEN), controller },
+    },
+  });
+}
+
+const BRIDGE_ASSET_ID = '00000000-0000-4000-8000-000000000105';
+
+function bridgeControllers() {
+  return createVoiceBridgeControllers({
+    bridges: {
+      list: ({ band, voice }) =>
+        Promise.resolve({
+          band,
+          voice,
+          sampleRate: 24_000,
+          clips: [{ id: BRIDGE_ASSET_ID, bucket: 'thinking', text: 'Let me think.' }],
+        }),
+      audio: () => Promise.resolve(new Uint8Array([0, 1, 0, 2])),
     },
   });
 }

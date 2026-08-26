@@ -13,7 +13,9 @@
       "falseTeaching": false,
       "lowConfidenceDurableUpdate": false,
       "spokenTeachingApproved": null,
-      "estimatedCostUsd": 0
+      "estimatedCostUsd": 0,
+      "bridgeBucket": "acknowledge",
+      "bridgeRepeat": false
     }
   ]
 }

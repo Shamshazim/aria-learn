@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { voiceMetricRequestSchema, voiceTurnRequestSchema } from '@aria/shared';
+import { bandSchema, voiceMetricRequestSchema, voiceTurnRequestSchema } from '@aria/shared';
 
 export const realtimeParamsSchema = z.object({ id: z.uuid() }).strict();
 
@@ -17,6 +17,13 @@ export const voiceConsentSchema = z
 export const voiceConsentWithdrawSchema = z
   .object({ parentId: z.uuid(), studentId: z.uuid() })
   .strict();
+
+/** P2H-09: a worker may only ask for the library of the band and voice it is running. */
+export const bridgeLibraryQuerySchema = z
+  .object({ band: bandSchema, voice: z.string().trim().min(1).max(64) })
+  .strict();
+
+export const bridgeAudioParamsSchema = z.object({ assetId: z.uuid() }).strict();
 
 export const workerVoiceTurnSchema = voiceTurnRequestSchema;
 export const workerVoiceMetricSchema = voiceMetricRequestSchema;

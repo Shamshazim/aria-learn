@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@aria/shared": "*"
+    "@aria/shared": "*",
+    "@aria/tutor": "*"
   }
 }

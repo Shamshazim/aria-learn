@@ -1,4 +1,4 @@
-import type { Band, TutorMove } from '@aria/shared';
+import type { Band } from '@aria/shared';
 
 export type WordTiming = Readonly<{
   text: string;
@@ -52,12 +52,4 @@ export type SpeechAsset = Readonly<{
 
 export type SpeechAssetStore = Readonly<{
   findApproved(hash: string): Promise<SpeechAsset | null>;
-}>;
-
-export type BridgeIntent = 'answer' | 'question' | 'stuck' | 'request' | 'leaving' | 'unclear';
-
-export type IntentClassifier = Readonly<{
-  classify(
-    input: Readonly<{ expects: TutorMove['expects']; transcript: string; band: Band }>,
-  ): Promise<Readonly<{ intent: BridgeIntent; confidence: number }>>;
 }>;

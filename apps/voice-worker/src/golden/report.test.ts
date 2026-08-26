@@ -34,6 +34,29 @@ describe('voice golden report', () => {
     expect(report.falseTeachingCount).toBe(1);
     expect(report.eligibleForProviderDecision).toBe(false);
   });
+
+  it('reports what the bridges did, per bucket, and how often one repeated', () => {
+    const report = buildVoiceGoldenReport(
+      voiceCandidateResultSchema.parse({
+        candidate: 'candidate-a',
+        generatedAt: '2026-08-24T00:00:00.000Z',
+        observations: [
+          { ...observation('synthetic'), bridgeBucket: 'thinking' },
+          {
+            ...observation('synthetic'),
+            scenarioId: 'again',
+            bridgeBucket: 'thinking',
+            bridgeRepeat: true,
+          },
+          { ...observation('synthetic'), scenarioId: 'quiet' },
+        ],
+      }),
+    );
+
+    expect(report.bridgesPlayed).toBe(2);
+    expect(report.bridgeRepeats).toBe(1);
+    expect(report.bridgesByBucket).toEqual({ thinking: 2 });
+  });
 });
 
 function observation(provenance: 'human_labelled' | 'synthetic') {
@@ -48,6 +71,8 @@ function observation(provenance: 'human_labelled' | 'synthetic') {
     falseTeaching: false,
     lowConfidenceDurableUpdate: false,
     spokenTeachingApproved: true,
+    bridgeBucket: null,
+    bridgeRepeat: false,
     estimatedCostUsd: 0.01,
   };
 }
