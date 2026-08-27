@@ -36,7 +36,9 @@ export function createRequestBody(
         : request.system,
     messages: [{ role: 'user', content: request.user }],
     max_tokens: request.maxTokens ?? endpoint['max-tokens'],
-    ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
+    ...(request.temperature === undefined || endpoint['supports-temperature'] === false
+      ? {}
+      : { temperature: request.temperature }),
     ...(delivery === 'stream' ? { stream: true as const } : {}),
   };
 }

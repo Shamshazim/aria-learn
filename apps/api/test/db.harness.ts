@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import { loadRepoEnvFile } from '@/config';
 import { closePool, createPool, runMigrations } from '@/db';
 import type { Queryable } from '@/db';
 import { createLogger } from '@/lib/logger';
@@ -34,19 +35,11 @@ export type TestDatabase = {
 };
 
 /**
- * Node 22 can read a `.env` itself, so a developer who followed the README's `cp .env.example
- * .env` does not also have to export DATABASE_URL to run the tests.
+ * The same `.env` the API itself reads, so a developer who followed the README's
+ * `cp .env.example .env` does not also have to export DATABASE_URL to run the tests.
  */
-function loadDotEnvIfPresent(): void {
-  try {
-    process.loadEnvFile();
-  } catch {
-    // No .env, or unreadable. The environment is then expected to carry DATABASE_URL already.
-  }
-}
-
 export function databaseUrl(): string | undefined {
-  loadDotEnvIfPresent();
+  loadRepoEnvFile();
   return process.env.DATABASE_URL;
 }
 

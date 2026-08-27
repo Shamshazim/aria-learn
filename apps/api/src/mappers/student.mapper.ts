@@ -1,8 +1,18 @@
 import { bandSchema, parseGrade } from '@aria/shared';
 
-import type { Student } from '@/types/student';
+import { studentSettingsSchema } from '@/schemas/student-settings.schema';
+import type { Student, StudentSettings } from '@/types/student';
 
 import { unmappableRow } from './row';
+
+/**
+ * What a child's profile is before a parent has said anything about it (P2H-12).
+ *
+ * It lives beside the mapper because it is the value an empty `settings` column maps to, and
+ * the repository writes the same object when it inserts a row — one default, in the layer that
+ * owns the shape, rather than one in `schemas/` that a repository has to reach up for.
+ */
+export const DEFAULT_STUDENT_SETTINGS: StudentSettings = studentSettingsSchema.parse({});
 
 export type StudentRow = {
   id: string;
@@ -10,6 +20,7 @@ export type StudentRow = {
   display_name: string;
   grade: string;
   band: string;
+  settings: unknown;
   created_at: Date;
 };
 
@@ -32,12 +43,18 @@ export function toStudent(row: StudentRow): Student {
     throw unmappableRow('student', 'created_at', row.id);
   }
 
+  // A settings object that does not parse is a row we wrote wrong, not a request we were
+  // sent wrong, so it fails loudly here rather than silently falling back to defaults.
+  const settings = studentSettingsSchema.safeParse(row.settings ?? {});
+  if (!settings.success) throw unmappableRow('student', 'settings', row.id);
+
   return {
     id: row.id,
     parentId: row.parent_id,
     displayName: row.display_name,
     grade,
     band: band.data,
+    settings: settings.data,
     createdAt: row.created_at,
   };
 }

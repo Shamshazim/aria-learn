@@ -10,6 +10,8 @@ export const WRITING_SKILLS = [
     name: 'Write one word for an idea',
     band: 'early',
     prerequisites: [],
+    lessonRef: 'lesson-wr-word',
+    visualKinds: [],
   },
   {
     id: 'skill-wr-sentence',
@@ -19,6 +21,8 @@ export const WRITING_SKILLS = [
     name: 'Write one complete sentence',
     band: 'early',
     prerequisites: ['WR.WORD'],
+    lessonRef: 'lesson-wr-sentence',
+    visualKinds: [],
   },
   {
     id: 'skill-wr-paragraph',
@@ -28,6 +32,8 @@ export const WRITING_SKILLS = [
     name: 'Write a focused paragraph',
     band: 'middle',
     prerequisites: ['WR.SENTENCE'],
+    lessonRef: 'lesson-wr-paragraph',
+    visualKinds: [],
   },
   {
     id: 'skill-wr-short-piece',
@@ -37,5 +43,7 @@ export const WRITING_SKILLS = [
     name: 'Write a short piece with a beginning, middle, and end',
     band: 'senior',
     prerequisites: ['WR.PARAGRAPH'],
+    lessonRef: 'lesson-wr-short-piece',
+    visualKinds: [],
   },
 ] as const satisfies readonly Skill[];

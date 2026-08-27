@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { json, type Express } from 'express';
 import helmet from 'helmet';
@@ -30,7 +31,10 @@ export type AppDeps = {
   clock: Clock;
   ids: IdGenerator;
   statusService?: StatusService;
+  /** P2H-12: parent sign-in and the child picker. Absent where no project is configured. */
+  identity?: RouterDeps['identity'];
   student?: RouterDeps['student'];
+  voice?: RouterDeps['voice'];
 };
 
 export function createApp({
@@ -39,7 +43,9 @@ export function createApp({
   clock,
   ids,
   statusService,
+  identity,
   student,
+  voice,
 }: AppDeps): Express {
   const app = express();
 
@@ -54,6 +60,10 @@ export function createApp({
     }),
   );
   app.use(json({ limit: config.jsonBodyLimit }));
+  // P2H-12: the child session travels in a signed cookie. Without a secret nothing can be
+  // signed, so `signedCookies` stays empty and every student route refuses — which is the
+  // right behaviour for a deployment that has not been given one.
+  app.use(cookieParser(config.auth?.childSessionSecret));
   app.use(requestId(ids));
   app.use(requestLogger(logger));
 
@@ -69,7 +79,9 @@ export function createApp({
               authorize: operatorOnly(config.statusOperatorToken),
             },
           }),
+      ...(identity === undefined ? {} : { identity }),
       ...(student === undefined ? {} : { student }),
+      ...(voice === undefined ? {} : { voice }),
     }),
   );
 

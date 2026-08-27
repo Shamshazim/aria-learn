@@ -14,7 +14,7 @@ const SCENARIO_DIRECTORY = fileURLToPath(
 );
 
 describe('checked-in tutoring scenarios', () => {
-  it('loads all eight scenarios and passes every machine invariant', async () => {
+  it('loads every scenario and passes every machine invariant', async () => {
     const scenarios = await loadTutoringScenarios(SCENARIO_DIRECTORY);
     const reports = await Promise.all(
       scenarios.map(async (scenario) => {
@@ -27,6 +27,7 @@ describe('checked-in tutoring scenarios', () => {
       'arrival-after-absence',
       'changed-preference',
       'interruption',
+      'question-mid-lesson',
       'recalled-breakthrough',
       'repeated-confusion',
       'resumed-session',

@@ -1,294 +1,281 @@
-import { z } from 'zod';
-
-import type { TutorMove } from '@aria/shared';
 import type { PlannedTurn, ResolvedContent } from '@aria/tutor';
 
-import type { AiClient } from '@/ai';
-import type { ReliableContentService } from '@/content/content.service';
-import type { ScrubbedContext } from '@/privacy';
-import type { QualityGate } from '@/quality';
-import { arithmeticProblemSchema, type ArithmeticProblem } from '@/quality/arithmetic';
-import { eventText, fallbackText } from '@/services/content/turn-fallback';
-import { responseMove } from '@/services/content/turn-response';
-import type { MoveFactory } from '@/services/moves/move-factory';
+import {
+  NULL_TURN_CONTENT_OBSERVER,
+  type TurnContentObserver,
+} from '@/observability/content-metrics';
+import { createFallbackPicker, type FallbackPicker } from '@/services/content/fallback';
+import { fixedText } from '@/services/content/fixed-text';
+import {
+  generateGatedText,
+  requiredGatedText,
+  throwIfAborted,
+  type GenerationOutcome,
+} from '@/services/content/generate-text';
+import { moveInputsFor, type MoveInputs } from '@/services/content/move-inputs';
+import { segmentContentKind } from '@/services/content/streaming-kinds';
+import type {
+  ApiModelContext,
+  MoveIdentity,
+  StreamingDeps,
+  TurnContentDeps,
+} from '@/services/content/turn-content.types';
+import { contextEvidence, resolveQuestion, retryAsk } from '@/services/content/turn-question';
+import { isDetour, responseMove } from '@/services/content/turn-response';
+import { streamGatedText, type StreamRelease } from '@/services/content/turn-stream';
+import { visualMove } from '@/services/content/turn-visual';
 
-export type ApiModelContext = Readonly<{
-  scrubbed: ScrubbedContext;
-  answerKey: string | null;
-  latestQuestion: string | null;
-  estimatedTokens: number;
-  retrievedFactIds: readonly string[];
-  recentContentItemIds: readonly string[];
-  arithmeticProblem: ArithmeticProblem | null;
-  completionOnly: boolean;
-  latestAsk: Extract<TutorMove, { kind: 'ASK' }> | null;
-}>;
-
-const questionBodySchema = z
-  .object({
-    prompt: z.string().min(1).max(2_000),
-    choices: z.array(z.string().min(1).max(300)).min(2).max(8).optional(),
-    answerKey: z.string().min(1).max(500).optional(),
-    arithmeticProblem: arithmeticProblemSchema.optional(),
-    completionOnly: z.boolean().optional(),
-  })
-  .loose();
+export type { ApiModelContext } from '@/services/content/turn-content.types';
 
 export type TurnContentService = Readonly<{
   resolve(turn: PlannedTurn<ApiModelContext>, signal?: AbortSignal): Promise<ResolvedContent>;
 }>;
 
-export function createTurnContentService(deps: {
-  reliable: ReliableContentService;
-  ai: AiClient | null;
-  gate: QualityGate;
-  moves(sessionId: string): MoveFactory;
-  remediation(misconceptionId: string): string | null;
-}): TurnContentService {
+export function createTurnContentService(deps: TurnContentDeps): TurnContentService {
+  // P2H-11: one picker per service, because "never the one you said last time" is state that
+  // has to outlive a turn. It is the only place a static sentence can come from now.
+  const picker = createFallbackPicker({ gate: deps.gate });
   return {
     resolve: (turn: PlannedTurn<ApiModelContext>, signal?: AbortSignal) =>
-      resolve(deps, turn, signal),
+      resolve(deps, picker, turn, signal),
   };
 }
 
+/** What Aria says this turn, and where the words came from. */
+type Said = Readonly<{
+  text: string;
+  provenance: Readonly<Record<string, unknown>>;
+  identity?: MoveIdentity;
+}>;
+
 async function resolve(
-  deps: Parameters<typeof createTurnContentService>[0],
+  deps: TurnContentDeps,
+  picker: FallbackPicker,
   turn: PlannedTurn<ApiModelContext>,
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
   throwIfAborted(signal);
   if (turn.plan.kind === 'ASK') return resolveQuestion(deps, turn, signal);
-  const remediation = currentRemediation(deps, turn);
-  if (remediation !== null) {
-    const text = requiredGatedText(deps.gate, remediation, turn.context.session.band);
-    return responseWithContinuation(deps, turn, text, signal);
+  const reviewed = reviewedText(deps, turn);
+  if (reviewed !== null) {
+    const text = requiredGatedText(deps.gate, reviewed.text, turn.context.session.band);
+    return responseWithContinuation(deps, turn, { text, provenance: reviewed.provenance }, signal);
   }
-  const generated = await generateGatedText(deps.ai, deps.gate, turn, signal);
+  const said = await generated(
+    deps,
+    turn,
+    { picker, inputs: await moveInputs(deps, turn) },
+    signal,
+  );
   throwIfAborted(signal);
-  const text =
-    generated ?? requiredGatedText(deps.gate, fallbackText(turn), turn.context.session.band);
-  return responseWithContinuation(deps, turn, text, signal);
+  return responseWithContinuation(deps, turn, said, signal);
+}
+
+/**
+ * P2H-11: the evidence this move is allowed to be specific with, gathered once.
+ *
+ * Once, because the prompt and the gate have to be looking at the same list — a model offered a
+ * strategy the gate would then refuse would regenerate forever.
+ */
+async function moveInputs(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): Promise<MoveInputs> {
+  const closing = turn.plan.kind === 'END' || turn.plan.kind === 'BREAK';
+  const recap = closing ? ((await deps.recap?.(turn.context.session.id)) ?? null) : null;
+  return moveInputsFor(turn, { misconceptionIdea: misconceptionIdea(deps, turn), recap });
+}
+
+function misconceptionIdea(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): string | null {
+  const id = turn.decision.graded?.misconception ?? turn.context.session.repeatedMisconception;
+  return id === null ? null : (deps.misconceptionIdea?.(id) ?? null);
+}
+
+/** A sentence somebody already approved: the scripted one, or a misconception's remediation. */
+function reviewedText(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+): Readonly<{ text: string; provenance: Readonly<Record<string, unknown>> }> | null {
+  const scripted = fixedText(turn);
+  if (scripted !== null) {
+    return { text: scripted, provenance: { responseSource: 'reviewed-fixed' } };
+  }
+  return currentRemediation(deps, turn);
+}
+
+/** Aria's own words: streamed a sentence at a time where that is safe, buffered otherwise. */
+async function generated(
+  deps: TurnContentDeps,
+  turn: PlannedTurn<ApiModelContext>,
+  say: Readonly<{ picker: FallbackPicker; inputs: MoveInputs }>,
+  signal?: AbortSignal,
+): Promise<Said> {
+  const { picker, inputs } = say;
+  const streaming = streamingFor(deps, picker, turn, inputs);
+  if (streaming === null) {
+    return buffered(deps, picker, turn, await generateGatedText(deps, turn, inputs, signal));
+  }
+  const outcome = await streamGatedText(streaming.deps, turn, streaming.release, signal);
+  if (outcome.kind !== 'generated') return buffered(deps, picker, turn, outcome);
+  if (outcome.truncated !== undefined) {
+    observerFor(deps).streamTruncated(
+      turn.plan.kind,
+      outcome.truncated.reason,
+      outcome.truncated.error,
+    );
+  }
+  // P2H-11: the gate refused a sentence mid-stream and the reviewed closing text went out in
+  // its place. The child heard a static string, so it is counted like every other one — most
+  // of the answer having been Aria's own does not make it not have happened.
+  if (outcome.substituted === true) observerFor(deps).fallbackUsed(turn.plan.kind, 'gate_failed');
+  return {
+    text: outcome.text,
+    provenance: {
+      ...provenance(outcome),
+      ...(outcome.truncated === undefined ? {} : { streamTruncated: outcome.truncated.reason }),
+      ...(outcome.substituted === true ? { responseSource: 'model-with-fallback-tail' } : {}),
+    },
+    identity: streaming.release.identity,
+  };
+}
+
+/** The turn said nothing of its own, so a reviewed sentence says it instead. */
+function buffered(
+  deps: TurnContentDeps,
+  picker: FallbackPicker,
+  turn: PlannedTurn<ApiModelContext>,
+  outcome: GenerationOutcome,
+): Said {
+  if (outcome.kind === 'generated') {
+    return { text: outcome.text, provenance: provenance(outcome) };
+  }
+  observerFor(deps).fallbackUsed(turn.plan.kind, outcome.reason);
+  return { text: fallbackFor(deps, picker, turn), provenance: provenance(outcome) };
+}
+
+/** The reviewed sentence for this move, this band, this session — never the last one used. */
+function fallbackFor(
+  deps: TurnContentDeps,
+  picker: FallbackPicker,
+  turn: PlannedTurn<ApiModelContext>,
+): string {
+  const session = turn.context.session;
+  const skillCode = turn.plan.skillCode ?? session.skillCode;
+  const name = turn.context.modelContext.scrubbed.value.pseudonymousFirstName;
+  const skillName = skillCode === null ? undefined : (deps.skillName?.(skillCode) ?? undefined);
+  const answer = turn.context.modelContext.answerKey ?? undefined;
+  return picker.pick({
+    sessionId: session.id,
+    move: turn.plan.kind,
+    approach: turn.plan.approach,
+    band: session.band,
+    parameters: {
+      ...(name === undefined ? {} : { name }),
+      ...(skillName === undefined ? {} : { skillName }),
+      ...(answer === undefined ? {} : { answer }),
+    },
+  });
+}
+
+function observerFor(deps: TurnContentDeps): TurnContentObserver {
+  return deps.observer ?? NULL_TURN_CONTENT_OBSERVER;
+}
+
+/**
+ * P2H-07: a streamed move is named before its first sentence leaves.
+ *
+ * The segments and the move that finally arrives have to be the same thing, or a client would
+ * speak the sentences and then speak them again. Streaming is off unless something is listening
+ * — a buffered client is still a supported client, and generating into nothing costs a turn.
+ */
+function streamingFor(
+  deps: TurnContentDeps,
+  picker: FallbackPicker,
+  turn: PlannedTurn<ApiModelContext>,
+  inputs: MoveInputs,
+): Readonly<{ deps: StreamingDeps; release: StreamRelease }> | null {
+  const streaming = deps.streaming;
+  if (streaming === undefined) return null;
+  const contentKind = segmentContentKind(turn.plan.kind, turn.context.session.band);
+  if (contentKind === null) return null;
+  if (!streaming.segments.listening(turn.context.session.id)) return null;
+  return {
+    deps: streaming,
+    release: {
+      identity: { id: streaming.ids.next(), generationId: streaming.ids.next() },
+      contentKind,
+      inputs,
+      fallbackText: fallbackFor(deps, picker, turn),
+    },
+  };
+}
+
+/**
+ * P2H-02/P2H-03: where Aria's *words* came from, and which prompt made them.
+ *
+ * Deliberately not `contentSource`: that key already means where the practice *item* came
+ * from, and a PRAISE followed by a new question carries both in one evidence row.
+ */
+function provenance(outcome: GenerationOutcome): Readonly<Record<string, unknown>> {
+  return outcome.kind === 'generated'
+    ? {
+        responseSource: 'model',
+        promptName: outcome.promptName,
+        promptVersion: outcome.promptVersion,
+      }
+    : { responseSource: 'fallback', fallbackReason: outcome.reason };
 }
 
 function currentRemediation(
-  deps: Parameters<typeof createTurnContentService>[0],
+  deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
-): string | null {
+): Readonly<{ text: string; provenance: Readonly<Record<string, unknown>> }> | null {
   const id =
     turn.plan.kind === 'RETEACH'
       ? (turn.decision.graded?.misconception ?? turn.context.session.repeatedMisconception)
       : null;
-  return id === null ? null : deps.remediation(id);
-}
-
-async function generateGatedText(
-  ai: AiClient | null,
-  gate: QualityGate,
-  turn: PlannedTurn<ApiModelContext>,
-  signal?: AbortSignal,
-): Promise<string | null> {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const candidate = await generateText(ai, turn, signal);
-    if (candidate === null) return null;
-    if (passes(gate, candidate, turn.context.session.band)) return candidate;
-  }
-  return null;
-}
-
-async function resolveQuestion(
-  deps: Parameters<typeof createTurnContentService>[0],
-  turn: PlannedTurn<ApiModelContext>,
-  signal?: AbortSignal,
-): Promise<ResolvedContent> {
-  throwIfAborted(signal);
-  const skillCode = turn.plan.skillCode;
-  if (skillCode === null) return resolveOpenQuestion(deps, turn);
-  const content = await deps.reliable.resolve(
-    {
-      kind: 'question',
-      skillCode,
-      band: turn.context.session.band,
-      studentId: turn.context.session.studentId,
-      excludeIds: turn.context.modelContext.recentContentItemIds,
-    },
-    signal,
-  );
-  throwIfAborted(signal);
-  const body = questionBodySchema.parse(content.body);
-  const display = questionDisplay(body);
-  for (const childText of [body.prompt, ...(body.choices ?? [])]) {
-    requiredGatedText(
-      deps.gate,
-      childText,
-      turn.context.session.band,
-      content.source === 'generated',
-    );
-  }
-  const move = deps.moves(turn.context.session.id).make({
-    kind: 'ASK',
-    skillId: skillCode,
-    itemId: content.itemId ?? `fallback-${skillCode}`,
-    attempt: turn.plan.attempt,
-    speech: { text: body.prompt },
-    display,
-    expects: body.choices === undefined ? 'text' : 'choice',
-  });
-  return {
-    moves: [move],
-    privateEvidence: {
-      ...contextEvidence(turn),
-      answerKey: body.answerKey ?? null,
-      arithmeticProblem: body.arithmeticProblem ?? null,
-      completionOnly: body.completionOnly ?? false,
-      contentSource: content.source,
-      approach: turn.plan.approach,
-      ...(content.itemId === null ? {} : { contentItemId: content.itemId }),
-    },
-  };
-}
-
-function resolveOpenQuestion(
-  deps: Parameters<typeof createTurnContentService>[0],
-  turn: PlannedTurn<ApiModelContext>,
-): ResolvedContent {
-  const text = requiredGatedText(deps.gate, 'What do you think?', turn.context.session.band);
-  return {
-    moves: [responseMove(deps.moves(turn.context.session.id), turn, text)],
-    privateEvidence: contextEvidence(turn),
-  };
-}
-
-function questionDisplay(body: z.infer<typeof questionBodySchema>): TutorMove['display'] {
-  return body.choices === undefined
-    ? [{ type: 'text', body: body.prompt, markdown: false }]
-    : [
-        {
-          type: 'choices',
-          options: body.choices.map((choice) => ({ id: choice, label: choice })),
-        },
-      ];
-}
-
-function contextEvidence(turn: PlannedTurn<ApiModelContext>): Readonly<Record<string, unknown>> {
-  return {
-    contextTokens: turn.context.modelContext.estimatedTokens,
-    retrievedFactIds: turn.context.modelContext.retrievedFactIds,
-  };
-}
-
-async function generateText(
-  ai: AiClient | null,
-  turn: PlannedTurn<ApiModelContext>,
-  signal?: AbortSignal,
-): Promise<string | null> {
-  if (ai === null) return null;
-  try {
-    if (turn.plan.kind === 'HINT') {
-      const result = await ai.run(
-        'hint',
-        {
-          context: turn.context.modelContext.scrubbed,
-          problem:
-            turn.context.modelContext.latestQuestion ??
-            turn.context.session.skillCode ??
-            'practice',
-          learnerAnswer: eventText(turn),
-        },
-        { studentId: turn.context.session.studentId, ...(signal === undefined ? {} : { signal }) },
-      );
-      return result.data.hint;
-    }
-    if (turn.plan.kind === 'SAY' || turn.plan.kind === 'RETEACH') {
-      const result = await ai.run(
-        'explain',
-        {
-          context: turn.context.modelContext.scrubbed,
-          concept: turn.context.session.skillCode ?? turn.context.session.subject,
-          learnerQuestion: eventText(turn) ?? 'Please explain this in a different way.',
-          approach: turn.plan.approach,
-        },
-        { studentId: turn.context.session.studentId, ...(signal === undefined ? {} : { signal }) },
-      );
-      return result.data.explanation;
-    }
-  } catch {
-    throwIfAborted(signal);
-    return null;
-  }
-  return null;
-}
-
-function throwIfAborted(signal: AbortSignal | undefined): void {
-  if (signal?.aborted === true) throw new DOMException('Tutor turn aborted', 'AbortError');
-}
-
-function requiredGatedText(
-  gate: QualityGate,
-  text: string,
-  band: PlannedTurn<ApiModelContext>['context']['session']['band'],
-  generated = false,
-): string {
-  if (!passes(gate, text, band, generated))
-    throw new Error('Child-facing turn content failed the quality gate');
-  return text;
-}
-
-function passes(
-  gate: QualityGate,
-  text: string,
-  band: Parameters<typeof requiredGatedText>[2],
-  generated = true,
-): boolean {
-  return (
-    gate({
-      id: 'turn-text',
-      kind: 'text',
-      band,
-      childText: text,
-      factual: false,
-      grounding: generated ? 'unsupported' : 'reviewed-bank',
-    }).verdict === 'pass'
-  );
+  const text = id === null ? null : deps.remediation(id);
+  return text === null ? null : { text, provenance: { responseSource: 'reviewed-remediation' } };
 }
 
 async function responseWithContinuation(
-  deps: Parameters<typeof createTurnContentService>[0],
+  deps: TurnContentDeps,
   turn: PlannedTurn<ApiModelContext>,
-  text: string,
+  said: Said,
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
-  const feedback = responseMove(deps.moves(turn.context.session.id), turn, text);
-  if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH') {
+  const feedback = responseMove(
+    deps.moves(turn.context.session.id),
+    turn,
+    said.text,
+    said.identity,
+  );
+  const evidence = { ...contextEvidence(turn), ...said.provenance };
+  const detour = isDetour(turn);
+  if (turn.plan.kind === 'HINT' || turn.plan.kind === 'RETEACH' || detour) {
+    // P2H-10: the picture goes between the explanation and the question it was about, so the
+    // child is looking at it while the item comes back.
+    const shown = visualMove(deps, turn);
     const prior = turn.context.modelContext.latestAsk;
+    const followUp = prior === null ? [] : [retryAsk(deps, turn, prior, !detour)];
     return {
-      moves: prior === null ? [feedback] : [feedback, retryAsk(deps, turn, prior)],
-      privateEvidence: contextEvidence(turn),
+      moves: [feedback, ...(shown === null ? [] : [shown]), ...followUp],
+      privateEvidence: evidence,
     };
   }
   if (!['PRAISE', 'REVEAL', 'SWITCH'].includes(turn.plan.kind)) {
-    return { moves: [feedback], privateEvidence: contextEvidence(turn) };
+    return { moves: [feedback], privateEvidence: evidence };
   }
   const next = await resolveQuestion(
     deps,
     { ...turn, plan: { ...turn.plan, kind: 'ASK', attempt: 1 } },
     signal,
   );
-  return { moves: [feedback, ...next.moves], privateEvidence: next.privateEvidence };
-}
-
-function retryAsk(
-  deps: Parameters<typeof createTurnContentService>[0],
-  turn: PlannedTurn<ApiModelContext>,
-  prior: Extract<TutorMove, { kind: 'ASK' }>,
-): TutorMove {
-  return deps.moves(turn.context.session.id).make({
-    kind: 'ASK',
-    skillId: prior.skillId,
-    itemId: prior.itemId,
-    attempt: Math.min(10, prior.attempt + 1),
-    vocabularyHint: prior.vocabularyHint,
-    speech: prior.speech,
-    display: prior.display,
-    expects: prior.expects,
-  });
+  return {
+    moves: [feedback, ...next.moves],
+    privateEvidence: { ...evidence, ...next.privateEvidence },
+  };
 }

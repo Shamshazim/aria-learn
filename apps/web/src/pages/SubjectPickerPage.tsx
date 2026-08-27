@@ -217,6 +217,7 @@ function sessionHref(
   checkIn: string | null,
 ): string {
   const query = new URLSearchParams();
+  query.set('voice', '1');
   if (arrivalId !== undefined) query.set('arrivalId', arrivalId);
   if (recommended) query.set('recommended', '1');
   if (checkIn !== null) query.set('checkIn', checkIn);

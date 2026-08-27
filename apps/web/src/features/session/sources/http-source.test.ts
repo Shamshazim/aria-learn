@@ -10,6 +10,7 @@ import {
 } from '@aria/shared';
 
 import type { SessionApi } from '@/features/session/api/session.api';
+import { ContentUnavailableError, isTutorMove } from '@/features/session/model/tutor-source';
 import { createHttpTutorSource } from '@/features/session/sources/http-source';
 
 const SESSION_ID = sessionIdSchema.parse('11111111-1111-4111-8111-111111111111');
@@ -46,6 +47,55 @@ describe('HTTP tutor source', () => {
       sessionId: SESSION_ID,
       event: { sessionId: SESSION_ID },
     });
+  });
+
+  it('yields each sentence as it arrives, then the moves that close the turn', async () => {
+    const hint = move('HINT', 'Start at four.');
+    const api = fakeApi({ createdMoves: [], turnMoves: [hint] });
+    const streamed = {
+      kind: 'MOVE_SEGMENT' as const,
+      generationId: 'gen-1',
+      moveId: hint.id,
+      index: 0,
+      text: 'Start at four.',
+      speech: 'Start at four.',
+      isLast: false,
+    };
+    const source = await startedSource({
+      ...api,
+      turnStream: async function* (request: Parameters<SessionApi['turn']>[0]) {
+        yield await Promise.resolve(streamed);
+        yield { kind: 'TURN_MOVES' as const, turn: await api.turn(request, undefined) };
+      },
+    });
+
+    const output: unknown[] = [];
+    for await (const item of source.send(event({ kind: 'CONFUSED' }))) output.push(item);
+
+    expect(output).toEqual([streamed, hint]);
+  });
+
+  it('treats a turn that stopped mid-sentence as content that is unavailable', async () => {
+    const api = fakeApi({ createdMoves: [], turnMoves: [] });
+    const source = await startedSource({
+      ...api,
+      // The stream ends without its closing frame: the turn stopped part-way through.
+      turnStream: async function* () {
+        yield await Promise.resolve({
+          kind: 'MOVE_SEGMENT' as const,
+          generationId: 'gen-1',
+          moveId: 'move-1',
+          index: 0,
+          text: 'Start at',
+          speech: 'Start at',
+          isLast: false,
+        });
+      },
+    });
+
+    await expect(collect(source, event({ kind: 'CONFUSED' }))).rejects.toBeInstanceOf(
+      ContentUnavailableError,
+    );
   });
 
   it('resumes an open session instead of creating another one', async () => {
@@ -107,8 +157,28 @@ function fakeApi(
     current,
     create,
     turn,
+    // P2H-07: the buffered answer, delivered as a stream with nothing but its closing frame.
+    turnStream: async function* (input: Parameters<SessionApi['turn']>[0], signal?: AbortSignal) {
+      yield { kind: 'TURN_MOVES' as const, turn: await turn(input, signal) };
+    },
     end,
+    realtime: vi.fn<SessionApi['realtime']>(() => Promise.reject(new Error('not used'))),
   };
+}
+
+/** A source that has already created its session, so the next event is an ordinary turn. */
+async function startedSource(api: SessionApi) {
+  const source = createHttpTutorSource({
+    api,
+    grade: '4',
+    subject: 'math',
+    fromRecommendation: false,
+  });
+  await collect(
+    source,
+    event({ kind: 'SUBJECT_CHOSEN', subjectId: 'math', grade: '4', fromRecommendation: false }),
+  );
+  return source;
 }
 
 function sessionContext() {
@@ -149,6 +219,6 @@ async function collect(
   input: TutorInputEvent,
 ): Promise<readonly TutorMove[]> {
   const result: TutorMove[] = [];
-  for await (const item of source.send(input)) result.push(item);
+  for await (const item of source.send(input)) if (isTutorMove(item)) result.push(item);
   return result;
 }

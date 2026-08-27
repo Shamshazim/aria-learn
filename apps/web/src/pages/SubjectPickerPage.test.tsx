@@ -29,12 +29,12 @@ it('waits for arrival, then uses one student grade for every subject', async () 
 
   expect(await screen.findByRole('link', { name: /Math Grade 4/u })).toHaveAttribute(
     'href',
-    '/session/4/math?arrivalId=00000000-0000-4000-8000-000000000001',
+    '/session/4/math?voice=1&arrivalId=00000000-0000-4000-8000-000000000001',
   );
   expect(screen.queryByRole('link', { name: /Reading Grade 4/u })).not.toBeInTheDocument();
   expect(screen.getByRole('link', { name: /Writing Grade 4/u })).toHaveAttribute(
     'href',
-    '/session/4/writing?arrivalId=00000000-0000-4000-8000-000000000001',
+    '/session/4/writing?voice=1&arrivalId=00000000-0000-4000-8000-000000000001',
   );
   expect(screen.getByRole('link', { name: 'Aria Learn' })).toHaveAttribute('href', '/');
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Welcome back.');

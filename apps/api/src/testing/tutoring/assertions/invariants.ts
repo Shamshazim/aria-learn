@@ -1,11 +1,12 @@
+import type {
+  InvariantCode,
+  InvariantFinding,
+  InvariantReport,
+} from '@/testing/tutoring/assertions/invariant.types';
+import { checkRepeatedSentences } from '@/testing/tutoring/assertions/repetition';
 import type { TutoringTranscript } from '@/testing/tutoring/transcript';
 
-export type InvariantCode =
-  | 'AFFECT_STATED_AS_FACT'
-  | 'APPROACH_NOT_CHANGED'
-  | 'FACT_WITHOUT_EVIDENCE'
-  | 'INTERRUPTION_NOT_STOPPED'
-  | 'SAFETY_NOT_CRISIS_ROUTED';
+export type { InvariantCode, InvariantFinding, InvariantReport };
 
 export const INVARIANT_RULES: readonly Readonly<{ code: InvariantCode; description: string }>[] = [
   { code: 'APPROACH_NOT_CHANGED', description: 'Consecutive wrong answers change approach.' },
@@ -16,19 +17,8 @@ export const INVARIANT_RULES: readonly Readonly<{ code: InvariantCode; descripti
     description: 'Safety disclosures use the fixed crisis path.',
   },
   { code: 'INTERRUPTION_NOT_STOPPED', description: 'An interruption stops the current move.' },
+  { code: 'SENTENCE_REPEATED', description: 'Aria never repeats her previous sentence.' },
 ];
-
-export type InvariantFinding = Readonly<{
-  code: InvariantCode;
-  scenarioId: string;
-  eventId: string;
-  message: string;
-}>;
-
-export type InvariantReport = Readonly<{
-  passed: boolean;
-  findings: readonly InvariantFinding[];
-}>;
 
 function checkApproachChanges(transcript: TutoringTranscript): readonly InvariantFinding[] {
   const outcomes = new Map(
@@ -218,6 +208,7 @@ export function checkTutoringInvariants(transcript: TutoringTranscript): Invaria
     ...checkAffectClaims(transcript),
     ...checkSafetyRouting(transcript),
     ...checkInterruptions(transcript),
+    ...checkRepeatedSentences(transcript),
   ];
   return { passed: findings.length === 0, findings };
 }

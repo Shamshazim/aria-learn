@@ -1,3 +1,6 @@
+import type { Band, MoveKind } from '@aria/shared';
+import type { Intent } from '@aria/tutor';
+
 import type { ModelTier } from '@/ai/provider';
 import type { ScrubbedContext } from '@/privacy';
 
@@ -41,6 +44,53 @@ export type GradeShortAnswerPromptOutput = Readonly<{
   feedback: string;
 }>;
 
+/** Every child-facing move except ASK is generated through one persona prompt (P2H-03). */
+export type RespondPromptInput = ContextInput &
+  Readonly<{
+    band: Band;
+    move: string;
+    approach: string;
+    subject: string;
+    skill?: string | undefined;
+    /** P2H-10: the skill's teaching note, rendered. Absent where no note applies. */
+    lesson?: string | undefined;
+    /** P2H-11: what this turn knows the child did, for the moves that make claims about them. */
+    moveInputs?: string | undefined;
+    question?: string | undefined;
+    learnerSaid?: string | undefined;
+    answerKey?: string | undefined;
+    correct?: boolean | undefined;
+  }>;
+export type RespondPromptOutput = Readonly<{ text: string }>;
+/** P2H-07: the streamed twin of `respond`; the same words, released a sentence at a time. */
+export type RespondStreamPromptOutput = RespondPromptOutput;
+
+/** P2H-05: the model second pass over what a child meant. */
+export type ClassifyIntentPromptInput = ContextInput &
+  Readonly<{ utterance: string; question: string }>;
+export type ClassifyIntentPromptOutput = Readonly<{ intent: Intent; confidence: number }>;
+
+/**
+ * P2H-06: the planner's move selection. There is no answer key in this contract, and adding
+ * one would be a privacy and pedagogy regression, not a convenience.
+ */
+export type PlanMovePromptInput = ContextInput &
+  Readonly<{
+    band: Band;
+    skill: string;
+    question: string;
+    learnerSaid: string;
+    state: string;
+    recentIntents: string;
+    allowed: readonly MoveKind[];
+  }>;
+export type PlanMovePromptOutput = Readonly<{
+  kind: MoveKind;
+  approach: string;
+  rationale: string;
+  confidence: number;
+}>;
+
 export type SafetyCategory =
   'adult-content' | 'frightening' | 'personal-information' | 'violence' | 'other';
 export type ClassifySafetyPromptInput = ContextInput & Readonly<{ content: string }>;
@@ -48,6 +98,7 @@ export type ClassifySafetyPromptOutput =
   Readonly<{ verdict: 'safe' }> | Readonly<{ verdict: 'unsafe'; category: SafetyCategory }>;
 
 export type PromptContractMap = {
+  'classify-intent': { input: ClassifyIntentPromptInput; output: ClassifyIntentPromptOutput };
   'classify-safety': {
     input: ClassifySafetyPromptInput;
     output: ClassifySafetyPromptOutput;
@@ -62,7 +113,10 @@ export type PromptContractMap = {
     input: MemoryProposalsPromptInput;
     output: MemoryProposalsPromptOutput;
   };
+  'plan-move': { input: PlanMovePromptInput; output: PlanMovePromptOutput };
   'practice-item': { input: PracticeItemPromptInput; output: PracticeItemPromptOutput };
+  respond: { input: RespondPromptInput; output: RespondPromptOutput };
+  'respond-stream': { input: RespondPromptInput; output: RespondStreamPromptOutput };
 };
 
 export type PromptName = keyof PromptContractMap;

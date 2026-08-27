@@ -14,6 +14,7 @@ import { createAnthropicLlmResponse } from '@/ai/provider/adapters/anthropic.res
 import { stream } from '@/ai/provider/adapters/anthropic.stream';
 import {
   anthropicResponseSchema,
+  textOfBlocks,
   type AnthropicResponse,
 } from '@/ai/provider/adapters/anthropic.types';
 import { createProviderHttpError } from '@/ai/provider/adapters/http-error';
@@ -50,7 +51,7 @@ async function complete(
       response,
       responseByteLimit(options.endpoint, request),
     );
-    const text = parsed.content[0]?.text ?? '';
+    const text = textOfBlocks(parsed.content);
     return createAnthropicLlmResponse(options, {
       text: request.jsonMode === true ? extractJson(text) : text,
       tokensIn: parsed.usage.input_tokens,

@@ -10,6 +10,8 @@ export const ARITHMETIC_SKILLS = [
     name: 'Count to 20',
     band: 'early',
     prerequisites: [],
+    lessonRef: 'lesson-num-cnt-20',
+    visualKinds: ['number-line', 'ten-frame'],
   },
   {
     id: 'skill-num-cnt-skip5',
@@ -19,6 +21,8 @@ export const ARITHMETIC_SKILLS = [
     name: 'Skip count by 5',
     band: 'early',
     prerequisites: ['NUM.CNT.20'],
+    lessonRef: 'lesson-num-cnt-skip5',
+    visualKinds: ['number-line'],
   },
   {
     id: 'skill-add-fact-10',
@@ -28,6 +32,8 @@ export const ARITHMETIC_SKILLS = [
     name: 'Recall addition facts within 10',
     band: 'early',
     prerequisites: ['NUM.CNT.20'],
+    lessonRef: 'lesson-add-fact-10',
+    visualKinds: ['ten-frame', 'number-line'],
   },
   {
     id: 'skill-add-regroup-2d',
@@ -37,6 +43,8 @@ export const ARITHMETIC_SKILLS = [
     name: 'Add two-digit numbers with regrouping',
     band: 'middle',
     prerequisites: ['ADD.FACT.10'],
+    lessonRef: 'lesson-add-regroup-2d',
+    visualKinds: ['place-value-blocks', 'number-line'],
   },
   {
     id: 'skill-frac-equal',
@@ -46,6 +54,8 @@ export const ARITHMETIC_SKILLS = [
     name: 'Recognise a fraction as equal pieces of a whole',
     band: 'early',
     prerequisites: [],
+    lessonRef: 'lesson-frac-equal',
+    visualKinds: ['fraction-bar', 'array'],
   },
   {
     id: 'skill-frac-compare',
@@ -55,5 +65,7 @@ export const ARITHMETIC_SKILLS = [
     name: 'Compare fractions with the same denominator',
     band: 'middle',
     prerequisites: ['FRAC.EQUAL'],
+    lessonRef: 'lesson-frac-compare',
+    visualKinds: ['fraction-bar', 'number-line'],
   },
 ] as const satisfies readonly Skill[];

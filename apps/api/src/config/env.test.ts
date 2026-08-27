@@ -10,6 +10,16 @@ import { ConfigError, loadConfig } from '@/config';
 /** The minimum a real environment must supply. Everything else has a defensible default. */
 const REQUIRED = { DATABASE_URL: 'postgresql://aria:aria@localhost:5432/aria_dev' };
 
+/** What production additionally insists on, so a test about one of them names only that one. */
+const PRODUCTION = {
+  NODE_ENV: 'production',
+  STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
+  SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
+  SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+  SUPABASE_URL: 'https://project.supabase.co',
+  CHILD_SESSION_SECRET: 'z'.repeat(32),
+};
+
 function env(overrides: Record<string, string> = {}): Record<string, string> {
   return { ...REQUIRED, ...overrides };
 }
@@ -57,10 +67,7 @@ describe('loadConfig', () => {
     expect(
       loadConfig(
         env({
-          NODE_ENV: 'production',
-          STATUS_OPERATOR_TOKEN: 'x'.repeat(32),
-          SAFEGUARDING_WEBHOOK_URL: 'https://safety.example.test/notify',
-          SAFEGUARDING_WEBHOOK_TOKEN: 'y'.repeat(32),
+          ...PRODUCTION,
         }),
         '1.0.0',
       ).isProduction,
@@ -81,6 +88,24 @@ describe('loadConfig', () => {
     expect(() => loadConfig(env({ AI_DAILY_SPEND_CAP_USD: '0' }), '1.0.0')).toThrow(
       /AI_DAILY_SPEND_CAP_USD/,
     );
+  });
+
+  it('requires a complete voice configuration and privacy sign-off in production', () => {
+    expect(() => loadConfig(env({ LIVEKIT_URL: 'wss://voice.example.test' }), '1.0.0')).toThrow(
+      /all LiveKit and voice worker settings/,
+    );
+    expect(() =>
+      loadConfig(
+        env({
+          ...PRODUCTION,
+          LIVEKIT_URL: 'wss://voice.example.test',
+          LIVEKIT_API_KEY: 'key',
+          LIVEKIT_API_SECRET: 's'.repeat(16),
+          VOICE_WORKER_TOKEN: 'w'.repeat(32),
+        }),
+        '1.0.0',
+      ),
+    ).toThrow(/VOICE_PRIVACY_SIGNOFF_ID/);
   });
 });
 

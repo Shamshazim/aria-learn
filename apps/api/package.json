@@ -2,7 +2,7 @@
   "name": "@aria/api",
   "version": "0.0.0",
   "private": true,
-  "description": "Aria Learn API \u2014 Node + Express + TypeScript.",
+  "description": "Aria Learn API — Node + Express + TypeScript.",
   "type": "module",
   "scripts": {
     "cost:report": "tsx src/scripts/cost-report.ts",
@@ -15,14 +15,21 @@
     "golden:content": "tsx src/testing/golden/run-cli.ts",
     "start": "tsx src/index.ts",
     "test": "cd ../.. && vitest run --project api",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "synth:bridges": "tsx src/scripts/synth-bridges.ts",
+    "prewarm:content": "tsx src/scripts/prewarm-content.ts"
   },
   "dependencies": {
     "@aria/shared": "*",
     "@aria/tutor": "*",
+    "@aria/voice": "*",
+    "@node-rs/argon2": "^2.1.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "jose": "^6.2.10",
+    "livekit-server-sdk": "^2.18.0",
     "pg": "^8.23.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
@@ -30,6 +37,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/pg": "^8.23.1",

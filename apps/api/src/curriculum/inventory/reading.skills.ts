@@ -10,6 +10,8 @@ export const READING_SKILLS = [
     name: 'Hear rhyme',
     band: 'early',
     prerequisites: [],
+    lessonRef: 'lesson-pa-rhyme',
+    visualKinds: [],
   },
   {
     id: 'skill-pa-blend',
@@ -19,6 +21,8 @@ export const READING_SKILLS = [
     name: 'Blend three sounds into a word',
     band: 'early',
     prerequisites: [],
+    lessonRef: 'lesson-pa-blend',
+    visualKinds: [],
   },
   {
     id: 'skill-ph-cvc',
@@ -28,6 +32,8 @@ export const READING_SKILLS = [
     name: 'Decode consonant-vowel-consonant words',
     band: 'early',
     prerequisites: ['PA.BLEND'],
+    lessonRef: 'lesson-ph-cvc',
+    visualKinds: [],
   },
   {
     id: 'skill-ph-silent-e',
@@ -37,6 +43,8 @@ export const READING_SKILLS = [
     name: 'Decode words with silent e',
     band: 'early',
     prerequisites: ['PH.CVC'],
+    lessonRef: 'lesson-ph-silent-e',
+    visualKinds: [],
   },
   {
     id: 'skill-fl-wcpm-60',
@@ -46,6 +54,8 @@ export const READING_SKILLS = [
     name: 'Read a decodable passage at 60 words per minute',
     band: 'early',
     prerequisites: ['PH.SILENT_E'],
+    lessonRef: 'lesson-fl-wcpm-60',
+    visualKinds: [],
   },
   {
     id: 'skill-cmp-retell',
@@ -55,5 +65,7 @@ export const READING_SKILLS = [
     name: 'Retell a short story',
     band: 'early',
     prerequisites: [],
+    lessonRef: 'lesson-cmp-retell',
+    visualKinds: [],
   },
 ] as const satisfies readonly Skill[];

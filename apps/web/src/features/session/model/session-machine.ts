@@ -1,4 +1,4 @@
-import type { TutorMove } from '@aria/shared';
+import type { MoveSegment, TutorMove } from '@aria/shared';
 
 import type { SessionState, TutorStatus } from '@/features/session/model/session-state';
 
@@ -7,12 +7,12 @@ export type UiAction =
   | Readonly<{ kind: 'SOURCE_SETTLED' }>
   | Readonly<{ kind: 'STOP_ACTIVE' }>;
 
-export function reduceSession(state: SessionState, input: TutorMove | UiAction): SessionState {
-  if (input.kind === 'STOP_ACTIVE') return stopActive(state);
-  if (input.kind === 'SOURCE_PENDING') return { ...state, status: 'thinking' };
-  if (input.kind === 'SOURCE_SETTLED') {
-    return state.status === 'thinking' ? { ...state, status: 'waiting' } : state;
-  }
+export function reduceSession(
+  state: SessionState,
+  input: TutorMove | MoveSegment | UiAction,
+): SessionState {
+  if (input.kind === 'MOVE_SEGMENT') return receiveSegment(state, input);
+  if (isUiAction(input)) return reduceUiAction(state, input);
   switch (input.kind) {
     case 'WELCOME':
       return receive(state, input);
@@ -31,6 +31,22 @@ export function reduceSession(state: SessionState, input: TutorMove | UiAction):
     default:
       return reduceResponseOrSession(state, input);
   }
+}
+
+const UI_ACTIONS: ReadonlySet<UiAction['kind']> = new Set([
+  'SOURCE_PENDING',
+  'SOURCE_SETTLED',
+  'STOP_ACTIVE',
+]);
+
+function isUiAction(input: TutorMove | UiAction): input is UiAction {
+  return (UI_ACTIONS as ReadonlySet<string>).has(input.kind);
+}
+
+function reduceUiAction(state: SessionState, input: UiAction): SessionState {
+  if (input.kind === 'STOP_ACTIVE') return stopActive(state);
+  if (input.kind === 'SOURCE_PENDING') return { ...state, status: 'thinking' };
+  return state.status === 'thinking' ? { ...state, status: 'waiting' } : state;
 }
 
 type ResponseOrSessionMove = Exclude<
@@ -60,10 +76,31 @@ function reduceResponseOrSession(state: SessionState, input: ResponseOrSessionMo
   }
 }
 
+/**
+ * P2H-07: a sentence Aria has already said, before the move carrying it has arrived.
+ *
+ * It grows the visible text and nothing else. What the child is asked to *do* comes from the
+ * move — a half-written answer has no input control, no answer key and no expectation — so the
+ * status says speaking and the input surface waits for the move that closes the turn.
+ */
+function receiveSegment(state: SessionState, segment: MoveSegment): SessionState {
+  const growing = state.streaming;
+  const text =
+    growing?.moveId === segment.moveId ? `${growing.text} ${segment.text}`.trim() : segment.text;
+  return {
+    ...state,
+    currentMove: null,
+    streaming: { moveId: segment.moveId, text },
+    status: 'speaking',
+  };
+}
+
 function receive(state: SessionState, move: TutorMove, forcedStatus?: TutorStatus): SessionState {
   return {
     ...state,
     currentMove: move,
+    // The move is the whole of what the sentences were a prefix of; it replaces them.
+    streaming: null,
     moves: [...state.moves, move],
     status: forcedStatus ?? (move.speech === null ? 'waiting' : 'speaking'),
   };
@@ -75,6 +112,7 @@ function stopActive(state: SessionState): SessionState {
   return {
     ...state,
     currentMove: null,
+    streaming: null,
     stoppedMoveIds: [...state.stoppedMoveIds, active.id],
     status: 'listening',
   };

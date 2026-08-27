@@ -1,5 +1,7 @@
 import { type Band, type Misconception, type Skill } from '@aria/shared';
 
+import type { LessonNote } from '@/curriculum/lessons';
+
 const BAND_RANK: Readonly<Record<Band, number>> = {
   early: 0,
   middle: 1,
@@ -18,17 +20,61 @@ export function validateSkillGraph(skills: readonly Skill[]): void {
   assertAcyclic(skillsByCode);
 }
 
-/** Validates the graph and every misconception reference as one inventory. */
+/** P2H-10: a skill with fewer than this cannot tell a wrong tap from a wrong idea. */
+const MIN_MISCONCEPTIONS_PER_SKILL = 3;
+
+/** Validates the graph, the misconceptions and the lesson notes as one inventory. */
 export function validateInventory(
   skills: readonly Skill[],
   misconceptions: readonly Misconception[],
+  lessons: ReadonlyMap<string, LessonNote>,
 ): void {
   validateSkillGraph(skills);
+  assertMisconceptionCoverage(skills, misconceptions);
+  assertLessonCoverage(skills, lessons);
+}
+
+function assertMisconceptionCoverage(
+  skills: readonly Skill[],
+  misconceptions: readonly Misconception[],
+): void {
   const skillCodes = new Set(skills.map((skill) => skill.code));
   for (const misconception of misconceptions) {
     if (!skillCodes.has(misconception.skillCode)) {
       throw new CurriculumValidationError(
         `Misconception ${misconception.id} references missing skill ${misconception.skillCode}`,
+      );
+    }
+  }
+  for (const skill of skills) {
+    const count = misconceptions.filter((item) => item.skillCode === skill.code).length;
+    if (count < MIN_MISCONCEPTIONS_PER_SKILL) {
+      throw new CurriculumValidationError(
+        `Skill ${skill.code} has ${String(count)} misconceptions; ${String(MIN_MISCONCEPTIONS_PER_SKILL)} is the minimum`,
+      );
+    }
+  }
+}
+
+/**
+ * Every skill has a note, and the note it has is the one the skill points at.
+ *
+ * Both halves matter. A missing note means an explanation grounded in nothing; a note filed
+ * under the wrong skill means an explanation grounded in the wrong lesson, which is worse
+ * because nothing about it looks broken.
+ */
+function assertLessonCoverage(
+  skills: readonly Skill[],
+  lessons: ReadonlyMap<string, LessonNote>,
+): void {
+  for (const skill of skills) {
+    const note = lessons.get(skill.code);
+    if (note === undefined) {
+      throw new CurriculumValidationError(`Skill ${skill.code} has no lesson note`);
+    }
+    if (note.id !== skill.lessonRef) {
+      throw new CurriculumValidationError(
+        `Skill ${skill.code} points at ${skill.lessonRef} but its note declares ${note.id}`,
       );
     }
   }

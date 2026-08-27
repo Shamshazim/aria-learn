@@ -7,6 +7,7 @@
       "@aria/shared": ["../../packages/shared/src/index.ts"],
       "@aria/shared/*": ["../../packages/shared/src/*"],
       "@aria/tutor": ["../../packages/tutor/src/index.ts"],
+      "@aria/voice": ["../../packages/voice/src/index.ts"],
       "@/*": ["./src/*"]
     }
   },

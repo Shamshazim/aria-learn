@@ -12,6 +12,10 @@ export type ContentItemRepository = Readonly<{
   insert(draft: ContentDraft, personalisedFor: string | null): Promise<ContentItem>;
   findEligible(input: ContentLookup): Promise<ContentItem | null>;
   markUsed(id: string): Promise<void>;
+  /** P2H-10: what the shareable bank already holds, so generation tops up rather than duplicates. */
+  listContentHashes(
+    input: Readonly<{ skillCode: string; band: string; kind: string }>,
+  ): Promise<readonly string[]>;
 }>;
 
 export function createContentItemRepository(dependencies: {
@@ -23,6 +27,7 @@ export function createContentItemRepository(dependencies: {
     insert: (draft, owner) => insert(dependencies, draft, owner),
     findEligible: (input) => findEligible(dependencies.db, input),
     markUsed: (id) => markUsed(dependencies.db, id),
+    listContentHashes: (input) => listContentHashes(dependencies.db, input),
   };
 }
 
@@ -80,4 +85,18 @@ async function markUsed(db: Queryable, id: string): Promise<void> {
     sql: 'UPDATE content_item SET times_used = times_used + 1 WHERE id = $1',
     params: [id],
   });
+}
+
+async function listContentHashes(
+  db: Queryable,
+  input: Readonly<{ skillCode: string; band: string; kind: string }>,
+): Promise<readonly string[]> {
+  const { rows } = await runQuery<{ contentHash: string | null }>({
+    db,
+    operation: 'contentItem.listContentHashes',
+    sql: `SELECT body->>'contentHash' AS "contentHash" FROM content_item
+          WHERE skill_code = $1 AND band = $2 AND kind = $3 AND personalised_for IS NULL`,
+    params: [input.skillCode, input.band, input.kind],
+  });
+  return rows.flatMap((row) => (row.contentHash === null ? [] : [row.contentHash]));
 }

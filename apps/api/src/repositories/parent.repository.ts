@@ -18,6 +18,8 @@ export type ParentRepository = {
   insert(input: NewParent): Promise<Parent>;
   findById(id: string): Promise<Parent | null>;
   findByEmail(email: string): Promise<Parent | null>;
+  /** P2H-12: the family a verified Supabase JWT belongs to, if we have met them before. */
+  findBySupabaseUserId(supabaseUserId: string): Promise<Parent | null>;
   /**
    * Erasure. The `ON DELETE CASCADE` on `student.parent_id` means this takes the children
    * with it — master-plan.md §12.9, "delete means delete".
@@ -26,16 +28,20 @@ export type ParentRepository = {
 };
 
 /** Every statement this repository can issue, in one block — see `student.repository.ts`. */
-const SQL = {
-  insert: `INSERT INTO parent (id, email, display_name)
-           VALUES ($1, $2, $3)
-           RETURNING id, email, display_name, created_at`,
+const COLUMNS = 'id, email, supabase_user_id, display_name, created_at';
 
-  findById: 'SELECT id, email, display_name, created_at FROM parent WHERE id = $1',
+const SQL = {
+  insert: `INSERT INTO parent (id, email, supabase_user_id, display_name)
+           VALUES ($1, $2, $3, $4)
+           RETURNING ${COLUMNS}`,
+
+  findById: `SELECT ${COLUMNS} FROM parent WHERE id = $1`,
 
   // `email` is CITEXT, so this comparison is case-insensitive in the column type rather than
   // through a lower() call every future query would have to remember.
-  findByEmail: 'SELECT id, email, display_name, created_at FROM parent WHERE email = $1',
+  findByEmail: `SELECT ${COLUMNS} FROM parent WHERE email = $1`,
+
+  findBySupabaseUserId: `SELECT ${COLUMNS} FROM parent WHERE supabase_user_id = $1`,
 
   deleteById: 'DELETE FROM parent WHERE id = $1',
 } as const;
@@ -47,6 +53,9 @@ export type ParentRepositoryDeps = {
 
 export function createParentRepository(deps: ParentRepositoryDeps): ParentRepository {
   const { db, ids } = deps;
+  /** Every read here answers "one parent or none", so they share one helper. */
+  const one = (operation: string, sql: string, param: string): Promise<Parent | null> =>
+    findOne(db, operation, sql, param);
 
   return {
     withDb: (next) => createParentRepository({ ...deps, db: next }),
@@ -56,7 +65,7 @@ export function createParentRepository(deps: ParentRepositoryDeps): ParentReposi
         db,
         operation: 'parent.insert',
         sql: SQL.insert,
-        params: [ids.next(), input.email, input.displayName],
+        params: [ids.next(), input.email, input.supabaseUserId ?? null, input.displayName],
       });
 
       const row = rows[0];
@@ -64,29 +73,10 @@ export function createParentRepository(deps: ParentRepositoryDeps): ParentReposi
       return toParent(row);
     },
 
-    async findById(id) {
-      const { rows } = await runQuery<ParentRow>({
-        db,
-        operation: 'parent.findById',
-        sql: SQL.findById,
-        params: [id],
-      });
-
-      const row = rows[0];
-      return row ? toParent(row) : null;
-    },
-
-    async findByEmail(email) {
-      const { rows } = await runQuery<ParentRow>({
-        db,
-        operation: 'parent.findByEmail',
-        sql: SQL.findByEmail,
-        params: [email],
-      });
-
-      const row = rows[0];
-      return row ? toParent(row) : null;
-    },
+    findById: (id) => one('parent.findById', SQL.findById, id),
+    findByEmail: (email) => one('parent.findByEmail', SQL.findByEmail, email),
+    findBySupabaseUserId: (supabaseUserId) =>
+      one('parent.findBySupabaseUserId', SQL.findBySupabaseUserId, supabaseUserId),
 
     async deleteById(id) {
       const { rowCount } = await runQuery({
@@ -99,4 +89,15 @@ export function createParentRepository(deps: ParentRepositoryDeps): ParentReposi
       return (rowCount ?? 0) > 0;
     },
   };
+}
+
+async function findOne(
+  db: Queryable,
+  operation: string,
+  sql: string,
+  param: string,
+): Promise<Parent | null> {
+  const { rows } = await runQuery<ParentRow>({ db, operation, sql, params: [param] });
+  const row = rows[0];
+  return row ? toParent(row) : null;
 }

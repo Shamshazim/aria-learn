@@ -33,11 +33,15 @@ const FALLBACK: MovePlan = {
   attempt: 1,
 };
 
+// A first wrong answer is exactly the situation the planner exists for: more than one move
+// is defensible, and none of them is forced (P2H-06).
 const DECISION: PolicyDecision = {
-  allowedMoves: ['HINT'],
+  allowedMoves: ['HINT', 'RETEACH'],
   defaultPlan: FALLBACK,
   graded: { correct: false, misconception: null },
   terminal: false,
+  decisive: false,
+  reasons: ['first_wrong_attempt'],
 };
 
 function hint(): TutorMove {
@@ -70,6 +74,7 @@ function ports(log: string[], proposed: MovePlan = FALLBACK): TutorPorts<ModelCo
           startedAt: new Date('2026-08-24T19:55:00.000Z'),
           attempts: 0,
           consecutiveWrong: 0,
+          consecutiveSilences: 0,
           repeatedMisconception: null,
           lastApproach: null,
           unmetPrerequisite: null,

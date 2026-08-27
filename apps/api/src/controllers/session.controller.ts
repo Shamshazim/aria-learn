@@ -1,17 +1,21 @@
 import {
   sessionContextSchema,
+  turnFrameSchema,
   type CurrentSessionResponse,
   type EndSessionResponse,
   type SessionStartResponse,
   type TurnResponse,
 } from '@aria/shared';
 
+import { requestedFormat, streamTurn } from '@/controllers/turn-stream';
+import type { Logger } from '@/lib/logger';
 import type { CreateSessionRequest, SessionTurnRequest } from '@/schemas/session.schema';
 import {
   createSessionRequestSchema,
   endSessionRequestSchema,
   sessionTurnRequestSchema,
 } from '@/schemas/session.schema';
+import type { SegmentBus } from '@/services/content/segment-bus';
 import type { ResumedSession } from '@/services/session/resume.service';
 import type { SessionStart } from '@/services/session/session.service';
 import type { ApiResponse } from '@/types/http';
@@ -37,6 +41,9 @@ export function createSessionControllers(deps: {
     input: Readonly<{ sessionId: string; studentId: string; reason: SessionEndReason }>,
   ): Promise<TutorSessionRecord | null>;
   turn(studentId: string, request: SessionTurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
+  /** P2H-07: present when the deployment can stream sentences ahead of the turn. */
+  segments?: SegmentBus;
+  logger?: Pick<Logger, 'warn'>;
 }): SessionControllers {
   return {
     create: async (request: Request, response: Response<ApiResponse<SessionStartResponse>>) => {
@@ -70,14 +77,52 @@ export function createSessionControllers(deps: {
       };
       request.once('aborted', abort);
       try {
-        response
-          .status(200)
-          .json({ data: await deps.turn(studentId(request), body, controller.signal) });
+        const run = (): Promise<TurnResponse> =>
+          deps.turn(studentId(request), body, controller.signal);
+        const streamed = await streamedTurn(deps, { request, response, body, run });
+        if (!streamed) response.status(200).json({ data: await run() });
       } finally {
         request.off('aborted', abort);
       }
     },
   };
+}
+
+/**
+ * P2H-07: the same turn, sentence by sentence, when the client asked for it.
+ *
+ * A client that does not ask still gets one JSON body — a text session on a slow connection is
+ * better served by one response than by a stream it has to reassemble.
+ */
+async function streamedTurn(
+  deps: Parameters<typeof createSessionControllers>[0],
+  turn: Readonly<{
+    request: Request;
+    response: Response;
+    body: SessionTurnRequest;
+    run(): Promise<TurnResponse>;
+  }>,
+): Promise<boolean> {
+  const format = requestedFormat(turn.request);
+  const sessionId = turn.body.sessionId;
+  const segments = deps.segments;
+  if (format !== 'sse' || segments === undefined || sessionId === undefined) return false;
+  await streamTurn({
+    response: turn.response,
+    format,
+    segments,
+    sessionId,
+    frameSchema: turnFrameSchema,
+    run: turn.run,
+    closing: (result: TurnResponse) => result,
+    onError: (error) => {
+      deps.logger?.warn(
+        { err: error, event: 'turn_stream_failed', sessionId },
+        'A turn stopped after the child had already been shown part of it',
+      );
+    },
+  });
+  return true;
 }
 
 function startDto(input: SessionStart): SessionStartResponse {

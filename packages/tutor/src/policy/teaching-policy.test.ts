@@ -27,6 +27,7 @@ function context(wrong: number, lastApproach: string | null): LoadedTurnContext<
       startedAt: new Date('2026-08-24T19:55:00.000Z'),
       attempts: wrong,
       consecutiveWrong: wrong,
+      consecutiveSilences: 0,
       repeatedMisconception: wrong > 1 ? 'counting-restarted' : null,
       lastApproach,
       unmetPrerequisite: 'ADD.WITHIN_10',
@@ -43,6 +44,24 @@ const policy = createTeachingPolicy<null>({
 });
 
 describe('teaching policy', () => {
+  it('never praises or reteaches from a low-confidence spoken transcript', () => {
+    const voicePolicy = createTeachingPolicy<null>({
+      gradeAnswer: () => ({ correct: true, misconception: null }),
+      sessionLimitMs: () => 20 * 60_000,
+      now: () => new Date('2026-08-24T20:00:00Z'),
+    });
+    const event = tutorInputEventSchema.parse({
+      id: 'voice-event',
+      at: '2026-08-24T20:00:00.000Z',
+      protocolVersion: PROTOCOL_VERSION,
+      kind: 'SPEECH_FINAL',
+      text: 'seven',
+      confidence: 0.4,
+    });
+    const decision = voicePolicy(context(0, null), event);
+    expect(decision.defaultPlan).toMatchObject({ kind: 'SAY', approach: 'confirm-spoken-answer' });
+    expect(decision.graded).toBeNull();
+  });
   it.each([
     [0, null, 'HINT', 'single-nudge'],
     [1, 'single-nudge', 'RETEACH', 'visual-model'],
@@ -100,6 +119,17 @@ describe('teaching policy', () => {
     });
   });
 
+  it('grades a spoken answer whose provider reports no confidence', () => {
+    const event = tutorInputEventSchema.parse({
+      id: 'voice-event-2',
+      at: '2026-08-24T20:00:00.000Z',
+      protocolVersion: PROTOCOL_VERSION,
+      kind: 'SPEECH_FINAL',
+      text: 'six',
+    });
+    expect(policy(context(0, null), event).graded).not.toBeNull();
+  });
+
   it('reveals after the third same-misconception miss instead of repeating reteach', () => {
     const repeated = {
       ...context(2, 'visual-model'),
@@ -115,5 +145,69 @@ describe('teaching policy', () => {
       now: () => new Date('2026-08-24T20:00:00.000Z'),
     });
     expect(repeatedPolicy(repeated, EVENT).defaultPlan.kind).toBe('REVEAL');
+  });
+
+  it('answers a question or chat without grading it, then returns to the item', () => {
+    const intentPolicy = createTeachingPolicy<null>({
+      gradeAnswer: () => ({ correct: false, misconception: null }),
+      classifyIntent: (event) =>
+        event.kind === 'ANSWER' && event.text === 'I have a cat' ? 'CHAT' : 'QUESTION',
+      sessionLimitMs: () => 20 * 60_000,
+      now: () => new Date('2026-08-24T20:00:00.000Z'),
+    });
+    const chat = intentPolicy(context(0, null), { ...EVENT, text: 'I have a cat' });
+    expect(chat.defaultPlan).toMatchObject({ kind: 'SAY', approach: 'acknowledge-chat' });
+    expect(chat.graded).toBeNull();
+    const question = intentPolicy(context(0, null), { ...EVENT, text: 'why do we add?' });
+    expect(question.defaultPlan).toMatchObject({ kind: 'SAY', approach: 'answer-question' });
+  });
+
+  /** P2H-06: the next turn's planner is told what the child has been doing. It starts here. */
+  it('writes the intent to the turn evidence', () => {
+    const confusedPolicy = createTeachingPolicy<null>({
+      gradeAnswer: () => ({ correct: false, misconception: null }),
+      classifyIntent: () => 'CONFUSED',
+      sessionLimitMs: () => 20 * 60_000,
+      now: () => new Date('2026-08-24T20:00:00.000Z'),
+    });
+
+    expect(confusedPolicy(context(0, null), EVENT).defaultPlan.evidence).toMatchObject({
+      intent: 'CONFUSED',
+    });
+  });
+
+  it('ends the session when the child asks to stop', () => {
+    const stopPolicy = createTeachingPolicy<null>({
+      gradeAnswer: () => ({ correct: false, misconception: null }),
+      classifyIntent: () => 'STOP_REQUEST',
+      sessionLimitMs: () => 20 * 60_000,
+      now: () => new Date('2026-08-24T20:00:00.000Z'),
+    });
+    const result = stopPolicy(context(0, null), EVENT);
+    expect(result.defaultPlan.kind).toBe('BREAK');
+    expect(result.terminal).toBe(true);
+  });
+
+  it('escalates silence through the ladder and never repeats LISTEN', () => {
+    const silence = tutorInputEventSchema.parse({
+      id: 'silence-1',
+      at: '2026-08-24T20:00:00.000Z',
+      protocolVersion: PROTOCOL_VERSION,
+      kind: 'SILENCE',
+      waitedMs: 18_000,
+    });
+    const kinds = [0, 1, 2, 3].map((count) => {
+      const base = context(0, null);
+      const quiet = { ...base, session: { ...base.session, consecutiveSilences: count } };
+      return policy(quiet, silence);
+    });
+    expect(kinds.map((decision) => decision.defaultPlan.kind)).toEqual([
+      'SAY',
+      'HINT',
+      'SAY',
+      'BREAK',
+    ]);
+    expect(kinds.map((decision) => decision.terminal)).toEqual([false, false, false, true]);
+    expect(kinds.every((decision) => !decision.allowedMoves.includes('LISTEN'))).toBe(true);
   });
 });

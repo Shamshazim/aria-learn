@@ -17,6 +17,8 @@ const EXCLUDED = ['**/node_modules/**', '**/dist/**', 'legacy/**'];
 const apiSrc = fileURLToPath(new URL('./apps/api/src', import.meta.url));
 const webSrc = fileURLToPath(new URL('./apps/web/src', import.meta.url));
 const tutorSrc = fileURLToPath(new URL('./packages/tutor/src', import.meta.url));
+const voiceSrc = fileURLToPath(new URL('./packages/voice/src', import.meta.url));
+const voiceWorkerSrc = fileURLToPath(new URL('./apps/voice-worker/src', import.meta.url));
 
 export default defineConfig({
   test: {
@@ -28,6 +30,26 @@ export default defineConfig({
     // The scaffold ships no tests of its own; the tickets it unblocks add the first ones.
     passWithNoTests: true,
     projects: [
+      {
+        test: {
+          name: 'voice-worker',
+          root: './apps/voice-worker',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          exclude: EXCLUDED,
+        },
+        resolve: { alias: { '@': voiceWorkerSrc } },
+      },
+      {
+        test: {
+          name: 'voice',
+          root: './packages/voice',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          exclude: EXCLUDED,
+        },
+        resolve: { alias: { '@': voiceSrc } },
+      },
       {
         test: {
           name: 'tutor',

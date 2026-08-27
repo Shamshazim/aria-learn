@@ -1,40 +1,41 @@
-import type { Band } from '@aria/shared';
-
 import { failedMany, passed } from '@/quality/checks/check-result';
 import { childFacingText } from '@/quality/checks/content-text';
+import { BANNED_WORDS } from '@/quality/checks/level/banned.data';
+import { measureReadability, readabilityFailures } from '@/quality/checks/level/readability';
 import type { GateCheckResult, GateFailureReason, GateInput } from '@/quality/gate.types';
-import { EARLY_WORDS } from '@/quality/wordlists/early.data';
-import { MIDDLE_WORDS } from '@/quality/wordlists/middle.data';
-import { SENIOR_WORDS } from '@/quality/wordlists/senior.data';
 
-const WORDS: Readonly<Record<Band, ReadonlySet<string>>> = {
-  early: new Set(EARLY_WORDS),
-  middle: new Set(MIDDLE_WORDS),
-  senior: new Set(SENIOR_WORDS),
-};
-const MAX_SENTENCE_WORDS: Readonly<Record<Band, number>> = { early: 12, middle: 20, senior: 30 };
-
+/**
+ * Level check (P2H-02): sentence length + readability score + banned list.
+ *
+ * The former per-band vocabulary whitelist rejected almost every natural sentence a model
+ * writes, so children heard static fallbacks. Readability measures how the text reads instead
+ * of which words it uses; the wordlists remain for decodable-text work (P4-02).
+ */
 export function checkLevel(input: GateInput): GateCheckResult {
-  const reasons: Omit<GateFailureReason, 'check'>[] = [];
+  // Decodable text is a phonics artefact, not a readability one; a grade score cannot judge it.
+  // Refusing here means no decodable item can ever reach a child through the readability path.
+  if (input.kind === 'decodable') {
+    return failedMany('level', [
+      {
+        code: 'decodable_unsupported',
+        message: 'Decodable text must be checked against the phonics wordlist, not readability.',
+      },
+    ]);
+  }
   const text = childFacingText(input);
-  const sentences = text.split(/[.!?]+/u).filter((sentence) => sentence.trim() !== '');
-  if (sentences.some((sentence) => words(sentence).length > MAX_SENTENCE_WORDS[input.band])) {
-    reasons.push({ code: 'sentence_too_long', message: `Sentence is too long for ${input.band}.` });
-  }
-  const unknown = words(text).filter((word) => !WORDS[input.band].has(word));
-  if (unknown.length > 0) {
-    reasons.push({
-      code: 'vocabulary',
-      message: `Words exceed ${input.band} vocabulary: ${unique(unknown).join(', ')}`,
-    });
-  }
+  const reasons: Omit<GateFailureReason, 'check'>[] = [
+    ...readabilityFailures(measureReadability(text), input.band),
+    ...bannedFailures(text),
+  ];
   return reasons.length === 0 ? passed('level') : failedMany('level', reasons);
 }
 
-function words(text: string): string[] {
-  return text.toLowerCase().match(/[a-z]+/gu) ?? [];
-}
-
-function unique(values: readonly string[]): string[] {
-  return [...new Set(values)];
+function bannedFailures(text: string): readonly Omit<GateFailureReason, 'check'>[] {
+  const lower = text.toLowerCase();
+  const hits = BANNED_WORDS.filter((word) =>
+    new RegExp(`(?<![a-z])${word}(?![a-z])`, 'u').test(lower),
+  );
+  return hits.length === 0
+    ? []
+    : [{ code: 'banned_word', message: `Text contains a banned word: ${hits.join(', ')}` }];
 }

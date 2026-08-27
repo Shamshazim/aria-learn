@@ -10,6 +10,8 @@ export type SessionSnapshot = Readonly<{
   startedAt: Date;
   attempts: number;
   consecutiveWrong: number;
+  /** `SILENCE` events since the child last did anything (P2H-01). */
+  consecutiveSilences: number;
   repeatedMisconception: string | null;
   lastApproach: string | null;
   unmetPrerequisite: string | null;
@@ -21,19 +23,65 @@ export type LoadedTurnContext<TModelContext> = Readonly<{
   recentKinds: readonly string[];
 }>;
 
+/** Who chose the move that was made (P2H-06). */
+export type PlanSource = 'policy' | 'planner' | 'planner-rejected';
+
 export type MovePlan = Readonly<{
   kind: MoveKind;
   approach: string;
   reason: string;
   skillCode: string | null;
   attempt: number;
+  /** The planner's one-line justification. Logged as evidence, never shown to a child. */
+  rationale?: string;
+  source?: PlanSource;
+  /**
+   * Why the policy chose this, in a form a query can read — the silence rung, later the
+   * planner's allowed set and rationale (P2H-06). It is written to `session_event.evidence`
+   * and never shown to a child.
+   */
+  evidence?: Readonly<Record<string, number | string | boolean>>;
 }>;
 
 export type PolicyDecision = Readonly<{
   allowedMoves: readonly MoveKind[];
   defaultPlan: MovePlan;
-  graded: Readonly<{ correct: boolean; misconception: string | null }> | null;
+  graded: Readonly<{
+    correct: boolean;
+    misconception: string | null;
+    /**
+     * P2H-11: the strategies a correct answer on this skill actually proves the child used.
+     *
+     * Praise is only allowed to name one of these. It is the grader's list rather than the
+     * prompt's because the grader is the only part of the turn that knows what the item
+     * required — everything downstream is guessing.
+     */
+    strategies?: readonly string[];
+  }> | null;
   terminal: boolean;
+  /**
+   * The policy has already decided and the planner is skipped: safety, a limit, a ladder rung,
+   * a repeated misconception, a stop request, personal information (P2H-06).
+   */
+  decisive: boolean;
+  /** Why this plan, in codes a query can group by. Never shown to a child. */
+  reasons: readonly string[];
+}>;
+
+/** One planner decision, for evidence and metrics (P2H-06). */
+export type PlannerObservation = Readonly<{
+  /** The session this decision belongs to, so a log line can be traced to a turn. */
+  sessionId: string;
+  allowedMoves: readonly MoveKind[];
+  proposed: Readonly<{ kind: MoveKind; approach: string }> | null;
+  accepted: boolean;
+  source: PlanSource;
+  rationale: string | null;
+  /** Why the proposal was not used, or why none was asked for. */
+  reason: string | null;
+  /** What the port failed with, when it failed. Never a child's words. */
+  error: string | null;
+  ms: number;
 }>;
 
 export type PlannedTurn<TModelContext> = Readonly<{
@@ -71,6 +119,13 @@ export type TutorPorts<TModelContext> = Readonly<{
       fallback: MovePlan;
     }>,
   ): Promise<MovePlan>;
+  /**
+   * How long the turn may wait for `planMove` before the policy's own plan is used. Enforced
+   * here rather than inside the port, so a provider that ignores an abort cannot hold up a
+   * child's turn (P2H-06).
+   */
+  plannerBudgetMs?(context: LoadedTurnContext<TModelContext>, event: TutorInputEvent): number;
+  observePlan?(observation: PlannerObservation): void;
   resolveContent(input: PlannedTurn<TModelContext>, signal?: AbortSignal): Promise<ResolvedContent>;
   commit(turn: CommittedTurn): Promise<void>;
   emit(moves: readonly TutorMove[]): Promise<readonly TutorMove[]>;

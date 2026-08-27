@@ -8,6 +8,7 @@ import { fixedClock } from '@/lib/clock';
 import { sequentialIds } from '@/lib/ids';
 import { scrubLearnerContext } from '@/privacy';
 import { createQualityGate } from '@/quality';
+import { PRAISE_FALLBACKS } from '@/services/content/fallback/feedback.data';
 import {
   createTurnContentService,
   type ApiModelContext,
@@ -44,12 +45,15 @@ describe('turn content', () => {
       moves: (sessionId) =>
         createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
       remediation: () => null,
+      visual: () => null,
     });
 
     const result = await service.resolve(turn(kind));
     expect(result.moves[0]?.kind).toBe(kind);
     expect(gate).toHaveBeenCalled();
-    if (kind === 'PRAISE') expect(result.moves[0]?.speech?.text).toContain('7');
+    // P2H-11: with nothing generated, what a child hears is one of the reviewed variants —
+    // never an invented sentence, and never the same one twice running.
+    if (kind === 'PRAISE') expect(PRAISE_FALLBACKS.early).toContain(result.moves[0]?.speech?.text);
   });
 
   it('uses the authored misconception fix instead of another generic hint', async () => {
@@ -62,6 +66,7 @@ describe('turn content', () => {
       moves: (sessionId) =>
         createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
       remediation: (id) => inventory.getMisconception(id)?.remediation ?? null,
+      visual: () => null,
     });
     const base = turn('RETEACH');
     const input = {
@@ -91,6 +96,23 @@ describe('turn content', () => {
     expect(result.moves.map((move) => move.kind)).toEqual([kind, 'ASK']);
     expect(result.moves[1]).toMatchObject({ kind: 'ASK', itemId: 'item-1', attempt: 2 });
   });
+
+  it.each(['answer-question', 'acknowledge-chat', 'reask-short', 'check-in'] as const)(
+    'follows a %s detour with the same question and no extra attempt',
+    async (approach) => {
+      const base = turn('SAY');
+      const result = await serviceWithFallback().resolve({
+        ...base,
+        plan: { ...base.plan, approach },
+        context: {
+          ...base.context,
+          modelContext: { ...base.context.modelContext, latestAsk: askMove() },
+        },
+      });
+      expect(result.moves.map((move) => move.kind)).toEqual(['SAY', 'ASK']);
+      expect(result.moves[1]).toMatchObject({ kind: 'ASK', itemId: 'item-1', attempt: 1 });
+    },
+  );
 
   it.each(['PRAISE', 'REVEAL', 'SWITCH'] as const)(
     'follows %s with a new verified question',
@@ -143,6 +165,7 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
         startedAt: NOW,
         attempts: 1,
         consecutiveWrong: 1,
+        consecutiveSilences: 0,
         repeatedMisconception: null,
         lastApproach: 'single-nudge',
         unmetPrerequisite: null,
@@ -157,7 +180,9 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
         estimatedTokens: 0,
         retrievedFactIds: [],
         recentContentItemIds: [],
+        recentIntents: [],
         arithmeticProblem: null,
+        lesson: null,
         completionOnly: false,
         latestAsk: null,
       },
@@ -167,6 +192,8 @@ function turn(kind: PlannedTurn<ApiModelContext>['plan']['kind']): PlannedTurn<A
       allowedMoves: [kind],
       graded: null,
       terminal: kind === 'END',
+      decisive: true,
+      reasons: ['test_fixture'],
       defaultPlan: {
         kind,
         approach: 'different-way',
@@ -195,6 +222,7 @@ function serviceWithFallback() {
     moves: (sessionId) =>
       createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW), sessionId }),
     remediation: () => null,
+    visual: () => null,
   });
 }
 

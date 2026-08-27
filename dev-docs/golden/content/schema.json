@@ -12,37 +12,97 @@
       "subject",
       "skillCode",
       "band",
-      "promptName",
-      "input",
       "expectation",
       "humanReview"
     ],
     "properties": {
-      "id": { "type": "string", "minLength": 1 },
-      "subject": { "enum": ["arithmetic", "reading", "writing"] },
-      "skillCode": { "type": "string", "minLength": 1 },
-      "band": { "enum": ["early", "middle", "senior"] },
-      "promptName": { "const": "practice-item" },
+      "id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "subject": {
+        "enum": [
+          "arithmetic",
+          "reading",
+          "writing"
+        ]
+      },
+      "skillCode": {
+        "type": "string",
+        "minLength": 1
+      },
+      "band": {
+        "enum": [
+          "early",
+          "middle",
+          "senior"
+        ]
+      },
+      "promptName": {
+        "const": "practice-item"
+      },
       "input": {
         "type": "object",
-        "required": ["skill", "difficulty"],
+        "required": [
+          "skill",
+          "difficulty"
+        ],
         "properties": {
-          "skill": { "type": "string", "minLength": 1 },
-          "difficulty": { "enum": ["easier", "same", "harder"] }
+          "skill": {
+            "type": "string",
+            "minLength": 1
+          },
+          "difficulty": {
+            "enum": [
+              "easier",
+              "same",
+              "harder"
+            ]
+          }
         },
         "additionalProperties": false
       },
-      "expectation": { "type": "object" },
+      "expectation": {
+        "type": "object"
+      },
       "humanReview": {
         "type": "object",
-        "required": ["status", "notes"],
+        "required": [
+          "status",
+          "notes"
+        ],
         "properties": {
-          "status": { "enum": ["pending", "approved"] },
-          "notes": { "type": "string", "minLength": 1 },
-          "reviewer": { "type": "string", "minLength": 1 },
-          "reviewedAt": { "type": "string", "format": "date-time" }
+          "status": {
+            "enum": [
+              "pending",
+              "approved"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
         "additionalProperties": false
+      },
+      "origin": {
+        "enum": [
+          "model",
+          "generator"
+        ],
+        "default": "model"
+      },
+      "generatorIndex": {
+        "type": "integer",
+        "minimum": 0
       }
     }
   }

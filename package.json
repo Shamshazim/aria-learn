@@ -13,16 +13,20 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "trap 'kill 0' INT TERM; npm run dev -w @aria/api & npm run dev -w @aria/web & npm run dev -w @aria/voice-worker & wait",
+    "dev:api": "npm run dev -w @aria/api",
+    "dev:web": "npm run dev -w @aria/web",
+    "dev:voice": "npm run dev -w @aria/voice-worker",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
-    "lint": "eslint apps packages eslint.config.ts vitest.config.ts",
-    "lint:fix": "eslint apps packages eslint.config.ts vitest.config.ts --fix",
+    "lint": "eslint apps packages eslint.config.ts eslint.imports.ts vitest.config.ts",
+    "lint:fix": "eslint apps packages eslint.config.ts eslint.imports.ts vitest.config.ts --fix",
     "format": "prettier --check \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json}\"",
     "format:fix": "prettier --write \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json}\"",
     "test": "vitest run",
     "test:session-coverage": "vitest run --project web src/features/session/model/session-machine.test.ts --coverage",
     "test:watch": "vitest",
+    "voice:golden": "npm run voice:golden -w @aria/voice-worker --",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
   "devDependencies": {

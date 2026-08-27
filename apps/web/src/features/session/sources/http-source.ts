@@ -2,13 +2,14 @@ import {
   PROTOCOL_VERSION,
   type Grade,
   type SessionId,
+  type TurnRequest,
   type TutorInputEvent,
   type TutorMove,
 } from '@aria/shared';
 
 import type { SessionApi } from '@/features/session/api/session.api';
 import { ContentUnavailableError } from '@/features/session/model/tutor-source';
-import type { TutorSource } from '@/features/session/model/tutor-source';
+import type { TutorOutput, TutorSource } from '@/features/session/model/tutor-source';
 import { retryRead } from '@/features/session/sources/retry';
 
 export function createHttpTutorSource(
@@ -19,6 +20,7 @@ export function createHttpTutorSource(
     arrivalId?: string;
     fromRecommendation: boolean;
     checkIn?: string;
+    onSessionStarted?(sessionId: string): void;
   }>,
 ): TutorSource {
   let sessionId: SessionId | null = null;
@@ -27,14 +29,16 @@ export function createHttpTutorSource(
   return {
     send: async function* (event, signal) {
       if (isClosed() || isAborted(signal) || event.kind === 'ARRIVED') return;
-      const batch = await recoverable(
-        event.kind === 'SUBJECT_CHOSEN'
-          ? startOrResume(input, signal)
-          : sendTurn(input.api, requireSessionId(sessionId), event, signal),
-        signal,
-      );
+      if (event.kind !== 'SUBJECT_CHOSEN') {
+        yield* streamed(sendTurn(input.api, requireSessionId(sessionId), event, signal), signal, {
+          isClosed,
+        });
+        return;
+      }
+      const batch = await recoverable(startOrResume(input, signal), signal);
       if (batch === null) return;
-      if (event.kind === 'SUBJECT_CHOSEN') sessionId = batch.sessionId;
+      sessionId = batch.sessionId;
+      input.onSessionStarted?.(batch.sessionId);
       for (const move of batch.moves) {
         if (isClosed() || isAborted(signal)) return;
         yield move;
@@ -44,6 +48,27 @@ export function createHttpTutorSource(
       closed = true;
     },
   };
+}
+
+/** A failed stream is the same failure a failed POST was: content is unavailable, retry later. */
+async function* streamed(
+  turn: AsyncIterable<TutorOutput>,
+  signal: AbortSignal | undefined,
+  session: Readonly<{ isClosed(): boolean }>,
+): AsyncIterable<TutorOutput> {
+  const iterator = turn[Symbol.asyncIterator]();
+  for (;;) {
+    let next: IteratorResult<TutorOutput>;
+    try {
+      next = await iterator.next();
+    } catch (error) {
+      if (isAborted(signal)) return;
+      throw error instanceof ContentUnavailableError ? error : new ContentUnavailableError();
+    }
+    if (next.done === true) return;
+    if (session.isClosed() || isAborted(signal)) return;
+    yield next.value;
+  }
 }
 
 async function recoverable(
@@ -82,17 +107,34 @@ async function startOrResume(
   return { sessionId: created.session.sessionId, moves: created.moves };
 }
 
-async function sendTurn(
+/**
+ * P2H-07: reads a turn as it is written.
+ *
+ * Each sentence is rendered the moment it arrives, and the closing frame carries the moves —
+ * which is what actually decides what the child is asked to do next. A stream that ends without
+ * that frame failed partway through, and is reported as a turn that produced nothing.
+ */
+async function* sendTurn(
   api: SessionApi,
   sessionId: MoveBatch['sessionId'],
   event: TutorInputEvent,
   signal?: AbortSignal,
-): Promise<MoveBatch> {
-  const response = await api.turn(
-    { protocolVersion: PROTOCOL_VERSION, sessionId, event: { ...event, sessionId } },
-    signal,
-  );
-  return { sessionId: response.sessionId, moves: response.moves };
+): AsyncIterable<TutorOutput> {
+  const request: TurnRequest = {
+    protocolVersion: PROTOCOL_VERSION,
+    sessionId,
+    event: { ...event, sessionId },
+  };
+  let closed = false;
+  for await (const frame of api.turnStream(request, signal)) {
+    if (frame.kind === 'MOVE_SEGMENT') {
+      yield frame;
+      continue;
+    }
+    closed = true;
+    yield* frame.turn.moves;
+  }
+  if (!closed) throw new ContentUnavailableError();
 }
 
 function requireSessionId(value: MoveBatch['sessionId'] | null): MoveBatch['sessionId'] {

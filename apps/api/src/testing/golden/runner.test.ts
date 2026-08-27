@@ -8,6 +8,7 @@ const item: GoldenItem = {
   subject: 'arithmetic',
   skillCode: 'ADD.FACT.10',
   band: 'early',
+  origin: 'model',
   promptName: 'practice-item',
   input: { skill: 'Make an item for 2 + 2.', difficulty: 'same' },
   expectation: {
@@ -15,6 +16,11 @@ const item: GoldenItem = {
     multipleChoice: true,
   },
   humanReview: { status: 'approved', notes: 'Checked arithmetic and wording.' },
+};
+
+/** These cases are all `model` origin, so the generator side is never reached. */
+const UNUSED_GENERATOR: GoldenSource = {
+  generate: () => Promise.reject(new Error('generator source should not run for a model case')),
 };
 
 it('reports latency, cost and the ids behind a broken answer', async () => {
@@ -41,6 +47,7 @@ it('reports latency, cost and the ids behind a broken answer', async () => {
     promptVersion: '1.0.0',
     items: [item],
     source,
+    generator: UNUSED_GENERATOR,
   });
 
   expect(report.checks.arithmetic_correctness.failingItemIds).toEqual(['broken-addition']);
@@ -58,6 +65,7 @@ it('turns a malformed provider output into named failed checks instead of stoppi
     promptVersion: '1.0.0',
     items: [item],
     source: { generate: () => Promise.reject(new Error('malformed')) },
+    generator: UNUSED_GENERATOR,
   });
 
   expect(report.checks.arithmetic_correctness.failingItemIds).toEqual(['broken-addition']);

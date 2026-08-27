@@ -32,6 +32,9 @@ async function* gatedStream(
 ): AsyncIterable<ReleasedSegment> {
   const planResult = validateMovePlan(input.plan, input.contentKind);
   if (!planResult.valid) throw new MovePlanValidationError(planResult.reasons);
+  // The daily spend cap is a rule about model calls, not about how the answer comes back, so a
+  // streamed call is checked exactly where a buffered one is: before the request goes out.
+  await dependencies.accounting.assertWithinCap(input.request.accounting?.studentId);
 
   const controller = new AbortController();
   const startedAt = dependencies.callNow();
@@ -138,6 +141,15 @@ function endpointFrom(error: unknown): string {
   return typeof error.endpointName === 'string' ? error.endpointName : 'routed-provider';
 }
 
+/**
+ * Sentences leave as soon as they are safe, which is the whole point: the child hears the
+ * first one while the model is still writing the third.
+ *
+ * That is also why a sentence cannot be told it is the last one. Only the remainder left in
+ * the segmenter when the model stops is known-final; everything before it was released before
+ * anyone could know what followed. A consumer ends the turn on the closing frame, not on
+ * `isLast`.
+ */
 async function* releaseSentences(
   dependencies: Parameters<typeof createGatedStreamer>[0],
   input: GatedStreamInput,
@@ -145,23 +157,26 @@ async function* releaseSentences(
   controller: AbortController,
 ): AsyncIterable<ReleasedSegment> {
   const segmenter = new SentenceSegmenter();
+  let index = 0;
   for await (const chunk of chunks) {
     if (chunk.kind !== 'text') continue;
     for (const sentence of segmenter.push(chunk.text)) {
       const released = releaseOne(dependencies, input, sentence);
       if (released === null) {
         controller.abort();
-        yield fallbackSegment(dependencies, input);
+        yield { ...fallbackSegment(dependencies, input), index, isLast: true };
         return;
       }
-      yield released;
+      yield { ...released, index, isLast: false };
+      index += 1;
     }
   }
   const remainder = segmenter.flush();
   if (remainder === null) return;
   const released = releaseOne(dependencies, input, remainder);
-  if (released !== null) yield released;
-  else yield fallbackSegment(dependencies, input);
+  yield released === null
+    ? { ...fallbackSegment(dependencies, input), index, isLast: true }
+    : { ...released, index, isLast: true };
 }
 
 async function* releaseWholeItem(
@@ -175,18 +190,18 @@ async function* releaseWholeItem(
     if (chunk.kind === 'text') written += chunk.text;
   }
   const released = releaseOne(dependencies, input, written.trim());
-  if (released !== null) yield released;
-  else {
-    controller.abort();
-    yield fallbackSegment(dependencies, input);
-  }
+  if (released === null) controller.abort();
+  yield { ...(released ?? fallbackSegment(dependencies, input)), index: 0, isLast: true };
 }
+
+/** The sentence and what checking it cost; where it sits in the stream is the caller's to say. */
+type Released = Omit<ReleasedSegment, 'index' | 'isLast'>;
 
 function releaseOne(
   dependencies: Parameters<typeof createGatedStreamer>[0],
   input: GatedStreamInput,
   written: string,
-): ReleasedSegment | null {
+): Released | null {
   const result = gateSegment(dependencies.gate, input.gateInput(written), dependencies.now);
   if (!result.passed) return null;
   return {
@@ -199,8 +214,9 @@ function releaseOne(
 function fallbackSegment(
   dependencies: Parameters<typeof createGatedStreamer>[0],
   input: GatedStreamInput,
-): ReleasedSegment {
+): Released {
   const released = releaseOne(dependencies, input, input.fallbackText);
   if (released === null) throw new StreamGateError();
-  return released;
+  // P2H-11: marked, so the turn above can count and log the static string the child heard.
+  return { ...released, substituted: true };
 }

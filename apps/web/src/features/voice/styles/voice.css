@@ -1,0 +1,41 @@
+.voice-controls {
+  align-items: center;
+  background: var(--color-surface, #fffdf8);
+  border: 2px solid color-mix(in srgb, var(--color-ink, #241f1b) 15%, transparent);
+  border-radius: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  left: 50%;
+  max-width: min(720px, calc(100vw - 32px));
+  padding: 10px 14px;
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.voice-controls button,
+.voice-controls select {
+  min-height: 44px;
+}
+
+.voice-controls__stop {
+  background: #7a2828;
+  color: #fff;
+}
+
+.voice-controls--notice {
+  display: block;
+  text-align: center;
+}
+
+.voice-controls meter {
+  width: 84px;
+}
+
+.voice-controls p {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+}

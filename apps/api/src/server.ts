@@ -1,15 +1,19 @@
 import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
-import { readConfigOrExit } from '@/config';
+import { loadRepoEnvFile, readConfigOrExit } from '@/config';
 import { createInventoryService } from '@/curriculum';
 import { closePool, createPool, runMigrations, verifyConnection } from '@/db';
 import { systemClock } from '@/lib/clock';
 import { uuidGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
 import type { Logger } from '@/lib/logger';
+import { createMetrics } from '@/observability/metrics';
+import type { Metrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
-import { createConfiguredStudentAccess } from '@/phase1/student-access.runtime';
+import { createPhase2Runtime } from '@/phase2/runtime';
+import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
+import { createSegmentBus } from '@/services/content/segment-bus';
 
 import type { Server } from 'node:http';
 import type { Pool } from 'pg';
@@ -21,6 +25,9 @@ import type { Pool } from 'pg';
  * the port opens, so a broken deployment stops here — never later, in front of a child.
  */
 export async function start(): Promise<void> {
+  // First, before anything reads `process.env`: the AI endpoints are checked before the app's
+  // own configuration is, and they would otherwise only see what the shell exported.
+  loadRepoEnvFile();
   const aiConfig = readAiConfigOrExit();
   const config = readConfigOrExit();
   // Authored graph defects must stop boot before the API can serve curriculum.
@@ -48,23 +55,21 @@ export async function start(): Promise<void> {
     throw error;
   }
 
+  const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger, metrics: createMetrics() });
+  const phase1 = await createPhase1Runtime(runtimeDeps);
+  const voice = config.voice === undefined ? undefined : createPhase2Runtime(runtimeDeps, phase1);
+  const identity = phase1.identity.routerDeps(voice?.consent);
   const app = createApp({
     config,
     logger,
     clock: systemClock,
     ids: uuidGenerator,
     statusService: ai.status,
-    student: await createPhase1Runtime({
-      pool,
-      ai: ai.client,
-      spend: ai.spend,
-      config,
-      ids: uuidGenerator,
-      clock: systemClock,
-      logger,
-      access: createConfiguredStudentAccess(config),
-    }),
+    student: phase1.student,
+    ...(identity === undefined ? {} : { identity }),
+    ...(voice === undefined ? {} : { voice: voice.routes }),
   });
+  const stopSweeper = startIdleSweeper(phase1.identity.expiry, logger);
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
   });
@@ -73,8 +78,72 @@ export async function start(): Promise<void> {
     server,
     logger,
     timeoutMs: config.shutdownTimeoutMs,
-    onDrained: () => closePool(pool, logger),
+    onDrained: async () => {
+      stopSweeper();
+      await closePool(pool, logger);
+    },
   });
+}
+
+/**
+ * P2H-12: a child who closes the tab sends no further request, so nothing would notice.
+ *
+ * The middleware ends an idle session the moment somebody asks with a stale cookie; this is
+ * what ends the ones nobody ever asks about again. It is `unref`d, so it never holds the
+ * process open, and it logs only counts.
+ */
+const IDLE_SWEEP_INTERVAL_MS = 5 * 60 * 1_000;
+
+function startIdleSweeper(
+  expiry: Readonly<{ sweep(): Promise<number> }>,
+  logger: Logger,
+): () => void {
+  const timer = setInterval(() => {
+    void expiry.sweep().then(
+      (ended) => {
+        if (ended > 0) logger.info({ ended }, 'Ended idle child sessions');
+      },
+      (error: unknown) => {
+        logger.warn({ err: error }, 'Idle session sweep failed');
+      },
+    );
+  }, IDLE_SWEEP_INTERVAL_MS);
+  timer.unref();
+  return () => {
+    clearInterval(timer);
+  };
+}
+
+function createRuntimeDeps(input: {
+  pool: Pool;
+  ai: Awaited<ReturnType<typeof createAiRuntime>>;
+  config: ReturnType<typeof readConfigOrExit>;
+  logger: Logger;
+  metrics: Metrics;
+}) {
+  return {
+    pool: input.pool,
+    ai: input.ai.client,
+    spend: input.ai.spend,
+    config: input.config,
+    ids: uuidGenerator,
+    clock: systemClock,
+    logger: input.logger,
+    metrics: input.metrics,
+    // P2H-07: one bus per process; a subscription lasts exactly as long as one request.
+    gatedStreamer: input.ai.gatedStreamer,
+    segments: createSegmentBus(),
+    ...(input.config.voice === undefined
+      ? {}
+      : { closeVoiceSession: voiceSessionCloser(input.pool) }),
+  };
+}
+
+function voiceSessionCloser(pool: Pool) {
+  const sessions = createVoiceSessionRepository(pool);
+  return async (sessionId: string, at: Date): Promise<void> => {
+    await sessions.close(sessionId, at);
+  };
 }
 
 function readAiConfigOrExit(): ReturnType<typeof loadAiConfig> {

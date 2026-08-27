@@ -10,12 +10,12 @@ moves emitted for that event as one response. Turns with no speech or display ar
 but remain visible for interruption and safety review.
 
 For each eligible turn mark **Pass** or **Fail** for warmth, age fit and pedagogy. Mark factual
-support **Pass**, **Fail** or **N/A**. A dimension passes only when every requirement below is
-met; one listed failure condition makes it fail.
+support and continuity **Pass**, **Fail** or **N/A**. A dimension passes only when every
+requirement below is met; one listed failure condition makes it fail.
 
 A turn counts toward the product's 90% bar only when warmth, age fit and pedagogy all pass.
-Report `combined passes / eligible turns`. Report factual-support failures separately; do not
-average them away.
+Report `combined passes / eligible turns`. Report factual-support and continuity failures
+separately; do not average them away.
 
 ## Warmth
 
@@ -61,6 +61,26 @@ pause or action.
 early, gives an unrelated explanation, ignores the learner's choice, continues speaking after
 an interruption, or asks a question the preceding explanation did not prepare them to answer.
 
+## Continuity (P2H-04)
+
+The tutor is given the last few turns of the conversation. This dimension asks whether she
+read them. Grade it only on turns where the child has said something the tutor could refer
+back to; mark **N/A** on the first turn of a session.
+
+**Pass when all are true:**
+
+- After a repeated error, the response names what the child actually answered — the number,
+  the word, the choice — rather than describing the error in the abstract.
+- References to earlier turns are accurate. "You said five" only passes if they said five.
+- The response does not re-explain something the child has just demonstrated they understood.
+
+**Fail if any occur:** a generic response that would fit any wrong answer, a reference to
+something the child did not say, treating a returning child as a first-time one, or repeating
+a sentence the transcript shows was already said.
+
+The scenario `repeated-confusion` is the fixed case for this dimension: the second wrong
+answer must produce a response that names the answer the child gave.
+
 ## Factual support
 
 Mark **N/A** only when the response makes no factual, mathematical or learner-specific claim.
@@ -81,9 +101,9 @@ claim made.
 
 Each reviewer copies one row per eligible turn:
 
-| Scenario | Event id | Move ids | Warmth P/F | Age fit P/F | Pedagogy P/F | Factual P/F/N/A | Evidence for any failure |
-|---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Scenario | Event id | Move ids | Warmth P/F | Age fit P/F | Pedagogy P/F | Continuity P/F/N/A | Factual P/F/N/A | Evidence for any failure |
+|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | |
 
 ## Agreement procedure
 

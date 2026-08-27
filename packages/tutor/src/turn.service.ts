@@ -41,7 +41,7 @@ async function speculateTurn<TModelContext>(
 ): Promise<SpeculativeTurn<TModelContext>> {
   const context = await loadContext(ports.loadContext, event);
   const decision = await applyPolicy(ports.applyPolicy, context, event);
-  const plan = await planMove({ port: ports.planMove, context, event, decision });
+  const plan = await planMove({ ports, context, event, decision });
   return { draft: { context, event, decision, plan }, eventFingerprint: fingerprint(event) };
 }
 
@@ -86,7 +86,7 @@ async function recheckPolicy<TModelContext>(
   const context = await loadContext(ports.loadContext, event);
   const decision = await applyPolicy(ports.applyPolicy, context, event);
   if (sameDecision(planned, decision)) return { ...planned, context, decision, event };
-  const plan = await planMove({ port: ports.planMove, context, event, decision });
+  const plan = await planMove({ ports, context, event, decision });
   return { context, event, decision, plan };
 }
 

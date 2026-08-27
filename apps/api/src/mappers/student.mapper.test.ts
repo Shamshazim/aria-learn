@@ -10,6 +10,7 @@ const row: StudentRow = {
   display_name: 'Sam',
   grade: '4',
   band: 'middle',
+  settings: { shareFirstName: false, pronunciation: 'Sahm', avatar: 'owl' },
   created_at: new Date('2026-08-22T10:00:00Z'),
 };
 
@@ -18,6 +19,7 @@ describe('toStudent', () => {
     expect(toStudent(row)).toEqual({
       id: row.id,
       parentId: row.parent_id,
+      settings: row.settings,
       displayName: 'Sam',
       grade: '4',
       band: 'middle',

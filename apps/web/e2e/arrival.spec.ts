@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test';
 
 import { PROTOCOL_VERSION, type Band, type Grade } from '@aria/shared';
 
+import { signedInChild } from './fixtures/signed-in';
+
 const PROFILES: readonly Readonly<{ band: Band; grade: Grade }>[] = [
   { band: 'early', grade: '1' },
   { band: 'middle', grade: '4' },
@@ -18,6 +20,7 @@ for (const profile of PROFILES) {
         body: JSON.stringify(response(profile)),
       }),
     );
+    await signedInChild(page);
     await page.goto('/choose');
     await page.getByRole('heading', { name: 'Welcome back, Sam.' }).waitFor();
     await expect(page.getByRole('group', { name: /easy start/i })).toBeVisible();
@@ -35,6 +38,7 @@ test('choosing a class other than the recommendation stays a normal choice', asy
       body: JSON.stringify(response({ band: 'middle', grade: '4' })),
     }),
   );
+  await signedInChild(page);
   await page.goto('/choose');
   await page.getByRole('heading', { name: 'Welcome back, Sam.' }).waitFor();
   await page.getByRole('link', { name: 'Writing Grade 4' }).click();

@@ -2,14 +2,23 @@ import { gradeGeneration } from '@/testing/golden/graders';
 import { buildGoldenReport, type GoldenReport } from '@/testing/golden/report';
 import type { CheckName, GoldenItem, GoldenSource, ItemResult } from '@/testing/golden/types';
 
+/**
+ * Runs every case against the source its origin names (P2H-10).
+ *
+ * One report covers both, because a child does not care which half produced their item: the
+ * bar is the same, so the numbers belong in the same table.
+ */
 export async function runGoldenSet(input: {
   endpointName: string;
   promptVersion: string;
   items: readonly GoldenItem[];
   source: GoldenSource;
+  generator: GoldenSource;
 }): Promise<GoldenReport> {
   const results: ItemResult[] = [];
-  for (const item of input.items) results.push(await runItem(item, input.source));
+  for (const item of input.items) {
+    results.push(await runItem(item, item.origin === 'generator' ? input.generator : input.source));
+  }
   return buildGoldenReport({ ...input, results });
 }
 

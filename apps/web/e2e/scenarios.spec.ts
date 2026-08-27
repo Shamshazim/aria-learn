@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { BAND_ROUTES } from './fixtures/scripted-session';
+import { signedInChild } from './fixtures/signed-in';
 
 const SCENARIOS = {
   arrival: 'Math is ready when you are.',
@@ -16,6 +17,7 @@ const SCENARIOS = {
 for (const [band, route] of Object.entries(BAND_ROUTES)) {
   test(`${band} layout runs every authored scenario`, async ({ page }) => {
     for (const [scenario, terminalText] of Object.entries(SCENARIOS)) {
+      await signedInChild(page);
       await page.goto(`${route}?scenario=${scenario}`);
       await page.getByText(terminalText).waitFor();
       await expect(page.locator('.session-layout')).toHaveCount(1);
@@ -25,6 +27,7 @@ for (const [band, route] of Object.entries(BAND_ROUTES)) {
 
   if (band !== 'early') {
     test(`${band} layout keeps Ask Aria usable`, async ({ page }) => {
+      await signedInChild(page);
       await page.goto(`${route}?scenario=first-visit`);
       await page.getByText('What is four plus three?').waitFor();
       const docked = (page.viewportSize()?.width ?? 0) > 1080;

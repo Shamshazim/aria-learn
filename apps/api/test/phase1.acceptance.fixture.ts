@@ -1,7 +1,6 @@
 import { setImmediate } from 'node:timers/promises';
 
 import request, { type Response } from 'supertest';
-import { z } from 'zod';
 
 import {
   PROTOCOL_VERSION,
@@ -21,9 +20,11 @@ import { createApp } from '@/app';
 import { loadConfig } from '@/config';
 import type { IdGenerator } from '@/lib/ids';
 import { createLogger } from '@/lib/logger';
+import { createMetrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
 import { createParentRepository } from '@/repositories/parent.repository';
 import { createStudentRepository } from '@/repositories/student.repository';
+import { parseEnvelope } from '@/testing/envelope';
 
 import { databaseUrl } from './db.harness';
 
@@ -46,13 +47,23 @@ export async function createPhase1Fixture(
   });
   const student = await students.insert({ parentId: parent.id, displayName: 'Sam', grade });
   const spend = noSpend();
+  // P2H-12: the demo student, asked for the way the product now demands — development plus
+  // the explicit flag. These acceptance tests are about what a session does, not about how a
+  // child signs in; `auth/` has its own tests, and `config` refuses this pair in production.
   const config = loadConfig(
-    { NODE_ENV: 'test', DATABASE_URL: requiredDatabaseUrl(), LOG_LEVEL: 'silent' },
+    {
+      NODE_ENV: 'development',
+      DATABASE_URL: requiredDatabaseUrl(),
+      LOG_LEVEL: 'silent',
+      ALLOW_DEMO_STUDENT: 'true',
+      ARIA_DEMO_STUDENT_ID: student.id,
+    },
     'test',
   );
   const logger = createLogger({ level: 'silent' });
   const background = trackedBackgroundTasks();
-  const studentRuntime = await createPhase1Runtime({
+  const metrics = createMetrics();
+  const phase1 = await createPhase1Runtime({
     pool: database.pool,
     ai: createAiClient({ provider: recordedProvider(), accounting: spend, now: () => 0 }),
     spend,
@@ -60,11 +71,11 @@ export async function createPhase1Fixture(
     ids,
     clock,
     logger,
-    access: { resolve: () => Promise.resolve({ studentId: student.id }) },
+    metrics,
     scheduleBackground: background.schedule,
   });
   return {
-    app: createApp({ config, logger, clock, ids, student: studentRuntime }),
+    app: createApp({ config, logger, clock, ids, student: phase1.student }),
     studentId: student.id,
     ids,
     clock,
@@ -127,6 +138,28 @@ export function requireAsk(moves: readonly TutorMove[]): Extract<TutorMove, { ki
   return ask;
 }
 
+/**
+ * The key the server recorded for an item, read back from its private evidence.
+ *
+ * P2H-10 made arithmetic items generated rather than a fixed bank of six, so a test that
+ * wants to answer *correctly* has to ask what the item's answer actually is. The key never
+ * travels to the browser, so the evidence row is the only honest place to read it.
+ */
+export async function answerKeyFor(
+  database: TestDatabase,
+  sessionId: string,
+  moveId: string,
+): Promise<string> {
+  const result = await database.pool.query<{ answerKey: string | null }>(
+    `SELECT evidence ->> 'answerKey' AS "answerKey" FROM session_event
+     WHERE session_id = $1 AND actor = 'aria' AND kind = 'ASK' AND payload ->> 'id' = $2`,
+    [sessionId, moveId],
+  );
+  const key = result.rows[0]?.answerKey;
+  if (key == null) throw new Error(`No recorded answer key for ask ${moveId}`);
+  return key;
+}
+
 export async function waitForFact(database: TestDatabase, studentId: string): Promise<string> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const result = await database.pool.query<{ id: string }>(
@@ -137,10 +170,6 @@ export async function waitForFact(database: TestDatabase, studentId: string): Pr
     await setImmediate();
   }
   throw new Error('Consolidation did not write an evidence-backed fact');
-}
-
-function parseEnvelope<Output>(schema: z.ZodType<Output>, response: Response): Output {
-  return z.object({ data: schema }).parse(JSON.parse(response.text)).data;
 }
 
 function mutableClock(start: Date) {

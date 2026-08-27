@@ -1,0 +1,89 @@
+{
+  "id": "question-mid-lesson",
+  "title": "A question in the middle of the lesson",
+  "grade": "4",
+  "description": "The child stops to ask what a word means. Aria answers it in two sentences and returns to the same item, without counting it as a wrong answer or moving on to a new question.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [],
+    "affectObservations": [],
+    "expectedFactAssertions": [],
+    "expectedAffectCheckIns": [],
+    "safetyDisclosureEventIds": []
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_question_regrouping",
+        "at": "2026-08-25T13:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_regroup_ask_1",
+        "text": "what does regrouping mean?"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_regroup_answer",
+            "at": "2026-08-25T13:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": {
+              "text": "Regrouping is when ten ones become one ten, so the column has room. That's the part you're doing here."
+            },
+            "display": [],
+            "expects": "none",
+            "skillId": "math.add_regroup_2d"
+          },
+          {
+            "id": "mov_regroup_reask_1",
+            "at": "2026-08-25T13:00:01Z",
+            "protocolVersion": "1.1.0",
+            "kind": "ASK",
+            "speech": { "text": "So what is twenty-seven plus fifteen?" },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.add_regroup_2d",
+            "itemId": "item_regroup_27_15",
+            "attempt": 1
+          }
+        ],
+        "evidence": {
+          "approachId": "answer-question",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_answer_after_question",
+        "at": "2026-08-25T13:00:20Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_regroup_reask_1",
+        "text": "42"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_regroup_praise",
+            "at": "2026-08-25T13:00:20Z",
+            "protocolVersion": "1.1.0",
+            "kind": "PRAISE",
+            "speech": {
+              "text": "Forty-two. You carried the ten into the tens column instead of leaving it behind."
+            },
+            "display": [],
+            "expects": "none",
+            "skillId": "math.add_regroup_2d",
+            "because": "the answer was 42"
+          }
+        ],
+        "evidence": {
+          "approachId": "specific-evidence",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

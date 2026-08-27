@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 
-import type { Grade } from '@aria/shared';
+import type { Grade, TutorMove } from '@aria/shared';
 
+import { useSilenceTimer, type SilenceControls } from '@/features/session/hooks/useSilenceTimer';
 import { ONLINE, reduceConnection } from '@/features/session/model/connection-state';
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
 import {
@@ -9,11 +10,7 @@ import {
   type TutorSession,
 } from '@/features/session/model/session-commands';
 import { reduceSession } from '@/features/session/model/session-machine';
-import {
-  initialSessionState,
-  silenceWindowMs,
-  type SessionState,
-} from '@/features/session/model/session-state';
+import { initialSessionState, type SessionState } from '@/features/session/model/session-state';
 import { ContentUnavailableError, type TutorSource } from '@/features/session/model/tutor-source';
 
 export type { TutorSession } from '@/features/session/model/session-commands';
@@ -24,6 +21,8 @@ export function useTutorSession(input: {
   subjectId: string;
   createSource: () => TutorSource;
   startupEvents?: readonly EventPayload[];
+  onSpeak?: () => Promise<void>;
+  onMove?: (move: TutorMove) => void;
 }): TutorSession {
   const [state, dispatch] = useReducer(reduceSession, input.band, initialSessionState);
   const [connection, dispatchConnection] = useReducer(reduceConnection, ONLINE);
@@ -31,17 +30,19 @@ export function useTutorSession(input: {
   const active = useRef<AbortController | null>(null);
   const queue = useRef<Promise<void>>(Promise.resolve());
   const stateRef = useRef(state);
+  const onMove = useRef(input.onMove);
   stateRef.current = state;
+  onMove.current = input.onMove;
   const events = useEventFactory();
   const transport = useSend(
-    { source, active, queue, events },
+    { source, active, queue, events, onMove },
     { session: dispatch, connection: dispatchConnection },
   );
   const send = transport.send;
 
   useSourceLifecycle(input, source, active, send);
   useMediaEvents(send, transport.retry);
-  useSilenceEvent(state, send);
+  const silence = useSilence(state, send);
 
   const interrupt = useCallback(async (): Promise<void> => {
     const interruptedMoveId = stateRef.current.currentMove?.id;
@@ -53,10 +54,35 @@ export function useTutorSession(input: {
     });
   }, [send]);
 
-  return createSessionCommands(state, connection.status, send, interrupt);
+  const receive = useCallback((move: Parameters<typeof dispatch>[0]): void => {
+    dispatch(move);
+  }, []);
+  return createSessionCommands({
+    state,
+    connectionStatus: connection.status,
+    send,
+    interrupt,
+    receive,
+    silence,
+    ...(input.onSpeak === undefined ? {} : { speak: input.onSpeak }),
+  });
 }
 
 type Send = (payload: EventPayload) => Promise<void>;
+
+function useSilence(state: SessionState, send: Send): SilenceControls {
+  return useSilenceTimer({
+    move: state.currentMove,
+    band: state.band,
+    speaking: state.status === 'speaking',
+    onSilence: useCallback(
+      (payload: Readonly<{ waitedMs: number; afterMoveId: string }>) => {
+        void send({ kind: 'SILENCE', ...payload });
+      },
+      [send],
+    ),
+  });
+}
 type Transport = Readonly<{ send: Send; retry(): Promise<void> }>;
 type Retry = Readonly<{ payload: EventPayload; source: TutorSource }>;
 type SourceRefs = Readonly<{
@@ -64,6 +90,7 @@ type SourceRefs = Readonly<{
   active: React.RefObject<AbortController | null>;
   queue: React.RefObject<Promise<void>>;
   events: React.RefObject<ReturnType<typeof createEventFactory>>;
+  onMove: React.RefObject<((move: TutorMove) => void) | undefined>;
 }>;
 type SendDispatch = Readonly<{
   session: React.Dispatch<Parameters<typeof reduceSession>[1]>;
@@ -146,6 +173,8 @@ async function runSourceOperation(operation: SourceOperation): Promise<void> {
     )) {
       if (sourceRef.current !== operation.source || controller.signal.aborted) return;
       emitted = true;
+      // P2H-07: a segment is a sentence on its way to the screen, not a move to act on.
+      if (move.kind !== 'MOVE_SEGMENT') operation.refs.onMove.current?.(move);
       operation.dispatchers.session(move);
     }
     recoverConnection(operation);
@@ -236,18 +265,4 @@ function useMediaEvents(send: Send, retry: () => Promise<void>): void {
       window.removeEventListener('online', restored);
     };
   }, [retry, send]);
-}
-
-function useSilenceEvent(state: SessionState, send: Send): void {
-  const move = state.currentMove;
-  useEffect(() => {
-    if (move === null || move.expects === 'none') return;
-    const waitedMs = silenceWindowMs(state.band);
-    const timeout = window.setTimeout(() => {
-      void send({ kind: 'SILENCE', waitedMs, afterMoveId: move.id });
-    }, waitedMs);
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [move, send, state.band]);
 }

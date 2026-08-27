@@ -9,7 +9,6 @@ import {
 import { createArrivalController } from '@/controllers/arrival.controller';
 import { createSessionControllers } from '@/controllers/session.controller';
 import { ForbiddenError, ValidationError } from '@/errors';
-import { requireStudentAccess } from '@/middleware/student-access';
 import type { QualityGate } from '@/quality';
 import type { RouterDeps } from '@/routes';
 import { createArrivalService } from '@/services/arrival/arrival.service';
@@ -21,7 +20,10 @@ import { createEndService } from '@/services/session/end.service';
 import { createResumeService } from '@/services/session/resume.service';
 import { createSessionService } from '@/services/session/session.service';
 import type { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
+import { turnMoves } from '@/services/tutor/safety-first';
 import type { createTutorService } from '@/services/tutor/tutor.service';
+
+import { createIdentityRuntime, type IdentityRuntime } from './identity.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
@@ -31,23 +33,63 @@ type ControllerRuntime = Readonly<{
   tutor: ReturnType<typeof createTutorService>;
   crisis: ReturnType<typeof createCrisisTurnService>;
   gate: QualityGate;
+  /** P2H-11: the display name of a skill, for the summary written when a session ends. */
+  skillName(skillCode: string): string | null;
   cancelAhead(sessionId: string): void;
 }>;
 
-export function buildPhase1Controllers(
-  runtime: ControllerRuntime,
-): NonNullable<RouterDeps['student']> {
+export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
+  student: NonNullable<RouterDeps['student']>;
+  turn(studentId: string, request: TurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
+  identity: IdentityRuntime;
+}> {
   const lifecycle = buildLifecycle(runtime);
+  // P2H-12: identity is built here because the idle sweep has to be able to end a tutor
+  // session, and `end` is the first thing in the graph that can.
+  const identity = createIdentityRuntime({
+    deps: runtime.deps,
+    repositories: runtime.repositories,
+    end: lifecycle.end,
+  });
   const arrival = buildArrival(runtime, runtime.gate);
+  const serialize = createSessionTurnQueue();
+  const turn = (studentId: string, request: TurnRequest, signal?: AbortSignal) =>
+    serialize(request.sessionId ?? request.event.sessionId ?? 'missing', () =>
+      turnResponse({ ...runtime, end: lifecycle.end }, studentId, request, signal),
+    );
   return {
-    authorize: requireStudentAccess(runtime.deps.access),
-    arrival: createArrivalController(arrival),
-    sessions: createSessionControllers({
-      sessions: lifecycle.sessions,
-      end: lifecycle.end,
-      turn: (studentId, request, signal) =>
-        turnResponse({ ...runtime, end: lifecycle.end }, studentId, request, signal),
-    }),
+    student: {
+      authorize: identity.childAuth,
+      arrival: createArrivalController(arrival),
+      sessions: createSessionControllers({
+        sessions: lifecycle.sessions,
+        end: lifecycle.end,
+        turn,
+        logger: runtime.deps.logger,
+        ...(runtime.deps.segments === undefined ? {} : { segments: runtime.deps.segments }),
+      }),
+    },
+    turn,
+    identity,
+  };
+}
+
+function createSessionTurnQueue() {
+  const tails = new Map<string, Promise<void>>();
+  return async <T>(sessionId: string, operation: () => Promise<T>): Promise<T> => {
+    const previous = tails.get(sessionId) ?? Promise.resolve();
+    let release = (): void => undefined;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    tails.set(sessionId, current);
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (tails.get(sessionId) === current) tails.delete(sessionId);
+    }
   };
 }
 
@@ -79,11 +121,14 @@ function buildLifecycle(runtime: ControllerRuntime) {
   });
   const end = createEndService({
     sessions: repositories.sessions,
+    events: repositories.events,
+    skillName: runtime.skillName,
     consolidation,
     clock: deps.clock,
     logger: deps.logger,
     schedule: deps.scheduleBackground ?? scheduleBackground,
     cancelAhead: runtime.cancelAhead,
+    ...(deps.closeVoiceSession === undefined ? {} : { closeVoiceSession: deps.closeVoiceSession }),
   });
   return { sessions, end: end.end };
 }
@@ -137,9 +182,7 @@ async function turnResponse(
     throw new ForbiddenError('student session ownership mismatch');
   if (session.endedAt !== null) throw new ValidationError('session has already ended');
   const event = { ...request.event, sessionId };
-  const moves =
-    (await runtime.crisis.handle(studentId, event)) ??
-    (await runtime.tutor.handle(studentId, event, signal));
+  const moves = await turnMoves(runtime, studentId, event, signal);
   const terminal = moves.find((move) => move.kind === 'END' || move.kind === 'BREAK');
   if (terminal !== undefined) {
     await runtime.end({

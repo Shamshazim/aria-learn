@@ -2,13 +2,17 @@ import {
   currentSessionResponseSchema,
   endSessionResponseSchema,
   sessionStartResponseSchema,
+  turnFrameSchema,
   turnResponseSchema,
+  realtimeCredentialsSchema,
   type Grade,
   type CurrentSessionResponse,
   type EndSessionResponse,
   type SessionStartResponse,
   type TurnResponse,
+  type TurnFrame,
   type TurnRequest,
+  type RealtimeCredentialsDto,
 } from '@aria/shared';
 
 import type { ApiClient } from '@/api/client';
@@ -26,10 +30,13 @@ export type SessionApi = Readonly<{
     signal?: AbortSignal,
   ): Promise<SessionStartResponse>;
   turn(input: TurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
+  /** P2H-07: the same turn, read sentence by sentence, closed by the moves themselves. */
+  turnStream(input: TurnRequest, signal?: AbortSignal): AsyncIterable<TurnFrame>;
   end(
     sessionId: string,
     reason: 'complete' | 'break' | 'child_left' | 'timeout',
   ): Promise<EndSessionResponse>;
+  realtime(sessionId: string, signal?: AbortSignal): Promise<RealtimeCredentialsDto>;
 }>;
 
 export function createSessionApi(client: ApiClient): SessionApi {
@@ -63,7 +70,21 @@ export function createSessionApi(client: ApiClient): SessionApi {
         turnResponseSchema,
         signal === undefined ? undefined : { signal },
       ),
+    turnStream: (input: TurnRequest, signal?: AbortSignal) =>
+      client.postStream(
+        '/api/v1/student/session/turn',
+        input,
+        turnFrameSchema,
+        signal === undefined ? undefined : { signal },
+      ),
     end: (sessionId: string, reason: 'complete' | 'break' | 'child_left' | 'timeout') =>
       client.post('/api/v1/student/session/end', { sessionId, reason }, endSessionResponseSchema),
+    realtime: (sessionId, signal) =>
+      client.post(
+        `/api/v1/student/session/${encodeURIComponent(sessionId)}/realtime`,
+        {},
+        realtimeCredentialsSchema,
+        signal === undefined ? undefined : { signal },
+      ),
   };
 }

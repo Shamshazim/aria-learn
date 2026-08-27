@@ -2,13 +2,29 @@ import { createAiClient } from '@/ai/client/ai-client';
 import type { AiClient } from '@/ai/client/ai-client.types';
 import { createSpendService, type SpendService } from '@/ai/cost';
 import { bootstrapRoutedProvider, type AiConfig } from '@/ai/provider';
+import { createGatedStreamer, type GatedStreamer } from '@/ai/streaming';
 import type { AppConfig } from '@/config';
 import type { Queryable } from '@/db';
 import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
 import type { Logger } from '@/lib/logger';
+import type { QualityGate } from '@/quality';
 import { createAiGenerationLogRepository } from '@/repositories/ai-generation-log.repository';
 import { createStatusService, type StatusService } from '@/services/status.service';
+
+export type AiRuntime = Readonly<{
+  client: AiClient;
+  spend: SpendService;
+  status: StatusService;
+  /**
+   * P2H-07: a sentence-at-a-time streamer, once someone brings the gate it must pass.
+   *
+   * The routed provider is private to this module, and the quality gate is built where the
+   * content services are. Handing back a factory is what lets the two meet without either one
+   * reaching into the other.
+   */
+  gatedStreamer(gate: QualityGate): GatedStreamer;
+}>;
 
 const BREAKER_FAILURES = 3;
 const BREAKER_COOLDOWN_MS = 30_000;
@@ -21,7 +37,7 @@ export async function createAiRuntime(dependencies: {
   clock: Clock;
   logger: Logger;
   fetch: typeof globalThis.fetch;
-}): Promise<Readonly<{ client: AiClient; spend: SpendService; status: StatusService }>> {
+}): Promise<AiRuntime> {
   const repository = createAiGenerationLogRepository({
     db: dependencies.db,
     ids: dependencies.ids,
@@ -47,6 +63,14 @@ export async function createAiRuntime(dependencies: {
   });
   return {
     client: createAiClient({ provider: routed.provider, accounting: spend, now }),
+    gatedStreamer: (gate) =>
+      createGatedStreamer({
+        provider: routed.provider,
+        gate,
+        now,
+        callNow: now,
+        accounting: spend,
+      }),
     spend,
     status: createStatusService({
       endpointNames: routed.endpointNames,

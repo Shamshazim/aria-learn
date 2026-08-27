@@ -100,12 +100,43 @@ describe('gated streaming', () => {
     const released = await collect(streamer.stream(input()));
 
     expect(released).toEqual([
-      { written: 'One and one make two.', spoken: 'One and one make two.', gateMs: 5 },
-      { written: 'What is next?', spoken: 'What is next?', gateMs: 5 },
+      {
+        written: 'One and one make two.',
+        spoken: 'One and one make two.',
+        gateMs: 5,
+        index: 0,
+        isLast: false,
+      },
+      {
+        written: 'What is next?',
+        spoken: 'What is next?',
+        gateMs: 5,
+        index: 1,
+        // The model ended on a full stop, so nothing was left to flush and no sentence was
+        // ever knowably the last one. The closing frame ends the turn, not `isLast` (P2H-07).
+        isLast: false,
+      },
     ]);
     expect(released).not.toContain('One and one ');
     expect(released.every((value) => typeof value === 'object')).toBe(true);
     expect(5).toBeLessThanOrEqual(SEGMENT_GATE_BUDGET_MS);
+  });
+
+  it('marks the sentence it had to flush as the last one', async () => {
+    const streamer = createGatedStreamer({
+      provider: provider(['One and one make two. And that is', ' all']),
+      gate: gate(),
+      now: () => 0,
+      callNow: () => 0,
+      accounting: accounting(),
+    });
+
+    const released = await collect(streamer.stream(input()));
+
+    expect(released).toEqual([
+      expect.objectContaining({ index: 0, isLast: false }),
+      expect.objectContaining({ written: 'And that is all', index: 1, isLast: true }),
+    ]);
   });
 
   it('aborts a failing segment and releases only a gated fallback after prior sentences', async () => {
@@ -118,8 +149,22 @@ describe('gated streaming', () => {
     });
 
     await expect(collect(streamer.stream(input()))).resolves.toEqual([
-      { written: 'One and one make two.', spoken: 'One and one make two.', gateMs: 0 },
-      { written: 'We can add.', spoken: 'We can add.', gateMs: 0 },
+      {
+        written: 'One and one make two.',
+        spoken: 'One and one make two.',
+        gateMs: 0,
+        index: 0,
+        isLast: false,
+      },
+      // P2H-11: marked, so the turn above knows a child heard a static string and can log it.
+      {
+        written: 'We can add.',
+        spoken: 'We can add.',
+        gateMs: 0,
+        index: 1,
+        isLast: true,
+        substituted: true,
+      },
     ]);
   });
 
@@ -145,7 +190,13 @@ describe('gated streaming', () => {
             }
           : PLAN;
       await expect(collect(streamer.stream(input({ contentKind, plan })))).resolves.toEqual([
-        { written: 'One and one make two.', spoken: 'One and one make two.', gateMs: 0 },
+        {
+          written: 'One and one make two.',
+          spoken: 'One and one make two.',
+          gateMs: 0,
+          index: 0,
+          isLast: true,
+        },
       ]);
     },
   );

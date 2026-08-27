@@ -14,6 +14,8 @@ export type SessionRepository = Readonly<{
   findById(id: string): Promise<TutorSessionRecord | null>;
   findLatestEnded(studentId: string): Promise<TutorSessionRecord | null>;
   end(id: string, reason: SessionEndReason, endedAt: Date): Promise<TutorSessionRecord | null>;
+  /** P2H-11: what this session came to, written once when it ends. */
+  saveSummary(id: string, summary: string): Promise<TutorSessionRecord | null>;
 }>;
 
 export function createSessionRepository(deps: {
@@ -27,6 +29,7 @@ export function createSessionRepository(deps: {
     findById: (id) => findById(deps.db, id),
     findLatestEnded: (studentId) => findLatestEnded(deps.db, studentId),
     end: (id, reason, endedAt) => end(deps.db, id, reason, endedAt),
+    saveSummary: (id, summary) => saveSummary(deps.db, id, summary),
   };
 }
 
@@ -83,6 +86,22 @@ async function findById(db: Queryable, id: string): Promise<TutorSessionRecord |
     operation: 'session.findById',
     sql: `SELECT ${COLUMNS} FROM session WHERE id = $1`,
     params: [id],
+  });
+  return result.rows[0] === undefined ? null : toTutorSession(result.rows[0]);
+}
+
+/** Written only where nothing is there yet, so a second `end` call cannot rewrite history. */
+async function saveSummary(
+  db: Queryable,
+  id: string,
+  summary: string,
+): Promise<TutorSessionRecord | null> {
+  const result = await runQuery<SessionRow>({
+    db,
+    operation: 'session.saveSummary',
+    sql: `UPDATE session SET summary = COALESCE(summary, $2)
+          WHERE id = $1 RETURNING ${COLUMNS}`,
+    params: [id, summary],
   });
   return result.rows[0] === undefined ? null : toTutorSession(result.rows[0]);
 }

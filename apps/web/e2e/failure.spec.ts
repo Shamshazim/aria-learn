@@ -1,7 +1,10 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+import { signedInChild } from './fixtures/signed-in';
+
 test('content failure keeps work and recovers in place', async ({ context, page }) => {
+  await signedInChild(page);
   await page.goto('/session/7/math?failure=content');
   await page.getByText('What is four plus three?').waitFor();
   await page.getByRole('button', { name: '6' }).click();

@@ -4,6 +4,8 @@ export {
   AppError,
   ValidationError,
   NotFoundError,
+  UnauthorizedError,
+  LockedError,
   ForbiddenError,
   ConflictError,
   ServiceUnavailableError,

@@ -2,6 +2,7 @@ import type { CommittedTurn } from '@aria/tutor';
 
 import { withTransaction } from '@/db/transaction';
 import type { Clock } from '@/lib/clock';
+import type { MoveOutboxRepository } from '@/repositories/move-outbox.repository';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
 import {
@@ -20,6 +21,7 @@ export function createTurnCommitService(deps: {
   skills: SkillStateRepository;
   sessions: SessionRepository;
   clock: Clock;
+  outbox?: MoveOutboxRepository;
 }): TurnCommitService {
   return {
     commit: (turn: CommittedTurn) =>
@@ -37,7 +39,10 @@ async function commit(
   const events = deps.events.withDb(tx);
   const skills = deps.skills.withDb(tx);
   await events.append(inputRecord(turn, sessionId, deps.clock));
-  for (const move of turn.moves) await events.append(moveRecord(turn, move, sessionId, deps.clock));
+  for (const move of turn.moves) {
+    await events.append(moveRecord(turn, move, sessionId, deps.clock));
+    await deps.outbox?.withDb(tx).enqueueIfOpen(sessionId, move);
+  }
   if (turn.decision.graded !== null && turn.plan.skillCode !== null) {
     await skills.recordAttempt({
       studentId: (await requireSession(deps.sessions.withDb(tx), sessionId)).studentId,
@@ -56,24 +61,40 @@ async function commit(
   }
 }
 
+/**
+ * P2H-05: what a child said when they volunteered personal information is never written down.
+ *
+ * Not redacted field by field — replaced. The row still exists, so the turn is auditable and
+ * the count is honest, but the address itself stops at the policy that recognised it.
+ */
+export const PERSONAL_INFO_MARKER = '[redacted: personal-info]';
+
 function inputRecord(turn: CommittedTurn, sessionId: string, clock: Clock): NewSessionEvent {
+  const redacted = turn.plan.evidence?.personalInfoRedacted === true;
   return {
     sessionId,
     actor: 'child',
     kind: turn.event.kind,
-    text: eventText(turn),
+    text: redacted ? PERSONAL_INFO_MARKER : eventText(turn),
     skillCode: turn.plan.skillCode,
     correct: turn.decision.graded?.correct ?? null,
     latencyMs: turn.event.kind === 'ANSWER' ? (turn.event.elapsedMs ?? null) : null,
     evidence: {
       decision: turn.plan.reason,
+      ...turn.plan.evidence,
       ...(turn.decision.graded?.misconception === null || turn.decision.graded === null
         ? {}
         : { misconception: turn.decision.graded.misconception }),
     },
-    payload: turn.event,
+    payload: redacted ? redactedPayload(turn) : turn.event,
     at: clock.now(),
   };
+}
+
+/** The stored payload keeps the event's shape and identity, never its words. */
+function redactedPayload(turn: CommittedTurn): Readonly<Record<string, unknown>> {
+  const { id, at, protocolVersion, kind } = turn.event;
+  return { id, at, protocolVersion, kind, redacted: 'personal-info' };
 }
 
 function moveRecord(
@@ -92,6 +113,7 @@ function moveRecord(
     latencyMs: turn.spans.e2e_ms ?? null,
     evidence: {
       ...turn.privateEvidence,
+      ...turn.plan.evidence,
       approach: turn.plan.approach,
       reason: turn.plan.reason,
       spans: turn.spans,

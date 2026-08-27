@@ -6,12 +6,17 @@ import {
   type TutorPorts,
 } from '@aria/tutor';
 
+import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
+import { createInventoryService, type LessonNote } from '@/curriculum';
 import { fixedClock } from '@/lib/clock';
 import { scrubLearnerContext } from '@/privacy';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import { createTutorService } from '@/services/tutor/tutor.service';
 import type { TutorImplementation } from '@/testing/tutoring/replay';
 import type { TutoringScenario } from '@/testing/tutoring/scenario';
+
+/** The skill the recorded golden scenarios are written against. */
+const GOLDEN_SKILL = 'ADD.FACT.10';
 
 export function createHarnessTutor(scenario: TutoringScenario): TutorImplementation {
   if (scenario.context.answerOutcomes.length > 0) return createProductionPolicyTutor(scenario);
@@ -46,6 +51,11 @@ export function createHarnessTutor(scenario: TutoringScenario): TutorImplementat
   };
 }
 
+/** The stale-`SILENCE` check compares against the last move Aria delivered (P2H-01). */
+function latestMoveId(committed: CommittedTurn | null): string | null {
+  return committed?.moves.at(-1)?.id ?? null;
+}
+
 function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplementation {
   const steps = new Map(scenario.steps.map((step) => [step.event.id, step]));
   const outcomes = new Map(
@@ -55,11 +65,14 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
   let wrong = 0;
   let lastApproach: string | null = null;
   const sessionId = sessionIdSchema.parse('00000000-0000-4000-8000-000000000901');
+  // P2H-10: the golden scenarios run on the real note for the skill they name, so a rubric
+  // round is scoring the grounding the production path actually gets.
+  const lesson = createInventoryService().getLesson(GOLDEN_SKILL);
   const service = createTutorService({
     ports: {
       loadContext: (event) =>
         Promise.resolve(
-          productionContext({ scenario, event, sessionId, wrong, lastApproach, outcomes }),
+          productionContext({ scenario, event, sessionId, wrong, lastApproach, outcomes, lesson }),
         ),
       resolveContent: ({ event }) => {
         const scripted = requireStep(steps, event.id).scripted;
@@ -76,6 +89,12 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
     clock: fixedClock(new Date('2026-08-24T20:00:00.000Z')),
     sessionLimitMs: () => 20 * 60_000,
     requireOwnership: () => Promise.resolve(),
+    latestMoveId: () => Promise.resolve(latestMoveId(committed)),
+    logger: { info: () => undefined },
+    // Golden replay is deterministic: the rules decide, never a model. The planner is present
+    // and always declines, so the recorded policy plan is what runs (P2H-06).
+    intent: createIntentClassifier({ ai: null }),
+    planner: ({ fallback }) => Promise.resolve(fallback),
   });
   return {
     handle: async (event, control) => {
@@ -101,6 +120,7 @@ function productionContext(
     wrong: number;
     lastApproach: string | null;
     outcomes: ReadonlyMap<string, 'correct' | 'wrong'>;
+    lesson: LessonNote | null;
   }>,
 ) {
   const { scenario, event, sessionId, wrong, lastApproach, outcomes } = input;
@@ -113,10 +133,11 @@ function productionContext(
       subject: 'golden',
       grade: scenario.grade,
       band: bandForGrade(scenario.grade),
-      skillCode: 'ADD.FACT.10',
+      skillCode: GOLDEN_SKILL,
       startedAt: new Date('2026-08-24T19:55:00.000Z'),
       attempts: wrong,
       consecutiveWrong: wrong,
+      consecutiveSilences: 0,
       repeatedMisconception: null,
       lastApproach,
       unmetPrerequisite: null,
@@ -128,7 +149,9 @@ function productionContext(
       estimatedTokens: 0,
       retrievedFactIds: [],
       recentContentItemIds: [],
+      recentIntents: [],
       arithmeticProblem: null,
+      lesson: input.lesson,
       completionOnly: false,
       latestAsk: null,
     } satisfies ApiModelContext,
@@ -155,6 +178,7 @@ function ports(
           startedAt: new Date('2026-08-24T20:00:00.000Z'),
           attempts: 0,
           consecutiveWrong: 0,
+          consecutiveSilences: 0,
           repeatedMisconception: null,
           lastApproach: null,
           unmetPrerequisite: null,
@@ -168,6 +192,9 @@ function ports(
       const outcome = scenario.context.answerOutcomes.find((item) => item.eventId === event.id);
       return Promise.resolve({
         allowedMoves: [fallback.kind],
+        // Golden replay is a recording, not a judgement: the scripted move is the only move.
+        decisive: true,
+        reasons: ['golden_recorded_response'],
         defaultPlan: fallback,
         graded:
           outcome === undefined
