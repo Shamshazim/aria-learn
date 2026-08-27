@@ -1,0 +1,35 @@
+# The voice worker.
+#
+# NOT DEPLOYABLE FROM `main` YET — `apps/voice-worker` arrives with draft PR #18. The config
+# is here so the deploy path is complete on the day it merges.
+#
+#   fly deploy --config infra/fly/voice-worker.toml \
+#     --dockerfile infra/docker/voice-worker.Dockerfile --app aria-voice-worker-staging .
+#
+# It serves no HTTP. It connects *outbound* to LiveKit Cloud and holds a room open for the
+# length of a child's session, which is the whole reason the hosting decision rules out a
+# request-scoped platform (`infra/decisions/001-hosting.md`).
+
+app = "aria-voice-worker"
+primary_region = "iad"
+
+# Draining, not killing. On SIGTERM the worker stops accepting new rooms and finishes the ones
+# it holds. Five minutes is Fly's ceiling and is shorter than a senior band's session, so a
+# deploy during a long session still ends in a forced restart — which is exactly the case
+# P2-13's outbox resume exists to cover. The runbook says to deploy the worker outside peak
+# hours for that reason.
+kill_signal = "SIGTERM"
+kill_timeout = "300s"
+
+[env]
+  NODE_ENV = "production"
+
+[deploy]
+  # One machine at a time: two workers restarting together is two sets of live sessions.
+  strategy = "rolling"
+  max_unavailable = 1
+
+[[vm]]
+  # Audio work, not request handling. Sized on rooms per machine, which X-04 measures.
+  size = "shared-cpu-2x"
+  memory = "1gb"

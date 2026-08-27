@@ -1,0 +1,32 @@
+# Everything the images must never contain. `.env` first, because a secret baked into a
+# layer stays in the registry long after it is rotated (X-01, CODE-STANDARDS §8).
+.env
+.env.*
+!.env.example
+
+.git
+.github
+node_modules
+**/node_modules
+**/dist
+**/build
+**/coverage
+**/.vite
+
+# The frozen first version. It is never built, run, or shipped (CLAUDE.md).
+legacy/
+backend/
+frontend/
+desktop/
+e2e-agent/
+
+# Documentation and local noise: not needed to run, and every excluded file is one that
+# cannot leak into an image layer.
+dev-docs/
+# Infra is documentation and workflows, except the nginx config the web image copies in.
+infra/
+!infra/docker/
+*.log
+.DS_Store
+.idea
+.vscode

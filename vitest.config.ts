@@ -62,6 +62,17 @@ export default defineConfig({
       },
       {
         test: {
+          // Repository tooling — the secret scan and the environment-template check (X-01).
+          // It guards the deploy path, so it is tested like everything else it guards.
+          name: 'tools',
+          root: './tools',
+          environment: 'node',
+          include: ['**/*.test.ts'],
+          exclude: EXCLUDED,
+        },
+      },
+      {
+        test: {
           name: 'shared',
           root: './packages/shared',
           environment: 'node',

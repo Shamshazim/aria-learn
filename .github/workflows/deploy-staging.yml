@@ -1,0 +1,135 @@
+name: Deploy staging
+
+# Every commit that reaches main goes to staging. Staging is what a release is proved
+# against — including the rollback drill — so nothing is allowed to accumulate there
+# unreleased (X-01).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy per environment at a time. Two racing deploys is two migrations racing, and the
+# ordering rule in the runner would refuse the second one halfway through the first.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FLY_API_APP: aria-api-staging
+  FLY_WEB_APP: aria-web-staging
+  FLY_WORKER_APP: aria-voice-worker-staging
+  API_URL: https://aria-api-staging.fly.dev
+  WEB_URL: https://aria-web-staging.fly.dev
+
+jobs:
+  deploy:
+    name: migrate, deploy, smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # ── Before anything changes ──────────────────────────────
+      # What is running now, so a rollback has an image to name. Captured before the deploy
+      # rather than reconstructed after it.
+      - name: Record the image currently deployed
+        id: previous
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          for app in "$FLY_API_APP" "$FLY_WEB_APP"; do
+            ref="$(flyctl image show --app "$app" --json | jq -r '.[0].Reference // empty')"
+            echo "$app=$ref" >> "$GITHUB_OUTPUT"
+            echo "$app is currently running $ref"
+          done
+
+      # ── Migrate, then deploy ─────────────────────────────────
+      # In that order and never the other: the new code may need the new schema, and the old
+      # code must keep working against it, which is what makes a code-only rollback safe
+      # (expand → migrate → contract; see infra/README.md).
+      - name: Plan the migration
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: npm run db:migrate -w @aria/api -- --dry-run
+
+      - name: Apply the migration
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: npm run db:migrate -w @aria/api
+
+      - name: Deploy the API
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --app "$FLY_API_APP" \
+            --config infra/fly/api.toml \
+            --dockerfile infra/docker/api.Dockerfile \
+            --strategy rolling \
+            --wait-timeout 10m \
+            .
+
+      - name: Deploy the web app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --app "$FLY_WEB_APP" \
+            --config infra/fly/web.toml \
+            --dockerfile infra/docker/web.Dockerfile \
+            --build-arg "VITE_API_BASE_URL=$API_URL" \
+            --strategy rolling \
+            --wait-timeout 10m \
+            .
+
+      - name: Deploy the voice worker, once it exists
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -d apps/voice-worker ]; then
+            flyctl deploy \
+              --app "$FLY_WORKER_APP" \
+              --config infra/fly/voice-worker.toml \
+              --dockerfile infra/docker/voice-worker.Dockerfile \
+              --strategy rolling \
+              --wait-timeout 15m \
+              .
+          else
+            echo "apps/voice-worker is not in the tree yet (draft PR #18); skipping."
+          fi
+
+      # ── Prove it ─────────────────────────────────────────────
+      - name: Smoke
+        run: npm run smoke -- --api "$API_URL" --web "$WEB_URL"
+
+      # Automatic, because a staging deploy that needs a human to notice it failed is a
+      # staging deploy that stays broken until somebody tries to use it.
+      - name: Roll back on failure
+        if: failure()
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          PREVIOUS: ${{ toJSON(steps.previous.outputs) }}
+        run: |
+          set -euo pipefail
+          api="$(echo "$PREVIOUS" | jq -r --arg k "$FLY_API_APP" '.[$k] // empty')"
+          web="$(echo "$PREVIOUS" | jq -r --arg k "$FLY_WEB_APP" '.[$k] // empty')"
+          [ -n "$api" ] && flyctl deploy --app "$FLY_API_APP" --image "$api" --strategy immediate
+          [ -n "$web" ] && flyctl deploy --app "$FLY_WEB_APP" --image "$web" --strategy immediate
+          echo "::error::Deploy failed; rolled back to the previous images. Schema was NOT rolled back — see infra/README.md."

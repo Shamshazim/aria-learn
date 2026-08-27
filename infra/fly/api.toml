@@ -1,0 +1,57 @@
+# The API app. One Fly app per environment; the app name is passed on the command line
+# (`--app aria-api-staging`), so this file describes the *shape* of the service and never
+# which environment it is.
+#
+#   fly deploy --config infra/fly/api.toml --dockerfile infra/docker/api.Dockerfile \
+#     --app aria-api-staging .
+#
+# Nothing here holds a value that is secret. Secrets are `fly secrets set` per app, which
+# makes them environment variables inside the machine and never puts them in the image.
+
+app = "aria-api"
+primary_region = "iad"
+
+# The server already shuts down gracefully (SHUTDOWN_TIMEOUT_MS). SIGTERM is what reaches it,
+# and the timeout here is longer than the application's own so the platform is never the thing
+# that cuts a request short.
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[env]
+  NODE_ENV = "production"
+  API_PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # Never scaled to zero: a cold start in front of a waiting child is the failure P0-25 is
+  # about, and the API's boot does real work — migrations, provider checks — before it serves.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 2
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+# The rollout gate (X-01): an instance that fails its health check never receives traffic, so
+# a release that cannot reach its database or its model provider does not replace one that can.
+[[http_service.checks]]
+  grace_period = "30s"
+  interval = "15s"
+  method = "GET"
+  path = "/api/v1/health"
+  protocol = "http"
+  timeout = "5s"
+
+[deploy]
+  # One machine at a time, health-gated. A bad release stops after the first machine rather
+  # than after all of them.
+  strategy = "rolling"
+  max_unavailable = 0.34
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

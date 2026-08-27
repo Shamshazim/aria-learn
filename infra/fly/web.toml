@@ -1,0 +1,35 @@
+# The web app: the Vite build, served by nginx.
+#
+#   fly deploy --config infra/fly/web.toml --dockerfile infra/docker/web.Dockerfile \
+#     --build-arg VITE_API_BASE_URL=https://api.staging.arialearn.example \
+#     --app aria-web-staging .
+#
+# The API origin is baked in at build time, so an image belongs to one environment and cannot
+# be promoted between them. That is deliberate — see the Dockerfile.
+
+app = "aria-web"
+primary_region = "iad"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Static files: cheap to start, so this one may sleep.
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "5s"
+  interval = "15s"
+  method = "GET"
+  path = "/healthz"
+  protocol = "http"
+  timeout = "3s"
+
+[deploy]
+  strategy = "rolling"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
