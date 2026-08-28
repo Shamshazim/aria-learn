@@ -12,3 +12,4 @@ export { ConnectionNotice } from '@/features/session/components/ConnectionNotice
 export { SessionTopbar } from '@/features/session/components/SessionTopbar';
 export { useRealtimeVoice } from '@/features/voice/hooks/useRealtimeVoice';
 export { VoiceControls } from '@/features/voice/components/VoiceControls';
+export { voiceAvailability } from '@/features/session/model/voice-availability';

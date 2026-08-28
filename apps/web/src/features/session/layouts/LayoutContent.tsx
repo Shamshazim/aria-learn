@@ -1,11 +1,15 @@
+import { DeliveryNotice } from '@/features/session/components/DeliveryNotice';
 import { DoneCard } from '@/features/session/components/DoneCard';
 import { InputSurface } from '@/features/session/components/InputSurface';
 import { SessionControls } from '@/features/session/components/SessionControls';
 import { TutorStatus } from '@/features/session/components/TutorStatus';
 import type { TutorSession } from '@/features/session/hooks/useTutorSession';
+import type { VoiceAvailability } from '@/features/session/model/voice-availability';
 import { MoveView } from '@/features/session/render/registry';
 
-function CurrentMove(props: { session: TutorSession }): React.JSX.Element | null {
+type LayoutProps = Readonly<{ session: TutorSession; voice: VoiceAvailability }>;
+
+function CurrentMove(props: LayoutProps): React.JSX.Element | null {
   const move = props.session.state.currentMove;
   const streaming = props.session.state.streaming;
   // P2H-07: the sentences Aria has already said. No input surface until the move arrives —
@@ -21,6 +25,7 @@ function CurrentMove(props: { session: TutorSession }): React.JSX.Element | null
       <InputSurface
         band={props.session.state.band}
         move={move}
+        voice={props.voice}
         onAnswer={(value) => {
           void props.session.answer(move.id, value);
         }}
@@ -35,13 +40,22 @@ function CurrentMove(props: { session: TutorSession }): React.JSX.Element | null
   );
 }
 
-export function LayoutContent(props: { session: TutorSession }): React.JSX.Element {
+export function LayoutContent(props: LayoutProps): React.JSX.Element {
   if (props.session.state.ended) return <DoneCard />;
+  const retryFailed = props.session.retryFailed;
   return (
     <div className="session-main">
       <TutorStatus status={props.session.state.status} />
+      {retryFailed === null ? null : (
+        <DeliveryNotice
+          band={props.session.state.band}
+          onRetry={() => {
+            void retryFailed();
+          }}
+        />
+      )}
       <section className="session-card">
-        <CurrentMove session={props.session} />
+        <CurrentMove session={props.session} voice={props.voice} />
       </section>
       <SessionControls
         band={props.session.state.band}

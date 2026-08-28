@@ -20,7 +20,7 @@
   min-height: 44px;
 }
 
-.voice-controls__stop {
+.voice-controls .voice-controls__stop {
   background: #7a2828;
   color: #fff;
 }

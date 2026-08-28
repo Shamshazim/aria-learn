@@ -96,13 +96,16 @@ function receiveSegment(state: SessionState, segment: MoveSegment): SessionState
 }
 
 function receive(state: SessionState, move: TutorMove, forcedStatus?: TutorStatus): SessionState {
+  // A re-sync sends the question the child is already looking at. It becomes current again
+  // without being spoken twice or written into the transcript twice.
+  const seen = state.moves.some((known) => known.id === move.id);
   return {
     ...state,
     currentMove: move,
     // The move is the whole of what the sentences were a prefix of; it replaces them.
     streaming: null,
-    moves: [...state.moves, move],
-    status: forcedStatus ?? (move.speech === null ? 'waiting' : 'speaking'),
+    moves: seen ? state.moves : [...state.moves, move],
+    status: seen ? 'waiting' : (forcedStatus ?? (move.speech === null ? 'waiting' : 'speaking')),
   };
 }
 

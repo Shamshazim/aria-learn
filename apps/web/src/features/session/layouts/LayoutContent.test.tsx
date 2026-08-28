@@ -17,7 +17,7 @@ describe('the session card with no move', () => {
   it('shows the listening indicator and no placeholder sentence', () => {
     render(
       <MemoryRouter>
-        <LayoutContent session={stubSession()} />
+        <LayoutContent session={stubSession()} voice="ready" />
       </MemoryRouter>,
     );
 
@@ -33,7 +33,7 @@ describe('the session card with no move', () => {
 
     render(
       <MemoryRouter>
-        <LayoutContent session={session} />
+        <LayoutContent session={session} voice="ready" />
       </MemoryRouter>,
     );
 

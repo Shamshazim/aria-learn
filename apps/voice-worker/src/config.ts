@@ -20,7 +20,7 @@ const schema = z.object({
   ARIA_API_URL: z.url(),
   VOICE_WORKER_TOKEN: z.string().min(32),
   VOICE_STT_MODEL: z.string().min(1).default('assemblyai/universal-3-5-pro'),
-  VOICE_TTS_MODEL: z.string().min(1).default('fishaudio/s2.1-pro'),
+  VOICE_TTS_MODEL: z.string().min(1).default('elevenlabs/eleven_turbo_v2_5'),
   VOICE_TTS_VOICE_EARLY: voiceId,
   VOICE_TTS_VOICE_MIDDLE: voiceId,
   VOICE_TTS_VOICE_SENIOR: voiceId,

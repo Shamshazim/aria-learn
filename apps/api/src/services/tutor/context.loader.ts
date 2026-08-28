@@ -1,4 +1,4 @@
-import { tutorMoveSchema, type TutorInputEvent } from '@aria/shared';
+import type { TutorInputEvent } from '@aria/shared';
 import type { LoadedTurnContext } from '@aria/tutor';
 
 import type { LessonNote } from '@/curriculum';
@@ -11,6 +11,12 @@ import type { SkillStateRepository } from '@/repositories/skill-state.repository
 import type { StudentRepository } from '@/repositories/student.repository';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import type { MemoryRetrieval } from '@/services/memory/retrieve.service';
+import {
+  latestAskRecord,
+  questionEvidence,
+  resolveAnswerTarget,
+  type AskRecord,
+} from '@/services/tutor/answer-target';
 
 export type TutorContextLoader = Readonly<{
   load(event: TutorInputEvent): Promise<LoadedTurnContext<ApiModelContext>>;
@@ -52,6 +58,7 @@ async function load(
     deps.students.requireById(session.studentId),
   ]);
   const ask = answerAsk(records, event);
+  const askEvidence = ask === null ? {} : questionEvidence(records, ask);
   const skillCode = stringPlanValue(session.plan, 'skillCode');
   const [skillContext, memory] = await Promise.all([
     loadSkillContext(deps, session.studentId, skillCode),
@@ -68,36 +75,67 @@ async function load(
     }),
   ]);
   return {
-    session: {
-      id: session.id,
-      studentId: session.studentId,
-      subject: session.subject,
-      grade: session.grade,
-      band: session.band,
-      skillCode,
-      startedAt: session.startedAt,
-      attempts: Math.min(10, consecutiveWrong(records)),
-      consecutiveWrong: consecutiveWrong(records),
-      consecutiveSilences: consecutiveSilences(records),
-      repeatedMisconception:
-        latestEvidenceString(records, 'misconception') ?? skillContext.repeatedMisconception,
-      lastApproach: latestEvidenceString(records, 'approach'),
-      unmetPrerequisite: skillContext.unmet[0]?.code ?? null,
-    },
-    modelContext: {
-      scrubbed: memory.context,
-      answerKey: askEvidenceString(ask, 'answerKey'),
-      latestQuestion: ask?.text ?? null,
-      estimatedTokens: memory.estimatedTokens,
-      retrievedFactIds: memory.factIds,
-      recentContentItemIds: recentEvidenceStrings(records, 'contentItemId', 5),
-      recentIntents: [...recentEvidenceStrings(records, 'intent', 3)].reverse(),
-      arithmeticProblem: askArithmeticProblem(ask),
-      lesson: skillCode === null ? null : deps.lesson(skillCode),
-      completionOnly: askEvidenceBoolean(ask, 'completionOnly') ?? false,
-      latestAsk: parsedAskMove(ask),
-    },
+    session: sessionContext(session, records, skillCode, skillContext),
+    modelContext: modelContext(deps, { records, memory, ask, askEvidence, skillCode }),
     recentKinds: records.map((record) => record.kind),
+  };
+}
+
+type SessionRecord = NonNullable<Awaited<ReturnType<SessionRepository['findById']>>>;
+type Records = Awaited<ReturnType<SessionEventRepository['list']>>;
+
+function sessionContext(
+  session: SessionRecord,
+  records: Records,
+  skillCode: string | null,
+  skillContext: Awaited<ReturnType<typeof loadSkillContext>>,
+): LoadedTurnContext<ApiModelContext>['session'] {
+  return {
+    id: session.id,
+    studentId: session.studentId,
+    subject: session.subject,
+    grade: session.grade,
+    band: session.band,
+    skillCode,
+    startedAt: session.startedAt,
+    attempts: Math.min(10, consecutiveWrong(records)),
+    consecutiveWrong: consecutiveWrong(records),
+    consecutiveSilences: consecutiveSilences(records),
+    repeatedMisconception:
+      latestEvidenceString(records, 'misconception') ?? skillContext.repeatedMisconception,
+    lastApproach: latestEvidenceString(records, 'approach'),
+    unmetPrerequisite: skillContext.unmet[0]?.code ?? null,
+  };
+}
+
+function modelContext(
+  deps: Parameters<typeof createTutorContextLoader>[0],
+  {
+    records,
+    memory,
+    ask,
+    askEvidence,
+    skillCode,
+  }: Readonly<{
+    records: Records;
+    memory: MemoryRetrieval;
+    ask: AskRecord | null;
+    askEvidence: Readonly<Record<string, unknown>>;
+    skillCode: string | null;
+  }>,
+): ApiModelContext {
+  return {
+    scrubbed: memory.context,
+    answerKey: evidenceString(askEvidence, 'answerKey'),
+    latestQuestion: ask?.text ?? null,
+    estimatedTokens: memory.estimatedTokens,
+    retrievedFactIds: memory.factIds,
+    recentContentItemIds: recentEvidenceStrings(records, 'contentItemId', 5),
+    recentIntents: [...recentEvidenceStrings(records, 'intent', 3)].reverse(),
+    arithmeticProblem: askArithmeticProblem(askEvidence),
+    lesson: skillCode === null ? null : deps.lesson(skillCode),
+    completionOnly: evidenceBoolean(askEvidence, 'completionOnly') ?? false,
+    latestAsk: ask?.ask ?? null,
   };
 }
 
@@ -133,52 +171,38 @@ function checkInEvidence(
   return checkIn === null ? {} : { recentEvidence: [`Check-in: ${checkIn}`] };
 }
 
-function askEvidenceBoolean(
-  record: Awaited<ReturnType<SessionEventRepository['list']>>[number] | undefined,
-  key: string,
-): boolean | null {
-  const value = record?.evidence[key];
+function evidenceBoolean(evidence: Readonly<Record<string, unknown>>, key: string): boolean | null {
+  const value = evidence[key];
   return typeof value === 'boolean' ? value : null;
 }
 
 function askArithmeticProblem(
-  record: Awaited<ReturnType<SessionEventRepository['list']>>[number] | undefined,
+  evidence: Readonly<Record<string, unknown>>,
 ): ApiModelContext['arithmeticProblem'] {
-  const parsed = arithmeticProblemSchema.safeParse(record?.evidence.arithmeticProblem);
+  const parsed = arithmeticProblemSchema.safeParse(evidence.arithmeticProblem);
   return parsed.success ? parsed.data : null;
 }
 
-function askEvidenceString(
-  record: Awaited<ReturnType<SessionEventRepository['list']>>[number] | undefined,
-  key: string,
-): string | null {
-  const value = record?.evidence[key];
+function evidenceString(evidence: Readonly<Record<string, unknown>>, key: string): string | null {
+  const value = evidence[key];
   return typeof value === 'string' ? value : null;
 }
 
-function latestAsk(records: Awaited<ReturnType<SessionEventRepository['list']>>) {
-  return [...records].reverse().find((record) => record.actor === 'aria' && record.kind === 'ASK');
-}
-
+/**
+ * The question this event is about. An answer to an earlier asking of the same item is graded
+ * against the current asking; anything staler was already met with a re-sync before the
+ * context was loaded (`answer-target.ts`), so reaching here with one is a programming error.
+ */
 function answerAsk(
   records: Awaited<ReturnType<SessionEventRepository['list']>>,
   event: TutorInputEvent,
-) {
-  const latest = latestAsk(records);
-  if (event.kind !== 'ANSWER') return latest;
-  const target = records.find((record) => {
-    const parsed = tutorMoveSchema.safeParse(record.payload);
-    return parsed.success && parsed.data.kind === 'ASK' && parsed.data.id === event.respondsTo;
-  });
-  if (target === undefined || parsedAskMove(latest)?.id !== event.respondsTo) {
+): AskRecord | null {
+  if (event.kind !== 'ANSWER') return latestAskRecord(records);
+  const target = resolveAnswerTarget(records, event.respondsTo);
+  if (target.kind === 'stale') {
     throw new ValidationError('answer does not target the active question');
   }
-  return target;
-}
-
-function parsedAskMove(record: ReturnType<typeof latestAsk>) {
-  const parsed = tutorMoveSchema.safeParse(record?.payload);
-  return parsed.success && parsed.data.kind === 'ASK' ? parsed.data : null;
+  return target.ask;
 }
 
 function recentEvidenceStrings(

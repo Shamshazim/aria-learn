@@ -15,6 +15,8 @@ import type { Clock } from '@/lib/clock';
 import type { Logger } from '@/lib/logger';
 import { checkArithmetic } from '@/quality/arithmetic';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
+import type { AnswerResync } from '@/services/tutor/answer-target';
+import { resolveSpokenAnswer, type ChoiceOption } from '@/services/tutor/spoken-answer';
 import { isStaleSilence, type LatestMoveLookup } from '@/services/tutor/stale-silence';
 import { strategiesFor } from '@/services/tutor/strategy-evidence';
 
@@ -32,6 +34,8 @@ export function createTutorService(deps: {
   sessionLimitMs(band: 'early' | 'middle' | 'senior'): number;
   requireOwnership(studentId: string, sessionId: string): Promise<void>;
   latestMoveId: LatestMoveLookup;
+  /** An answer to a question Aria has moved past gets the current moves back, not a 400. */
+  resyncAnswer: AnswerResync;
   logger: Pick<Logger, 'info'>;
   intent: IntentClassifier;
   /** The planner (P2H-06). It proposes; `@aria/tutor` decides whether the proposal survives. */
@@ -45,6 +49,13 @@ export function createTutorService(deps: {
       if (event.sessionId === undefined) throw new Error('Session turn requires sessionId');
       await deps.requireOwnership(studentId, event.sessionId);
       if (await isStaleSilence(event, deps.latestMoveId, deps.logger)) return [];
+      if (event.kind === 'ANSWER') {
+        const resync = await deps.resyncAnswer({
+          sessionId: event.sessionId,
+          respondsTo: event.respondsTo,
+        });
+        if (resync !== null) return resync;
+      }
       return harness.handle(event, signal);
     },
   };
@@ -84,7 +95,7 @@ async function resolveIntent(
   event: TutorInputEvent,
 ): Promise<Intent | null> {
   if (event.kind !== 'ANSWER' && event.kind !== 'SPEECH_FINAL') return null;
-  const text = event.kind === 'ANSWER' ? (event.text ?? '') : event.text;
+  const text = spokenAnswer(event, context.modelContext);
   const classified = await deps.intent.classify({
     text,
     hints: {
@@ -103,7 +114,7 @@ function grade(
   context: ApiModelContext,
   skill: Readonly<{ code: string | null; repeatedMisconception: string | null }>,
 ): NonNullable<PolicyDecision['graded']> | null {
-  const answer = event.kind === 'ANSWER' ? (event.text ?? event.choiceId ?? '') : event.text;
+  const answer = spokenAnswer(event, context);
   if (context.completionOnly) return null;
   const correct =
     context.arithmeticProblem === null
@@ -124,6 +135,20 @@ function grade(
         skill.repeatedMisconception === null ? [] : [skill.repeatedMisconception],
       );
   return { correct, misconception, strategies: strategiesFor(skill.code, correct) };
+}
+
+/** The child's words, resolved to the choice they name where the question offered choices. */
+function spokenAnswer(
+  event: Extract<TutorInputEvent, { kind: 'ANSWER' | 'SPEECH_FINAL' }>,
+  context: ApiModelContext,
+): string {
+  const said = event.kind === 'ANSWER' ? (event.text ?? event.choiceId ?? '') : event.text;
+  return resolveSpokenAnswer(said, choicesOf(context));
+}
+
+function choicesOf(context: ApiModelContext): readonly ChoiceOption[] {
+  const display = context.latestAsk?.display ?? [];
+  return display.flatMap((item) => (item.type === 'choices' ? item.options : []));
 }
 
 function normalise(value: string): string {

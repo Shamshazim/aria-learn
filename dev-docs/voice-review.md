@@ -26,14 +26,15 @@ the engine offers.
 
 ## 2. Provider status
 
-P2-01 is **not decided**. `VOICE_TTS_MODEL` defaults to `fishaudio/s2.1-pro`, which is the
-integration candidate, not the choice. The vendor table in
+P2-01 is **not decided**. `VOICE_TTS_MODEL` defaults to `elevenlabs/eleven_turbo_v2_5`, which
+is the integration candidate, not the choice (Fish Audio was the first candidate and was
+replaced after a listening test; see §5). The vendor table in
 `apps/voice-worker/src/voice/vendor.ts` records what each candidate can do with prosody and
 speaking rate:
 
 | Vendor          | Emphasis          | Pause          | Rate option     | Notes                                      |
 | --------------- | ----------------- | -------------- | --------------- | ------------------------------------------ |
-| elevenlabs      | SSML `<emphasis>` | SSML `<break>` | `speed`         | Needs `enable_ssml_parsing`.               |
+| elevenlabs      | —                 | `<break>`      | `speed`         | Reads `<emphasis>` aloud; break only.      |
 | cartesia        | SSML `<emphasis>` | SSML `<break>` | `speed`         |                                            |
 | inworld         | —                 | —              | `speaking_rate` | Markers stripped.                          |
 | xai             | —                 | —              | `speed`         | Markers stripped.                          |
@@ -79,7 +80,10 @@ _None yet._
 
 ## 5. Rejected candidates
 
-_None yet._ Each entry: vendor, voice id, band, and the specific failure — "clipped final
+| Date       | Vendor / model       | Band | Failure                                                        |
+| ---------- | -------------------- | ---- | -------------------------------------------------------------- |
+| 2026-08-28 | fishaudio/s2.1-pro   | all  | Informal listen, not a §3 run: flat, robotic; renders no prosody. |
+ Each entry: vendor, voice id, band, and the specific failure — "clipped final
 consonants", "sounded amused during a reteach", "read `3/4` as `three slash four`".
 
 ## 6. Lexicon

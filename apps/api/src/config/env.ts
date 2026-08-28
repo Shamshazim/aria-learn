@@ -42,7 +42,7 @@ const envObjectSchema = z.object({
   VOICE_REGION: z.string().min(2).max(32).default('us-west'),
   VOICE_PRIVACY_SIGNOFF_ID: z.string().min(3).max(128).optional(),
   VOICE_STT_MODEL: z.string().min(1).max(128).default('assemblyai/universal-3-5-pro'),
-  VOICE_TTS_MODEL: z.string().min(1).max(128).default('fishaudio/s2.1-pro'),
+  VOICE_TTS_MODEL: z.string().min(1).max(128).default('elevenlabs/eleven_turbo_v2_5'),
   // P2H-08: a named voice per band. The API only describes them to the consent record; the
   // worker is what fails to boot without them.
   VOICE_TTS_VOICE_EARLY: z.string().min(1).max(128).optional(),

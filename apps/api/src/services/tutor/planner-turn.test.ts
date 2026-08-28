@@ -45,6 +45,7 @@ async function runTurn(planner: Planner, budgetMs?: number): Promise<CommittedTu
     sessionLimitMs: () => 20 * 60_000,
     requireOwnership: () => Promise.resolve(),
     latestMoveId: () => Promise.resolve(null),
+    resyncAnswer: () => Promise.resolve(null),
     logger: { info: () => undefined },
     intent: createIntentClassifier({ ai: null }),
     planner,

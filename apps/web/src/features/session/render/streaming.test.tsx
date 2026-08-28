@@ -25,6 +25,7 @@ function session(state: SessionState): TutorSession {
   return {
     state,
     connectionStatus: 'online',
+    retryFailed: null,
     answer: unused,
     askQuestion: unused,
     backchannel: unused,
@@ -45,7 +46,7 @@ describe('a move being written', () => {
     const first = reduceSession(initialSessionState('middle'), segment(0, 'Four plus three is 7.'));
     const second = reduceSession(first, segment(1, 'You can count on from four.'));
 
-    render(<LayoutContent session={session(second)} />);
+    render(<LayoutContent session={session(second)} voice="ready" />);
 
     expect(
       screen.getByText('Four plus three is 7. You can count on from four.'),
@@ -55,7 +56,7 @@ describe('a move being written', () => {
   it('is announced politely, so a screen reader reads it as it grows', () => {
     const state = reduceSession(initialSessionState('senior'), segment(0, 'Here is the idea.'));
 
-    render(<LayoutContent session={session(state)} />);
+    render(<LayoutContent session={session(state)} voice="ready" />);
 
     expect(screen.getByText('Here is the idea.')).toHaveAttribute('aria-live', 'polite');
   });

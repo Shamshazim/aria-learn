@@ -24,5 +24,6 @@ export function stubSession(state: Partial<SessionState> = {}): TutorSession {
     resume: nothing,
     speak: nothing,
     receive: () => undefined,
+    retryFailed: null,
   };
 }
