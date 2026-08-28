@@ -26,7 +26,7 @@ describe('scanText', () => {
   it.each([
     ['an AWS access key id', `aws_access_key_id = "${aws}"`],
     ['a service-role JWT', `SUPABASE_SERVICE_ROLE_KEY: ${jwt}`],
-    ['a private key block', '-----BEGIN RSA PRIVATE KEY-----'],
+    ['a private key block', '-----BEGIN RSA PRIVATE KEY-----'], // pragma: allow-secret
   ])('finds %s', (_label, line) => {
     expect(scanText('config.yml', line)).toHaveLength(1);
   });
