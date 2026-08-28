@@ -2,7 +2,7 @@
   "name": "aria-learn",
   "version": "0.0.0",
   "private": true,
-  "description": "Aria Learn — an AI tutor for children. npm workspace root.",
+  "description": "Aria Learn \u2014 an AI tutor for children. npm workspace root.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "engines": {
@@ -19,15 +19,18 @@
     "dev:voice": "npm run dev -w @aria/voice-worker",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck --workspaces --if-present",
-    "lint": "eslint apps packages eslint.config.ts eslint.imports.ts vitest.config.ts",
-    "lint:fix": "eslint apps packages eslint.config.ts eslint.imports.ts vitest.config.ts --fix",
-    "format": "prettier --check \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json}\"",
-    "format:fix": "prettier --write \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json}\"",
+    "lint": "eslint apps packages tools eslint.config.ts eslint.imports.ts vitest.config.ts",
+    "lint:fix": "eslint apps packages tools eslint.config.ts eslint.imports.ts vitest.config.ts --fix",
+    "format": "prettier --check \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"tools/**/*.ts\" \"*.{ts,json}\"",
+    "format:fix": "prettier --write \"apps/**/*.{ts,tsx,json}\" \"packages/**/*.{ts,tsx,json}\" \"tools/**/*.ts\" \"*.{ts,json}\"",
     "test": "vitest run",
     "test:session-coverage": "vitest run --project web src/features/session/model/session-machine.test.ts --coverage",
     "test:watch": "vitest",
     "voice:golden": "npm run voice:golden -w @aria/voice-worker --",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check:env": "tsx tools/bin/check-env-templates.ts",
+    "scan:secrets": "tsx tools/bin/scan-secrets.ts",
+    "smoke": "tsx tools/bin/smoke.ts",
+    "check": "npm run typecheck && npm run lint && npm run check:env && npm run scan:secrets && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -40,6 +43,7 @@
     "jiti": "^2.7.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.9.6",
+    "tsx": "^4.23.12",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.11"

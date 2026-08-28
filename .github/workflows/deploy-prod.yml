@@ -1,0 +1,195 @@
+name: Deploy production
+
+# Manual, by tag, and never automatic. A commit reaching main deploys to staging; a human
+# decides which staging build becomes production (X-01).
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to deploy (must already exist and have passed staging)'
+        required: true
+        type: string
+      skip_soak:
+        description: 'Skip the ten-minute canary soak. Emergencies only.'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FLY_API_APP: aria-api-prod
+  FLY_WEB_APP: aria-web-prod
+  FLY_WORKER_APP: aria-voice-worker-prod
+  API_URL: https://api.arialearn.example
+  WEB_URL: https://arialearn.example
+  SOAK_SECONDS: '600'
+
+jobs:
+  deploy:
+    name: guard, migrate, canary, soak
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # A GitHub environment with required reviewers: this is where the approval gate lives,
+    # not in a branch rule. See infra/README.md, "Who can deploy".
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Use Node from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # ── Guards, before anything starts ───────────────────────
+      # The API already refuses to boot in production with a demo student configured. This
+      # fails the *deploy* instead, so the refusal happens before an instance is replaced
+      # rather than after — an acceptance criterion of X-01.
+      #
+      # `flyctl secrets list` prints names and digests, never values.
+      - name: Refuse a production deploy carrying development-only configuration
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          for app in "$FLY_API_APP" "$FLY_WORKER_APP"; do
+            if ! flyctl status --app "$app" >/dev/null 2>&1; then
+              echo "$app does not exist yet; skipping."
+              continue
+            fi
+            if flyctl secrets list --app "$app" --json | jq -e '.[] | select(.Name == "ARIA_DEMO_STUDENT_ID")' >/dev/null; then
+              echo "::error::$app has ARIA_DEMO_STUDENT_ID set. Production serves real children; unset it and redeploy."
+              exit 1
+            fi
+          done
+          echo "No development-only configuration present."
+
+      - name: Verify the tag has no secrets in it
+        run: npm run scan:secrets
+
+      - name: Record the image currently deployed
+        id: previous
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          for app in "$FLY_API_APP" "$FLY_WEB_APP"; do
+            ref="$(flyctl image show --app "$app" --json | jq -r '.[0].Reference // empty')"
+            echo "$app=$ref" >> "$GITHUB_OUTPUT"
+            echo "$app is currently running $ref"
+          done
+
+      # ── Migrate, then deploy ─────────────────────────────────
+      - name: Plan the migration
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: npm run db:migrate -w @aria/api -- --dry-run
+
+      - name: Apply the migration
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: npm run db:migrate -w @aria/api
+
+      # Canary: one new machine takes traffic and has to pass its health check before any
+      # other is replaced. The health check is the same `/api/v1/health` the platform uses to
+      # decide whether an instance receives traffic at all (P0-24).
+      - name: Deploy the API as a canary
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --app "$FLY_API_APP" \
+            --config infra/fly/api.toml \
+            --dockerfile infra/docker/api.Dockerfile \
+            --strategy canary \
+            --wait-timeout 15m \
+            .
+
+      - name: Deploy the web app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --app "$FLY_WEB_APP" \
+            --config infra/fly/web.toml \
+            --dockerfile infra/docker/web.Dockerfile \
+            --build-arg "VITE_API_BASE_URL=$API_URL" \
+            --strategy rolling \
+            --wait-timeout 10m \
+            .
+
+      - name: Deploy the voice worker, once it exists
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -d apps/voice-worker ]; then
+            flyctl deploy \
+              --app "$FLY_WORKER_APP" \
+              --config infra/fly/voice-worker.toml \
+              --dockerfile infra/docker/voice-worker.Dockerfile \
+              --strategy rolling \
+              --wait-timeout 20m \
+              .
+          else
+            echo "apps/voice-worker is not in the tree yet (draft PR #18); skipping."
+          fi
+
+      # ── Watch it for ten minutes ─────────────────────────────
+      # Health checks catch an instance that will not start. They do not catch a release that
+      # starts and then degrades, which is what the soak is for.
+      - name: Soak
+        if: ${{ !inputs.skip_soak }}
+        run: |
+          set -euo pipefail
+          deadline=$(( $(date +%s) + SOAK_SECONDS ))
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            npm run smoke -- --api "$API_URL" --web "$WEB_URL"
+            sleep 30
+          done
+          echo "Soaked for ${SOAK_SECONDS}s with no failure."
+
+      - name: Smoke
+        run: npm run smoke -- --api "$API_URL" --web "$WEB_URL"
+
+      - name: Record what was deployed
+        run: |
+          echo "### Deployed \`${{ inputs.tag }}\` to production" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Previous images, for a rollback:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '${{ toJSON(steps.previous.outputs) }}' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # Production does not roll itself back. A human decides, with the runbook open and the
+      # previous digests in the step summary above — because the right response to a bad
+      # production release is sometimes to roll forward, and a workflow cannot tell which.
+      - name: On failure, say exactly how to roll back
+        if: failure()
+        env:
+          PREVIOUS: ${{ toJSON(steps.previous.outputs) }}
+        run: |
+          echo "::error::Production deploy failed. Roll back with the commands in the job summary."
+          {
+            echo "### Rollback"
+            echo ""
+            echo '```bash'
+            echo "$PREVIOUS" | jq -r 'to_entries[] | "flyctl deploy --app \(.key) --image \(.value) --strategy immediate"'
+            echo '```'
+            echo ""
+            echo "The schema is **not** rolled back. Migrations are backward-compatible with the"
+            echo "previous release by rule, so the previous image runs against the current schema."
+          } >> "$GITHUB_STEP_SUMMARY"

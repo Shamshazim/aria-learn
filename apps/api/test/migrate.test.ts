@@ -194,3 +194,87 @@ suite('the schema migrations produced', () => {
     ).rejects.toMatchObject({ code: '23505' });
   });
 });
+
+/**
+ * What a deploy step depends on (X-01).
+ *
+ * A migration runs before the new code starts, from a job whose only job that is. Each of
+ * these is a property that job's safety rests on, so each is proven against a real database
+ * rather than reasoned about: a plan changes nothing, a failing file leaves nothing behind,
+ * and the ordering rule has an escape hatch that an operator has to ask for by name.
+ */
+suite('the deploy path', () => {
+  let database: TestDatabase;
+
+  beforeAll(async () => {
+    database = await createTestDatabase({ migrate: false });
+  }, 60_000);
+
+  afterAll(async () => {
+    await database.drop();
+  });
+
+  async function migrationDir(files: Record<string, string>): Promise<string> {
+    const dir = await mkdtemp(path.join(tmpdir(), 'aria-deploy-'));
+    for (const [name, sql] of Object.entries(files)) {
+      await writeFile(path.join(dir, name), sql, 'utf8');
+    }
+    return dir;
+  }
+
+  async function tableExists(name: string): Promise<boolean> {
+    const { rows } = await database.pool.query<{ exists: boolean }>(
+      `SELECT to_regclass('public.${name}') IS NOT NULL AS exists`,
+    );
+    return rows[0]?.exists === true;
+  }
+
+  it('reports a dry run without applying anything', async () => {
+    const dir = await migrationDir({ '001_planned.sql': 'CREATE TABLE planned (id INT)' });
+
+    const outcome = await runMigrations({ pool: database.pool, logger, dir, dryRun: true });
+
+    expect(outcome.pending).toEqual(['001']);
+    expect(outcome.applied).toEqual([]);
+    expect(await tableExists('planned')).toBe(false);
+
+    // And the plan was honest: the same run without the flag does exactly what it said.
+    const real = await runMigrations({ pool: database.pool, logger, dir });
+    expect(real.applied).toEqual(['001']);
+    expect(await tableExists('planned')).toBe(true);
+  });
+
+  it('rolls a failing migration back whole, ledger included', async () => {
+    const dir = await migrationDir({
+      '001_planned.sql': 'CREATE TABLE planned (id INT)',
+      '002_broken.sql': 'CREATE TABLE half (id INT); CREATE TABLE half (id INT)',
+    });
+
+    await expect(runMigrations({ pool: database.pool, logger, dir })).rejects.toThrow();
+
+    // The first statement of the failing file succeeded before the second one blew up. If the
+    // file were not one transaction, `half` would exist now and the next deploy would fail
+    // for a different reason than the real one.
+    expect(await tableExists('half')).toBe(false);
+
+    const { rows } = await database.pool.query<{ version: string }>(
+      'SELECT version FROM schema_migration ORDER BY version',
+    );
+    expect(rows.map((row) => row.version)).toEqual(['001']);
+  });
+
+  it('applies an out-of-order migration only when an operator asks for it by name', async () => {
+    const dir = await migrationDir({
+      '000_gap.sql': 'CREATE TABLE gap (id INT)',
+      '001_planned.sql': 'CREATE TABLE planned (id INT)',
+    });
+
+    await expect(runMigrations({ pool: database.pool, logger, dir })).rejects.toThrow(/Renumber/);
+    expect(await tableExists('gap')).toBe(false);
+
+    const outcome = await runMigrations({ pool: database.pool, logger, dir, allowGap: true });
+
+    expect(outcome.applied).toEqual(['000']);
+    expect(await tableExists('gap')).toBe(true);
+  });
+});

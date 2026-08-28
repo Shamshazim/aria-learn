@@ -42,9 +42,30 @@ export type AppliedMigration = { version: string; name: string; checksum: string
 export type MigrationOutcome = {
   applied: readonly string[];
   skipped: number;
+  /**
+   * What would run. Equal to `applied` after a real run, and the whole point of a dry run —
+   * a deploy step needs to be able to show an operator the plan before it changes anything.
+   */
+  pending: readonly string[];
 };
 
-export type MigrateDeps = {
+export type MigrateOptions = {
+  /**
+   * Plan and report, change nothing. The ledger table is still created, because a plan
+   * against a database with no ledger is not a plan — it is a guess.
+   */
+  dryRun?: boolean;
+  /**
+   * Let a migration run even though a higher-numbered one already has. The escape hatch for
+   * the one case the ordering rule cannot tell apart from a mistake: two branches that both
+   * merged, whose migrations do not touch the same objects, where renumbering after the fact
+   * would change a checksum that is already recorded. It is a deliberate operator decision
+   * and is logged as one.
+   */
+  allowGap?: boolean;
+};
+
+export type MigrateDeps = MigrateOptions & {
   pool: Pool;
   logger: Logger;
   dir?: string;
@@ -54,6 +75,8 @@ export async function runMigrations({
   pool,
   logger,
   dir = MIGRATIONS_DIR,
+  dryRun = false,
+  allowGap = false,
 }: MigrateDeps): Promise<MigrationOutcome> {
   const files = await loadMigrationFiles(dir);
   const client = await pool.connect();
@@ -63,18 +86,24 @@ export async function runMigrations({
     await client.query(CREATE_LEDGER);
 
     const applied = await readLedger(client);
-    const pending = planMigrations(files, applied);
+    const pending = planMigrations(files, applied, { allowGap });
+    const versions = pending.map((file) => file.version);
 
     if (pending.length === 0) {
       logger.info({ alreadyApplied: applied.length }, 'Database schema is up to date');
-      return { applied: [], skipped: applied.length };
+      return { applied: [], skipped: applied.length, pending: [] };
+    }
+
+    if (dryRun) {
+      logger.info({ pending: versions }, 'Dry run: these migrations would be applied');
+      return { applied: [], skipped: applied.length, pending: versions };
     }
 
     for (const file of pending) {
       await applyMigration(client, file, logger);
     }
 
-    return { applied: pending.map((file) => file.version), skipped: applied.length };
+    return { applied: versions, skipped: applied.length, pending: versions };
   } finally {
     // Released before the client goes back to the pool: a session-level lock outlives the
     // transaction, so a pooled connection would carry it to the next borrower.
@@ -97,6 +126,7 @@ async function readLedger(db: Queryable): Promise<AppliedMigration[]> {
 export function planMigrations(
   files: readonly MigrationFile[],
   applied: readonly AppliedMigration[],
+  options: MigrateOptions = {},
 ): MigrationFile[] {
   const byVersion = new Map(applied.map((record) => [record.version, record]));
   const onDisk = new Set(files.map((file) => file.version));
@@ -121,7 +151,7 @@ export function planMigrations(
   }
 
   const pending = files.filter((file) => !byVersion.has(file.version));
-  assertInOrder(pending, applied);
+  if (options.allowGap !== true) assertInOrder(pending, applied);
   return pending;
 }
 

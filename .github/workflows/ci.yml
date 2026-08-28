@@ -68,3 +68,75 @@ jobs:
 
       - name: Verify visual and accessibility baseline
         run: npm run e2e:baseline -w @aria/web
+
+  # ── Images ─────────────────────────────────────────────────
+  # Built on every pull request that could change one, and on main. Building is the check:
+  # a Dockerfile that no longer builds is found here rather than during a deploy, which is
+  # the moment it would otherwise be found (X-01).
+  images:
+    name: build container images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/api.Dockerfile
+          push: false
+          load: true
+          tags: aria-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/web.Dockerfile
+          push: false
+          load: true
+          tags: aria-web:ci
+          build-args: |
+            VITE_API_BASE_URL=https://api.ci.invalid
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # `apps/voice-worker` arrives with the realtime harness. Until then there is nothing to
+      # build, and a hard failure here would block every unrelated pull request.
+      - name: Build the voice worker image, once it exists
+        run: |
+          if [ -d apps/voice-worker ]; then
+            docker build -f infra/docker/voice-worker.Dockerfile -t aria-voice-worker:ci .
+          else
+            echo "apps/voice-worker is not in the tree yet (draft PR #18); skipping."
+          fi
+
+      # Each image must run as a non-root user, and must not carry a `.env`. Both are
+      # acceptance criteria, and both are the kind of thing that silently regresses when
+      # somebody edits a Dockerfile in a hurry.
+      - name: Verify the images run unprivileged and carry no environment file
+        run: |
+          set -euo pipefail
+          for image in aria-api:ci aria-web:ci; do
+            user="$(docker run --rm --entrypoint sh "$image" -c 'id -u')"
+            if [ "$user" = "0" ]; then
+              echo "::error::$image runs as root"
+              exit 1
+            fi
+            if docker run --rm --entrypoint sh "$image" -c 'ls -a / /app 2>/dev/null | grep -qx "\.env"'; then
+              echo "::error::$image contains a .env file"
+              exit 1
+            fi
+            echo "$image: uid $user, no .env"
+          done
+
+      - name: Verify the API image can run a migration plan
+        run: |
+          docker run --rm -e DATABASE_URL=postgresql://unused@127.0.0.1:1/none \
+            aria-api:ci node --import tsx src/scripts/migrate.ts --help
