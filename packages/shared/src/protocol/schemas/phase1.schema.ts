@@ -10,6 +10,16 @@ export const arrivalResponseSchema = z.object({
   moves: z.array(tutorMoveSchema).min(2).max(3),
   recommendedSubject: z.string().min(1).max(64).nullable(),
   student: z.object({ grade: gradeSchema, band: bandSchema }),
+  /** The classes the picker shows this child, in the order they are shown. */
+  classes: z
+    .array(
+      z.object({
+        subjectId: z.string().min(1).max(64),
+        name: z.string().min(1).max(120),
+        grade: gradeSchema,
+      }),
+    )
+    .max(16),
 });
 
 export const sessionStartResponseSchema = z.object({

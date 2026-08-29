@@ -60,6 +60,10 @@ function response(profile: Readonly<{ band: Band; grade: Grade }>): unknown {
       arrivalId: '00000000-0000-4000-8000-000000000001',
       recommendedSubject: 'math',
       student: profile,
+      classes: [
+        { subjectId: 'mathematics', name: 'Mathematics', grade: profile.grade },
+        { subjectId: 'writing', name: 'Writing', grade: profile.grade },
+      ],
       moves: [
         {
           ...base,

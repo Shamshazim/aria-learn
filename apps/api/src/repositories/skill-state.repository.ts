@@ -7,7 +7,13 @@ import type { Misconception, Skill } from '@aria/shared';
 import { runQuery } from '@/db/run-query';
 import type { Queryable } from '@/db/types';
 import type { Clock } from '@/lib/clock';
-import { findDue, findPractice, mapSkill, type SkillRow } from '@/repositories/skill-state.find';
+import {
+  findDue,
+  findPractice,
+  mapSkill,
+  type PracticeFit,
+  type SkillRow,
+} from '@/repositories/skill-state.find';
 import type { MisconceptionState, RuntimeSkill, SkillState } from '@/types/skill-state';
 
 const stateRowSchema = z.object({
@@ -32,7 +38,7 @@ export type SkillStateRepository = Readonly<{
   findPractice(
     studentId: string,
     subject: string,
-    band: Skill['band'],
+    fit: PracticeFit,
   ): Promise<RuntimeSkill | null>;
   findUnmetPrerequisites(studentId: string, skillCode: string): Promise<readonly RuntimeSkill[]>;
   recordAttempt(
@@ -54,7 +60,7 @@ export function createSkillStateRepository(deps: {
     withDb: (db) => createSkillStateRepository({ ...deps, db }),
     seed: (skills, misconceptions) => seed(deps.db, skills, misconceptions),
     findDue: (studentId, at) => findDue(deps.db, studentId, at),
-    findPractice: (studentId, subject, band) => findPractice(deps.db, studentId, subject, band),
+    findPractice: (studentId, subject, fit) => findPractice(deps.db, studentId, subject, fit),
     findUnmetPrerequisites: (studentId, skillCode) =>
       findUnmetPrerequisites(deps.db, studentId, skillCode),
     recordAttempt: (input) => recordAttempt(deps, input),
@@ -73,10 +79,13 @@ async function seed(
     await runQuery({
       db,
       operation: 'skill.seed',
-      sql: `INSERT INTO skill (code, subject, strand, name, band, prerequisites)
-            VALUES ($1, $2, $3, $4, $5, $6)
+      sql: `INSERT INTO skill
+              (code, subject, strand, name, band, prerequisites, grade, unit, lesson, objectives, ordering)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             ON CONFLICT (code) DO UPDATE SET subject = EXCLUDED.subject, strand = EXCLUDED.strand,
-              name = EXCLUDED.name, band = EXCLUDED.band, prerequisites = EXCLUDED.prerequisites`,
+              name = EXCLUDED.name, band = EXCLUDED.band, prerequisites = EXCLUDED.prerequisites,
+              grade = EXCLUDED.grade, unit = EXCLUDED.unit, lesson = EXCLUDED.lesson,
+              objectives = EXCLUDED.objectives, ordering = EXCLUDED.ordering`,
       params: [
         skill.code,
         skill.subject,
@@ -84,6 +93,11 @@ async function seed(
         skill.name,
         skill.band,
         skill.prerequisites,
+        skill.grade ?? null,
+        skill.unit ?? null,
+        skill.lesson ?? null,
+        skill.objectives ?? [],
+        skill.ordering ?? 0,
       ],
     });
   }

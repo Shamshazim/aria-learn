@@ -58,10 +58,16 @@ export function SessionTopbar({
   );
 }
 
+const FOCUS: Readonly<Record<string, string>> = {
+  'math': 'Counting on',
+  'mathematics': 'Mathematics',
+  'math-adventures': 'Math Adventures',
+  'reading': 'Reading for meaning',
+  'writing': 'Writing',
+  'english-writing': 'English Writing',
+  'science': 'Explaining what you notice',
+};
+
 function focusFor(subject: string): string {
-  const normalized = subject.toLowerCase();
-  if (normalized === 'math') return 'Counting on';
-  if (normalized === 'reading') return 'Reading for meaning';
-  if (normalized === 'science') return 'Explaining what you notice';
-  return subject;
+  return FOCUS[subject.toLowerCase()] ?? subject;
 }

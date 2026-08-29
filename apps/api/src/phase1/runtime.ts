@@ -16,6 +16,7 @@ import { createIntentFallbackObserver } from '@/observability/intent-metrics';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
+import { classesFor } from '@/services/arrival/classes.service';
 import {
   createTurnContentService,
   type ApiModelContext,
@@ -60,6 +61,7 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
     crisis,
     gate: content.gate,
     skillName: (code) => inventory.getSkill(code)?.name ?? null,
+    classes: (student) => classesFor(inventory, student),
     cancelAhead: (sessionId) => {
       content.ahead.cancel(sessionId);
     },

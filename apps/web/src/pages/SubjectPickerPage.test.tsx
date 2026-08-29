@@ -9,7 +9,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('waits for arrival, then uses one student grade for every subject', async () => {
+it('waits for arrival, then shows exactly the classes the tutor listed', async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue(
@@ -27,18 +27,21 @@ it('waits for arrival, then uses one student grade for every subject', async () 
     </MemoryRouter>,
   );
 
-  expect(await screen.findByRole('link', { name: /Math Grade 4/u })).toHaveAttribute(
+  expect(await screen.findByRole('link', { name: 'Mathematics Grade 4' })).toHaveAttribute(
     'href',
-    '/session/4/math?voice=1&arrivalId=00000000-0000-4000-8000-000000000001',
+    '/session/4/mathematics?voice=1&arrivalId=00000000-0000-4000-8000-000000000001',
   );
   expect(screen.queryByRole('link', { name: /Reading Grade 4/u })).not.toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /Writing Grade 4/u })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'English Writing Grade 4' })).toHaveAttribute(
     'href',
-    '/session/4/writing?voice=1&arrivalId=00000000-0000-4000-8000-000000000001',
+    '/session/4/english-writing?voice=1&arrivalId=00000000-0000-4000-8000-000000000001',
   );
+  expect(screen.getByRole('link', { name: 'Science Grade 4' })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Aria Learn' })).toHaveAttribute('href', '/');
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Welcome back.');
+  // The face comes from the name, as it did in the legacy picker.
   expect(screen.getByText('Numbers, shapes and patterns.')).toBeInTheDocument();
+  expect(screen.getByText('Put your own words on the page.')).toBeInTheDocument();
 });
 
 function arrivalEnvelope(): unknown {
@@ -54,6 +57,11 @@ function arrivalEnvelope(): unknown {
       arrivalId: '00000000-0000-4000-8000-000000000001',
       recommendedSubject: null,
       student: { grade: '4', band: 'middle' },
+      classes: [
+        { subjectId: 'mathematics', name: 'Mathematics', grade: '4' },
+        { subjectId: 'english-writing', name: 'English Writing', grade: '4' },
+        { subjectId: 'science', name: 'Science', grade: '4' },
+      ],
       moves: [
         {
           ...base,

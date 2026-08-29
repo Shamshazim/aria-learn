@@ -15,7 +15,9 @@ export function createArrivalController(
   return async (request: Request, response: Response<ApiResponse<ArrivalResponse>>) => {
     const studentId = requireStudentId(request.studentId);
     const result = await service.arrive(studentId);
-    response.status(200).json({ data: { ...result, moves: [...result.moves] } });
+    response
+      .status(200)
+      .json({ data: { ...result, moves: [...result.moves], classes: [...result.classes] } });
   };
 }
 

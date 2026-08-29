@@ -12,6 +12,7 @@ import { ForbiddenError, ValidationError } from '@/errors';
 import type { QualityGate } from '@/quality';
 import type { RouterDeps } from '@/routes';
 import { createArrivalService } from '@/services/arrival/arrival.service';
+import type { ClassOption } from '@/services/arrival/classes.service';
 import { createArrivalContextLoader } from '@/services/arrival/context.loader';
 import { createConsolidationService } from '@/services/memory/consolidate.service';
 import { createModelFactProposer } from '@/services/memory/propose/from-model';
@@ -22,6 +23,7 @@ import { createSessionService } from '@/services/session/session.service';
 import type { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
 import { turnMoves } from '@/services/tutor/safety-first';
 import type { createTutorService } from '@/services/tutor/tutor.service';
+import type { Student } from '@/types/student';
 
 import { createIdentityRuntime, type IdentityRuntime } from './identity.runtime';
 
@@ -35,6 +37,8 @@ type ControllerRuntime = Readonly<{
   gate: QualityGate;
   /** P2H-11: the display name of a skill, for the summary written when a session ends. */
   skillName(skillCode: string): string | null;
+  /** The classes the picker shows a child; the inventory decides, the arrival reports. */
+  classes(student: Student): readonly ClassOption[];
   cancelAhead(sessionId: string): void;
 }>;
 
@@ -157,6 +161,7 @@ function buildArrival(
     arrivals: repositories.arrivals,
     moves: createMoveFactory({ ids: deps.ids, clock: deps.clock }),
     gate,
+    classes: runtime.classes,
     nowMs: () => deps.clock.now().getTime(),
   });
 }

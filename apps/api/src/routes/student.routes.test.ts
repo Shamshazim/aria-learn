@@ -104,6 +104,7 @@ function buildApp(deny = false) {
         arrivalId: '00000000-0000-4000-8000-000000000001',
         recommendedSubject: null,
         student: { grade: '4', band: 'middle' },
+        classes: [{ subjectId: 'mathematics', name: 'Mathematics', grade: '4' }],
         moves: [
           welcome.make({
             kind: 'WELCOME',

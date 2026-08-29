@@ -2,6 +2,7 @@ import type { TutorMove } from '@aria/shared';
 
 import type { QualityGate } from '@/quality';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
+import type { ClassOption } from '@/services/arrival/classes.service';
 import type { ArrivalContext } from '@/services/arrival/context.loader';
 import { recommend } from '@/services/arrival/recommend.service';
 import { composeWelcome, welcomeKind } from '@/services/arrival/welcome.composer';
@@ -15,6 +16,7 @@ export type ArrivalResult = Readonly<{
     grade: ArrivalContext['student']['grade'];
     band: ArrivalContext['student']['band'];
   }>;
+  classes: readonly ClassOption[];
 }>;
 
 export type ArrivalService = Readonly<{ arrive(studentId: string): Promise<ArrivalResult> }>;
@@ -24,6 +26,7 @@ export function createArrivalService(deps: {
   arrivals: ArrivalEventRepository;
   moves: MoveFactory;
   gate: QualityGate;
+  classes(student: ArrivalContext['student']): readonly ClassOption[];
   nowMs(): number;
 }): ArrivalService {
   return { arrive: (studentId: string) => arrive(deps, studentId) };
@@ -52,6 +55,7 @@ async function arrive(
     moves,
     recommendedSubject: recommendation?.subjectId ?? null,
     student: { grade: context.student.grade, band: context.student.band },
+    classes: deps.classes(context.student),
   };
 }
 

@@ -151,7 +151,10 @@ describe('picking a class with nothing due in it', () => {
 
     await service.createOrResume(pick);
 
-    expect(findPractice).toHaveBeenCalledExactlyOnceWith('student-1', 'arithmetic', 'middle');
+    expect(findPractice).toHaveBeenCalledExactlyOnceWith('student-1', 'arithmetic', {
+      band: 'middle',
+      grade: '4',
+    });
   });
 
   it('still refuses a class the inventory has no skill for at all', async () => {

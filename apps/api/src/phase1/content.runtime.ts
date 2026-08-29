@@ -1,3 +1,5 @@
+import type { Skill } from '@aria/shared';
+
 import { createRespondStreamer, type AiClient, type RespondStreamer } from '@/ai';
 import {
   createContentCacheService,
@@ -13,6 +15,7 @@ import {
 } from '@/content/generation';
 import { outputSafety } from '@/content/output-safety';
 import type { InventoryService } from '@/curriculum';
+import { describeSkill } from '@/curriculum/describe-skill';
 import { ServiceUnavailableError } from '@/errors';
 import { createGateObserver } from '@/observability/gate-metrics';
 import { scrubLearnerContext } from '@/privacy';
@@ -142,7 +145,7 @@ async function generateArithmetic(
 async function generatePrompted(
   request: Readonly<{
     ai: AiClient;
-    skill: Readonly<{ code: string; name: string }>;
+    skill: Skill;
     input: ContentRequest;
     signal?: AbortSignal;
   }>,
@@ -154,7 +157,7 @@ async function generatePrompted(
   );
   const result = await ai.run(
     'practice-item',
-    { context, skill: skill.name, difficulty: 'same' },
+    { context, skill: describeSkill(skill), difficulty: 'same' },
     { studentId: input.studentId, ...(signal === undefined ? {} : { signal }) },
   );
   const body = {

@@ -20,6 +20,15 @@ export function validateSkillGraph(skills: readonly Skill[]): void {
   assertAcyclic(skillsByCode);
 }
 
+/**
+ * The skills someone has written a lesson note for. A catalogue topic (`lessonRef: null`) is
+ * taught from its objectives and is not held to the note and misconception minimums until a
+ * note exists for it; it is still held to the graph rules.
+ */
+export function authored(skills: readonly Skill[]): readonly Skill[] {
+  return skills.filter((skill) => skill.lessonRef !== null);
+}
+
 /** P2H-10: a skill with fewer than this cannot tell a wrong tap from a wrong idea. */
 const MIN_MISCONCEPTIONS_PER_SKILL = 3;
 
@@ -46,7 +55,7 @@ function assertMisconceptionCoverage(
       );
     }
   }
-  for (const skill of skills) {
+  for (const skill of authored(skills)) {
     const count = misconceptions.filter((item) => item.skillCode === skill.code).length;
     if (count < MIN_MISCONCEPTIONS_PER_SKILL) {
       throw new CurriculumValidationError(
@@ -67,14 +76,14 @@ function assertLessonCoverage(
   skills: readonly Skill[],
   lessons: ReadonlyMap<string, LessonNote>,
 ): void {
-  for (const skill of skills) {
+  for (const skill of authored(skills)) {
     const note = lessons.get(skill.code);
     if (note === undefined) {
       throw new CurriculumValidationError(`Skill ${skill.code} has no lesson note`);
     }
     if (note.id !== skill.lessonRef) {
       throw new CurriculumValidationError(
-        `Skill ${skill.code} points at ${skill.lessonRef} but its note declares ${note.id}`,
+        `Skill ${skill.code} points at ${String(skill.lessonRef)} but its note declares ${note.id}`,
       );
     }
   }

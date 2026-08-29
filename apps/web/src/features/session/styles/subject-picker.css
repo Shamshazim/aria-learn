@@ -136,17 +136,12 @@
     transform 160ms ease;
 }
 
-.class-card--math {
-  background: #e4edfe;
-  border-color: #2f73f0;
-}
-.class-card--reading {
-  background: #fdece4;
-  border-color: #ee7a3c;
-}
-.class-card--science {
-  background: #e3f5ea;
-  border-color: #3d9e63;
+.class-card {
+  --class-tint: #efecfd;
+  --class-edge: #7c5ce0;
+
+  background: var(--class-tint);
+  border-color: var(--class-edge);
 }
 
 .class-card:hover {

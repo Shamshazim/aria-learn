@@ -184,6 +184,7 @@ suite('Phase 1 memory and skill repositories', () => {
       }),
       moves: createMoveFactory({ ids: sequentialUuids(), clock: tomorrowClock }),
       gate: createQualityGate(() => ({ safe: true, categories: [] })),
+      classes: () => [],
       nowMs: () => tomorrow.getTime(),
     });
     const returned = await arrival.arrive(studentId);

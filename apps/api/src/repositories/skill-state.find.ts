@@ -1,4 +1,4 @@
-import type { Skill } from '@aria/shared';
+import type { Grade, Skill } from '@aria/shared';
 
 import { runQuery } from '@/db/run-query';
 import type { Queryable } from '@/db/types';
@@ -16,6 +16,8 @@ export type SkillRow = {
   band: Skill['band'];
   prerequisites: string[];
 };
+
+export type PracticeFit = Readonly<{ band: Skill['band']; grade: Grade }>;
 
 export async function findDue(
   db: Queryable,
@@ -35,11 +37,15 @@ export async function findDue(
   return result.rows.map(mapSkill);
 }
 
+/**
+ * The soonest-due skill in a subject: the child's own grade first (a catalogue topic knows
+ * its grade), then the child's band, then the authored teaching order.
+ */
 export async function findPractice(
   db: Queryable,
   studentId: string,
   subject: string,
-  band: Skill['band'],
+  fit: PracticeFit,
 ): Promise<RuntimeSkill | null> {
   const result = await runQuery<SkillRow>({
     db,
@@ -48,10 +54,10 @@ export async function findPractice(
           FROM skill s LEFT JOIN skill_state ss
             ON ss.skill_code = s.code AND ss.student_id = $1
           WHERE s.subject = $2
-          ORDER BY (s.band = $3) DESC,
-                   COALESCE(ss.next_due_at, '-infinity'::timestamptz), s.code
+          ORDER BY (s.grade = $4) DESC, (s.band = $3) DESC,
+                   COALESCE(ss.next_due_at, '-infinity'::timestamptz), s.ordering, s.code
           LIMIT 1`,
-    params: [studentId, subject, band],
+    params: [studentId, subject, fit.band, fit.grade],
   });
   const row = result.rows[0];
   return row === undefined ? null : mapSkill(row);
