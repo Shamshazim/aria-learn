@@ -39,7 +39,7 @@ export type SessionService = Readonly<{
 export function createSessionService(deps: {
   students: Pick<StudentRepository, 'requireById'>;
   sessions: Pick<SessionRepository, 'create' | 'findOpen' | 'end'>;
-  skills: Pick<SkillStateRepository, 'findDue'>;
+  skills: Pick<SkillStateRepository, 'findDue' | 'findPractice'>;
   arrivals: Pick<ArrivalEventRepository, 'findById' | 'setAccepted'>;
   clock: Clock;
   ids: IdGenerator;
@@ -86,12 +86,15 @@ async function createOrResume(
   const student = await deps.students.requireById(input.studentId);
   const recommendationAccepted = await recommendationAcceptance(deps, input);
   const due = await deps.skills.findDue(input.studentId, deps.clock.now());
-  const skill = due.find(
-    (candidate) =>
-      candidate.band === student.band && subjectMatches(input.subject, candidate.subject),
-  );
-  if (skill === undefined)
-    throw new ValidationError('subject is not available for this grade band');
+  // A class with nothing due is still a class: the child practises what comes up next
+  // rather than being told the subject does not exist today.
+  const skill =
+    due.find(
+      (candidate) =>
+        candidate.band === student.band && subjectMatches(input.subject, candidate.subject),
+    ) ??
+    (await deps.skills.findPractice(input.studentId, authoredSubject(input.subject), student.band));
+  if (skill === null) throw new ValidationError('subject is not available for this grade band');
   const session = await createSessionOrResumeWinner(deps, {
     studentId: input.studentId,
     subject: input.subject,
@@ -172,5 +175,10 @@ function isResumable(
 }
 
 function subjectMatches(requested: string, authored: string): boolean {
-  return requested === authored || (requested === 'math' && authored === 'arithmetic');
+  return authoredSubject(requested) === authored;
+}
+
+/** The picker says "math"; the inventory says "arithmetic". */
+function authoredSubject(requested: string): string {
+  return requested === 'math' ? 'arithmetic' : requested;
 }

@@ -7,6 +7,7 @@ import type { Misconception, Skill } from '@aria/shared';
 import { runQuery } from '@/db/run-query';
 import type { Queryable } from '@/db/types';
 import type { Clock } from '@/lib/clock';
+import { findDue, findPractice, mapSkill, type SkillRow } from '@/repositories/skill-state.find';
 import type { MisconceptionState, RuntimeSkill, SkillState } from '@/types/skill-state';
 
 const stateRowSchema = z.object({
@@ -24,6 +25,15 @@ export type SkillStateRepository = Readonly<{
   withDb(db: Queryable): SkillStateRepository;
   seed(skills: readonly Skill[], misconceptions: readonly Misconception[]): Promise<void>;
   findDue(studentId: string, at: Date): Promise<readonly RuntimeSkill[]>;
+  /**
+   * The skill to practise when nothing in a subject is due: the soonest-due one, the child's
+   * own band first. A class is never "unavailable" while it has a skill at all.
+   */
+  findPractice(
+    studentId: string,
+    subject: string,
+    band: Skill['band'],
+  ): Promise<RuntimeSkill | null>;
   findUnmetPrerequisites(studentId: string, skillCode: string): Promise<readonly RuntimeSkill[]>;
   recordAttempt(
     input: Readonly<{ studentId: string; skillCode: string; correct: boolean }>,
@@ -44,6 +54,7 @@ export function createSkillStateRepository(deps: {
     withDb: (db) => createSkillStateRepository({ ...deps, db }),
     seed: (skills, misconceptions) => seed(deps.db, skills, misconceptions),
     findDue: (studentId, at) => findDue(deps.db, studentId, at),
+    findPractice: (studentId, subject, band) => findPractice(deps.db, studentId, subject, band),
     findUnmetPrerequisites: (studentId, skillCode) =>
       findUnmetPrerequisites(deps.db, studentId, skillCode),
     recordAttempt: (input) => recordAttempt(deps, input),
@@ -96,33 +107,6 @@ async function seedMisconception(db: Queryable, input: Misconception): Promise<v
     ],
   });
 }
-
-async function findDue(
-  db: Queryable,
-  studentId: string,
-  at: Date,
-): Promise<readonly RuntimeSkill[]> {
-  const result = await runQuery<SkillRow>({
-    db,
-    operation: 'skillState.findDue',
-    sql: `SELECT s.code, s.subject, s.strand, s.name, s.band, s.prerequisites
-          FROM skill s LEFT JOIN skill_state ss
-            ON ss.skill_code = s.code AND ss.student_id = $1
-          WHERE ss.student_id IS NULL OR ss.next_due_at <= $2
-          ORDER BY COALESCE(ss.next_due_at, '-infinity'::timestamptz), s.code`,
-    params: [studentId, at],
-  });
-  return result.rows.map(mapSkill);
-}
-
-type SkillRow = {
-  code: string;
-  subject: Skill['subject'];
-  strand: string;
-  name: string;
-  band: Skill['band'];
-  prerequisites: string[];
-};
 
 async function findUnmetPrerequisites(
   db: Queryable,
@@ -258,17 +242,6 @@ function mapState(input: StateRow): SkillState {
     correctStreak: row.correct_streak,
     lastSeenAt: row.last_seen_at,
     nextDueAt: row.next_due_at,
-  };
-}
-
-function mapSkill(row: SkillRow): RuntimeSkill {
-  return {
-    code: row.code,
-    subject: row.subject,
-    strand: row.strand,
-    name: row.name,
-    band: row.band,
-    prerequisites: row.prerequisites,
   };
 }
 
