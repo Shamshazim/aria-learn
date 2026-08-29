@@ -97,34 +97,9 @@ Guardrails that must hold in the prototype exactly as in the pipeline:
 
 ## Status
 
-**Prototype built 2026-08-28** on `feat/P2H-15-speech-to-speech-spike`; **not measured**.
-
-Built: `VOICE_S2S_PROVIDER` flag (`openai` | `google`, key required at boot), realtime session
-behind it (`session/s2s-session.ts`, LiveKit Agents realtime plugins), the three tools over the
-existing move stream (`plan_next_move`, `check_answer` → `ANSWER` event, `end_turn`), the
-output-transcript safety tap that cuts off-plan speech and counts escaped words, per-turn
-metrics to a JSONL run log, the two-arm comparison with the ticket's rules and Wilson CIs, the
-`voice:s2s-compare` CLI writing `dev-docs/golden/voice/runs/<date>-s2s.json`, and the memo
-`dev-docs/voice-s2s-decision.md` with an empty results table. Pipeline unchanged with the flag
-unset; the move stream gained an `answer` path and a serializer file split, tests green.
-
-Left, and all of it needs a person and vendor keys: run the openai and google arms against
-consented testers, score 20 sessions per arm under the P2H-14 rubric, run the compare, paste
-the table into the memo, and write the recommendation. `transcriptLag` is recorded by the
-metrics but the session does not yet measure it (needs audio-vs-transcript timestamps from
-the vendor); until it is measured the compare reports it as a failure, by rule.
-
-## Verification
-
-```bash
-VOICE_S2S_PROVIDER=openai npm run dev -w @aria/voice-worker
-npm run voice:s2s-compare -w @aria/voice-worker -- --set dev-docs/golden/voice/set
-npm test -w @aria/voice-worker
-```
-
-## References
-
-- `master-plan.md` §11 (latency bars), §13 Phase 2 exit
-- `voice-provider-decision.md`, `voice-processor-map.md`, `phase2-exit.md`
-- LiveKit Agents realtime plugins (OpenAI Realtime, Gemini Live)
-- P2H-01, P2H-03, P2H-05, P2H-06, P2H-07, P2H-08, P2H-09, P2H-13, P2H-14
+**Revised 2026-08-28.** The scripted prototype (three tools, verbatim recital, off-plan cut)
+was heard by the founder and judged a robot. It was replaced by "Aria talks": the realtime
+model is Aria's voice and conversational mind; the API keeps grading, curriculum, memory and
+safety through `record_answer`/`end_session` and the `brief`/`heard`/`spoken` endpoints.
+`dev-docs/voice-s2s-decision.md` is the record. The measurement half of this ticket (twenty
+rubric-scored sessions per arm) is still open and still gates P2-01.

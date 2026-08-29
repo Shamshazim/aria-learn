@@ -37,6 +37,7 @@ import { createTutorService } from '@/services/tutor/tutor.service';
 import { buildContentServices, type ContentServices } from './content.runtime';
 import { buildPhase1Controllers } from './controllers.runtime';
 import { buildRepositories } from './repositories.runtime';
+import { buildTalkPorts, type TalkPorts } from './talk.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
@@ -47,6 +48,8 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
     /** P2H-12: the child gate, the idle sweep, and the routers a signed-in parent uses. */
     identity: ReturnType<typeof buildPhase1Controllers>['identity'];
     repositories: Phase1Repositories;
+    /** "Aria talks": what the realtime-model voice path needs from here. */
+    talk: TalkPorts;
   }>
 > {
   const repositories = buildRepositories(deps);
@@ -67,7 +70,7 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
       content.ahead.cancel(sessionId);
     },
   });
-  return { ...controllers, repositories };
+  return { ...controllers, repositories, talk: buildTalkPorts(deps, repositories, inventory) };
 }
 
 async function seedInventory(

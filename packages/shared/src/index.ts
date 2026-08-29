@@ -38,6 +38,7 @@ export * from './protocol/moves';
 export * from './protocol/content';
 export * from './protocol/session';
 export * from './protocol/realtime';
+export * from './protocol/talk';
 export {
   childListResponseSchema,
   childSessionResponseSchema,

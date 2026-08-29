@@ -104,8 +104,10 @@ the >= 80% rubric round in `../golden/tutoring/scores.md`, P2H-08 on the listeni
 of its 88 seed lines — none has been recorded, and the synthesiser refuses to run until a
 provider exists — P2H-10 on the teacher review of its sixteen lesson notes and its 72 new
 golden cases, and P2H-11 on the review of its 360 fallback sentences. P2H-13 and P2H-14 are not
-started; P2H-15 has its prototype built on `feat/P2H-15-speech-to-speech-spike` (not measured). Each ticket's "Status" section says exactly
-what is left.
+started; P2H-15 was revised on 2026-08-28: the scripted speech-to-speech spike became "Aria
+talks" — the realtime model is Aria's voice and conversational mind, the API keeps grading,
+curriculum, memory and safety (`../voice-s2s-decision.md`). Each ticket's "Status" section says
+exactly what is left.
 
 | Id     | Track        | Depends on       | Ticket                                                                                         |
 | ------ | ------------ | ---------------- | ---------------------------------------------------------------------------------------------- |

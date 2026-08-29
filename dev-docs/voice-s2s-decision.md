@@ -1,95 +1,72 @@
-# Speech-to-speech spike: pipeline, S2S, or hybrid (P2H-15)
+# Aria talks: the realtime model is Aria's voice (P2H-15, revised)
 
-Status: **prototype built, not measured**. Recommendation: **insufficient evidence** — the
-pipeline stays until the table below is filled from real sessions.
+Status: **built 2026-08-28, replacing the scripted speech-to-speech spike.** The measurement
+table of the original spike was never filled; the product decision was taken on the sound of
+the thing instead: a tutor that recites planner sentences word for word is a robot however
+fast the model behind it is.
 
-## What was built
+## The decision
 
-A worker flag, `VOICE_S2S_PROVIDER=openai|google`, that carries every session on that worker
-on the vendor's realtime model instead of the STT → harness → TTS pipeline. With the flag
-unset nothing in this path loads; the pipeline and its tests are unchanged.
+With `VOICE_S2S_PROVIDER=openai` the vendor's realtime model **is** Aria: it hears the child,
+answers in its own voice from a brief the API wrote for this child and this topic, tells a
+joke when asked, repeats the question when asked, and brings the child back to the work. The
+API stays what it was for the text tutor — the curriculum, the grader, the skill state, the
+memory, the crisis check — and reaches the model through two tools and three small endpoints.
 
-| Piece                                          | Where                                             |
-| ---------------------------------------------- | ------------------------------------------------- |
-| Flag, model, voice, run log                    | `apps/voice-worker/src/session/s2s-config.ts`     |
-| Realtime session, tools wired, silence ladder  | `apps/voice-worker/src/session/s2s-session.ts`    |
-| `plan_next_move` / `check_answer` / `end_turn` | `apps/voice-worker/src/session/s2s-tools.ts`      |
-| Output-transcript safety tap                   | `apps/voice-worker/src/session/s2s-safety-tap.ts` |
-| Per-turn measurement → JSONL run log           | `apps/voice-worker/src/session/s2s-metrics.ts`    |
-| Two-arm comparison and the rules               | `apps/voice-worker/src/golden/s2s-compare.ts`     |
+The pipeline arm (STT → harness → TTS) is unchanged and is what a worker runs with the flag
+unset.
 
-The model is a mouth and an ear, not a tutor. It gets exactly three tools; `plan_next_move`
-and `check_answer` are adapters over the same move stream the pipeline uses, so the planner,
-grading, memory and the P2H-01 silence ladder all stay in the API and `packages/tutor`, and
-every sentence still reaches `move_outbox` through the API. The persona prompt says the model
-may only voice what a tool returned.
+| Piece                                          | Where                                                  |
+| ---------------------------------------------- | ------------------------------------------------------ |
+| Flag, model, voice, run log                    | `apps/voice-worker/src/session/s2s-config.ts`          |
+| The session                                    | `apps/voice-worker/src/session/talk-session.ts`        |
+| The brief → system prompt                      | `apps/voice-worker/src/session/talk-instructions.ts`   |
+| `record_answer` / `end_session`                | `apps/voice-worker/src/session/talk-tools.ts`          |
+| Sentence tap on Aria's output transcript       | `apps/voice-worker/src/session/talk-agent.ts`          |
+| Worker → API client                            | `apps/voice-worker/src/api/talk-client.ts`             |
+| `GET  /internal/voice/session/:id/brief`       | `apps/api/src/services/voice/talk-brief.service.ts`    |
+| `POST /internal/voice/session/:id/heard`       | `apps/api/src/services/voice/talk-events.service.ts`   |
+| `POST /internal/voice/session/:id/spoken`      | `apps/api/src/services/voice/talk-events.service.ts`   |
+| Shared shapes                                  | `packages/shared/src/protocol/talk.ts`                 |
 
-**Safety on the way out.** The API gates every planned sentence; the tap's rule is that
-anything the model says that is not in the plan is cut (`session.interrupt`) and the recovery
-line is voiced. Off-plan means "not gated", whether or not it was harmful, so this is stricter
-than a filter on the way out and it is what produces the _safety escape words_ figure.
+## What the model is given
 
-## How to run it
+The brief: the child's first name (only if the parent allowed it), grade and band; the
+subject; the skill with its unit, lesson and learning objectives; the teacher's note where
+the skill has one (P2H-10); the open question with its choices and — for the model's eyes
+only — its answer key; what Aria remembers about the child, through the same scrubber every
+prompt uses; and the minutes left. The prompt then says how Aria talks (short, specific,
+one idea, reacts to what was said, answers questions and jokes briefly, comes back to the
+work) and what she never does (ask for personal information, discuss violence or adult
+topics, claim to be an AI).
 
-```bash
-# one worker on the s2s arm, logging every closed turn
-VOICE_S2S_PROVIDER=openai VOICE_S2S_RUN_LOG=/tmp/s2s-openai.jsonl npm run dev -w @aria/voice-worker
+## What stays with the API
 
-# the pipeline arm is a voice:golden result; compare and write dev-docs/golden/voice/runs/<date>-s2s.json
-npm run voice:s2s-compare -- --pipeline dev-docs/golden/voice/results/<candidate>.json --s2s /tmp/s2s-openai.jsonl
-```
+- **Grading and progress.** `record_answer` is the pipeline's `ANSWER` turn: the same
+  scorer, the model judge for spoken answers in other words, the same skill-state update, the
+  same choice of next item. The tool returns the verdict, the sentences the curriculum would
+  have said, and the next question; the model voices them in its own words but must keep the
+  numbers and words of a question exact.
+- **The transcript.** Every final child utterance is posted to `heard` and recorded as the
+  `SPEECH_FINAL` the pipeline records; every sentence Aria says is posted to `spoken` and
+  recorded as `SPOKEN`. Memory consolidation and the parent transcript see one kind of session.
+- **Crisis.** `heard` runs the same detector and escalation as the pipeline; on a disclosure
+  the worker interrupts the model and has it say the fixed crisis line, verbatim.
+- **Unsafe output.** `spoken` applies the content path's unsafe-text rule; on a hit the
+  worker interrupts and has the model apologise and return to the question. The cut is
+  measured in sentences, not words: that is what a spoken conversation can offer, and it is
+  the price of a tutor who can talk.
+- **Silence and endings.** The P2H-01 ladder still runs; a rung is voiced in the model's
+  words. `end_session` goes through the policy path a child saying "stop" reaches, so every
+  ending is recorded like every other.
 
-The compare command exits non-zero while the evidence is insufficient.
+## Known gaps
 
-## Rules (fixed in code, quoted here)
-
-- Off-plan rate above **2%** fails S2S regardless of latency.
-- Output-transcript lag p95 above **300 ms** means the tap cannot cut in time: no-go on its own.
-  An unmeasured lag counts as a failure, never as zero.
-- Cost per turn above **3×** the pipeline is noted against P7-04; it does not decide.
-- **20** rubric-scored sessions per arm (P2H-14 rubric) before any recommendation.
-- Oral reading (P4-04) needs word timings and is never on the S2S arm; turns that reach it are
-  reported, not hidden.
-- The best S2S can win is **hybrid**: S2S for conversational turns, pipeline for scripted
-  reading and assessment.
-
-## Results
-
-| metric                          | pipeline | s2s (openai) | s2s (google) |
-| ------------------------------- | -------- | ------------ | ------------ |
-| first audio p95 (ms)            | not run  | not run      | not run      |
-| silence → reply p95 (ms)        | not run  | not run      | not run      |
-| interruption → silence p95 (ms) | not run  | not run      | not run      |
-| overlaps / turn                 | not run  | not run      | not run      |
-| off-plan rate [95% CI]          | —        | not run      | not run      |
-| safety escape words             | —        | not run      | not run      |
-| transcript lag p95 (ms)         | —        | not run      | not run      |
-| STT / end-of-turn error rate    | not run  | not run      | not run      |
-| cost / turn (USD)               | not run  | not run      | not run      |
-| rubric mean (20 sessions)       | not run  | not run      | not run      |
-
-Paste the table `voice:s2s-compare` prints; do not edit numbers by hand.
-
-## Known costs of S2S, before any number
-
-- **Voice mismatch.** The vendor voice is not the P2H-08 band voice. A hybrid would switch
-  voices between conversational and scripted turns unless one vendor can do both.
-- **Prosody.** `@aria/voice` prosody markers are for a TTS engine; the S2S arm renders plain
-  text and relies on the model's own delivery.
-- **Retention.** Child audio reaches a second vendor. `voice-processor-map.md` carries the
+- Aria's free speech is not shown as captions in the browser; the child hears it and the API
+  records it, but the screen shows only the moves (the question, the choices).
+- The rule-based unsafe-output check is narrow; the FAST-tier `classify-safety` prompt is not
+  yet on this path.
+- Retention: child audio reaches the realtime vendor. `voice-processor-map.md` carries the
   row; counsel review is required before any child who is not a consented tester hears it.
-
-## If hybrid wins
-
-- P2H-07: sentence streaming stays for the pipeline arm; the S2S arm needs a turn-level
-  "plan then voice" contract instead — `plan_next_move` already is that contract.
-- P2H-08: the band voice has to be chosen from voices the S2S vendor offers, or the mismatch
-  accepted for conversational turns only.
-- P2H-09: bridges are unnecessary on the S2S arm (the model fills gaps natively); the bridge
-  player stays pipeline-only.
-
-## What this memo waits on
-
-Twenty rubric-scored sessions per arm from consented testers, run through
-`voice:s2s-compare`. P2H-13's provider decision references this memo and must not be recorded
-before the table is filled.
+- The original spike's measurement (`voice:s2s-compare`, `s2s-metrics.ts`) still runs and
+  still needs twenty rubric-scored sessions per arm before P2-01 records a provider decision.

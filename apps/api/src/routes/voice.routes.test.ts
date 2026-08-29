@@ -167,13 +167,23 @@ function buildApp(denyStudent = false) {
     ids: sequentialIds('request'),
     voice: {
       student: { authorize, controller },
-      worker: { authorize: workerOnly(WORKER_TOKEN), controller, bridges: bridgeControllers() },
+      worker: {
+        authorize: workerOnly(WORKER_TOKEN),
+        controller,
+        bridges: bridgeControllers(),
+        talk: { brief: unused, heard: unused, spoken: unused },
+      },
       admin: { authorize: operatorOnly(OPERATOR_TOKEN), controller },
     },
   });
 }
 
 const BRIDGE_ASSET_ID = '00000000-0000-4000-8000-000000000105';
+
+/** The talk endpoints have their own suite (`voice-talk.routes.test.ts`). */
+const unused: RequestHandler = (_request, response) => {
+  response.status(501).end();
+};
 
 function bridgeControllers() {
   return createVoiceBridgeControllers({
@@ -214,3 +224,4 @@ function consentBody() {
     verificationReference: 'verified-parent-consent-1',
   };
 }
+

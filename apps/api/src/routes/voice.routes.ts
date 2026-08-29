@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import type { VoiceBridgeControllers } from '@/controllers/voice-bridge.controller';
+import type { VoiceTalkControllers } from '@/controllers/voice-talk.controller';
 import type { VoiceControllers } from '@/controllers/voice.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
@@ -10,6 +11,9 @@ import {
   realtimeParamsSchema,
   voiceConsentSchema,
   voiceConsentWithdrawSchema,
+  workerBriefQuerySchema,
+  workerHeardSchema,
+  workerSpokenSchema,
   workerVoiceMetricSchema,
   workerVoiceTurnSchema,
 } from '@/schemas/voice.schema';
@@ -38,9 +42,32 @@ export function createVoiceWorkerRouter(
     controller: VoiceControllers;
     /** P2H-09. Always mounted: a deployment with no clips answers with an empty library. */
     bridges: VoiceBridgeControllers;
+    /** "Aria talks": the brief and the transcript endpoints a realtime-model worker uses. */
+    talk: VoiceTalkControllers;
   }>,
 ): Router {
   const router = Router();
+  router.get(
+    '/internal/voice/session/:id/brief',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerBriefQuerySchema, 'query'),
+    asyncHandler(input.talk.brief),
+  );
+  router.post(
+    '/internal/voice/session/:id/heard',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerHeardSchema, 'body'),
+    asyncHandler(input.talk.heard),
+  );
+  router.post(
+    '/internal/voice/session/:id/spoken',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerSpokenSchema, 'body'),
+    asyncHandler(input.talk.spoken),
+  );
   router.get(
     '/internal/voice/bridges',
     input.authorize,
