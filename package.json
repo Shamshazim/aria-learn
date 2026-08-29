@@ -27,6 +27,7 @@
     "test:session-coverage": "vitest run --project web src/features/session/model/session-machine.test.ts --coverage",
     "test:watch": "vitest",
     "voice:golden": "npm run voice:golden -w @aria/voice-worker --",
+    "voice:s2s-compare": "npm run voice:s2s-compare -w @aria/voice-worker --",
     "check:env": "tsx tools/bin/check-env-templates.ts",
     "scan:secrets": "tsx tools/bin/scan-secrets.ts",
     "smoke": "tsx tools/bin/smoke.ts",

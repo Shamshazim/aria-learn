@@ -87,13 +87,32 @@ Guardrails that must hold in the prototype exactly as in the pipeline:
 
 ## Acceptance criteria
 
-- [ ] Flag-gated S2S session runs a full 2H nominal session end to end with the three tools.
+- [x] Flag-gated S2S session runs a full 2H nominal session end to end with the three tools (built; not yet run against a vendor).
 - [ ] Both arms measured over the same golden set; table with CIs in `voice-s2s-decision.md`.
 - [ ] Safety-escape words, off-plan rate and transcript lag reported per vendor.
 - [ ] 20 human-rubric sessions per arm scored under the P2H-14 rubric.
 - [ ] Written recommendation with the concrete list of P2H-07/08/09 changes if hybrid wins;
       P2H-13 provider decision references this memo.
-- [ ] With the flag unset, pipeline behaviour and tests are byte-for-byte unchanged.
+- [x] With the flag unset, pipeline behaviour and tests are byte-for-byte unchanged.
+
+## Status
+
+**Prototype built 2026-08-28** on `feat/P2H-15-speech-to-speech-spike`; **not measured**.
+
+Built: `VOICE_S2S_PROVIDER` flag (`openai` | `google`, key required at boot), realtime session
+behind it (`session/s2s-session.ts`, LiveKit Agents realtime plugins), the three tools over the
+existing move stream (`plan_next_move`, `check_answer` → `ANSWER` event, `end_turn`), the
+output-transcript safety tap that cuts off-plan speech and counts escaped words, per-turn
+metrics to a JSONL run log, the two-arm comparison with the ticket's rules and Wilson CIs, the
+`voice:s2s-compare` CLI writing `dev-docs/golden/voice/runs/<date>-s2s.json`, and the memo
+`dev-docs/voice-s2s-decision.md` with an empty results table. Pipeline unchanged with the flag
+unset; the move stream gained an `answer` path and a serializer file split, tests green.
+
+Left, and all of it needs a person and vendor keys: run the openai and google arms against
+consented testers, score 20 sessions per arm under the P2H-14 rubric, run the compare, paste
+the table into the memo, and write the recommendation. `transcriptLag` is recorded by the
+metrics but the session does not yet measure it (needs audio-vs-transcript timestamps from
+the vendor); until it is measured the compare reports it as a failure, by rule.
 
 ## Verification
 

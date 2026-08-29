@@ -9,13 +9,17 @@
     "start": "tsx src/index.ts start",
     "test": "cd ../.. && vitest run --project voice-worker",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "voice:golden": "tsx src/golden/run-cli.ts"
+    "voice:golden": "tsx src/golden/run-cli.ts",
+    "voice:s2s-compare": "tsx src/golden/s2s-compare-cli.ts"
   },
   "dependencies": {
     "@aria/shared": "*",
     "@aria/voice": "*",
-    "@livekit/rtc-node": "^0.13.34",
+    "@google/genai": "^2.19.0",
     "@livekit/agents": "^1.7.0",
+    "@livekit/agents-plugin-google": "^1.7.1",
+    "@livekit/agents-plugin-openai": "^1.7.1",
+    "@livekit/rtc-node": "^0.13.34",
     "zod": "^4.4.3"
   },
   "devDependencies": {

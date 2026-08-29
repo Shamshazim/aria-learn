@@ -103,8 +103,8 @@ the >= 80% rubric round in `../golden/tutoring/scores.md`, P2H-08 on the listeni
 `../voice-review.md` and the still-open provider decision (P2-01), P2H-09 on the human review
 of its 88 seed lines — none has been recorded, and the synthesiser refuses to run until a
 provider exists — P2H-10 on the teacher review of its sixteen lesson notes and its 72 new
-golden cases, and P2H-11 on the review of its 360 fallback sentences. P2H-13 … P2H-15 are not
-started. Each ticket's "Status" section says exactly
+golden cases, and P2H-11 on the review of its 360 fallback sentences. P2H-13 and P2H-14 are not
+started; P2H-15 has its prototype built on `feat/P2H-15-speech-to-speech-spike` (not measured). Each ticket's "Status" section says exactly
 what is left.
 
 | Id     | Track        | Depends on       | Ticket                                                                                         |

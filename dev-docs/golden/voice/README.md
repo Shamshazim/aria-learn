@@ -18,3 +18,9 @@ enough to support that claim.
 Do not commit child audio. Store only bounded measurements and labels here. The real-browser
 run and the independent-session observation require verified voice consent and the approved
 audio-handling process.
+
+## Speech-to-speech arm (P2H-15)
+
+`runs/<date>-s2s.json` is written by `npm run voice:s2s-compare -- --pipeline <result.json>
+--s2s <run.jsonl>`; the s2s run log comes from a worker started with `VOICE_S2S_PROVIDER` and
+`VOICE_S2S_RUN_LOG`. Same rule as above: timings and labels only, never audio.

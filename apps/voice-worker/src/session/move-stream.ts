@@ -9,11 +9,13 @@ import { spokenForm } from '@aria/voice';
 import type { TutorVoiceClient } from '@/api/tutor-client';
 import type { BridgeTurn } from '@/session/bridge-turn';
 import {
+  answerEvent,
   commonEvent,
   resumeEvent,
   transcriptEvent,
   turnRequest,
 } from '@/session/move-stream.events';
+import { createStreamSerializer } from '@/session/move-stream.serializer';
 import { createMoveStreamState, type MoveStreamState } from '@/session/move-stream.state';
 import type { VoiceRoomContext } from '@/session/session-context';
 import type { SpeechRenderer } from '@/voice/speech-renderer';
@@ -35,6 +37,8 @@ type MoveStreamInput = Readonly<{
 export type MoveStream = Readonly<{
   authorize(signal?: AbortSignal): Promise<void>;
   handleTranscript(text: string, confidence?: number, signal?: AbortSignal): AsyncIterable<string>;
+  /** P2H-15: an answer to a named `ASK`, graded by the API's existing scoring. */
+  answer(respondsTo: string, text: string): AsyncIterable<string>;
   /** P2H-01: the child said nothing inside the band window. */
   silence(payload: Readonly<{ waitedMs: number; afterMoveId: string }>): AsyncIterable<string>;
   resume(signal?: AbortSignal): AsyncIterable<string>;
@@ -69,21 +73,7 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
         });
       });
     },
-    silence: (payload) =>
-      serialize(() =>
-        send(input, state, {
-          event: { ...commonEvent(input, state), kind: 'SILENCE', ...payload },
-          replayOnly: false,
-        }),
-      ),
-    resume: (signal) =>
-      serialize(() =>
-        send(input, state, {
-          event: resumeEvent(input, state),
-          replayOnly: true,
-          ...(signal === undefined ? {} : { signal }),
-        }),
-      ),
+    ...harnessTurns(input, state, serialize),
     speechStarted: () =>
       serialize(() => {
         input.bridge?.observeSpeechStarted();
@@ -102,12 +92,36 @@ export function createMoveStream(input: MoveStreamInput): MoveStream {
       state.activate(null);
     },
     cancelGeneration: (generationId) => {
-      // The child is talking over this answer, so the API is told to stop writing it: the
-      // request is abandoned, which is what ends generation rather than merely muting it.
-      state.order.cancel(generationId);
-      state.abortGeneration();
-      state.activate(null);
+      cancelGeneration(state, generationId);
     },
+  };
+}
+
+/**
+ * The child is talking over this answer, so the API is told to stop writing it: the request
+ * is abandoned, which is what ends generation rather than merely muting it.
+ */
+function cancelGeneration(state: MoveStreamState, generationId: string): void {
+  state.order.cancel(generationId);
+  state.abortGeneration();
+  state.activate(null);
+}
+
+/** The turns the harness starts on its own: an answer handed over, a silence rung, a replay. */
+function harnessTurns(
+  input: MoveStreamInput,
+  state: MoveStreamState,
+  serialize: ReturnType<typeof createStreamSerializer>,
+): Pick<MoveStream, 'answer' | 'silence' | 'resume'> {
+  const turn = (event: TutorInputEvent, replayOnly: boolean, signal?: AbortSignal) =>
+    serialize(() =>
+      send(input, state, { event, replayOnly, ...(signal === undefined ? {} : { signal }) }),
+    );
+  return {
+    answer: (respondsTo, text) => turn(answerEvent(input, state, respondsTo, text), false),
+    silence: (payload) =>
+      turn({ ...commonEvent(input, state), kind: 'SILENCE', ...payload }, false),
+    resume: (signal) => turn(resumeEvent(input, state), true, signal),
   };
 }
 
@@ -136,25 +150,6 @@ async function* observe(
   if (response.connectionEpoch !== input.room.connectionEpoch)
     throw new Error('Tutor API returned a stale voice connection epoch');
   yield* [];
-}
-
-function createStreamSerializer(): (stream: () => AsyncIterable<string>) => AsyncIterable<string> {
-  let tail = Promise.resolve();
-  return (stream) => ({
-    async *[Symbol.asyncIterator]() {
-      const previous = tail;
-      let release = (): void => undefined;
-      tail = new Promise<void>((resolve) => {
-        release = resolve;
-      });
-      await previous;
-      try {
-        yield* stream();
-      } finally {
-        release();
-      }
-    },
-  });
 }
 
 /**

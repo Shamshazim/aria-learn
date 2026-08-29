@@ -10,6 +10,7 @@ import {
 import { createSessionBridge } from '@/session/bridge-runtime';
 import type { BridgeTurn } from '@/session/bridge-turn';
 import { createMoveStream, type MoveStream } from '@/session/move-stream';
+import { runS2SVoiceAgent } from '@/session/s2s-session';
 import { parseVoiceRoomContext, type VoiceRoomContext } from '@/session/session-context';
 import { createSilenceTimer, type SilenceTimer } from '@/session/silence-timer';
 import { finishSilentTerminal, speakSilence, speakStream } from '@/session/speak';
@@ -25,6 +26,8 @@ export default defineAgent({ entry: runVoiceAgent });
 
 async function runVoiceAgent(job: JobContext): Promise<void> {
   const config = readVoiceWorkerConfig(process.env);
+  // P2H-15: the spike replaces the whole pipeline for this worker, or nothing about it.
+  if (config.s2s !== null) return runS2SVoiceAgent(job, config, config.s2s);
   await job.connect();
   const participant = await job.waitForParticipant();
   const room = parseVoiceRoomContext(
