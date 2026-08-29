@@ -38,6 +38,12 @@ const endpointSchema = z.strictObject({
   'cost-per-mtok-out': z.number().nonnegative().max(MAX_COST_PER_MTOK),
   'supports-temperature': z.boolean().optional(),
   reasoning: z.boolean().optional(),
+  /**
+   * How JSON is asked for. `response-format` (the default) sends `response_format`; `prompt`
+   * asks in the system prompt and extracts the object — for vendors whose JSON constraint
+   * fails a generation outright (Groq's `json_validate_failed`) rather than shaping it.
+   */
+  'json-via': z.enum(['response-format', 'prompt']).optional(),
 });
 
 const routeSchema = z.strictObject({

@@ -41,6 +41,8 @@ describe('loadAiConfig loading', () => {
   it('loads the checked-in Anthropic, OpenAI, and Groq-compatible endpoints', () => {
     const config = loadAiConfig(TEST_ENV);
 
+    expect(config.app.ai.endpoints['groq-compatible']?.['json-via']).toBe('prompt');
+    expect(config.app.ai.endpoints['groq-fast']?.['json-via']).toBe('prompt');
     expect(config.app.ai.endpoints['anthropic-sonnet']?.api).toBe('anthropic');
     expect(config.app.ai.endpoints['openai-gpt']?.api).toBe('openai');
     expect(config.app.ai.endpoints['groq-compatible']?.['base-url']).toBe(

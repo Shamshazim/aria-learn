@@ -48,6 +48,9 @@ app:
         timeout-seconds: 20
         cost-per-mtok-in: 0.15
         cost-per-mtok-out: 0.6
+        # Groq's response_format fails a generation outright (json_validate_failed, empty
+        # output) on these models; asked by prompt they return the object every time.
+        json-via: prompt
 
       groq-fast:
         # The FAST tier: intent and grading. Same retention terms as groq-compatible.
@@ -59,3 +62,4 @@ app:
         timeout-seconds: 20
         cost-per-mtok-in: 0.075
         cost-per-mtok-out: 0.3
+        json-via: prompt

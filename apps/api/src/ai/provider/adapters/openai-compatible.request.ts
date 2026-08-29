@@ -67,6 +67,15 @@ export async function requestCompletion(
   signal: AbortSignal,
   delivery: RequestShape['delivery'],
 ): Promise<{ response: Response; extractJson: boolean }> {
+  if (request.jsonMode === true && options.endpoint['json-via'] === 'prompt') {
+    const byPrompt = await sendRequest(
+      options,
+      createRequestBody(options.endpoint, request, { jsonVia: 'prompt-only', delivery }),
+      signal,
+    );
+    if (!byPrompt.ok) throw createProviderHttpError(byPrompt, options.now());
+    return { response: byPrompt, extractJson: true };
+  }
   const response = await sendRequest(
     options,
     createRequestBody(options.endpoint, request, { jsonVia: 'response-format', delivery }),
