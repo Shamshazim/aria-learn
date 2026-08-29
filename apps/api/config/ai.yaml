@@ -1,10 +1,11 @@
 app:
   ai:
-    # Start with the simplest quality-first setup. P0-22's golden set decides when FAST
-    # can move to a cheaper endpoint without weakening the tutor.
+    # Speed first: a child's turn waits on every one of these calls, and Groq answers a
+    # planning or grading prompt in well under a second where the frontier endpoints take
+    # one to three. The frontier endpoint stays as the fallback when Groq is down.
     routing:
-      TEACH: { endpoint: anthropic-sonnet }
-      FAST: { endpoint: anthropic-sonnet }
+      TEACH: { endpoint: groq-compatible, fallback: anthropic-sonnet }
+      FAST: { endpoint: groq-fast, fallback: groq-compatible }
 
     endpoints:
       anthropic-sonnet:
@@ -47,3 +48,14 @@ app:
         timeout-seconds: 20
         cost-per-mtok-in: 0.15
         cost-per-mtok-out: 0.6
+
+      groq-fast:
+        # The FAST tier: intent and grading. Same retention terms as groq-compatible.
+        api: openai
+        base-url: https://api.groq.com/openai/v1
+        api-key: ${GROQ_API_KEY}
+        model: openai/gpt-oss-20b
+        max-tokens: 1024
+        timeout-seconds: 20
+        cost-per-mtok-in: 0.075
+        cost-per-mtok-out: 0.3

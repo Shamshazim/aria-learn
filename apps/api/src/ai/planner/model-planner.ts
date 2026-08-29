@@ -35,18 +35,29 @@ export function createModelPlanner(deps: {
     if (deps.ai === null) return request.fallback;
     // The same number bounds the call twice on purpose: `@aria/tutor` races it so the child's
     // turn moves on, and this timeout is what actually abandons the request, so a provider
-    // that lost the race is not left holding a connection.
-    const result = await deps.ai.run('plan-move', promptInput(request), {
-      studentId: request.context.session.studentId,
-      timeoutMs: plannerBudgetMs(request.context.session.band, request.event),
-    });
-    if (result.data.confidence < minConfidence) return request.fallback;
-    return {
-      ...request.fallback,
-      kind: result.data.kind,
-      approach: result.data.approach,
-      rationale: result.data.rationale,
-    };
+    // that lost the race is not left holding a connection. The signal aborts at the same
+    // moment so the retry loop does not start a second attempt the turn has already left.
+    const budgetMs = plannerBudgetMs(request.context.session.band, request.event);
+    const controller = new AbortController();
+    const expired = setTimeout(() => {
+      controller.abort();
+    }, budgetMs);
+    try {
+      const result = await deps.ai.run('plan-move', promptInput(request), {
+        studentId: request.context.session.studentId,
+        timeoutMs: budgetMs,
+        signal: controller.signal,
+      });
+      if (result.data.confidence < minConfidence) return request.fallback;
+      return {
+        ...request.fallback,
+        kind: result.data.kind,
+        approach: result.data.approach,
+        rationale: result.data.rationale,
+      };
+    } finally {
+      clearTimeout(expired);
+    }
   };
 }
 

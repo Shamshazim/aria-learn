@@ -1,6 +1,7 @@
 import { tutorMoveSchema, type TutorInputEvent, type VisualContent } from '@aria/shared';
 import type { LoadedTurnContext, PlannedTurn } from '@aria/tutor';
 
+import { createModelGrader } from '@/ai/grader/model-grader';
 import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { createModelPlanner } from '@/ai/planner/model-planner';
 import { plannerBudgetMs } from '@/ai/planner/planner.budget';
@@ -131,6 +132,7 @@ function buildTutor(
       ai: deps.ai,
       onFallback: createIntentFallbackObserver({ metrics: deps.metrics }),
     }),
+    judge: createModelGrader({ ai: deps.ai }),
     ...plannerPorts(deps),
   });
 }

@@ -17,6 +17,11 @@ Question: {{question}}
 Expected answer: {{expectedAnswer}}
 Learner answer: {{learnerAnswer}}
 
+The learner answered out loud, so the words may be a transcript: numbers spelled out, parts
+given in a different order, or extra words around the answer. Mark "correct" when what the
+learner said means the same as the expected answer, in any wording or order. Mark
+"incorrect" only when the meaning differs or a required part is missing.
+
 Return JSON with "verdict" ("correct" or "incorrect") and child-facing "feedback".`;
 
 const outputSchema: z.ZodType<GradeShortAnswerPromptOutput> = z
@@ -36,7 +41,7 @@ const inputSchema: z.ZodType<GradeShortAnswerPromptInput> = z
 
 export const gradeShortAnswerPrompt: PromptDefinition<'grade-short-answer'> = {
   name: 'grade-short-answer',
-  version: '1.0.0',
+  version: '1.1.0',
   tier: 'FAST',
   system: 'You are Aria, a fair evaluator of short learner answers. Give only the requested JSON.',
   inputSchema,

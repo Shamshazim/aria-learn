@@ -11,7 +11,7 @@ import {
 } from '@/ai/provider/__fixtures__/ai-config.fixtures';
 
 const tempDirectories: string[] = [];
-const TEST_ENV = { ANTHROPIC_API_KEY: 'test-key' };
+const TEST_ENV = { ANTHROPIC_API_KEY: 'test-key', GROQ_API_KEY: 'test-key' };
 
 function writeConfig(contents: string): string {
   const directory = mkdtempSync(join(tmpdir(), 'aria-ai-config-'));

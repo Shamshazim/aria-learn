@@ -9,7 +9,7 @@ const EXPECTED_PROMPTS: Readonly<
   'classify-intent': { tier: 'FAST' },
   'classify-safety': { tier: 'FAST' },
   explain: { tier: 'TEACH' },
-  'grade-short-answer': { tier: 'FAST' },
+  'grade-short-answer': { tier: 'FAST', version: '1.1.0' },
   hint: { tier: 'FAST' },
   'memory-proposals': { tier: 'TEACH' },
   'plan-move': { tier: 'TEACH' },
