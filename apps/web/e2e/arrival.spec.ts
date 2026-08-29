@@ -43,7 +43,7 @@ test('choosing a class other than the recommendation stays a normal choice', asy
   await page.getByRole('heading', { name: 'Welcome back, Sam.' }).waitFor();
   await page.getByRole('link', { name: 'Writing Grade 4' }).click();
   await expect(page).toHaveURL(
-    /\/session\/4\/writing\?arrivalId=00000000-0000-4000-8000-000000000001/,
+    /\/session\/4\/writing\?voice=1&arrivalId=00000000-0000-4000-8000-000000000001/,
   );
 });
 

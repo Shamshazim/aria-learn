@@ -25,6 +25,7 @@ import type { StreamingDeps } from '@/services/content/turn-content.types';
 import { createMemoryRetrievalService } from '@/services/memory/retrieve.service';
 import { createMoveFactory } from '@/services/moves/move-factory';
 import { buildRecap } from '@/services/session/recap';
+import { createAnswerResync } from '@/services/tutor/answer-target';
 import { createTurnCommitService } from '@/services/tutor/commit.service';
 import { createTutorContextLoader } from '@/services/tutor/context.loader';
 import { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
@@ -122,6 +123,7 @@ function buildTutor(
         throw new ForbiddenError('student session ownership mismatch');
     },
     latestMoveId: (sessionId) => latestMoveId(repositories, sessionId),
+    resyncAnswer: createAnswerResync(repositories.events, deps.logger),
     logger: deps.logger,
     intent: createIntentClassifier({
       ai: deps.ai,

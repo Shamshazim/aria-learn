@@ -58,7 +58,7 @@ describe('move renderer registry', () => {
     }
   });
 
-  it('uses speech instead of typed text for an early learner', async () => {
+  it('lets an early learner answer an open question by talking or by typing', async () => {
     const ask = (await allMoveKinds()).find((move) => move.kind === 'ASK');
     expect(ask).toBeDefined();
     if (ask === undefined) return;
@@ -68,14 +68,15 @@ describe('move renderer registry', () => {
       <InputSurface
         band="early"
         move={textMove}
+        voice="ready"
         onAnswer={() => undefined}
         onDrag={() => undefined}
         onSpeech={() => undefined}
       />,
     );
 
-    expect(screen.getByRole('button', { name: /Talk to Aria/u })).toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Talk to Aria/u })).toBeEnabled();
+    expect(screen.getByRole('textbox', { name: 'Your answer' })).toBeInTheDocument();
   });
 
   it('lets an early learner tap a complete multi-character number before answering', async () => {
@@ -88,6 +89,7 @@ describe('move renderer registry', () => {
       <InputSurface
         band="early"
         move={{ ...ask, display: [], expects: 'number' }}
+        voice="ready"
         onAnswer={answer}
         onDrag={() => undefined}
         onSpeech={() => undefined}

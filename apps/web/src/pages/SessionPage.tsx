@@ -19,6 +19,7 @@ import {
   useTutorSession,
   useRealtimeVoice,
   VoiceControls,
+  voiceAvailability,
 } from '@/features/session';
 import '@/features/session/styles/session.css';
 import '@/features/session/styles/session-chat.css';
@@ -107,6 +108,8 @@ function SessionView(props: {
   subject: string;
   voice: ReturnType<typeof useRealtimeVoice>;
 }): React.JSX.Element {
+  const scripted = props.scenario !== null;
+  const voice = voiceAvailability(scripted ? null : props.voice.status, { scripted });
   return (
     <div className="session-app" data-band={props.band}>
       <SessionTopbar band={props.band} subject={props.subject} />
@@ -114,11 +117,11 @@ function SessionView(props: {
       <main>
         <h1 className="visually-hidden">{props.subject} learning session</h1>
         {props.band === 'early' ? (
-          <EarlyLayout session={props.session} />
+          <EarlyLayout session={props.session} voice={voice} />
         ) : props.band === 'middle' ? (
-          <MiddleLayout session={props.session} />
+          <MiddleLayout session={props.session} voice={voice} />
         ) : (
-          <SeniorLayout session={props.session} />
+          <SeniorLayout session={props.session} voice={voice} />
         )}
       </main>
       {props.scenario === null && !props.session.state.ended ? (

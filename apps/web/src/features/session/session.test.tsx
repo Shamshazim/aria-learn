@@ -22,11 +22,11 @@ function Harness({ band }: { band: Band }): React.JSX.Element {
   });
   const layout =
     band === 'early' ? (
-      <EarlyLayout session={session} />
+      <EarlyLayout session={session} voice="ready" />
     ) : band === 'middle' ? (
-      <MiddleLayout session={session} />
+      <MiddleLayout session={session} voice="ready" />
     ) : (
-      <SeniorLayout session={session} />
+      <SeniorLayout session={session} voice="ready" />
     );
   return <MemoryRouter>{layout}</MemoryRouter>;
 }

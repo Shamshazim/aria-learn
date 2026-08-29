@@ -26,6 +26,7 @@ import {
   type SpeechAudioPort,
 } from '@/services/voice/bridge-library.service';
 import { createVoiceConsentService } from '@/services/voice/consent.service';
+import { withDemoVoiceConsent } from '@/services/voice/demo-consent';
 import { createLivekitRoomCloser } from '@/services/voice/livekit-room.provider';
 import { createLivekitTokenProvider } from '@/services/voice/livekit-token.provider';
 import { createVoiceMetricsService } from '@/services/voice/metrics.service';
@@ -177,9 +178,14 @@ function buildRealtime(input: {
   rooms: ReturnType<typeof createLivekitRoomCloser>;
   lifecycle: ReturnType<typeof createVoiceLifecycleRepository>;
 }) {
+  const processors = processorMap(input.voiceConfig);
   return createRealtimeService({
     sessions: input.phase1.repositories.sessions,
-    consent: input.consentRepo,
+    // The demo student has no parent to ask; development mints the consent it would give.
+    consent: withDemoVoiceConsent(input.consentRepo, {
+      studentId: input.deps.config.demoStudentId,
+      processors: Object.keys(processors),
+    }),
     voiceSessions: input.voiceSessions,
     events: input.phase1.repositories.events,
     outbox: input.phase1.repositories.outbox,
@@ -191,7 +197,7 @@ function buildRealtime(input: {
     clock: input.deps.clock,
     livekitUrl: input.voiceConfig.livekitUrl,
     region: input.voiceConfig.region,
-    processors: processorMap(input.voiceConfig),
+    processors,
   });
 }
 

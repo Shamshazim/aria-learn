@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { TutorMove } from '@aria/shared';
 
 import { useTutorSession } from '@/features/session/hooks/useTutorSession';
-import type { TutorSource } from '@/features/session/model/tutor-source';
+import { TurnRejectedError, type TutorSource } from '@/features/session/model/tutor-source';
 
 const NO_STARTUP_EVENTS = [] as const;
 const NO_MOVES: readonly TutorMove[] = [];
@@ -65,5 +65,53 @@ describe('useTutorSession transport sequencing', () => {
     await waitFor(() => {
       expect(result.current.state.status).toBe('waiting');
     });
+  });
+});
+
+describe('useTutorSession when the API refuses a turn', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('surfaces the failure, settles the status and resends on retry', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const sent: string[] = [];
+    let refuse = true;
+    const source: TutorSource = {
+      // eslint-disable-next-line require-yield -- the refused turn produces no move.
+      send: async function* (event) {
+        sent.push(event.kind);
+        await Promise.resolve();
+        if (refuse) throw new TurnRejectedError('VALIDATION_ERROR');
+      },
+      close: () => undefined,
+    };
+    const createSource = (): TutorSource => source;
+    const { result } = renderHook(() =>
+      useTutorSession({
+        band: 'middle',
+        grade: '4',
+        subjectId: 'math',
+        createSource,
+        startupEvents: NO_STARTUP_EVENTS,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.answer('ask-1', '7');
+    });
+
+    expect(result.current.retryFailed).not.toBeNull();
+    expect(result.current.state.status).toBe('waiting');
+    // eslint-disable-next-line no-console -- asserting the one console line the app writes.
+    expect(console.error).toHaveBeenCalledTimes(1);
+
+    refuse = false;
+    await act(async () => {
+      await result.current.retryFailed?.();
+    });
+
+    expect(sent).toEqual(['ANSWER', 'ANSWER']);
+    expect(result.current.retryFailed).toBeNull();
   });
 });

@@ -90,6 +90,7 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
     sessionLimitMs: () => 20 * 60_000,
     requireOwnership: () => Promise.resolve(),
     latestMoveId: () => Promise.resolve(latestMoveId(committed)),
+    resyncAnswer: () => Promise.resolve(null),
     logger: { info: () => undefined },
     // Golden replay is deterministic: the rules decide, never a model. The planner is present
     // and always declines, so the recorded policy plan is what runs (P2H-06).

@@ -45,6 +45,18 @@ describe('session reducer', () => {
     expect(reduceSession(speaking, { kind: 'SOURCE_SETTLED' })).toBe(speaking);
   });
 
+  it('makes a re-sent question current again without speaking or listing it twice', async () => {
+    const ask = (await allMoves()).find((move) => move.kind === 'ASK');
+    expect(ask).toBeDefined();
+    if (ask === undefined) return;
+    const first = reduceSession(initialSessionState('middle'), ask);
+    const again = reduceSession(reduceSession(first, { kind: 'SOURCE_PENDING' }), ask);
+
+    expect(again.currentMove?.id).toBe(ask.id);
+    expect(again.moves.filter((move) => move.id === ask.id)).toHaveLength(1);
+    expect(again.status).toBe('waiting');
+  });
+
   it('waits when a move deliberately has no speech', async () => {
     const active = (await allMoves()).find((move) => move.kind === 'SAY');
     expect(active).toBeDefined();

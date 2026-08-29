@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useReducer, useRef, useState } from 'react';
 
 import type { Grade, TutorMove } from '@aria/shared';
 
+import { useMediaEvents, useSourceLifecycle } from '@/features/session/hooks/useSessionLifecycle';
 import { useSilenceTimer, type SilenceControls } from '@/features/session/hooks/useSilenceTimer';
 import { ONLINE, reduceConnection } from '@/features/session/model/connection-state';
 import { createEventFactory, type EventPayload } from '@/features/session/model/input-events';
@@ -11,7 +12,11 @@ import {
 } from '@/features/session/model/session-commands';
 import { reduceSession } from '@/features/session/model/session-machine';
 import { initialSessionState, type SessionState } from '@/features/session/model/session-state';
-import { ContentUnavailableError, type TutorSource } from '@/features/session/model/tutor-source';
+import {
+  ContentUnavailableError,
+  TurnRejectedError,
+  type TutorSource,
+} from '@/features/session/model/tutor-source';
 
 export type { TutorSession } from '@/features/session/model/session-commands';
 
@@ -64,6 +69,7 @@ export function useTutorSession(input: {
     interrupt,
     receive,
     silence,
+    retryFailed: transport.retryFailed,
     ...(input.onSpeak === undefined ? {} : { speak: input.onSpeak }),
   });
 }
@@ -83,7 +89,11 @@ function useSilence(state: SessionState, send: Send): SilenceControls {
     ),
   });
 }
-type Transport = Readonly<{ send: Send; retry(): Promise<void> }>;
+type Transport = Readonly<{
+  send: Send;
+  retry(): Promise<void>;
+  retryFailed: (() => Promise<void>) | null;
+}>;
 type Retry = Readonly<{ payload: EventPayload; source: TutorSource }>;
 type SourceRefs = Readonly<{
   source: React.RefObject<TutorSource | null>;
@@ -95,6 +105,7 @@ type SourceRefs = Readonly<{
 type SendDispatch = Readonly<{
   session: React.Dispatch<Parameters<typeof reduceSession>[1]>;
   connection: React.Dispatch<Parameters<typeof reduceConnection>[1]>;
+  failed: React.Dispatch<React.SetStateAction<Retry | null>>;
 }>;
 
 function useEventFactory(): React.RefObject<ReturnType<typeof createEventFactory>> {
@@ -107,19 +118,16 @@ function useEventFactory(): React.RefObject<ReturnType<typeof createEventFactory
   );
 }
 
-function useSend(refs: SourceRefs, dispatchers: SendDispatch): Transport {
+function useSend(refs: SourceRefs, dispatch: Omit<SendDispatch, 'failed'>): Transport {
   const retryRef = useRef<Retry | null>(null);
+  // An input the API refused, kept in state so the notice and its button can render.
+  const [failed, setFailed] = useState<Retry | null>(null);
   const send = useCallback(
-    (payload: EventPayload): Promise<void> => enqueue(refs, dispatchers, retryRef, payload),
-    [
-      refs.active,
-      refs.events,
-      refs.queue,
-      refs.source,
-      dispatchers.connection,
-      dispatchers.session,
-    ],
+    (payload: EventPayload): Promise<void> =>
+      enqueue(refs, { ...dispatch, failed: setFailed }, retryRef, payload),
+    [refs.active, refs.events, refs.queue, refs.source, dispatch.connection, dispatch.session],
   );
+  const retryFailed = useMemoRetryFailed(failed, refs.source, send, setFailed);
   const retry = useCallback(async (): Promise<void> => {
     const retryable = retryRef.current;
     if (retryable === null) return;
@@ -129,7 +137,22 @@ function useSend(refs: SourceRefs, dispatchers: SendDispatch): Transport {
     }
     await send(retryable.payload);
   }, [refs.source, send]);
-  return { send, retry };
+  return { send, retry, retryFailed };
+}
+
+function useMemoRetryFailed(
+  failed: Retry | null,
+  source: React.RefObject<TutorSource | null>,
+  send: Send,
+  setFailed: React.Dispatch<React.SetStateAction<Retry | null>>,
+): (() => Promise<void>) | null {
+  const retry = useCallback(async (): Promise<void> => {
+    if (failed === null) return;
+    setFailed(null);
+    if (source.current !== failed.source) return;
+    await send(failed.payload);
+  }, [failed, send, setFailed, source]);
+  return failed === null ? null : retry;
 }
 
 function enqueue(
@@ -178,15 +201,38 @@ async function runSourceOperation(operation: SourceOperation): Promise<void> {
       operation.dispatchers.session(move);
     }
     recoverConnection(operation);
+    operation.dispatchers.failed(null);
   } catch (error) {
     failed = true;
-    if (!(error instanceof ContentUnavailableError)) throw error;
-    retryRef.current = { payload: operation.payload, source: operation.source };
-    operation.dispatchers.connection({ kind: 'CONTENT_EXHAUSTED' });
+    if (error instanceof ContentUnavailableError) {
+      retryRef.current = { payload: operation.payload, source: operation.source };
+      operation.dispatchers.connection({ kind: 'CONTENT_EXHAUSTED' });
+      // The notice says why; the status line must stop saying "thinking".
+      if (operation.refs.source.current === operation.source) {
+        operation.dispatchers.session({ kind: 'SOURCE_SETTLED' });
+      }
+    } else {
+      reportRejection(operation, error);
+    }
   } finally {
     if (activeRef.current === controller) activeRef.current = null;
     settleEmptyOperation(operation, { controller, emitted, failed });
   }
+}
+
+/**
+ * The turn was refused, or something broke that no retry-later sentence describes. It used to
+ * be rethrown into a `void` promise — the child tapped, nothing happened, and the silence
+ * ladder started nagging. Now it is shown, and the status line stops saying "thinking".
+ */
+function reportRejection(operation: SourceOperation, error: unknown): void {
+  const code = error instanceof TurnRejectedError ? error.code : 'UNEXPECTED';
+  // The one console line in the app: a swallowed rejection is how this bug went unnoticed.
+  // eslint-disable-next-line no-console -- the browser console is the only sink the web has.
+  console.error(`[session] a turn was not delivered (${code})`, error);
+  if (operation.refs.source.current !== operation.source) return;
+  operation.dispatchers.failed({ payload: operation.payload, source: operation.source });
+  operation.dispatchers.session({ kind: 'SOURCE_SETTLED' });
 }
 
 function recoverConnection(operation: SourceOperation): void {
@@ -204,65 +250,4 @@ function settleEmptyOperation(
   if (outcome.failed || outcome.emitted || outcome.controller.signal.aborted) return;
   if (operation.refs.source.current !== operation.source) return;
   operation.dispatchers.session({ kind: 'SOURCE_SETTLED' });
-}
-
-function useSourceLifecycle(
-  input: Parameters<typeof useTutorSession>[0],
-  source: React.RefObject<TutorSource | null>,
-  active: React.RefObject<AbortController | null>,
-  send: Send,
-): void {
-  const createSource = input.createSource;
-  const sourceRef = source;
-  useEffect(() => {
-    const currentSource = createSource();
-    const lifecycle = new AbortController();
-    sourceRef.current = currentSource;
-    void playStartup(input, send, lifecycle.signal);
-    return () => {
-      lifecycle.abort();
-      active.current?.abort();
-      currentSource.close();
-      if (sourceRef.current === currentSource) sourceRef.current = null;
-    };
-  }, [active, createSource, input.grade, input.startupEvents, input.subjectId, send, sourceRef]);
-}
-
-async function playStartup(
-  input: Parameters<typeof useTutorSession>[0],
-  send: Send,
-  signal: AbortSignal,
-): Promise<void> {
-  if (input.startupEvents !== undefined) {
-    for (const event of input.startupEvents) {
-      if (signal.aborted) return;
-      await send(event);
-    }
-    return;
-  }
-  await send({ kind: 'ARRIVED', grade: input.grade });
-  if (signal.aborted) return;
-  await send({
-    kind: 'SUBJECT_CHOSEN',
-    subjectId: input.subjectId,
-    grade: input.grade,
-    fromRecommendation: false,
-  });
-}
-
-function useMediaEvents(send: Send, retry: () => Promise<void>): void {
-  useEffect(() => {
-    const lost = (): void => {
-      void send({ kind: 'MEDIA_LOST' });
-    };
-    const restored = (): void => {
-      void send({ kind: 'MEDIA_RESTORED' }).then(retry);
-    };
-    window.addEventListener('offline', lost);
-    window.addEventListener('online', restored);
-    return () => {
-      window.removeEventListener('offline', lost);
-      window.removeEventListener('online', restored);
-    };
-  }, [retry, send]);
 }
