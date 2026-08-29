@@ -22,6 +22,11 @@ export const S2S_DEFAULT_VOICE: Readonly<Record<S2SProvider, string>> = {
   google: 'Aoede',
 };
 
+const KEY_NAME: Readonly<Record<S2SProvider, string>> = {
+  openai: 'OPENAI_API_KEY',
+  google: 'GOOGLE_API_KEY',
+};
+
 const schema = z.object({
   VOICE_S2S_PROVIDER: z.enum(S2S_PROVIDERS).optional(),
   VOICE_S2S_MODEL: z.string().min(1).max(128).optional(),
@@ -45,13 +50,12 @@ export function readS2SConfig(source: NodeJS.ProcessEnv): S2SConfig | null {
   const parsed = schema.parse(source);
   const provider = parsed.VOICE_S2S_PROVIDER;
   if (provider === undefined) return null;
-  const apiKey = provider === 'openai' ? parsed.OPENAI_API_KEY : parsed.GOOGLE_API_KEY;
+  const keys = { openai: parsed.OPENAI_API_KEY, google: parsed.GOOGLE_API_KEY };
+  const apiKey = keys[provider];
   if (apiKey === undefined) {
     // Refused at boot, not at the first child: a session that connects and then cannot open
     // its model is a silent room, which is the one failure a spike must never produce.
-    throw new Error(
-      `VOICE_S2S_PROVIDER=${provider} needs ${provider === 'openai' ? 'OPENAI_API_KEY' : 'GOOGLE_API_KEY'}`,
-    );
+    throw new Error(`VOICE_S2S_PROVIDER=${provider} needs ${KEY_NAME[provider]} to be set`);
   }
   return {
     provider,
