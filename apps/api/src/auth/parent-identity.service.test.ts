@@ -20,7 +20,11 @@ describe('resolving a verified token to a family', () => {
     });
 
     await expect(
-      service.resolve({ supabaseUserId: 'supabase-1', email: 'grown.up@example.test' }),
+      service.resolve({
+        supabaseUserId: 'supabase-1',
+        email: 'grown.up@example.test',
+        sessionKey: 'session-1',
+      }),
     ).resolves.toEqual({
       id: 'parent-1',
       supabaseUserId: 'supabase-1',
@@ -40,7 +44,11 @@ describe('resolving a verified token to a family', () => {
     });
 
     await expect(
-      service.resolve({ supabaseUserId: 'supabase-2', email: 'new@example.test' }),
+      service.resolve({
+        supabaseUserId: 'supabase-2',
+        email: 'new@example.test',
+        sessionKey: 'session-2',
+      }),
     ).resolves.toMatchObject({ id: 'parent-new', supabaseUserId: 'supabase-2' });
     expect(insert).toHaveBeenCalledWith({
       email: 'new@example.test',
@@ -57,7 +65,11 @@ describe('resolving a verified token to a family', () => {
     });
 
     await expect(
-      service.resolve({ supabaseUserId: 'supabase-1', email: 'changed@example.test' }),
+      service.resolve({
+        supabaseUserId: 'supabase-1',
+        email: 'changed@example.test',
+        sessionKey: 'session-3',
+      }),
     ).resolves.toMatchObject({ id: 'parent-1', email: 'grown.up@example.test' });
     expect(insert).not.toHaveBeenCalled();
   });

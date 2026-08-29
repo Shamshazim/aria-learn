@@ -5,6 +5,7 @@ import { NotFoundError, ValidationError } from '@/errors';
 import { toChildSummary } from '@/mappers/child-summary.mapper';
 import { DEFAULT_STUDENT_SETTINGS } from '@/mappers/student.mapper';
 import type { StudentRepository } from '@/repositories/student.repository';
+import type { ConsentService } from '@/services/parent/consent.service';
 import type { Student, StudentSettingsPatch } from '@/types/student';
 
 /**
@@ -47,6 +48,12 @@ export type ParentChildrenService = Readonly<{
 export function createParentChildrenService(deps: {
   students: Pick<StudentRepository, 'listByParentId' | 'findById' | 'insert' | 'update'>;
   credentials: ChildCredentialService;
+  /**
+   * Verifiable parental consent (P0-28). Optional so a deployment without the consent flow
+   * configured still runs — but where it is wired, `add` cannot write a child row without it.
+   * COPPA's requirement is about timing: consent comes *before* collection, not alongside it.
+   */
+  consent?: Pick<ConsentService, 'requireConsent'>;
 }): ParentChildrenService {
   const requireOwned = async (parentId: string, childId: string): Promise<Student> => {
     const student = await deps.students.findById(childId);
@@ -68,6 +75,8 @@ export function createParentChildrenService(deps: {
     },
 
     add: async (parentId, input) => {
+      // Before the insert, and before anything about this child is written down at all.
+      await deps.consent?.requireConsent(parentId);
       const student = await deps.students.insert({
         parentId,
         displayName: input.displayName,

@@ -27,9 +27,27 @@ const CLOCK_TOLERANCE = '60s';
 const claimsSchema = z.object({
   sub: z.string().min(1).max(128),
   email: z.email().max(320).nullish(),
+  /**
+   * Supabase's own session id. P0-28 hangs a revocable `parent_session` row on it, so that
+   * one stolen laptop can be signed out without signing out the phone.
+   */
+  session_id: z.string().min(1).max(128).nullish(),
 });
 
-export type VerifiedParentToken = Readonly<{ supabaseUserId: string; email: string | null }>;
+export type VerifiedParentToken = Readonly<{
+  supabaseUserId: string;
+  email: string | null;
+  /**
+   * Which sign-in this token came from.
+   *
+   * A token minted before Supabase carried the claim — or by a test — has none, and falls
+   * back to the subject. That is deliberately not "no session": a session nobody can name is
+   * a session nobody can revoke, and "sign out everywhere" has to reach it. The fallback
+   * makes such a token revocable at the account level, which is the coarser half of the
+   * promise rather than none of it.
+   */
+  sessionKey: string;
+}>;
 
 export type ParentTokenVerifier = Readonly<{
   verify(token: string): Promise<VerifiedParentToken>;
@@ -47,7 +65,11 @@ export function createSupabaseTokenVerifier(config: AuthConfig): ParentTokenVeri
       const payload = await verifyPayload(token, jwks, config);
       const claims = claimsSchema.safeParse(payload);
       if (!claims.success) throw new UnauthorizedError('parent token is missing its subject');
-      return { supabaseUserId: claims.data.sub, email: claims.data.email ?? null };
+      return {
+        supabaseUserId: claims.data.sub,
+        email: claims.data.email ?? null,
+        sessionKey: claims.data.session_id ?? `sub:${claims.data.sub}`,
+      };
     },
   };
 }

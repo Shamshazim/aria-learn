@@ -1,5 +1,5 @@
 import type { AiClient, GatedStreamer, SpendService } from '@/ai';
-import type { SecretHasher, ParentTokenVerifier } from '@/auth';
+import type { SecretHasher, ParentTokenVerifier, ProviderDirectory } from '@/auth';
 import type { AppConfig } from '@/config';
 import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
@@ -35,6 +35,8 @@ export type Phase1RuntimeDeps = Readonly<{
   tokens?: TokenGenerator;
   hasher?: SecretHasher;
   tokenVerifier?: ParentTokenVerifier;
+  /** P0-28: the provider's user directory, faked in tests so erasure needs no Supabase. */
+  directory?: ProviderDirectory;
   /** Process-wide counters; supplied by the composition root (P1-14, P2H-02). */
   metrics: Metrics;
   /** P2H-07: builds the sentence streamer once the child-facing gate exists. */

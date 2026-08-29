@@ -12,6 +12,12 @@ export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
   /**
+   * P0-28: the parent is signed in, but has not given verifiable consent yet. Its own code
+   * because the parent app answers it with a specific screen — the consent flow — and
+   * "you cannot access that" is neither true nor actionable here.
+   */
+  CONSENT_REQUIRED: 'CONSENT_REQUIRED',
+  /**
    * P2H-12: too many wrong PINs. Its own code because the child screen shows one fixed
    * sentence for it — "Ask a grown-up" — and must not be able to show a countdown.
    */
