@@ -37,10 +37,10 @@ export type SessionService = Readonly<{
 }>;
 
 export function createSessionService(deps: {
-  students: StudentRepository;
-  sessions: SessionRepository;
-  skills: SkillStateRepository;
-  arrivals: ArrivalEventRepository;
+  students: Pick<StudentRepository, 'requireById'>;
+  sessions: Pick<SessionRepository, 'create' | 'findOpen' | 'end'>;
+  skills: Pick<SkillStateRepository, 'findDue'>;
+  arrivals: Pick<ArrivalEventRepository, 'findById' | 'setAccepted'>;
   clock: Clock;
   ids: IdGenerator;
   resume(session: TutorSessionRecord): Promise<ResumedSession>;
@@ -78,7 +78,10 @@ async function createOrResume(
   const open = await deps.sessions.findOpen(input.studentId);
   if (open !== null) {
     const resumed = await deps.resume(open);
-    return { session: open, moves: resumed.moves, resumed: true };
+    if (isResumable(open, resumed.lastActivityAt, input.subject, deps.clock.now())) {
+      return { session: open, moves: resumed.moves, resumed: true };
+    }
+    await deps.sessions.end(open.id, 'break', deps.clock.now());
   }
   const student = await deps.students.requireById(input.studentId);
   const recommendationAccepted = await recommendationAcceptance(deps, input);
@@ -147,6 +150,25 @@ async function recommendationAcceptance(
   if (arrival === null) throw new ForbiddenError('arrival does not belong to student');
   const recommended = arrival.recommendation?.subjectId;
   return typeof recommended === 'string' && recommended === input.subject;
+}
+
+/**
+ * A lesson the child is still in comes back; a leftover does not.
+ *
+ * Picking a different class is a decision, not a reconnect, and a question from this morning
+ * is not the one they came back for. Either way the old session ends as a break and a fresh
+ * one starts — which is also what stops an answer landing on a question the tablet no longer
+ * shows. Half an hour is the idle window P2H-12 already ends sessions at.
+ */
+const RESUME_WINDOW_MS = 30 * 60_000;
+
+function isResumable(
+  open: TutorSessionRecord,
+  lastActivityAt: Date,
+  subject: string,
+  now: Date,
+): boolean {
+  return open.subject === subject && now.getTime() - lastActivityAt.getTime() < RESUME_WINDOW_MS;
 }
 
 function subjectMatches(requested: string, authored: string): boolean {

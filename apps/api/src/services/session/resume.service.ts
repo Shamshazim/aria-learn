@@ -7,6 +7,8 @@ export type ResumedSession = Readonly<{
   session: TutorSessionRecord;
   moves: readonly TutorMove[];
   lastAppliedSeq: number;
+  /** When anybody last did anything in it, so a resume can tell a lesson from a leftover. */
+  lastActivityAt: Date;
 }>;
 
 export type ResumeService = Readonly<{
@@ -20,7 +22,12 @@ export function createResumeService(events: SessionEventRepository): ResumeServi
       const moves = records
         .filter((record) => record.actor === 'aria')
         .map((record) => tutorMoveSchema.parse(record.payload));
-      return { session, moves, lastAppliedSeq: records.at(-1)?.seq ?? 0 };
+      return {
+        session,
+        moves,
+        lastAppliedSeq: records.at(-1)?.seq ?? 0,
+        lastActivityAt: records.at(-1)?.at ?? session.startedAt,
+      };
     },
   };
 }

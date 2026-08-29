@@ -23,3 +23,16 @@ export class ContentUnavailableError extends Error {
     this.name = 'ContentUnavailableError';
   }
 }
+
+/**
+ * The API answered, and said no — a stale question, an ended session, a rejected payload.
+ *
+ * It is not `ContentUnavailableError`: nothing is down, so the internet sentence would be a
+ * lie. The child is told the answer did not go through and offered another try.
+ */
+export class TurnRejectedError extends Error {
+  constructor(readonly code: string) {
+    super('Aria did not accept that turn');
+    this.name = 'TurnRejectedError';
+  }
+}

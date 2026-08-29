@@ -8,8 +8,14 @@ const MARKED = spokenForm('Count the *shapes*… ready?');
 
 describe('vendor prosody', () => {
   it('renders emphasis and a beat as markup for an engine that reads markup', () => {
-    expect(renderProsody(MARKED, 'elevenlabs/eleven_flash_v2')).toBe(
+    expect(renderProsody(MARKED, 'cartesia/sonic-3')).toBe(
       'Count the <emphasis level="moderate">shapes</emphasis> <break time="300ms"/> ready?',
+    );
+  });
+
+  it('keeps the beat and drops the stress for ElevenLabs, which reads <emphasis> aloud', () => {
+    expect(renderProsody(MARKED, 'elevenlabs/eleven_turbo_v2_5')).toBe(
+      'Count the shapes <break time="0.3s" /> ready?',
     );
   });
 

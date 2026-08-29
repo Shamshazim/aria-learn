@@ -1,14 +1,36 @@
-import { useState } from 'react';
-
 import type { Band, TutorMove } from '@aria/shared';
 
-export function InputSurface(props: {
+import { TapNumbers, TextEntry } from '@/features/session/components/AnswerEntry';
+import { SpeakButton } from '@/features/session/components/SpeakButton';
+import { inputModeFor } from '@/features/session/model/answer-input';
+import type { VoiceAvailability } from '@/features/session/model/voice-availability';
+
+type InputProps = Readonly<{
   band: Band;
   move: TutorMove;
+  voice: VoiceAvailability;
   onAnswer: (value: string) => void;
   onDrag: () => void;
   onSpeech: () => void;
-}): React.JSX.Element | null {
+}>;
+
+/**
+ * Every question can be answered out loud, and every question that has a typed or tapped
+ * answer offers that too. A child who cannot say "seven" yet can tap it; a child who cannot
+ * find the 7 on a keyboard can say it. `expects` picks the typed control, never the move kind.
+ */
+export function InputSurface(props: InputProps): React.JSX.Element | null {
+  const control = typedControl(props);
+  if (control === null) return null;
+  return (
+    <div className="input-surface">
+      {control}
+      <SpeakButton band={props.band} onSpeech={props.onSpeech} voice={props.voice} />
+    </div>
+  );
+}
+
+function typedControl(props: InputProps): React.JSX.Element | null {
   switch (props.move.expects) {
     case 'none':
       return null;
@@ -21,19 +43,24 @@ export function InputSurface(props: {
         <TextEntry inputMode="numeric" onAnswer={props.onAnswer} />
       );
     case 'text':
-      return props.band === 'early' ? (
-        <SpeakButton onSpeech={props.onSpeech} />
-      ) : (
-        <TextEntry inputMode="text" onAnswer={props.onAnswer} />
+      return (
+        <TextEntry
+          inputMode={inputModeFor(props.move)}
+          key={props.move.id}
+          large={props.band === 'early'}
+          onAnswer={props.onAnswer}
+        />
       );
     case 'speech':
-      return <SpeakButton onSpeech={props.onSpeech} />;
+      // The speak button below is the whole of this control.
+      return <></>;
     case 'drag':
       return (
         <button
           onClick={() => {
             props.onDrag();
           }}
+          type="button"
         >
           Move the pieces
         </button>
@@ -67,87 +94,6 @@ function Choices(props: {
       ))}
     </div>
   );
-}
-
-function TapNumbers(props: { onAnswer: (value: string) => void }): React.JSX.Element {
-  const [value, setValue] = useState('');
-  return (
-    <div className="number-pad">
-      <output aria-live="polite">{value.length === 0 ? 'Choose a number' : value}</output>
-      <div className="number-pad__keys">
-        {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.', '/'].map((digit) => (
-          <button
-            key={digit}
-            onClick={() => {
-              setValue((current) => current + digit);
-            }}
-            type="button"
-          >
-            {digit}
-          </button>
-        ))}
-        <button
-          className="number-pad__erase"
-          onClick={() => {
-            setValue((current) => current.slice(0, -1));
-          }}
-          type="button"
-        >
-          Erase
-        </button>
-      </div>
-      <button
-        className="answer-submit"
-        disabled={value.length === 0}
-        onClick={() => {
-          props.onAnswer(value);
-        }}
-        type="button"
-      >
-        Answer
-      </button>
-    </div>
-  );
-}
-
-function TextEntry(props: {
-  inputMode: 'numeric' | 'text';
-  onAnswer: (value: string) => void;
-}): React.JSX.Element {
-  return (
-    <form
-      className="answer-form"
-      onSubmit={(event) => {
-        submitText(event, props.onAnswer);
-      }}
-    >
-      <input aria-label="Your answer" inputMode={props.inputMode} name="answer" required />
-      <button type="submit">Answer</button>
-    </form>
-  );
-}
-
-function SpeakButton(props: { onSpeech: () => void }): React.JSX.Element {
-  return (
-    <button
-      className="speak-button"
-      onClick={() => {
-        props.onSpeech();
-      }}
-      type="button"
-    >
-      <span aria-hidden="true">🎤</span> Talk to Aria
-    </button>
-  );
-}
-
-function submitText(
-  event: React.SyntheticEvent<HTMLFormElement, SubmitEvent>,
-  onAnswer: (value: string) => void,
-): void {
-  event.preventDefault();
-  const answer = new FormData(event.currentTarget).get('answer');
-  onAnswer(typeof answer === 'string' ? answer : '');
 }
 
 function assertNever(value: never): never {

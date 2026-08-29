@@ -39,7 +39,9 @@ export function createApiClient(dependencies: {
   baseUrl: string;
   fetcher?: typeof globalThis.fetch;
 }): ApiClient {
-  const fetcher = dependencies.fetcher ?? globalThis.fetch;
+  // Native `fetch` must be called with `this` unbound or as the window: a reference stored on
+  // an object and invoked as a method throws "Illegal invocation" in the browser.
+  const fetcher = dependencies.fetcher ?? globalThis.fetch.bind(globalThis);
   return {
     get: (path, schema, options) =>
       request({
@@ -153,8 +155,9 @@ async function openStream(input: {
   options?: RequestOptions;
 }): Promise<ReadableStream<Uint8Array>> {
   let response: Response;
+  const fetcher = input.fetcher;
   try {
-    response = await input.fetcher(`${input.baseUrl}${input.path}`, {
+    response = await fetcher(`${input.baseUrl}${input.path}`, {
       method: 'POST',
       headers: {
         accept: 'text/event-stream',

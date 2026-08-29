@@ -7,7 +7,10 @@ The worker defaults are integration candidates, not a provider decision:
 - media and agent runtime: LiveKit;
 - STT candidate: `assemblyai/universal-3-5-pro` through LiveKit Inference;
 - turn detector candidate: LiveKit Turn Detector;
-- TTS candidate: `fishaudio/s2.1-pro` through LiveKit Inference.
+- TTS candidate: `elevenlabs/eleven_turbo_v2_5` through LiveKit Inference (replaced
+  `fishaudio/s2.1-pro` on 2026-08-28: the first listening test found it flat and robotic, and
+  it renders no prosody at all; ElevenLabs premade voices Jessica / Bella / Sarah are the
+  per-band candidates).
 
 Do not label any candidate “selected” until each candidate has been run over the same
 human-labelled voice set and compared using transcript/end-of-turn accuracy with confidence

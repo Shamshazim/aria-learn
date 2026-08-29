@@ -9,8 +9,13 @@ import {
   type TutorMove,
 } from '@aria/shared';
 
+import { ApiError } from '@/api/errors';
 import type { SessionApi } from '@/features/session/api/session.api';
-import { ContentUnavailableError, isTutorMove } from '@/features/session/model/tutor-source';
+import {
+  ContentUnavailableError,
+  isTutorMove,
+  TurnRejectedError,
+} from '@/features/session/model/tutor-source';
 import { createHttpTutorSource } from '@/features/session/sources/http-source';
 
 const SESSION_ID = sessionIdSchema.parse('11111111-1111-4111-8111-111111111111');
@@ -98,12 +103,44 @@ describe('HTTP tutor source', () => {
     );
   });
 
-  it('resumes an open session instead of creating another one', async () => {
-    const resumed = move('ASK', 'Keep going.');
+  it('reports a turn the API refused as rejected, not as content that is unavailable', async () => {
     const api = fakeApi({ createdMoves: [], turnMoves: [] });
+    const source = await startedSource({
+      ...api,
+      // eslint-disable-next-line require-yield -- the API answered 400 before any frame.
+      turnStream: async function* () {
+        await Promise.resolve();
+        throw new ApiError('http', 'VALIDATION_ERROR', 400);
+      },
+    });
+
+    const failure = collect(source, event({ kind: 'ANSWER', respondsTo: 'ask-old', text: '7' }));
+    await expect(failure).rejects.toBeInstanceOf(TurnRejectedError);
+    await expect(failure).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+  });
+
+  it('still treats a server failure as content that is unavailable', async () => {
+    const api = fakeApi({ createdMoves: [], turnMoves: [] });
+    const source = await startedSource({
+      ...api,
+      // eslint-disable-next-line require-yield -- the API fell over before any frame.
+      turnStream: async function* () {
+        await Promise.resolve();
+        throw new ApiError('http', 'SERVICE_UNAVAILABLE', 503);
+      },
+    });
+
+    await expect(collect(source, event({ kind: 'CONFUSED' }))).rejects.toBeInstanceOf(
+      ContentUnavailableError,
+    );
+  });
+
+  it('lets the API decide between resume and fresh on a class pick', async () => {
+    const resumed = move('ASK', 'Keep going.');
+    const api = fakeApi({ createdMoves: [resumed], turnMoves: [] });
     vi.mocked(api.current).mockResolvedValue({
       session: sessionContext(),
-      moves: [resumed],
+      moves: [move('ASK', 'Yesterday.')],
       lastAppliedSeq: 4,
     });
     const source = createHttpTutorSource({
@@ -119,7 +156,8 @@ describe('HTTP tutor source', () => {
         event({ kind: 'SUBJECT_CHOSEN', subjectId: 'math', grade: '4', fromRecommendation: false }),
       ),
     ).resolves.toEqual([resumed]);
-    expect(api.create).not.toHaveBeenCalled();
+    expect(api.create).toHaveBeenCalledTimes(1);
+    expect(api.current).not.toHaveBeenCalled();
   });
 });
 

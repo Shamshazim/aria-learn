@@ -27,6 +27,8 @@ export type TutorSession = Readonly<{
   resume(): Promise<void>;
   speak(): Promise<void>;
   receive(move: TutorMove): void;
+  /** Sends the last input Aria never received again; `null` while there is nothing to resend. */
+  retryFailed: (() => Promise<void>) | null;
 }>;
 
 type Send = (payload: EventPayload) => Promise<void>;
@@ -40,12 +42,14 @@ export function createSessionCommands(
     receive(move: TutorMove): void;
     silence: SilenceControls;
     speak?: () => Promise<void>;
+    retryFailed: (() => Promise<void>) | null;
   }>,
 ): TutorSession {
   const { state, connectionStatus, send, interrupt, receive, silence, speak } = input;
   return {
     state,
     connectionStatus,
+    retryFailed: input.retryFailed,
     answer: (moveId, value) => send({ kind: 'ANSWER', respondsTo: moveId, text: value }),
     askQuestion: (text) => send(questionEvent(text)),
     backchannel: () => {

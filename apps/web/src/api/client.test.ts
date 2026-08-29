@@ -93,4 +93,32 @@ describe('api client', () => {
     await vi.advanceTimersByTimeAsync(5);
     await rejection;
   });
+
+  /**
+   * The browser's `fetch` throws "Illegal invocation" when called as a method of some other
+   * object. Streaming used to do exactly that, so every answer a child gave failed before the
+   * request left the page — and the mocks here never noticed, because a `vi.fn` does not care
+   * what `this` is. This one does.
+   */
+  it('calls fetch the way the browser requires, for a stream and for a request', async () => {
+    const seen: unknown[] = [];
+    const strictFetch = function (this: unknown): Promise<Response> {
+      seen.push(this);
+      if (this !== undefined && this !== globalThis) {
+        return Promise.reject(new TypeError('Illegal invocation'));
+      }
+      return Promise.resolve(
+        new Response('data: {"value":"ok"}\n\n', {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+      );
+    } as unknown as typeof fetch;
+    const client = createApiClient({ baseUrl: '', fetcher: strictFetch });
+
+    const frames: unknown[] = [];
+    for await (const frame of client.postStream('/api', {}, valueSchema)) frames.push(frame);
+
+    expect(frames).toEqual([{ value: 'ok' }]);
+  });
 });

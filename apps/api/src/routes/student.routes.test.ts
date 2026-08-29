@@ -125,7 +125,8 @@ function buildApp(deny = false) {
   const sessions = createSessionControllers({
     sessions: {
       createOrResume: () => Promise.resolve({ session, moves: [ask], resumed: false }),
-      current: () => Promise.resolve({ session, moves: [ask], lastAppliedSeq: 1 }),
+      current: () =>
+        Promise.resolve({ session, moves: [ask], lastAppliedSeq: 1, lastActivityAt: NOW }),
     },
     turn: (_studentId, input) =>
       Promise.resolve({

@@ -104,3 +104,65 @@
   padding: 1.5rem;
   text-align: center;
 }
+
+.tutor-status {
+  align-items: center;
+  color: var(--session-ink-soft);
+  display: flex;
+  font-weight: 700;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0;
+  min-height: 1.5rem;
+}
+
+.tutor-status__mark {
+  background: var(--session-violet);
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.625rem;
+  width: 0.625rem;
+}
+
+.tutor-status[data-status='thinking'] .tutor-status__mark {
+  animation: tutor-status-pulse 1s ease-in-out infinite;
+}
+
+.tutor-status[data-status='listening'] .tutor-status__mark {
+  background: var(--session-green);
+}
+
+@keyframes tutor-status-pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutor-status__mark {
+    animation: none !important;
+  }
+}
+
+.delivery-notice {
+  align-items: center;
+  background: #fff6e5;
+  border: 0.0625rem solid var(--session-amber);
+  border-radius: var(--session-radius-medium);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+}
+
+.delivery-notice button {
+  background: var(--session-violet-deep);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+}

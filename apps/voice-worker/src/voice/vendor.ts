@@ -30,11 +30,22 @@ const SSML = {
 } as const;
 
 /**
+ * ElevenLabs honours `<break>` on its own and nothing else from SSML: an `<emphasis>` tag is
+ * read to the child as the words "emphasis level moderate". The beat is kept, the stress is
+ * dropped — the prosody in the voice itself carries it.
+ */
+const BREAK_ONLY = {
+  supports: new Set<ProsodyMarker>(['pause']),
+  emphasis: (word: string) => word,
+  pause: () => '<break time="0.3s" />',
+} as const;
+
+/**
  * Reviewed per vendor in `dev-docs/voice-review.md`. A vendor that is not listed is assumed
  * to render nothing and to have no rate control, which is the safe reading of "unknown".
  */
 export const REVIEWED_VENDORS: Readonly<Record<string, Vendor>> = {
-  elevenlabs: { ...SSML, rateOption: 'speed' },
+  elevenlabs: { ...BREAK_ONLY, rateOption: 'speed' },
   cartesia: { ...SSML, rateOption: 'speed' },
   inworld: { ...PLAIN, rateOption: 'speaking_rate' },
   xai: { ...PLAIN, rateOption: 'speed' },

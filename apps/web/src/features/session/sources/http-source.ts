@@ -7,10 +7,10 @@ import {
   type TutorMove,
 } from '@aria/shared';
 
+import { ApiError } from '@/api/errors';
 import type { SessionApi } from '@/features/session/api/session.api';
-import { ContentUnavailableError } from '@/features/session/model/tutor-source';
+import { ContentUnavailableError, TurnRejectedError } from '@/features/session/model/tutor-source';
 import type { TutorOutput, TutorSource } from '@/features/session/model/tutor-source';
-import { retryRead } from '@/features/session/sources/retry';
 
 export function createHttpTutorSource(
   input: Readonly<{
@@ -50,7 +50,10 @@ export function createHttpTutorSource(
   };
 }
 
-/** A failed stream is the same failure a failed POST was: content is unavailable, retry later. */
+/**
+ * A failed stream is the same failure a failed POST was: content is unavailable, retry later —
+ * unless the API answered and refused, which is a rejected turn and not an outage.
+ */
 async function* streamed(
   turn: AsyncIterable<TutorOutput>,
   signal: AbortSignal | undefined,
@@ -63,7 +66,7 @@ async function* streamed(
       next = await iterator.next();
     } catch (error) {
       if (isAborted(signal)) return;
-      throw error instanceof ContentUnavailableError ? error : new ContentUnavailableError();
+      throw sourceError(error);
     }
     if (next.done === true) return;
     if (session.isClosed() || isAborted(signal)) return;
@@ -88,12 +91,16 @@ type MoveBatch = Readonly<{
   moves: readonly TutorMove[];
 }>;
 
+/**
+ * A class pick always goes to `create`. The API decides whether that resumes an open session
+ * for the same class or ends a stale one and starts fresh — the browser used to make that
+ * call itself from `current()`, and resumed whatever was left open, so a child who picked a
+ * new class answered yesterday's question and was told it did not match.
+ */
 async function startOrResume(
   input: Parameters<typeof createHttpTutorSource>[0],
   signal?: AbortSignal,
 ): Promise<MoveBatch> {
-  const current = await retryRead(() => input.api.current(signal));
-  if (current !== null) return { sessionId: current.session.sessionId, moves: current.moves };
   const created = await input.api.create(
     {
       subject: input.subject,
@@ -135,6 +142,18 @@ async function* sendTurn(
     yield* frame.turn.moves;
   }
   if (!closed) throw new ContentUnavailableError();
+}
+
+function sourceError(error: unknown): Error {
+  if (error instanceof ContentUnavailableError || error instanceof TurnRejectedError) return error;
+  if (error instanceof ApiError && error.kind === 'http' && isClientRejection(error.status)) {
+    return new TurnRejectedError(error.code);
+  }
+  return new ContentUnavailableError();
+}
+
+function isClientRejection(status: number | undefined): boolean {
+  return status !== undefined && status >= 400 && status < 500 && status !== 429;
 }
 
 function requireSessionId(value: MoveBatch['sessionId'] | null): MoveBatch['sessionId'] {
