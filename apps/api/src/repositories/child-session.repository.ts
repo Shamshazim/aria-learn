@@ -28,6 +28,8 @@ export type ChildSessionRepository = Readonly<{
       issuedAt: Date;
       expiresAt: Date;
       deviceLabel: string | null;
+      /** The device grant this session was opened from, when there was one (P0-28). */
+      deviceGrantId?: string | null;
     }>,
   ): Promise<ChildSessionRecord>;
   /** A live session for this token hash, or null. Revoked and expired rows do not match. */
@@ -39,6 +41,11 @@ export type ChildSessionRepository = Readonly<{
   revoke(id: string, at: Date): Promise<boolean>;
   revokeAllForParent(parentId: string, at: Date): Promise<readonly ChildSessionRecord[]>;
   revokeAllForStudent(studentId: string, at: Date): Promise<readonly ChildSessionRecord[]>;
+  /**
+   * Every session opened from one device (P0-28). What revoking a grant calls, so a lost
+   * tablet stops working now rather than when its idle window happens to close.
+   */
+  revokeAllForGrant(grantId: string, at: Date): Promise<readonly ChildSessionRecord[]>;
   /** Everything the sweeper has to end: past its idle deadline or past its absolute one. */
   findExpired(now: Date, idleCutoff: Date, limit: number): Promise<readonly ChildSessionRecord[]>;
 }>;
@@ -46,8 +53,8 @@ export type ChildSessionRepository = Readonly<{
 const SQL = {
   insert: `INSERT INTO child_session
              (id, student_id, parent_id, token_hash, issued_at, last_seen_at,
-              expires_at, device_label)
-           VALUES ($1, $2, $3, $4, $5, $5, $6, $7)
+              expires_at, device_label, device_grant_id)
+           VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8)
            RETURNING ${COLUMNS}`,
 
   findLiveByTokenHash: `SELECT ${COLUMNS} FROM child_session
@@ -68,6 +75,10 @@ const SQL = {
   revokeAllForStudent: `UPDATE child_session SET revoked_at = $2
                         WHERE student_id = $1 AND revoked_at IS NULL
                         RETURNING ${COLUMNS}`,
+
+  revokeAllForGrant: `UPDATE child_session SET revoked_at = $2
+                      WHERE device_grant_id = $1 AND revoked_at IS NULL
+                      RETURNING ${COLUMNS}`,
 
   findExpired: `SELECT ${COLUMNS} FROM child_session
                 WHERE revoked_at IS NULL AND (expires_at <= $1 OR last_seen_at <= $2)
@@ -116,6 +127,9 @@ export function createChildSessionRepository(db: Queryable): ChildSessionReposit
     revokeAllForStudent: (studentId, at) =>
       many('childSession.revokeAllForStudent', SQL.revokeAllForStudent, [studentId, at]),
 
+    revokeAllForGrant: (grantId, at) =>
+      many('childSession.revokeAllForGrant', SQL.revokeAllForGrant, [grantId, at]),
+
     findExpired: (now, idleCutoff, limit) =>
       many('childSession.findExpired', SQL.findExpired, [now, idleCutoff, limit]),
   };
@@ -139,6 +153,7 @@ async function insert(
     input.issuedAt,
     input.expiresAt,
     input.deviceLabel,
+    input.deviceGrantId ?? null,
   ]);
   if (session === null) throw new Error('childSession.insert returned no row');
   return session;

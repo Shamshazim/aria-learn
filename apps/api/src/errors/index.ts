@@ -7,6 +7,7 @@ export {
   UnauthorizedError,
   LockedError,
   ForbiddenError,
+  ConsentRequiredError,
   ConflictError,
   ServiceUnavailableError,
   isAppError,

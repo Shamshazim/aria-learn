@@ -32,6 +32,11 @@ export const authEnvSchema = z.object({
   SUPABASE_JWT_AUDIENCE: z.string().min(1).max(128).default('authenticated'),
   /** Signs the child session cookie, so a tampered one is refused without a query. */
   CHILD_SESSION_SECRET: z.string().min(32).max(512).optional(),
+  /**
+   * Deletes a parent's provider user when they delete their account (P0-28). Optional, and
+   * its absence is not silent: erasure records what it still owes rather than pretending.
+   */
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).max(1024).optional(),
 });
 
 export type AuthEnv = z.infer<typeof authEnvSchema>;
@@ -42,6 +47,8 @@ export type AuthConfig = Readonly<{
   issuer: string;
   audience: string;
   childSessionSecret: string;
+  /** Undefined where account deletion cannot reach the provider. See `provider-directory`. */
+  serviceRoleKey: string | undefined;
 }>;
 
 /**
@@ -58,6 +65,7 @@ export function toAuthConfig(env: AuthEnv): AuthConfig | undefined {
     issuer: `${base}/auth/v1`,
     audience: env.SUPABASE_JWT_AUDIENCE,
     childSessionSecret: env.CHILD_SESSION_SECRET,
+    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
   };
 }
 

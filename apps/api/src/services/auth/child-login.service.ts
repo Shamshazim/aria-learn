@@ -27,6 +27,12 @@ export type ChildLoginService = Readonly<{
       childId: string;
       attempt: ChildLoginAttempt;
       deviceLabel: string | null;
+      /**
+       * The device grant this sign-in came through (P0-28), when it came through one rather
+       * than through a parent signed in on the device. Stored on the session so that
+       * revoking the device ends it.
+       */
+      deviceGrantId?: string | null;
     }>,
   ): Promise<ChildLoginResult>;
   logout(cookie: string): Promise<void>;
@@ -51,6 +57,7 @@ export function createChildLoginService(deps: {
         studentId: student.id,
         parentId: input.parentId,
         deviceLabel: input.deviceLabel,
+        deviceGrantId: input.deviceGrantId ?? null,
       });
       return {
         child: toChildSummary(student, await deps.credentials.methodFor(student.id)),

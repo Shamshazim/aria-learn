@@ -6,10 +6,13 @@ import {
   createParentIdentityService,
   createSupabaseTokenVerifier,
   requireChildSession,
+  requireDeviceGrant,
   requireParentAuth,
 } from '@/auth';
 import { createDemoAuthControllers } from '@/auth/demo-session.controller';
 import { createAuthControllers } from '@/controllers/auth.controller';
+import { createDeviceControllers } from '@/controllers/device.controller';
+import { createParentAccessControllers } from '@/controllers/parent-access.controller';
 import { createParentControllers, type VoiceConsentGrant } from '@/controllers/parent.controller';
 import { randomTokens } from '@/lib/tokens';
 import { createChildCredentialRepository } from '@/repositories/child-credential.repository';
@@ -23,6 +26,8 @@ import {
   type EndSession,
   type IdleExpiryService,
 } from '@/services/session/idle-expiry.service';
+
+import { buildAccessServices, type AccessServices } from './parent-access.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 import type { RequestHandler } from 'express';
@@ -81,7 +86,12 @@ export function createIdentityRuntime(input: {
     clock: deps.clock,
     logger: deps.logger,
   });
-  const children = createParentChildrenService({ students: repositories.students, credentials });
+  const access = buildAccessServices({ deps, childSessions: childSessionRepo });
+  const children = createParentChildrenService({
+    students: repositories.students,
+    credentials,
+    consent: access.consent,
+  });
   const login = createChildLoginService({
     children,
     credentials,
@@ -99,20 +109,23 @@ export function createIdentityRuntime(input: {
     expiry,
     routerDeps: (consent) =>
       buildRouterDeps(
-        { deps, children, login, sessions, students: repositories.students },
+        { deps, children, login, sessions, access, students: repositories.students },
         consent,
       ),
   };
 }
 
+type RouterParts = Readonly<{
+  deps: Phase1RuntimeDeps;
+  children: ReturnType<typeof createParentChildrenService>;
+  login: ReturnType<typeof createChildLoginService>;
+  sessions: ReturnType<typeof createChildSessionService>;
+  access: AccessServices;
+  students: Phase1Repositories['students'];
+}>;
+
 function buildRouterDeps(
-  parts: Readonly<{
-    deps: Phase1RuntimeDeps;
-    children: ReturnType<typeof createParentChildrenService>;
-    login: ReturnType<typeof createChildLoginService>;
-    sessions: ReturnType<typeof createChildSessionService>;
-    students: Phase1Repositories['students'];
-  }>,
+  parts: RouterParts,
   consent: ParentConsentDeps | undefined,
 ): RouterDeps['identity'] {
   const { deps, children } = parts;
@@ -139,6 +152,7 @@ function buildRouterDeps(
     identity: createParentIdentityService({
       parents: createParentRepository({ db: deps.pool, ids: deps.ids }),
     }),
+    session: parts.access.parentSessions,
   });
   return {
     auth: {
@@ -156,7 +170,30 @@ function buildRouterDeps(
         sessions: parts.sessions,
         ...(consent === undefined ? {} : { consent }),
       }),
+      access: createParentAccessControllers({
+        consent: parts.access.consent,
+        devices: parts.access.devices,
+        deletion: parts.access.deletion,
+        sessions: parts.access.parentSessions,
+      }),
     },
+    device: deviceRouterDeps(parts),
+  };
+}
+
+/** P0-28: the tablet's own surface, gated by the grant it holds rather than a parent's token. */
+function deviceRouterDeps(
+  parts: RouterParts,
+): NonNullable<NonNullable<RouterDeps['identity']>['device']> {
+  return {
+    deviceAuth: requireDeviceGrant({ devices: parts.access.devices }),
+    controller: createDeviceControllers({
+      devices: parts.access.devices,
+      children: parts.children,
+      login: parts.login,
+      sessions: parts.sessions,
+      secureCookies: parts.deps.config.isProduction,
+    }),
   };
 }
 

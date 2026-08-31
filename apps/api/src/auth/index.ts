@@ -18,3 +18,10 @@ export type { ChildCredentialService, ChildLoginAttempt } from './pin.service';
 export { argon2Hasher } from './secret-hasher';
 export type { SecretHasher } from './secret-hasher';
 export { clearChildCookie, readChildCookie, setChildCookie } from './child-session.cookie';
+
+/* P0-28: a parent's session as a revocable row, and a device trusted without one. */
+export { createParentSessionService } from './parent-session.service';
+export type { ParentSessionService } from './parent-session.service';
+export { requireDeviceGrant, requireGrant, DEVICE_HEADER } from './device-auth.middleware';
+export { createSupabaseDirectory, createRecordingDirectory } from './provider-directory';
+export type { ProviderDirectory } from './provider-directory';

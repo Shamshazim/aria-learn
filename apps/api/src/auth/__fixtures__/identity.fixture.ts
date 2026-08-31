@@ -48,6 +48,9 @@ export function fakeChildSessions(): ChildSessionRepository & Readonly<{ rows: M
     revokeAllForParent: (parentId, at) =>
       Promise.resolve(revokeWhere(rows, at, (row) => row.parentId === parentId)),
 
+    revokeAllForGrant: (grantId, at) =>
+      Promise.resolve(revokeWhere(rows, at, (row) => row.deviceGrantId === grantId)),
+
     revokeAllForStudent: (studentId, at) =>
       Promise.resolve(revokeWhere(rows, at, (row) => row.studentId === studentId)),
 
@@ -81,6 +84,7 @@ function insert(
     expiresAt: input.expiresAt,
     revokedAt: null,
     deviceLabel: input.deviceLabel,
+    deviceGrantId: input.deviceGrantId ?? null,
   };
   if ([...rows.values()].some((each) => each.tokenHash === row.tokenHash)) {
     throw new Error('child_session_token_hash_key');
@@ -89,10 +93,16 @@ function insert(
   return record(row);
 }
 
-type Row = ChildSessionRecord & { tokenHash: string; lastSeenAt: Date; revokedAt: Date | null };
+type Row = ChildSessionRecord & {
+  tokenHash: string;
+  lastSeenAt: Date;
+  revokedAt: Date | null;
+  /** Stored but not part of the record, exactly as the column is (P0-28). */
+  deviceGrantId: string | null;
+};
 
 function record(row: Row): ChildSessionRecord {
-  const { tokenHash: _tokenHash, ...rest } = row;
+  const { tokenHash: _tokenHash, deviceGrantId: _deviceGrantId, ...rest } = row;
   return { ...rest };
 }
 

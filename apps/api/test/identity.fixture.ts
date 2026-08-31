@@ -140,7 +140,11 @@ function identityApp(
     verifier: {
       verify: (token) =>
         token === PARENT_TOKEN
-          ? Promise.resolve({ supabaseUserId: 'supabase-1', email: PARENT_EMAIL })
+          ? Promise.resolve({
+              supabaseUserId: 'supabase-1',
+              email: PARENT_EMAIL,
+              sessionKey: 'supabase-session-1',
+            })
           : Promise.reject(new Error('bad signature')),
     },
     identity: createParentIdentity(parts.database, parts.ids),

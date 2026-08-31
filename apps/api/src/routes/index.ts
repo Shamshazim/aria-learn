@@ -4,6 +4,7 @@ import type { HealthController } from '@/controllers/health.controller';
 import type { StatusController } from '@/controllers/status.controller';
 
 import { createAuthRouter } from './auth.routes';
+import { createDeviceRouter } from './device.routes';
 import { createHealthRouter } from './health.routes';
 import { createParentRouter } from './parent.routes';
 import { createStatusRouter } from './status.routes';
@@ -34,6 +35,8 @@ export type RouterDeps = {
   identity?: Readonly<{
     auth: Parameters<typeof createAuthRouter>[0];
     parent?: Parameters<typeof createParentRouter>[0];
+    /** P0-28: a tablet a parent trusted, signing a child in without the parent's own token. */
+    device?: Parameters<typeof createDeviceRouter>[0];
   }>;
   status?: Readonly<{ controller: StatusController; authorize: RequestHandler }>;
   student?: Parameters<typeof createStudentRouter>[0];
@@ -57,6 +60,7 @@ export function createApiRouter({
   if (identity !== undefined) {
     router.use(createAuthRouter(identity.auth));
     if (identity.parent !== undefined) router.use(createParentRouter(identity.parent));
+    if (identity.device !== undefined) router.use(createDeviceRouter(identity.device));
   }
   if (status !== undefined) router.use(createStatusRouter(status.controller, status.authorize));
   if (student !== undefined) router.use(createStudentRouter(student));

@@ -69,6 +69,21 @@ export class ForbiddenError extends AppError {
 }
 
 /**
+ * P0-28: no verifiable parental consent on file.
+ *
+ * Also a 403, and deliberately not the same one. The parent has proved who they are; what is
+ * missing is a step they can take, so the message names it and the code lets the parent app
+ * route to the screen that takes it.
+ */
+export class ConsentRequiredError extends AppError {
+  constructor(logMessage: string) {
+    super(ERROR_CODES.CONSENT_REQUIRED, 403, 'Please confirm you are the grown-up first.', {
+      logMessage,
+    });
+  }
+}
+
+/**
  * A uniqueness or invariant the store already holds. The safe message names nothing about
  * which row collided: the colliding value is usually the very thing we must not disclose.
  */
