@@ -51,6 +51,10 @@ app:
         # Groq's response_format fails a generation outright (json_validate_failed, empty
         # output) on these models; asked by prompt they return the object every time.
         json-via: prompt
+        # gpt-oss reasons before it answers, and the reasoning is billed against max_tokens:
+        # without these a 120-token planning call was all thought and no answer.
+        reasoning-effort: low
+        reasoning-tokens: 256
 
       groq-fast:
         # The FAST tier: intent and grading. Same retention terms as groq-compatible.
@@ -63,3 +67,5 @@ app:
         cost-per-mtok-in: 0.075
         cost-per-mtok-out: 0.3
         json-via: prompt
+        reasoning-effort: low
+        reasoning-tokens: 256

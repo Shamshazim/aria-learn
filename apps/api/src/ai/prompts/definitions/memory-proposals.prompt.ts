@@ -14,7 +14,18 @@ Scrubbed learner evidence:
 {{learnerContext}}
 Allowed source event ids: {{eventIds}}
 
-Return JSON with a "proposals" array. A proposal is only a candidate; deterministic rules decide whether it is stored.`;
+Return JSON with one field, "proposals": an array of at most 8 objects, each with exactly these
+fields and no others:
+- "kind": one of "goal", "preference", "teaching_response", "practice_persistence", "mood"
+- "text": one plain sentence a parent could read, at most 200 characters
+- "confidence": a number from 0 to 1
+- "temporary": true if it describes today only (a mood, a tired child), false if it is likely to hold
+- "sourceEventId": one of the allowed source event ids, copied exactly
+- "skillCode": the skill code the fact is about, or null
+
+Do not propose what the child got right or wrong; the curriculum already records that. Return an
+empty array when nothing is supported. A proposal is only a candidate; deterministic rules decide
+whether it is stored.`;
 
 const inputSchema: z.ZodType<MemoryProposalsPromptInput> = z
   .object({
@@ -44,7 +55,7 @@ const outputSchema: z.ZodType<MemoryProposalsPromptOutput> = z
 
 export const memoryProposalsPrompt: PromptDefinition<'memory-proposals'> = {
   name: 'memory-proposals',
-  version: '1.0.0',
+  version: '1.1.0',
   tier: 'TEACH',
   system:
     'Extract supported learner-memory candidates. Never infer traits or diagnoses. Return JSON only.',

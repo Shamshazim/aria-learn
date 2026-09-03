@@ -24,6 +24,7 @@ export type OpenAiChatRequest = {
   max_tokens?: number;
   max_completion_tokens?: number;
   response_format?: { type: 'json_object' };
+  reasoning_effort?: 'low' | 'medium' | 'high';
   stream?: boolean;
   stream_options?: { include_usage: true };
 };

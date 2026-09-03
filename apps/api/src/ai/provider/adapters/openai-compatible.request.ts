@@ -45,12 +45,14 @@ function createRequestBody(
       { role: 'user', content: request.user },
     ],
   };
-  const maxTokens = request.maxTokens ?? endpoint['max-tokens'];
+  // The prompt's budget is for the answer; a model that thinks first is given room for that too.
+  const maxTokens = (request.maxTokens ?? endpoint['max-tokens']) + (endpoint['reasoning-tokens'] ?? 0);
   if (endpoint.reasoning === true) body.max_completion_tokens = maxTokens;
   else {
     body.max_tokens = maxTokens;
     body.temperature = request.temperature ?? 0;
   }
+  if (endpoint['reasoning-effort'] !== undefined) body.reasoning_effort = endpoint['reasoning-effort'];
   if (request.jsonMode === true && !promptOnlyJson) {
     body.response_format = { type: 'json_object' };
   }

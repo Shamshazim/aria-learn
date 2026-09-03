@@ -19,9 +19,14 @@ export function createResumeService(events: SessionEventRepository): ResumeServi
   return {
     rebuild: async (session: TutorSessionRecord): Promise<ResumedSession> => {
       const records = await events.list(session.id);
+      // Aria's spoken sentences ("Aria talks") are recorded beside her moves; only the moves
+      // are replayed, and a record that is not one must not cost the child the session.
       const moves = records
         .filter((record) => record.actor === 'aria')
-        .map((record) => tutorMoveSchema.parse(record.payload));
+        .flatMap((record) => {
+          const parsed = tutorMoveSchema.safeParse(record.payload);
+          return parsed.success ? [parsed.data] : [];
+        });
       return {
         session,
         moves,

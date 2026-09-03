@@ -11,9 +11,9 @@ const EXPECTED_PROMPTS: Readonly<
   explain: { tier: 'TEACH' },
   'grade-short-answer': { tier: 'FAST', version: '1.1.0' },
   hint: { tier: 'FAST' },
-  'memory-proposals': { tier: 'TEACH' },
+  'memory-proposals': { tier: 'TEACH', version: '1.1.0' },
   'plan-move': { tier: 'TEACH' },
-  'practice-item': { tier: 'TEACH', version: '1.1.0' },
+  'practice-item': { tier: 'TEACH', version: '1.2.0' },
   respond: { tier: 'TEACH' },
   // P2H-07: the streamed twin returns prose, because JSON cannot be cut at a full stop.
   'respond-stream': { tier: 'TEACH', jsonMode: false },

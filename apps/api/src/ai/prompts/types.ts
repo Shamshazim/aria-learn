@@ -29,7 +29,12 @@ export type MemoryProposalsPromptOutput = Readonly<{
 }>;
 
 export type PracticeItemPromptInput = ContextInput &
-  Readonly<{ skill: string; difficulty: 'easier' | 'same' | 'harder' }>;
+  Readonly<{
+    skill: string;
+    difficulty: 'easier' | 'same' | 'harder';
+    /** Items this learner already has for the skill; the next one must differ from them. */
+    avoid?: readonly string[] | undefined;
+  }>;
 export type PracticeItemPromptOutput = Readonly<{
   prompt: string;
   answer: string;
@@ -133,6 +138,8 @@ export type PromptDefinition<Name extends PromptName> = Readonly<{
   outputSchema: ZodType<PromptOutput<Name>>;
   maxTokens: number;
   jsonMode: boolean;
+  /** Unset means the adapter's default (deterministic); set it where sameness is the bug. */
+  temperature?: number;
 }>;
 
 export type PromptRegistry = { [Name in PromptName]: PromptDefinition<Name> };
