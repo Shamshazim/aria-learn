@@ -110,7 +110,12 @@ async function startTalking(
       instructions: buildTalkInstructions(brief),
       tools: {
         ...createTalkTools(hooks),
-        ...createScreenTools({ talk: runtime.talk, room, publish: runtime.publish }),
+        ...createScreenTools({
+          talk: runtime.talk,
+          room,
+          publish: runtime.publish,
+          currentAsk: runtime.currentAsk,
+        }),
       },
       onSentence: (text) => {
         reportSpoken(session, runtime, room, text);

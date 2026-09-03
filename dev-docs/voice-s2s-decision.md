@@ -74,9 +74,20 @@ the other.
   `show_on_screen` with one of five surfaces — `writing` (a text area under her prompt),
   `text` (something to read), `number` (a problem with a number pad), `choices` (options to
   tap), `clear`. The API records the surface as a `SHOW` move with `display` and `expects`,
-  queues it in the outbox, and returns it; the worker publishes it like any move. The prompt
-  tells the model to open a writing pad whenever she asks the child to write, and that what
-  is on the screen must match what she says.
+  queues it in the outbox, and returns it; the worker publishes it like any move.
+- **The open question owns the screen.** The browser keeps the latest `ASK` as the open
+  question until a verdict (`PRAISE`, `REVEAL`), a `SWITCH`, a `BREAK` or an `END` closes it,
+  and the answer control on screen is always the open question's, keyed by its id
+  (`screen-composition.ts`). A hint, a picture or something Aria put up to read is a card
+  beside it, never a replacement; the one thing that changes the control is a writing pad
+  Aria opened for a question answered in words, which dresses that question so what is
+  written in it is graded as its answer. The worker enforces the same rule on the tool side:
+  while a question is open, `show_on_screen` allows one `text` beside it and one `writing`
+  pad for a text question, and refuses `choices`, `number`, `clear` and repeats with an
+  instruction that tells the model the screen stays as it is. Before this the model put its
+  own surfaces over the question after it had already spoken, so the screen changed several
+  times per question and lagged the voice; now a question's screen is set the moment
+  `record_answer` returns, before Aria says it, and holds until the child answers.
 - **Screen → voice.** Where the worker announced `WORKER_READY { talks: true }`, the browser
   sends what the child taps or types as `SCREEN_ANSWER { moveId, text }` over the room
   instead of to the API. An answer to the open `ASK` is graded by the same path

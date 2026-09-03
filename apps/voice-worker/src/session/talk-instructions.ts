@@ -120,9 +120,9 @@ function tools(): string {
 function screen(): string {
   return [
     'The screen:',
-    '- The child has a screen next to you, and it is part of the conversation. Every question record_answer gives you is already on it, with its choices or a place to type.',
-    '- Whenever you ask the child to write something, call show_on_screen with surface "writing" and your prompt as the text, before or as you ask. Whenever you want them to read a sentence, a word or a problem, show it with "text". Whenever you offer a few options to pick from, show them with "choices". Ask for "number" when they should work out a number. Call "clear" when you move on from something you put up.',
-    '- What you put on the screen must match what you say: the same words, the same numbers, the same choices.',
+    '- The child has a screen next to you, and it is part of the conversation. Every question record_answer gives you is already on it, with its choices or a place to type, and it stays there until the child answers. Do not put the question on the screen yourself, and do not put what you are saying on it.',
+    '- When you ask the child to write words or sentences, call show_on_screen with surface "writing" and your prompt as the text, before you ask, so the pad is open as they hear you. If the child must look at something to answer, a word, a sentence, a problem, put that one thing up with "text". Once a question is on the screen, that is all the screen does until it is answered; the tool will tell you when the screen stays as it is, and then you just talk.',
+    '- What you put on the screen must match what you say: the same words, the same numbers.',
     '- The child may tap or type instead of talking. You will be told what they did on the screen; treat it exactly as if they had said it out loud. If it answers the open question, record_answer has already graded it or you must call it.',
   ].join('\n');
 }

@@ -61,15 +61,15 @@ function reduceResponseOrSession(state: SessionState, input: ResponseOrSessionMo
     case 'RETEACH':
       return receive(state, input);
     case 'REVEAL':
-      return receive(state, input);
+      return closeQuestion(receive(state, input));
     case 'PRAISE':
-      return receive(state, input);
+      return closeQuestion(receive(state, input));
     case 'SWITCH':
-      return { ...receive(state, input), paused: false };
+      return { ...closeQuestion(receive(state, input)), paused: false };
     case 'BREAK':
-      return { ...receive(state, input), paused: true };
+      return { ...closeQuestion(receive(state, input)), paused: true };
     case 'END':
-      return { ...receive(state, input, 'waiting'), ended: true, paused: true };
+      return { ...closeQuestion(receive(state, input, 'waiting')), ended: true, paused: true };
     /* v8 ignore next -- the default is a compile-time exhaustiveness guard. */
     default:
       return assertNever(input);
@@ -102,11 +102,19 @@ function receive(state: SessionState, move: TutorMove, forcedStatus?: TutorStatu
   return {
     ...state,
     currentMove: move,
+    // A question stays open across whatever comes after it until something closes it: the
+    // next question, a verdict on the answer, or the end. See `screen-composition.ts`.
+    openQuestion: move.kind === 'ASK' ? move : state.openQuestion,
     // The move is the whole of what the sentences were a prefix of; it replaces them.
     streaming: null,
     moves: seen ? state.moves : [...state.moves, move],
     status: seen ? 'waiting' : (forcedStatus ?? (move.speech === null ? 'waiting' : 'speaking')),
   };
+}
+
+/** The answer was judged, or the lesson moved on: nothing is waiting for an answer now. */
+function closeQuestion(state: SessionState): SessionState {
+  return state.openQuestion === null ? state : { ...state, openQuestion: null };
 }
 
 function stopActive(state: SessionState): SessionState {

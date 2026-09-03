@@ -45,7 +45,7 @@ describe('what Aria puts on the screen', () => {
     const shown = move('SHOW', { expects: 'text', display: [{ type: 'workpad', mode: 'answer' }] });
     const screen = vi.fn((_sessionId: string, _body: unknown) => Promise.resolve({ move: shown }));
     const publish = vi.fn((_move: TutorMove) => Promise.resolve());
-    const tools = createScreenTools({ talk: { screen }, room: ROOM, publish });
+    const tools = createScreenTools({ talk: { screen }, room: ROOM, publish, currentAsk: () => null });
 
     const out = await tools.show_on_screen.execute(
       { surface: 'writing', text: '  Write a sentence with "because".  ', options: null },
@@ -65,9 +65,105 @@ describe('what Aria puts on the screen', () => {
 
   it('leaves out empty text and too few options', async () => {
     const screen = vi.fn((_sessionId: string, _body: unknown) => Promise.resolve({ move: move('SHOW') }));
-    const tools = createScreenTools({ talk: { screen }, room: ROOM, publish: () => Promise.resolve() });
+    const tools = createScreenTools({
+      talk: { screen },
+      room: ROOM,
+      publish: () => Promise.resolve(),
+      currentAsk: () => null,
+    });
     await tools.show_on_screen.execute({ surface: 'clear', text: '', options: [' '] }, opts);
     expect(screen).toHaveBeenCalledWith('session-1', { connectionEpoch: 2, surface: 'clear' });
+  });
+});
+
+describe('while a question is on the screen', () => {
+  function tools(ask: TutorMove) {
+    const screen = vi.fn((_sessionId: string, _body: unknown) =>
+      Promise.resolve({ move: move('SHOW', { display: [{ type: 'text', body: 'x' }] }) }),
+    );
+    return {
+      screen,
+      tools: createScreenTools({
+        talk: { screen },
+        room: ROOM,
+        publish: () => Promise.resolve(),
+        currentAsk: () => ask,
+      }),
+    };
+  }
+  const WRITTEN = { ...ASK, id: 'ask-2', expects: 'text' as const, display: [] };
+
+  it('refuses to replace the question with choices, a number pad or a blank screen', async () => {
+    const t = tools(ASK);
+    for (const surface of ['choices', 'number', 'clear'] as const) {
+      const out = await t.tools.show_on_screen.execute(
+        { surface, text: 'Pick one', options: ['run', 'apple'] },
+        opts,
+      );
+      expect(out.shown).toBe('nothing');
+      expect(out.move_id).toBeNull();
+      expect(out.instruction).toContain('stays as it is');
+    }
+    expect(t.screen).not.toHaveBeenCalled();
+  });
+
+  it('opens one writing pad for a question answered in words, and no second one', async () => {
+    const t = tools(WRITTEN);
+    const first = await t.tools.show_on_screen.execute(
+      { surface: 'writing', text: 'Write two sentences.', options: null },
+      opts,
+    );
+    const second = await t.tools.show_on_screen.execute(
+      { surface: 'writing', text: 'Write two sentences.', options: null },
+      opts,
+    );
+    expect(first.shown).toBe('writing');
+    expect(second.shown).toBe('nothing');
+    expect(second.instruction).toContain('already open');
+    expect(t.screen).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses a writing pad for a question answered by tapping', async () => {
+    const t = tools(ASK);
+    const out = await t.tools.show_on_screen.execute(
+      { surface: 'writing', text: 'Write it.', options: null },
+      opts,
+    );
+    expect(out.shown).toBe('nothing');
+    expect(out.instruction).toContain('tapping');
+  });
+
+  it('puts one thing to read beside the question, then keeps the screen still', async () => {
+    const t = tools(ASK);
+    const first = await t.tools.show_on_screen.execute(
+      { surface: 'text', text: 'The cat sat.', options: null },
+      opts,
+    );
+    const second = await t.tools.show_on_screen.execute(
+      { surface: 'text', text: 'The dog ran.', options: null },
+      opts,
+    );
+    expect(first.shown).toBe('text');
+    expect(second.shown).toBe('nothing');
+    expect(t.screen).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts over when the next question arrives', async () => {
+    let ask: TutorMove = ASK;
+    const screen = vi.fn((_sessionId: string, _body: unknown) =>
+      Promise.resolve({ move: move('SHOW', { display: [{ type: 'text', body: 'x' }] }) }),
+    );
+    const t = createScreenTools({
+      talk: { screen },
+      room: ROOM,
+      publish: () => Promise.resolve(),
+      currentAsk: () => ask,
+    });
+    await t.show_on_screen.execute({ surface: 'text', text: 'one', options: null }, opts);
+    ask = { ...ASK, id: 'ask-3' };
+    const out = await t.show_on_screen.execute({ surface: 'text', text: 'two', options: null }, opts);
+    expect(out.shown).toBe('text');
+    expect(screen).toHaveBeenCalledTimes(2);
   });
 });
 

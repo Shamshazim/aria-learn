@@ -1,7 +1,12 @@
 import { llm, type voice } from '@livekit/agents';
 import { z } from 'zod';
 
-import { SCREEN_SURFACES, type TutorMove, type VoiceClientEvent } from '@aria/shared';
+import {
+  SCREEN_SURFACES,
+  type ScreenSurface,
+  type TutorMove,
+  type VoiceClientEvent,
+} from '@aria/shared';
 
 import type { TalkClient } from '@/api/talk-client';
 import {
@@ -20,6 +25,12 @@ import { outcome, type TalkToolHooks } from '@/session/talk-tools';
  * does on it comes back as a `SCREEN_ANSWER`: an answer to the open question is graded by
  * the same path `record_answer` takes, and anything else — a paragraph in the writing pad —
  * reaches the model as words the child gave her, so she reads it and responds.
+ *
+ * The open question owns the screen. Every question `record_answer` returns is already on it
+ * with its answer control, and it stays there until the child answers: while one is open the
+ * tool will put up one thing to read beside it, or open one writing pad for a question that
+ * is answered in words, and refuses everything else with a reason the model can act on. A
+ * screen that changed every time the model felt like it is what this replaces.
  */
 export type ScreenAnswer = Extract<VoiceClientEvent, { kind: 'SCREEN_ANSWER' }>;
 
@@ -29,9 +40,18 @@ export type ScreenToolDeps = Readonly<{
   talk: Pick<TalkClient, 'screen'>;
   room: RoomRef;
   publish(move: TutorMove): Promise<void>;
+  /** The latest question on the screen; it decides what the tool may still put up. */
+  currentAsk(): TutorMove | null;
 }>;
 
-export type ShownOutcome = Readonly<{ shown: string; move_id: string; instruction: string }>;
+export type ShownOutcome = Readonly<{
+  shown: ScreenSurface | 'nothing';
+  move_id: string | null;
+  instruction: string;
+}>;
+
+/** What has been put up beside the question currently on the screen. */
+type ScreenLedger = { askId: string | null; surfaces: Set<ScreenSurface> };
 
 const parameters = z.object({
   surface: z
@@ -56,12 +76,15 @@ const parameters = z.object({
 export function createScreenTools(deps: ScreenToolDeps): Readonly<{
   show_on_screen: llm.AnonFunctionTool<z.infer<typeof parameters>, unknown, ShownOutcome>;
 }> {
+  const ledger: ScreenLedger = { askId: null, surfaces: new Set() };
   return {
     show_on_screen: llm.tool({
       description:
-        "Put something on the child's screen: a writing pad when you ask them to write, a sentence or problem to look at, choices to tap, a number pad, or clear it. Each question from record_answer is already on the screen; use this for everything else you want them to see.",
+        "Put something on the child's screen. The open question is already there with its choices or its typing box, and it stays until the child answers. Use this to open a writing pad when you ask them to write words or sentences, or to put up one thing they must look at to answer (a word, a sentence, a problem). Not for what you are saying.",
       parameters,
       execute: async (args) => {
+        const refusal = refusalFor(deps, ledger, args.surface);
+        if (refusal !== null) return { shown: 'nothing', move_id: null, instruction: refusal };
         const text = args.text?.trim() ?? '';
         const options = (args.options ?? []).map((o) => o.trim()).filter((o) => o !== '');
         const { move } = await deps.talk.screen(deps.room.sessionId, {
@@ -71,6 +94,7 @@ export function createScreenTools(deps: ScreenToolDeps): Readonly<{
           ...(options.length < 2 ? {} : { options }),
         });
         await deps.publish(move);
+        ledger.surfaces.add(args.surface);
         return {
           shown: args.surface,
           move_id: move.id,
@@ -82,6 +106,42 @@ export function createScreenTools(deps: ScreenToolDeps): Readonly<{
       },
     }),
   };
+}
+
+/**
+ * Why the screen stays as it is, or `null` when the surface may go up.
+ *
+ * With no question open anything goes. With one open, the question's own control is the
+ * answer control: a pad may dress a question answered in words, once; one thing to read may
+ * sit beside it, once; nothing may replace it.
+ */
+function refusalFor(
+  deps: Pick<ScreenToolDeps, 'currentAsk'>,
+  ledger: ScreenLedger,
+  surface: ScreenSurface,
+): string | null {
+  const ask = deps.currentAsk();
+  if (ask === null) return null;
+  const shown = ledger;
+  if (shown.askId !== ask.id) {
+    shown.askId = ask.id;
+    shown.surfaces.clear();
+  }
+  const stays = 'The screen stays as it is until the child answers; just talk.';
+  if (surface === 'writing') {
+    if (ask.expects !== 'text') {
+      return `The open question is answered by tapping or saying it, not by writing, and its control is already on the screen. ${stays}`;
+    }
+    return ledger.surfaces.has('writing')
+      ? `The writing pad is already open for this question. ${stays}`
+      : null;
+  }
+  if (surface === 'text') {
+    return ledger.surfaces.has('text')
+      ? `You already put something up beside this question. ${stays}`
+      : null;
+  }
+  return `The open question is already on the screen with its answer control. ${stays}`;
 }
 
 export type ScreenAnswerDeps = Readonly<{

@@ -1,36 +1,45 @@
+import type { TutorMove } from '@aria/shared';
+
 import { DeliveryNotice } from '@/features/session/components/DeliveryNotice';
 import { DoneCard } from '@/features/session/components/DoneCard';
 import { InputSurface } from '@/features/session/components/InputSurface';
 import { SessionControls } from '@/features/session/components/SessionControls';
 import { TutorStatus } from '@/features/session/components/TutorStatus';
 import type { TutorSession } from '@/features/session/hooks/useTutorSession';
+import { composeScreen } from '@/features/session/model/screen-composition';
+import type { SessionState } from '@/features/session/model/session-state';
 import type { VoiceAvailability } from '@/features/session/model/voice-availability';
 import { MoveView } from '@/features/session/render/registry';
 
 type LayoutProps = Readonly<{ session: TutorSession; voice: VoiceAvailability }>;
 
 function CurrentMove(props: LayoutProps): React.JSX.Element | null {
-  const move = props.session.state.currentMove;
-  const streaming = props.session.state.streaming;
+  const state = props.session.state;
   // P2H-07: the sentences Aria has already said. No input surface until the move arrives —
   // a half-written answer has nothing to answer yet.
-  if (move === null && streaming !== null) return <p aria-live="polite">{streaming.text}</p>;
+  if (state.currentMove === null && state.streaming !== null) {
+    return <p aria-live="polite">{state.streaming.text}</p>;
+  }
   // P2H-11: nothing at all while there is no move. The status line above already says Aria is
   // listening; a filler sentence on top of it is the app talking to cover a silence, and the
   // silence ladder is what decides whether that silence needs anything said about it.
-  if (move === null) return null;
+  const screen = composeScreen(state);
+  const input = screen.input;
+  if (input === null) return null;
   return (
     <>
-      <MoveView band={props.session.state.band} move={moveWithSupportingVisual(props.session)} />
+      {screen.cards.map((card) => (
+        <MoveView band={state.band} key={card.id} move={withSupportingVisual(state, card)} />
+      ))}
       <InputSurface
-        band={props.session.state.band}
-        move={move}
+        band={state.band}
+        move={input}
         voice={props.voice}
         onAnswer={(value) => {
-          void props.session.answer(move.id, value);
+          void props.session.answer(input.id, value);
         }}
         onDrag={() => {
-          void props.session.completeDrag(move.id);
+          void props.session.completeDrag(input.id);
         }}
         onSpeech={() => {
           void props.session.speak();
@@ -93,14 +102,10 @@ export function LayoutContent(props: LayoutProps): React.JSX.Element {
   );
 }
 
-function moveWithSupportingVisual(
-  session: TutorSession,
-): NonNullable<typeof session.state.currentMove> {
-  const move = session.state.currentMove;
-  if (move === null) throw new Error('A current move is required');
+function withSupportingVisual(state: SessionState, move: TutorMove): TutorMove {
   if (move.display.some((content) => content.type === 'visual')) return move;
   if (move.kind !== 'ASK') return move;
-  const supporting = session.state.moves.at(-2);
+  const supporting = state.moves.at(-2);
   if (supporting?.kind !== 'SHOW') return move;
   const visual = supporting.display.filter((content) => content.type === 'visual');
   if (visual.length === 0) return move;
