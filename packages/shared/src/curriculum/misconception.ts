@@ -7,10 +7,7 @@
  * ones traded for a ten, and telling them the same sentence again more slowly will not do it.
  */
 export type RemediationApproach =
-  | 'visual-model'
-  | 'concrete-story'
-  | 'simpler-case'
-  | 'worked-example';
+  'visual-model' | 'concrete-story' | 'simpler-case' | 'worked-example';
 
 /** A recognisable wrong idea and the concrete teaching response that addresses it. */
 export type Misconception = Readonly<{

@@ -36,6 +36,17 @@ const CONSENT: VoiceConsent = {
   withdrawnAt: null,
 };
 
+/**
+ * P0-28: the consent a parent gives before any child row exists. Its own helper because
+ * almost every test that writes a child now has to do this first, which is the point of it.
+ */
+async function grantConsent(app: Express): Promise<void> {
+  const response = await authed(app)
+    .post('/api/v1/parent/consent')
+    .send({ method: 'credit_card', sourceReference: 'card-check-1', disclosureVersion: 'v1' });
+  if (response.status !== 201) throw new Error(`consent failed: ${String(response.status)}`);
+}
+
 const CONFIG = loadConfig(
   {
     NODE_ENV: 'test',
@@ -61,6 +72,8 @@ const authed = (app: Express) => ({
   get: (path: string) => request(app).get(path).set('authorization', `Bearer ${PARENT_TOKEN}`),
   post: (path: string) => request(app).post(path).set('authorization', `Bearer ${PARENT_TOKEN}`),
   patch: (path: string) => request(app).patch(path).set('authorization', `Bearer ${PARENT_TOKEN}`),
+  delete: (path: string) =>
+    request(app).delete(path).set('authorization', `Bearer ${PARENT_TOKEN}`),
 });
 
 /** The picker's list, which is this route: `GET /parent/children` and no second copy of it. */
@@ -89,7 +102,12 @@ describe('the parent surface', () => {
   });
 
   it('adds a child and gives back the picker row for them', async () => {
-    const response = await authed(buildApp(buildIdentity()))
+    const app = buildApp(buildIdentity());
+    // P0-28: verifiable parental consent comes first. COPPA's requirement is about timing —
+    // before collection, not alongside it — so this is a precondition, not a checkbox.
+    await grantConsent(app);
+
+    const response = await authed(app)
       .post('/api/v1/parent/children')
       .send({ displayName: 'Ada', grade: 'K', avatar: 'whale' });
 

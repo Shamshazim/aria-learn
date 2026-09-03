@@ -34,7 +34,13 @@ export type ChildSessionCheck =
 
 export type ChildSessionService = Readonly<{
   issue(
-    input: Readonly<{ studentId: string; parentId: string; deviceLabel: string | null }>,
+    input: Readonly<{
+      studentId: string;
+      parentId: string;
+      deviceLabel: string | null;
+      /** The device grant this sign-in came through, when it came through one (P0-28). */
+      deviceGrantId?: string | null;
+    }>,
   ): Promise<IssuedChildSession>;
   check(cookie: string): Promise<ChildSessionCheck>;
   /** A new secret for the same session, and the idle clock back to zero. */
@@ -68,7 +74,7 @@ type Deps = Parameters<typeof createChildSessionService>[0];
 
 async function issue(
   deps: Deps,
-  input: Readonly<{ studentId: string; parentId: string; deviceLabel: string | null }>,
+  input: Parameters<ChildSessionService['issue']>[0],
 ): Promise<IssuedChildSession> {
   const issuedAt = deps.clock.now();
   const secret = deps.tokens.next();
@@ -81,6 +87,7 @@ async function issue(
     issuedAt,
     expiresAt: new Date(issuedAt.getTime() + CHILD_SESSION_MAX_MS),
     deviceLabel: input.deviceLabel,
+    deviceGrantId: input.deviceGrantId ?? null,
   });
   return { session, token: packCookie(id, secret) };
 }

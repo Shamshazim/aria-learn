@@ -39,6 +39,15 @@ export type StudentRepository = {
       settings?: StudentSettings;
     }>,
   ): Promise<Student | null>;
+  /**
+   * Erasure of one child (P0-28). The cascades on every table that references `student` are
+   * what make this "delete means delete" for that child and only that child — a sibling's
+   * rows are reached from a different student id and are untouched.
+   *
+   * `parentId` is a parameter and not a check the caller makes, so that the scope is in the
+   * statement: a caller who forgot it would be deleting somebody else's child.
+   */
+  deleteById(id: string, parentId: string): Promise<boolean>;
 };
 
 /**
@@ -56,6 +65,8 @@ const SQL = {
            RETURNING ${COLUMNS}`,
 
   findById: `SELECT ${COLUMNS} FROM student WHERE id = $1`,
+
+  deleteById: `DELETE FROM student WHERE id = $1 AND parent_id = $2`,
 
   // Ordered so the class picker shows siblings the same way between visits; the id tiebreak
   // keeps two children created in one transaction from swapping places.
@@ -90,6 +101,16 @@ export function createStudentRepository(deps: StudentRepositoryDeps): StudentRep
     insert: (input) => insert(db, ids, input),
     findById: (id) => findById(db, id),
     update: (id, changes) => update(db, id, changes),
+
+    async deleteById(id, parentId) {
+      const { rowCount } = await runQuery({
+        db,
+        operation: 'student.deleteById',
+        sql: SQL.deleteById,
+        params: [id, parentId],
+      });
+      return (rowCount ?? 0) > 0;
+    },
 
     async requireById(id) {
       const student = await findById(db, id);
