@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { envSchema } from './env';
+import { envSchema, loadConfig } from './env';
 
 /**
  * CODE-STANDARDS §8 made mechanical: every variable the API reads is documented in
@@ -17,15 +17,20 @@ import { envSchema } from './env';
  */
 const EXAMPLE = path.join(import.meta.dirname, '..', '..', '..', '..', '.env.example');
 
-function documentedNames(): Set<string> {
-  const names = readFileSync(EXAMPLE, 'utf8')
+function documentedAssignments(): [string, string][] {
+  return readFileSync(EXAMPLE, 'utf8')
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line !== '' && !line.startsWith('#'))
-    .map((line) => line.split('=')[0]?.trim())
-    .filter((name): name is string => name !== undefined && name !== '');
+    .map((line): [string, string] => {
+      const separator = line.indexOf('=');
+      return [line.slice(0, separator).trim(), line.slice(separator + 1).trim()];
+    })
+    .filter(([name]) => name !== '');
+}
 
-  return new Set(names);
+function documentedNames(): Set<string> {
+  return new Set(documentedAssignments().map(([name]) => name));
 }
 
 describe('.env.example', () => {
@@ -33,5 +38,16 @@ describe('.env.example', () => {
     const documented = documentedNames();
 
     expect(Object.keys(envSchema.shape).filter((name) => !documented.has(name))).toEqual([]);
+  });
+
+  /**
+   * The README's first instruction, asserted: `cp .env.example .env` has to produce a file the
+   * API starts with. It did not — the template leaves optional keys blank, and a blank value
+   * reached the schema as an empty string rather than as nothing, so boot failed naming ten
+   * variables a developer had never been asked to fill in. `withoutBlanks` is that fix, and
+   * this is the test that would have caught it: a name-only comparison never could.
+   */
+  it('is a file the API can boot from, unedited', () => {
+    expect(() => loadConfig(Object.fromEntries(documentedAssignments()), '1.0.0')).not.toThrow();
   });
 });

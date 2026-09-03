@@ -90,6 +90,21 @@ describe('loadConfig', () => {
     );
   });
 
+  it('reads a blank variable as an unset one, so a copied template still boots', () => {
+    const config = loadConfig(
+      env({ STATUS_OPERATOR_TOKEN: '', SAFEGUARDING_WEBHOOK_URL: '', SUPABASE_URL: '   ' }),
+      '1.0.0',
+    );
+
+    expect(config.statusOperatorToken).toBeUndefined();
+    expect(config.safeguardingWebhookUrl).toBeUndefined();
+    expect(config.auth).toBeUndefined();
+  });
+
+  it('still names a required variable left blank, rather than reporting its length', () => {
+    expect(() => loadConfig({ DATABASE_URL: '' }, '1.0.0')).toThrow(/DATABASE_URL/);
+  });
+
   it('requires a complete voice configuration and privacy sign-off in production', () => {
     expect(() => loadConfig(env({ LIVEKIT_URL: 'wss://voice.example.test' }), '1.0.0')).toThrow(
       /all LiveKit and voice worker settings/,
