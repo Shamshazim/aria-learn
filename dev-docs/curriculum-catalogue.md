@@ -12,7 +12,7 @@ migration. They are carried across whole.
   each topic with its learning objectives. Edit these to change what a class contains.
 - `apps/api/src/curriculum/catalogue/` — the loader that reads them and flattens every topic
   into a skill.
-- `apps/api/src/db/migrations/010_curriculum_catalogue.sql` — the columns a topic needs on
+- `apps/api/src/db/migrations/011_curriculum_catalogue.sql` — the columns a topic needs on
   `skill`: `grade`, `unit`, `lesson`, `objectives`, `ordering`.
 
 ## How a topic becomes a skill

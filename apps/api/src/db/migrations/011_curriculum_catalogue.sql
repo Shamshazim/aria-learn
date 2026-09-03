@@ -1,4 +1,4 @@
--- 010 — the legacy curricula join the skill graph
+-- 011 — the legacy curricula join the skill graph
 --
 -- Every topic of the legacy Mathematics, English Writing, Math Adventures and Science curricula
 -- is seeded as a skill row at boot. A topic knows the grade it was filed under, its unit and
