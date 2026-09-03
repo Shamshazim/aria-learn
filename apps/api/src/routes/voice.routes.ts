@@ -13,6 +13,7 @@ import {
   voiceConsentWithdrawSchema,
   workerBriefQuerySchema,
   workerHeardSchema,
+  workerScreenSchema,
   workerSpokenSchema,
   workerVoiceMetricSchema,
   workerVoiceTurnSchema,
@@ -47,27 +48,7 @@ export function createVoiceWorkerRouter(
   }>,
 ): Router {
   const router = Router();
-  router.get(
-    '/internal/voice/session/:id/brief',
-    input.authorize,
-    validate(realtimeParamsSchema, 'params'),
-    validate(workerBriefQuerySchema, 'query'),
-    asyncHandler(input.talk.brief),
-  );
-  router.post(
-    '/internal/voice/session/:id/heard',
-    input.authorize,
-    validate(realtimeParamsSchema, 'params'),
-    validate(workerHeardSchema, 'body'),
-    asyncHandler(input.talk.heard),
-  );
-  router.post(
-    '/internal/voice/session/:id/spoken',
-    input.authorize,
-    validate(realtimeParamsSchema, 'params'),
-    validate(workerSpokenSchema, 'body'),
-    asyncHandler(input.talk.spoken),
-  );
+  mountTalkRoutes(router, input);
   router.get(
     '/internal/voice/bridges',
     input.authorize,
@@ -95,6 +76,41 @@ export function createVoiceWorkerRouter(
     asyncHandler(input.controller.workerMetric),
   );
   return router;
+}
+
+/** "Aria talks": the brief, the two halves of the transcript, and the screen. */
+function mountTalkRoutes(
+  router: Router,
+  input: Readonly<{ authorize: RequestHandler; talk: VoiceTalkControllers }>,
+): void {
+  router.get(
+    '/internal/voice/session/:id/brief',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerBriefQuerySchema, 'query'),
+    asyncHandler(input.talk.brief),
+  );
+  router.post(
+    '/internal/voice/session/:id/heard',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerHeardSchema, 'body'),
+    asyncHandler(input.talk.heard),
+  );
+  router.post(
+    '/internal/voice/session/:id/spoken',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerSpokenSchema, 'body'),
+    asyncHandler(input.talk.spoken),
+  );
+  router.post(
+    '/internal/voice/session/:id/screen',
+    input.authorize,
+    validate(realtimeParamsSchema, 'params'),
+    validate(workerScreenSchema, 'body'),
+    asyncHandler(input.talk.screen),
+  );
 }
 
 export function createVoiceAdminRouter(

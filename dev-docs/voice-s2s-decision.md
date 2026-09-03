@@ -22,12 +22,15 @@ unset.
 | The session                                    | `apps/voice-worker/src/session/talk-session.ts`        |
 | The brief → system prompt                      | `apps/voice-worker/src/session/talk-instructions.ts`   |
 | `record_answer` / `end_session`                | `apps/voice-worker/src/session/talk-tools.ts`          |
+| `show_on_screen`, answers from the screen      | `apps/voice-worker/src/session/talk-screen.ts`         |
 | Sentence tap on Aria's output transcript       | `apps/voice-worker/src/session/talk-agent.ts`          |
 | Worker → API client                            | `apps/voice-worker/src/api/talk-client.ts`             |
 | `GET  /internal/voice/session/:id/brief`       | `apps/api/src/services/voice/talk-brief.service.ts`    |
 | `POST /internal/voice/session/:id/heard`       | `apps/api/src/services/voice/talk-events.service.ts`   |
 | `POST /internal/voice/session/:id/spoken`      | `apps/api/src/services/voice/talk-events.service.ts`   |
-| Shared shapes                                  | `packages/shared/src/protocol/talk.ts`                 |
+| `POST /internal/voice/session/:id/screen`      | `apps/api/src/services/voice/talk-screen.service.ts`   |
+| Browser ↔ voice over the room                  | `apps/web/src/features/voice/hooks/useScreenBridge.ts` |
+| Shared shapes                                  | `packages/shared/src/protocol/talk.ts`, `realtime.ts`  |
 
 ## What the model is given
 
@@ -60,10 +63,34 @@ topics, claim to be an AI).
   words. `end_session` goes through the policy path a child saying "stop" reaches, so every
   ending is recorded like every other.
 
+## The screen is part of the conversation
+
+The voice and the screen stay in step both ways; nothing on either side is scripted around
+the other.
+
+- **Voice → screen.** Every question `record_answer` returns is already on the screen: the
+  worker publishes the `ASK` on `aria.moves` and the browser renders it through the move
+  registry, choices and all. For everything else Aria wants the child to see she calls
+  `show_on_screen` with one of five surfaces — `writing` (a text area under her prompt),
+  `text` (something to read), `number` (a problem with a number pad), `choices` (options to
+  tap), `clear`. The API records the surface as a `SHOW` move with `display` and `expects`,
+  queues it in the outbox, and returns it; the worker publishes it like any move. The prompt
+  tells the model to open a writing pad whenever she asks the child to write, and that what
+  is on the screen must match what she says.
+- **Screen → voice.** Where the worker announced `WORKER_READY { talks: true }`, the browser
+  sends what the child taps or types as `SCREEN_ANSWER { moveId, text }` over the room
+  instead of to the API. An answer to the open `ASK` is graded by the same path
+  `record_answer` takes, and the model is told what the child chose and how it was graded;
+  anything else (a paragraph in the writing pad) is posted to `heard` with `via: screen` for
+  the transcript and the crisis check, then given to the model as words the child typed.
+  "End session" on the screen sends `LEAVE`, and Aria says goodbye instead of carrying on.
+- **What either side said.** The worker publishes `CAPTION` for each sentence Aria says and
+  `HEARD` for each final child transcript; the browser shows both under the voice controls.
+- With the flag unset the pipeline worker ignores `SCREEN_ANSWER` and `LEAVE`, and the
+  browser never sends them, because `talks` is false.
+
 ## Known gaps
 
-- Aria's free speech is not shown as captions in the browser; the child hears it and the API
-  records it, but the screen shows only the moves (the question, the choices).
 - The rule-based unsafe-output check is narrow; the FAST-tier `classify-safety` prompt is not
   yet on this path.
 - Retention: child audio reaches the realtime vendor. `voice-processor-map.md` carries the

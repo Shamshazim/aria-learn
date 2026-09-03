@@ -26,6 +26,7 @@ export function buildTalkInstructions(brief: VoiceBrief): string {
     memory(brief),
     howToTeach(),
     tools(),
+    screen(),
     safety(),
   ]
     .filter((section) => section !== '')
@@ -102,6 +103,7 @@ function howToTeach(): string {
     '- If the child asks a question, chats, or wants a joke, answer warmly and briefly like a real tutor would (a short, kind, kid-friendly joke is fine), then bring them back to the question.',
     '- If the child asks what the question was, or to repeat, just say it again in a friendly way.',
     '- When the tool gives you a next question, ask it in your own words but keep every number, word and choice exactly as given.',
+    '- Never invent a practice question of your own. The questions come from record_answer; until it gives you a next one, stay on the open question: re-ask it, hint at it, or ask the child to explain their thinking.',
     '- Never repeat a sentence you already said in this session.',
   ].join('\n');
 }
@@ -111,6 +113,17 @@ function tools(): string {
     'Tools:',
     '- record_answer: call it the moment the child gives an answer to the open question, with their words as they said them. It grades the answer and tells you what the curriculum wants next. Respond after it returns: celebrate specifically if correct, or give one hint if not. Do not grade an answer yourself.',
     '- end_session: call it when the child clearly wants to stop, or when the tool says the session is over. Then say a short, warm goodbye.',
+    '- show_on_screen: put something on the child\'s screen. See "The screen" below.',
+  ].join('\n');
+}
+
+function screen(): string {
+  return [
+    'The screen:',
+    '- The child has a screen next to you, and it is part of the conversation. Every question record_answer gives you is already on it, with its choices or a place to type.',
+    '- Whenever you ask the child to write something, call show_on_screen with surface "writing" and your prompt as the text, before or as you ask. Whenever you want them to read a sentence, a word or a problem, show it with "text". Whenever you offer a few options to pick from, show them with "choices". Ask for "number" when they should work out a number. Call "clear" when you move on from something you put up.',
+    '- What you put on the screen must match what you say: the same words, the same numbers, the same choices.',
+    '- The child may tap or type instead of talking. You will be told what they did on the screen; treat it exactly as if they had said it out loud. If it answers the open question, record_answer has already graded it or you must call it.',
   ].join('\n');
 }
 
@@ -142,6 +155,46 @@ export function silenceInstruction(teacherSays: readonly string[]): string {
       ? 'Check in gently in one short sentence and wait.'
       : `The curriculum suggests: ${JSON.stringify(teacherSays)}. Say it warmly in your own words, short.`,
   ].join(' ');
+}
+
+/**
+ * The child answered the open question on the screen, and the curriculum has graded it.
+ * The same shape `record_answer` returns, told to the model instead of returned to it.
+ */
+export function screenAnswerInstruction(
+  answer: string,
+  result: Readonly<{
+    verdict: 'correct' | 'not_yet' | 'unknown';
+    teacher_says: readonly string[];
+    session_over: boolean;
+    instruction: string;
+  }>,
+): string {
+  const verdict =
+    result.verdict === 'correct'
+      ? 'It was correct.'
+      : result.verdict === 'not_yet'
+        ? 'It was not right yet.'
+        : 'It was recorded.';
+  return [
+    `The child answered on the screen: "${answer}". ${verdict}`,
+    result.teacher_says.length === 0
+      ? ''
+      : `The curriculum says: ${JSON.stringify(result.teacher_says)}.`,
+    result.instruction,
+  ]
+    .filter((line) => line !== '')
+    .join(' ');
+}
+
+/** Words the child typed on the screen, handed to the model as something they said. */
+export function typedOnScreen(text: string): string {
+  return `(typed on the screen) ${text}`;
+}
+
+/** The child pressed "End session" on the screen. */
+export function leaveInstruction(): string {
+  return 'The child has ended the session from the screen. Say a short, warm goodbye in one sentence and stop.';
 }
 
 export function crisisInstruction(say: string): string {

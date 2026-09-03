@@ -35,6 +35,7 @@ import { createStudentPronunciationSource } from '@/services/voice/pronunciation
 import { createRealtimeService } from '@/services/voice/realtime.service';
 import { createTalkBriefService } from '@/services/voice/talk-brief.service';
 import { createTalkEventsService } from '@/services/voice/talk-events.service';
+import { createTalkScreenService } from '@/services/voice/talk-screen.service';
 import { createWorkerTurnService } from '@/services/voice/worker-turn.service';
 
 type Phase1Runtime = Awaited<ReturnType<typeof createPhase1Runtime>>;
@@ -182,6 +183,11 @@ function buildTalkControllers(
       sessionLimitMinutes: (band) => deps.config.sessionLimitMinutes[band],
     }).brief,
     events: createTalkEventsService({ ...shared, safety: phase1.talk.safety }),
+    screen: createTalkScreenService({
+      ...shared,
+      outbox: phase1.repositories.outbox,
+      ids: deps.ids,
+    }).show,
   });
 }
 

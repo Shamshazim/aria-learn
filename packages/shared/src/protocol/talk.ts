@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { bandSchema, gradeSchema } from '../band/band';
 
 import { messageIdSchema, sequenceSchema } from './schemas/common.schema';
+import { tutorMoveSchema } from './schemas/moves.schema';
 
 /**
  * The voice channel where Aria talks (Phase 2H, "Aria talks").
@@ -62,6 +63,8 @@ export const voiceBriefSchema = z.object({
 export const voiceHeardRequestSchema = z.object({
   connectionEpoch: sequenceSchema,
   text: z.string().min(1).max(2_000),
+  /** Where the words came from: the microphone, or something the child typed on the screen. */
+  via: z.enum(['voice', 'screen']).default('voice'),
 });
 
 export const voiceHeardResponseSchema = z.object({
@@ -78,8 +81,34 @@ export const voiceSpokenResponseSchema = z.object({
   verdict: z.enum(['ok', 'unsafe']),
 });
 
+/**
+ * What Aria can put on the child's screen while she talks.
+ *
+ * The screen is part of the conversation: when she asks the child to write, a writing pad
+ * opens; when she gives choices, they can be tapped; when she moves on, it clears. The
+ * vocabulary is deliberately small — each surface maps onto display content the browser
+ * already renders — and the API turns it into a recorded `SHOW` move, so a session replays
+ * with its screens and the transcript says what the child was looking at.
+ */
+export const SCREEN_SURFACES = ['writing', 'text', 'number', 'choices', 'clear'] as const;
+
+export const voiceScreenRequestSchema = z.object({
+  connectionEpoch: sequenceSchema,
+  surface: z.enum(SCREEN_SURFACES),
+  /** The prompt above a writing pad, the sentence or problem to read, the question over choices. */
+  text: z.string().trim().min(1).max(2_000).optional(),
+  /** The options to tap; only a `choices` surface reads them. */
+  options: z.array(z.string().trim().min(1).max(300)).min(2).max(6).optional(),
+});
+
+export const voiceScreenResponseSchema = z.object({ move: tutorMoveSchema });
+
 export type VoiceBrief = z.infer<typeof voiceBriefSchema>;
-export type VoiceHeardRequest = z.infer<typeof voiceHeardRequestSchema>;
+export type ScreenSurface = (typeof SCREEN_SURFACES)[number];
+export type VoiceScreenRequest = z.infer<typeof voiceScreenRequestSchema>;
+export type VoiceScreenResponse = z.infer<typeof voiceScreenResponseSchema>;
+/** The input shape: `via` defaults to the microphone, so a worker need not say so. */
+export type VoiceHeardRequest = z.input<typeof voiceHeardRequestSchema>;
 export type VoiceHeardResponse = z.infer<typeof voiceHeardResponseSchema>;
 export type VoiceSpokenRequest = z.infer<typeof voiceSpokenRequestSchema>;
 export type VoiceSpokenResponse = z.infer<typeof voiceSpokenResponseSchema>;

@@ -23,25 +23,32 @@ export type TalkEventsDeps = TalkGuardDeps &
     clock: Clock;
   }>;
 
+export type HeardVia = 'voice' | 'screen';
+
 export type TalkEventsService = Readonly<{
-  heard(sessionId: string, connectionEpoch: number, text: string): Promise<VoiceHeardResponse>;
+  heard(
+    sessionId: string,
+    connectionEpoch: number,
+    text: string,
+    via?: HeardVia,
+  ): Promise<VoiceHeardResponse>;
   spoken(sessionId: string, connectionEpoch: number, text: string): Promise<VoiceSpokenResponse>;
 }>;
 
 export function createTalkEventsService(deps: TalkEventsDeps): TalkEventsService {
   return {
-    heard: (sessionId, connectionEpoch, text) => heard(deps, sessionId, connectionEpoch, text),
+    heard: (sessionId, connectionEpoch, text, via = 'voice') =>
+      heard(deps, { sessionId, connectionEpoch, text, via }),
     spoken: (sessionId, connectionEpoch, text) => spoken(deps, sessionId, connectionEpoch, text),
   };
 }
 
 async function heard(
   deps: TalkEventsDeps,
-  sessionId: string,
-  connectionEpoch: number,
-  text: string,
+  input: Readonly<{ sessionId: string; connectionEpoch: number; text: string; via: HeardVia }>,
 ): Promise<VoiceHeardResponse> {
-  const session = await openTalkSession(deps, sessionId, connectionEpoch);
+  const { text, via } = input;
+  const session = await openTalkSession(deps, input.sessionId, input.connectionEpoch);
   const verdict = await deps.safety.check({
     text,
     studentId: session.studentId,
@@ -57,7 +64,9 @@ async function heard(
     correct: null,
     latencyMs: null,
     evidence: verdict.safe ? {} : { safety: 'crisis' },
-    payload: { source: 'realtime', text },
+    // Typed on the screen or said out loud, the words reach Aria the same way; the payload
+    // keeps which, so the transcript can say "wrote" where the child wrote.
+    payload: { source: via === 'screen' ? 'screen' : 'realtime', text },
     at: deps.clock.now(),
   });
   return { crisis: verdict.safe ? null : { say: verdict.response } };

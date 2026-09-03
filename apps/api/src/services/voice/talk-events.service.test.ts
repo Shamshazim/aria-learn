@@ -53,6 +53,13 @@ describe('the transcript of a session where Aria talks', () => {
     ]);
   });
 
+  it('records what the child typed on the screen as words Aria heard, marked as typed', async () => {
+    const { events, appended } = service(true);
+    await events.heard('session-1', 2, 'My cat is called Pickle.', 'screen');
+    expect(appended[0]?.payload).toEqual({ source: 'screen', text: 'My cat is called Pickle.' });
+    expect(appended[0]?.kind).toBe('SPEECH_FINAL');
+  });
+
   it('returns the fixed crisis line and marks the record when the child discloses', async () => {
     const { events, appended } = service(false);
 

@@ -70,7 +70,7 @@ function routerDeps(authorize: RequestHandler): RouterDeps {
         authorize: ok,
         controller: voiceControllers(ok),
         bridges: { library: ok, audio: ok },
-        talk: { brief: ok, heard: ok, spoken: ok },
+        talk: { brief: ok, heard: ok, spoken: ok, screen: ok },
       },
       admin: { authorize: ok, controller: voiceControllers(ok) },
     },

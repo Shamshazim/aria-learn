@@ -1,6 +1,8 @@
 import { AgentSessionEventTypes, type JobContext, type voice } from '@livekit/agents';
 import { RoomEvent } from '@livekit/rtc-node';
 
+import type { VoiceClientEvent } from '@aria/shared';
+
 import {
   createAcknowledgementGate,
   type AcknowledgementGate,
@@ -16,7 +18,8 @@ import type { SilenceTimer } from '@/session/silence-timer';
  * Smaller than the pipeline's binding on purpose. There is no `SYNC` replay here — a realtime
  * model cannot `say()` a stored sentence — and no metric forwarding to the control plane; the
  * spike measures itself into its run log. What is kept is what a session cannot do without:
- * the acknowledgement gate, the child's `STOP`, and the close paths.
+ * the acknowledgement gate, the child's `STOP`, what the child did on the screen, and the
+ * close paths.
  */
 export function bindS2SEvents(
   input: Readonly<{
@@ -27,6 +30,10 @@ export function bindS2SEvents(
     silence: SilenceTimer;
     metrics: S2SMetrics;
     finish(): void;
+    /** A tap or some typing on the screen; bound after the session starts. */
+    onScreenAnswer?(event: Extract<VoiceClientEvent, { kind: 'SCREEN_ANSWER' }>): void;
+    /** The child ended the session on the screen; bound after the session starts. */
+    onLeave?(): void;
   }>,
 ): AcknowledgementGate {
   const gate = createAcknowledgementGate();
@@ -57,6 +64,14 @@ export function bindS2SEvents(
     if (event.newState === 'speaking') input.metrics.firstAudio();
     if (event.oldState === 'speaking') input.metrics.interruptionSilent();
   });
+  bindClientEvents(input, gate);
+  return gate;
+}
+
+function bindClientEvents(
+  input: Parameters<typeof bindS2SEvents>[0],
+  gate: AcknowledgementGate,
+): void {
   input.job.room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
     if (topic !== 'aria.client-event') return;
     const event = parseClientEvent(payload);
@@ -66,10 +81,18 @@ export function bindS2SEvents(
       gate.acknowledge();
       return;
     }
+    if (event.kind === 'SCREEN_ANSWER') {
+      input.silence.speechPartial();
+      input.onScreenAnswer?.(event);
+      return;
+    }
+    if (event.kind === 'LEAVE') {
+      input.onLeave?.();
+      return;
+    }
     if (event.kind !== 'STOP' || event.generationId !== input.moves.activeGenerationId()) return;
     input.moves.cancelGeneration(event.generationId);
     input.metrics.interruptionStarted();
     void input.session.interrupt({ force: true });
   });
-  return gate;
 }

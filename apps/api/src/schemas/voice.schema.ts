@@ -4,6 +4,7 @@ import {
   bandSchema,
   voiceHeardRequestSchema,
   voiceMetricRequestSchema,
+  voiceScreenRequestSchema,
   voiceSpokenRequestSchema,
   voiceTurnRequestSchema,
 } from '@aria/shared';
@@ -40,6 +41,8 @@ export const workerBriefQuerySchema = z
   .strict();
 export const workerHeardSchema = voiceHeardRequestSchema;
 export const workerSpokenSchema = voiceSpokenRequestSchema;
+/** "Aria talks": what the realtime model wants on the child's screen. */
+export const workerScreenSchema = voiceScreenRequestSchema;
 
 export type VoiceConsentRequest = z.infer<typeof voiceConsentSchema>;
 export type VoiceConsentWithdrawRequest = z.infer<typeof voiceConsentWithdrawSchema>;

@@ -10,14 +10,14 @@ import { AriaTalkAgent } from '@/session/talk-agent';
 import {
   buildTalkInstructions,
   crisisInstruction,
+  leaveInstruction,
   openingInstruction,
   silenceInstruction,
   steerInstruction,
 } from '@/session/talk-instructions';
 import { createTalkRuntime, type TalkRuntime } from '@/session/talk-runtime';
-import { createTalkTools } from '@/session/talk-tools';
-
-const encoder = new TextEncoder();
+import { answerFromScreen, createScreenTools, type ScreenAnswer } from '@/session/talk-screen';
+import { createTalkTools, type TalkToolHooks } from '@/session/talk-tools';
 
 /**
  * A session where Aria talks, behind `VOICE_S2S_PROVIDER`.
@@ -26,6 +26,8 @@ const encoder = new TextEncoder();
  * API wrote for this child and this topic. The API stays the curriculum, the grader, the
  * memory and the safety layer: answers go through `record_answer`, every word either side
  * says is reported back, a disclosure gets the fixed crisis line, and unsafe speech is cut.
+ * The screen is hers too: `show_on_screen` puts a surface in front of the child, and what the
+ * child taps or types there comes back into the conversation (`talk-screen.ts`).
  * Same room, same control plane, same silence ladder as the pipeline.
  */
 export async function runTalkVoiceAgent(
@@ -52,6 +54,7 @@ export async function runTalkVoiceAgent(
     runtime.silence.stop();
     void job.room.disconnect();
   };
+  const screen: ScreenHandlers = { answer: () => undefined, leave: () => undefined };
   const gate = bindS2SEvents({
     job,
     session,
@@ -60,19 +63,24 @@ export async function runTalkVoiceAgent(
     silence: runtime.silence,
     metrics: runtime.metrics,
     finish,
+    onScreenAnswer: (event) => {
+      screen.answer(event);
+    },
+    onLeave: () => {
+      screen.leave();
+    },
   });
   const startup = await prepareVoiceStartup({
     authorize: runtime.moves.authorize,
-    announceReady: () =>
-      localParticipant.publishData(encoder.encode('{"kind":"WORKER_READY"}'), {
-        reliable: true,
-        topic: 'aria.voice-state',
-      }),
+    announceReady: () => runtime.publishState({ kind: 'WORKER_READY', talks: true }),
     acknowledgement: gate.wait(),
   });
   if (!startup.acknowledged || gate.isClosed()) return;
-  await startTalking({ job, session, runtime, room, finish, isClosed: gate.isClosed });
+  await startTalking({ job, session, runtime, room, finish, screen, isClosed: gate.isClosed });
 }
+
+/** What the screen can tell the session once it is running; bound in `startTalking`. */
+type ScreenHandlers = { answer(event: ScreenAnswer): void; leave(): void };
 
 /** The brief, the agent, the opening — everything after the room has said it is listening. */
 async function startTalking(
@@ -82,6 +90,7 @@ async function startTalking(
     runtime: TalkRuntime;
     room: Readonly<{ sessionId: string; connectionEpoch: number }>;
     finish(): void;
+    screen: ScreenHandlers;
     isClosed(): boolean;
   }>,
 ): Promise<void> {
@@ -89,16 +98,20 @@ async function startTalking(
   const brief = await runtime.talk.brief(room.sessionId, room.connectionEpoch);
   const ending = bindEnding(session, runtime, finish);
   bindTranscripts(session, runtime, room);
+  const hooks: TalkToolHooks = {
+    moves: runtime.moves,
+    currentAskId: runtime.currentAskId,
+    beginTurn: runtime.beginTurn,
+    endTurn: runtime.endTurn,
+    onSessionOver: ending.afterSpeech,
+  };
   await session.start({
     agent: new AriaTalkAgent({
       instructions: buildTalkInstructions(brief),
-      tools: createTalkTools({
-        moves: runtime.moves,
-        currentAskId: runtime.currentAskId,
-        beginTurn: runtime.beginTurn,
-        endTurn: runtime.endTurn,
-        onSessionOver: ending.afterSpeech,
-      }),
+      tools: {
+        ...createTalkTools(hooks),
+        ...createScreenTools({ talk: runtime.talk, room, publish: runtime.publish }),
+      },
       onSentence: (text) => {
         reportSpoken(session, runtime, room, text);
       },
@@ -110,6 +123,7 @@ async function startTalking(
     finish();
     return;
   }
+  bindScreen(input.screen, { session, hooks, talk: runtime.talk, room, currentAsk: runtime.currentAsk }, ending);
   runtime.handlers.silence = (payload) => {
     void voiceHarnessTurn(session, runtime, runtime.moves.silence(payload), silenceInstruction).then(
       () => {
@@ -120,6 +134,29 @@ async function startTalking(
   await voiceHarnessTurn(session, runtime, runtime.moves.resume(), (lines) =>
     openingInstruction(brief, lines),
   );
+}
+
+/** What the screen sends once the session runs: an answer given on it, or the end of the session. */
+function bindScreen(
+  screen: ScreenHandlers,
+  deps: Parameters<typeof answerFromScreen>[0],
+  ending: Readonly<{ afterSpeech(): void }>,
+): void {
+  const { session, hooks } = deps;
+  const bound = screen;
+  bound.answer = (event) => {
+    void answerFromScreen(deps, event)
+      .then(() => {
+        if (hooks.moves.terminalDelivered()) ending.afterSpeech();
+      })
+      .catch(() => undefined);
+  };
+  bound.leave = () => {
+    // The voice already ended it (end_session) and is saying goodbye; nothing more to do.
+    if (hooks.moves.terminalDelivered()) return;
+    ending.afterSpeech();
+    session.generateReply({ instructions: leaveInstruction(), allowInterruptions: false });
+  };
 }
 
 /** A harness-initiated turn — the opening, a silence rung — voiced in the model's own words. */
@@ -149,6 +186,7 @@ function bindTranscripts(
   session.on(AgentSessionEventTypes.UserInputTranscribed, (event) => {
     const text = event.transcript.trim();
     if (!event.isFinal || text === '') return;
+    void runtime.publishState({ kind: 'HEARD', text }).catch(() => undefined);
     void runtime.talk
       .heard(room.sessionId, { connectionEpoch: room.connectionEpoch, text })
       .then((result) => {
@@ -170,6 +208,7 @@ function reportSpoken(
   room: Readonly<{ sessionId: string; connectionEpoch: number }>,
   text: string,
 ): void {
+  void runtime.publishState({ kind: 'CAPTION', text }).catch(() => undefined);
   void runtime.talk
     .spoken(room.sessionId, { connectionEpoch: room.connectionEpoch, text })
     .then((result) => {

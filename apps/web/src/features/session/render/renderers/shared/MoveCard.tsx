@@ -41,6 +41,8 @@ function DisplayContent(props: { content: MoveContent }): React.JSX.Element | nu
     case 'passage':
       return <blockquote>{props.content.body}</blockquote>;
     case 'workpad':
+      // In answer mode the input surface draws the pad with its prompt; here would be twice.
+      if (props.content.mode === 'answer') return null;
       return (
         <p className="workpad-prompt">
           {props.content.prompt ?? 'Use the work pad to show your thinking.'}

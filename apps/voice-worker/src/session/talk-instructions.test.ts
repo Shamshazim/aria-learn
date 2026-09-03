@@ -6,7 +6,9 @@ import {
   buildTalkInstructions,
   crisisInstruction,
   openingInstruction,
+  screenAnswerInstruction,
   silenceInstruction,
+  typedOnScreen,
 } from '@/session/talk-instructions';
 
 const BRIEF: VoiceBrief = {
@@ -46,6 +48,8 @@ describe('the brief the realtime model teaches from', () => {
       '12 minutes',
       'record_answer',
       'end_session',
+      'show_on_screen',
+      'surface "writing"',
     ]) {
       expect(text).toContain(expected);
     }
@@ -73,5 +77,18 @@ describe('the brief the realtime model teaches from', () => {
     expect(openingInstruction(BRIEF, ['Round 468.'])).toContain('Round 468.');
     expect(silenceInstruction([])).toContain('gone quiet');
     expect(crisisInstruction('I am here.')).toContain('"I am here."');
+  });
+
+  it('tells the model what the child did on the screen, and how it was graded', () => {
+    const text = screenAnswerInstruction('apple', {
+      verdict: 'correct',
+      teacher_says: ['Yes, apple is a noun.'],
+      session_over: false,
+      instruction: 'Respond in your own words.',
+    });
+    expect(text).toContain('answered on the screen: "apple". It was correct.');
+    expect(text).toContain('Yes, apple is a noun.');
+    expect(screenAnswerInstruction('7', { verdict: 'not_yet', teacher_says: [], session_over: false, instruction: 'x' })).toContain('not right yet');
+    expect(typedOnScreen('hello')).toBe('(typed on the screen) hello');
   });
 });

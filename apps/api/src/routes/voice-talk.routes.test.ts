@@ -1,6 +1,8 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
+import { PROTOCOL_VERSION, tutorMoveSchema } from '@aria/shared';
+
 import { createApp } from '@/app';
 import { loadConfig } from '@/config';
 import { createVoiceTalkControllers } from '@/controllers/voice-talk.controller';
@@ -52,6 +54,19 @@ function talkControllers() {
       spoken: (_sessionId, _epoch, text) =>
         Promise.resolve({ verdict: text.includes('weapon') ? ('unsafe' as const) : ('ok' as const) }),
     },
+    screen: (sessionId, body) =>
+      Promise.resolve(
+        tutorMoveSchema.parse({
+          id: `${sessionId}-show`,
+          at: NOW.toISOString(),
+          protocolVersion: PROTOCOL_VERSION,
+          kind: 'SHOW',
+          speech: null,
+          display: body.surface === 'writing' ? [{ type: 'workpad', mode: 'answer', prompt: body.text }] : [],
+          expects: body.surface === 'writing' ? 'text' : 'none',
+          serverSeq: 3,
+        }),
+      ),
   });
 }
 
@@ -122,6 +137,24 @@ describe('the worker endpoints of a session where Aria talks', () => {
       .send({ connectionEpoch: 2, text: 'A weapon is not a toy.' });
 
     expect(response.body).toEqual({ data: { verdict: 'unsafe' } });
+  });
+
+  it('puts a surface on the screen as a move the worker publishes', async () => {
+    const app = buildApp();
+    const response = await request(app)
+      .post(`/api/v1/internal/voice/session/${SESSION_ID}/screen`)
+      .set(auth)
+      .send({ connectionEpoch: 2, surface: 'writing', text: 'Write a sentence with "because".' });
+    const refused = await request(app)
+      .post(`/api/v1/internal/voice/session/${SESSION_ID}/screen`)
+      .set(auth)
+      .send({ connectionEpoch: 2, surface: 'poster' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      data: { move: { kind: 'SHOW', expects: 'text', serverSeq: 3 } },
+    });
+    expect(refused.status).toBe(400);
   });
 
   it('refuses the talk endpoints without the worker token', async () => {

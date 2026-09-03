@@ -53,9 +53,27 @@ export function VoiceControls(props: { voice: RealtimeVoice }): React.JSX.Elemen
         </select>
       </label>
       <meter aria-label="Microphone level" max={0.3} min={0} value={voice.microphoneLevel} />
-      {voice.captions && voice.caption.length > 0 ? (
-        <p aria-live="polite">{voice.caption}</p>
-      ) : null}
+      {voice.captions ? <VoiceCaptions voice={voice} /> : null}
     </aside>
+  );
+}
+
+/** What Aria is saying, and — where she talks — what she heard the child say. */
+function VoiceCaptions(props: { voice: RealtimeVoice }): React.JSX.Element | null {
+  const { caption, heard, talks } = props.voice;
+  if (caption.length === 0 && (!talks || heard.length === 0)) return null;
+  return (
+    <>
+      {caption.length > 0 ? (
+        <p aria-live="polite" className="voice-caption">
+          <span className="voice-caption__who">Aria</span> {caption}
+        </p>
+      ) : null}
+      {talks && heard.length > 0 ? (
+        <p className="voice-caption voice-caption--heard">
+          <span className="voice-caption__who">You</span> {heard}
+        </p>
+      ) : null}
+    </>
   );
 }

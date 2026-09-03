@@ -71,6 +71,9 @@ export function bindVoiceEvents(input: VoiceEventBindings): AcknowledgementGate 
       void discard(input.moves.speechStarted());
       return;
     }
+    // The screen answers through the room only where a realtime model is the voice; here the
+    // browser sends its answers to the API itself, so a stray one is nothing to act on.
+    if (event.kind !== 'STOP') return;
     if (event.generationId !== input.moves.activeGenerationId()) return;
     // P2H-07: the child is talking over this answer. Nothing more from it gets spoken, and how
     // far they got is carried on the next turn so the transcript records what they heard.

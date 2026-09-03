@@ -171,7 +171,7 @@ function buildApp(denyStudent = false) {
         authorize: workerOnly(WORKER_TOKEN),
         controller,
         bridges: bridgeControllers(),
-        talk: { brief: unused, heard: unused, spoken: unused },
+        talk: { brief: unused, heard: unused, spoken: unused, screen: unused },
       },
       admin: { authorize: operatorOnly(OPERATOR_TOKEN), controller },
     },
