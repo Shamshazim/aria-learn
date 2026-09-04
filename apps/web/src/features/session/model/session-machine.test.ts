@@ -106,3 +106,22 @@ async function allMoves(): Promise<readonly TutorMove[]> {
   source.close();
   return moves;
 }
+
+describe('the open question', () => {
+  it('stays open through a hint and closes on praise, so the control never disappears mid-question', async () => {
+    const moves = await allMoves();
+    const ask = moves.find((move) => move.kind === 'ASK');
+    const hint = moves.find((move) => move.kind === 'HINT');
+    const praise = moves.find((move) => move.kind === 'PRAISE');
+    if (ask === undefined || hint === undefined || praise === undefined) throw new Error('fixture');
+
+    const asked = reduceSession(initialSessionState('middle'), ask);
+    const hinted = reduceSession(asked, hint);
+    const praised = reduceSession(hinted, praise);
+
+    expect(asked.openQuestion?.id).toBe(ask.id);
+    expect(hinted.openQuestion?.id).toBe(ask.id);
+    expect(hinted.currentMove?.id).toBe(hint.id);
+    expect(praised.openQuestion).toBeNull();
+  });
+});

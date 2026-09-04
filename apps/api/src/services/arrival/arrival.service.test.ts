@@ -29,6 +29,7 @@ describe('arrival service', () => {
       },
       moves: createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW) }),
       gate: passingGate(),
+      classes: () => [],
       nowMs: () => NOW.getTime(),
     });
 
@@ -50,6 +51,7 @@ describe('arrival service', () => {
       },
       moves: createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW) }),
       gate: passingGate(),
+      classes: () => [],
       nowMs: () => NOW.getTime(),
     });
 
@@ -64,6 +66,7 @@ describe('arrival service', () => {
       arrivals: arrivalRepository(),
       moves: createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW) }),
       gate: passingGate(),
+      classes: () => [],
       nowMs: () => NOW.getTime(),
     });
     const result = await service.arrive('student-1');
@@ -76,6 +79,7 @@ describe('arrival service', () => {
       arrivals: arrivalRepository(),
       moves: createMoveFactory({ ids: sequentialIds('move'), clock: fixedClock(NOW) }),
       gate: passingGate(),
+      classes: () => [],
       nowMs: () => NOW.getTime(),
     });
     expect((await service.arrive('student-1')).recommendedSubject).toBeNull();

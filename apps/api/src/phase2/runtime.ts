@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Band } from '@aria/shared';
 
 import { createVoiceBridgeControllers } from '@/controllers/voice-bridge.controller';
+import { createVoiceTalkControllers } from '@/controllers/voice-talk.controller';
 import { createVoiceControllers } from '@/controllers/voice.controller';
 import { ServiceUnavailableError } from '@/errors';
 import { operatorOnly } from '@/middleware/operator-only';
@@ -32,6 +33,9 @@ import { createLivekitTokenProvider } from '@/services/voice/livekit-token.provi
 import { createVoiceMetricsService } from '@/services/voice/metrics.service';
 import { createStudentPronunciationSource } from '@/services/voice/pronunciation.source';
 import { createRealtimeService } from '@/services/voice/realtime.service';
+import { createTalkBriefService } from '@/services/voice/talk-brief.service';
+import { createTalkEventsService } from '@/services/voice/talk-events.service';
+import { createTalkScreenService } from '@/services/voice/talk-screen.service';
 import { createWorkerTurnService } from '@/services/voice/worker-turn.service';
 
 type Phase1Runtime = Awaited<ReturnType<typeof createPhase1Runtime>>;
@@ -89,13 +93,14 @@ export function createPhase2Runtime(
       audio: speechAudio,
     }),
   });
+  const talk = buildTalkControllers(deps, phase1, voiceSessions);
   const processors = processorMap(voiceConfig);
   return {
     routes: {
       // P2H-12: the same gate the student routes run, so a realtime token cannot be
       // negotiated by anything that could not have asked for the turn it belongs to.
       student: { authorize: phase1.identity.childAuth, controller },
-      worker: { authorize: workerOnly(voiceConfig.workerToken), controller, bridges },
+      worker: { authorize: workerOnly(voiceConfig.workerToken), controller, bridges, talk },
       admin: { authorize: operatorOnly(operatorToken), controller },
     },
     consent: {
@@ -154,6 +159,35 @@ function buildVoiceController(
     logger: deps.logger,
     // P2H-07: without a bus the worker still gets one JSON body, exactly as before.
     ...(deps.segments === undefined ? {} : { segments: deps.segments }),
+  });
+}
+
+/** "Aria talks": the brief the model teaches from, and the transcript it reports back. */
+function buildTalkControllers(
+  deps: Phase1RuntimeDeps,
+  phase1: Phase1Runtime,
+  voiceSessions: ReturnType<typeof createVoiceSessionRepository>,
+): ReturnType<typeof createVoiceTalkControllers> {
+  const shared = {
+    sessions: phase1.repositories.sessions,
+    voiceSessions,
+    events: phase1.repositories.events,
+    clock: deps.clock,
+  };
+  return createVoiceTalkControllers({
+    brief: createTalkBriefService({
+      ...shared,
+      students: phase1.repositories.students,
+      inventory: phase1.talk.inventory,
+      retrieve: phase1.talk.retrieve,
+      sessionLimitMinutes: (band) => deps.config.sessionLimitMinutes[band],
+    }).brief,
+    events: createTalkEventsService({ ...shared, safety: phase1.talk.safety }),
+    screen: createTalkScreenService({
+      ...shared,
+      outbox: phase1.repositories.outbox,
+      ids: deps.ids,
+    }).show,
   });
 }
 

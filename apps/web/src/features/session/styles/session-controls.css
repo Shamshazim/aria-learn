@@ -286,3 +286,52 @@
   min-height: 4.5rem;
   padding: 0.75rem 2.25rem;
 }
+
+/* The writing pad Aria opens when she asks for a sentence or a paragraph. */
+.writing-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.writing-pad__prompt {
+  font-weight: 700;
+}
+
+.writing-pad textarea {
+  border: 0.09375rem solid var(--session-line);
+  border-radius: var(--session-radius-medium);
+  font: inherit;
+  line-height: 1.5;
+  padding: 0.875rem 1rem;
+  resize: vertical;
+}
+
+.writing-pad--large textarea {
+  font-size: 1.5rem;
+}
+
+.writing-pad__actions {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.writing-pad__actions button {
+  background: var(--session-violet-deep);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  padding: 0.75rem 1.5rem;
+}
+
+.writing-pad__actions button:disabled {
+  opacity: 0.5;
+}
+
+.writing-pad__sent {
+  color: var(--session-ink-soft, inherit);
+  font-size: 0.9375rem;
+}

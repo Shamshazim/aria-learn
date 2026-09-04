@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { bandForGrade, parseGrade, type TutorMove } from '@aria/shared';
@@ -83,6 +83,7 @@ function SessionForGrade(props: SessionProps): React.JSX.Element {
   });
   const voice = useRealtimeVoice({
     sessionId,
+    ended: session.state.ended,
     autoEnable: searchParams.get('voice') === '1',
     api: sessionApi,
     renderedMoves: renderedMoves.current,
@@ -90,14 +91,34 @@ function SessionForGrade(props: SessionProps): React.JSX.Element {
   });
   voiceEnable.current = voice.enable;
   voiceSync.current = voice.syncMove;
+  const withVoiceAnswers = useVoiceAnswers(session, voice.answerOnScreen);
   return (
     <SessionView
       band={band}
       scenario={scenario}
-      session={session}
+      session={withVoiceAnswers}
       subject={props.subject}
       voice={voice}
     />
+  );
+}
+
+/**
+ * "Aria talks": what the child taps or types goes to her voice first, so she reacts to it out
+ * loud; the API path is what remains when there is no talking voice to give it to.
+ */
+function useVoiceAnswers(
+  session: ReturnType<typeof useTutorSession>,
+  answerOnScreen: ReturnType<typeof useRealtimeVoice>['answerOnScreen'],
+): ReturnType<typeof useTutorSession> {
+  return useMemo(
+    () => ({
+      ...session,
+      answer: async (moveId, value) => {
+        if (!(await answerOnScreen(moveId, value))) await session.answer(moveId, value);
+      },
+    }),
+    [answerOnScreen, session],
   );
 }
 

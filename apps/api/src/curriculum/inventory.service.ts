@@ -1,11 +1,12 @@
-import type { Misconception, Skill } from '@aria/shared';
+import type { Grade, Misconception, Skill } from '@aria/shared';
 
+import { loadCatalogue, type Catalogue, type CatalogueSubject } from '@/curriculum/catalogue';
 import { ARITHMETIC_SKILLS } from '@/curriculum/inventory/arithmetic.skills';
 import { READING_SKILLS } from '@/curriculum/inventory/reading.skills';
 import { WRITING_SKILLS } from '@/curriculum/inventory/writing.skills';
 import { loadLessonNotes, type LessonNote } from '@/curriculum/lessons';
 import { AUTHORED_MISCONCEPTIONS, toMisconception } from '@/curriculum/misconceptions';
-import { validateInventory } from '@/curriculum/validate';
+import { authored, validateInventory } from '@/curriculum/validate';
 
 export type LessonReviewReport = Readonly<{
   total: number;
@@ -15,7 +16,14 @@ export type LessonReviewReport = Readonly<{
 }>;
 
 export type InventoryService = Readonly<{
+  /** Every skill, authored and catalogue alike; what the database is seeded from. */
   listSkills(): readonly Skill[];
+  /** The skills with a lesson note and misconceptions: the P2H-10 bounded inventory. */
+  listAuthoredSkills(): readonly Skill[];
+  /** The legacy subjects, with the grades each has topics for. */
+  listSubjects(): readonly CatalogueSubject[];
+  /** The catalogue topics filed under a subject and grade, in teaching order. */
+  listTopics(subject: Skill['subject'], grade: Grade): readonly Skill[];
   getSkill(code: string): Skill | null;
   getMisconception(id: string): Misconception | null;
   listMisconceptions(skillCode: string): readonly Misconception[];
@@ -31,10 +39,16 @@ export type InventoryService = Readonly<{
  * pointing at a fixture directory overrides.
  */
 export function createInventoryService(
-  dependencies: Readonly<{ lessons?: ReadonlyMap<string, LessonNote> }> = {},
+  dependencies: Readonly<{ lessons?: ReadonlyMap<string, LessonNote>; catalogue?: Catalogue }> = {},
 ): InventoryService {
   const lessons = dependencies.lessons ?? loadLessonNotes();
-  const skills = freezeSkills([...ARITHMETIC_SKILLS, ...READING_SKILLS, ...WRITING_SKILLS]);
+  const catalogue = dependencies.catalogue ?? loadCatalogue();
+  const skills = freezeSkills([
+    ...ARITHMETIC_SKILLS,
+    ...READING_SKILLS,
+    ...WRITING_SKILLS,
+    ...catalogue.skills,
+  ]);
   const misconceptions = freezeMisconceptions(AUTHORED_MISCONCEPTIONS.map(toMisconception));
   validateInventory(skills, misconceptions, lessons);
   const skillsByCode = new Map(skills.map((skill) => [skill.code, skill]));
@@ -42,6 +56,10 @@ export function createInventoryService(
 
   return {
     listSkills: () => skills,
+    listAuthoredSkills: () => authored(skills),
+    listSubjects: () => catalogue.subjects,
+    listTopics: (subject, grade) =>
+      skills.filter((skill) => skill.subject === subject && skill.grade === grade),
     getSkill: (code) => skillsByCode.get(code) ?? null,
     getMisconception: (id) => misconceptionsById.get(id) ?? null,
     listMisconceptions: (skillCode) =>
@@ -55,10 +73,11 @@ function reviewReport(
   skills: readonly Skill[],
   lessons: ReadonlyMap<string, LessonNote>,
 ): LessonReviewReport {
-  const pending = skills
+  const noted = authored(skills);
+  const pending = noted
     .filter((skill) => lessons.get(skill.code)?.review.status !== 'approved')
     .map((skill) => skill.code);
-  return { total: skills.length, approved: skills.length - pending.length, pending };
+  return { total: noted.length, approved: noted.length - pending.length, pending };
 }
 
 function freezeSkills(skills: readonly Skill[]): readonly Skill[] {
@@ -68,6 +87,9 @@ function freezeSkills(skills: readonly Skill[]): readonly Skill[] {
         ...skill,
         prerequisites: Object.freeze([...skill.prerequisites]),
         visualKinds: Object.freeze([...skill.visualKinds]),
+        ...(skill.objectives === undefined
+          ? {}
+          : { objectives: Object.freeze([...skill.objectives]) }),
       }),
     ),
   );

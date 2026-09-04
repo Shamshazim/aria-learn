@@ -60,13 +60,31 @@ export const voiceClientEventSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('SPEECH_STARTED') }),
   z.object({ kind: z.literal('SYNC') }),
   z.object({ kind: z.literal('STOP'), generationId: z.string().min(1).max(128) }),
+  /**
+   * "Aria talks": something the child did on the screen — a tapped choice, a typed answer, a
+   * paragraph in the writing pad — handed to the worker so the voice knows about it at once.
+   * `moveId` says which move the screen was showing, so an answer to the open question is
+   * graded and anything else is read to Aria as words the child gave her.
+   */
+  z.object({
+    kind: z.literal('SCREEN_ANSWER'),
+    moveId: messageIdSchema,
+    text: z.string().min(1).max(4_000),
+  }),
+  /** The session ended on the screen — the child pressed the button — so the voice says goodbye. */
+  z.object({ kind: z.literal('LEAVE') }),
 ]);
 
 export const voiceWorkerStateSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('WORKER_READY') }),
+  /** `talks` is true where a realtime model is Aria's voice, so the screen answers through it. */
+  z.object({ kind: z.literal('WORKER_READY'), talks: z.boolean().default(false) }),
   z.object({ kind: z.literal('TRANSCRIPT_UNCLEAR') }),
   z.object({ kind: z.literal('METRICS_UNAVAILABLE') }),
   z.object({ kind: z.literal('SPEECH_FINISHED'), acknowledgedSeq: sequenceSchema }),
+  /** A sentence Aria just said in her own words, for the caption ("Aria talks"). */
+  z.object({ kind: z.literal('CAPTION'), text: z.string().min(1).max(4_000) }),
+  /** What Aria heard the child say, so the screen shows the microphone is working. */
+  z.object({ kind: z.literal('HEARD'), text: z.string().min(1).max(2_000) }),
 ]);
 
 const boundedMetric = z.number().nonnegative().max(120_000);

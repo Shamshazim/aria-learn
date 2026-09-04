@@ -6,3 +6,4 @@ export { databaseEnvSchema, toDatabaseConfig } from './database';
 export type { DatabaseConfig, DatabaseEnv } from './database';
 export { readConfig, readConfigOrExit } from './read';
 export { loadRepoEnvFile } from './dotenv';
+export { withoutBlanks } from './blank';

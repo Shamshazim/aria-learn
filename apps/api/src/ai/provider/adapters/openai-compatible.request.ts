@@ -45,12 +45,14 @@ function createRequestBody(
       { role: 'user', content: request.user },
     ],
   };
-  const maxTokens = request.maxTokens ?? endpoint['max-tokens'];
+  // The prompt's budget is for the answer; a model that thinks first is given room for that too.
+  const maxTokens = (request.maxTokens ?? endpoint['max-tokens']) + (endpoint['reasoning-tokens'] ?? 0);
   if (endpoint.reasoning === true) body.max_completion_tokens = maxTokens;
   else {
     body.max_tokens = maxTokens;
     body.temperature = request.temperature ?? 0;
   }
+  if (endpoint['reasoning-effort'] !== undefined) body.reasoning_effort = endpoint['reasoning-effort'];
   if (request.jsonMode === true && !promptOnlyJson) {
     body.response_format = { type: 'json_object' };
   }
@@ -67,6 +69,15 @@ export async function requestCompletion(
   signal: AbortSignal,
   delivery: RequestShape['delivery'],
 ): Promise<{ response: Response; extractJson: boolean }> {
+  if (request.jsonMode === true && options.endpoint['json-via'] === 'prompt') {
+    const byPrompt = await sendRequest(
+      options,
+      createRequestBody(options.endpoint, request, { jsonVia: 'prompt-only', delivery }),
+      signal,
+    );
+    if (!byPrompt.ok) throw createProviderHttpError(byPrompt, options.now());
+    return { response: byPrompt, extractJson: true };
+  }
   const response = await sendRequest(
     options,
     createRequestBody(options.endpoint, request, { jsonVia: 'response-format', delivery }),

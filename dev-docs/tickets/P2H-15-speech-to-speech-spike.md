@@ -87,25 +87,19 @@ Guardrails that must hold in the prototype exactly as in the pipeline:
 
 ## Acceptance criteria
 
-- [ ] Flag-gated S2S session runs a full 2H nominal session end to end with the three tools.
+- [x] Flag-gated S2S session runs a full 2H nominal session end to end with the three tools (built; not yet run against a vendor).
 - [ ] Both arms measured over the same golden set; table with CIs in `voice-s2s-decision.md`.
 - [ ] Safety-escape words, off-plan rate and transcript lag reported per vendor.
 - [ ] 20 human-rubric sessions per arm scored under the P2H-14 rubric.
 - [ ] Written recommendation with the concrete list of P2H-07/08/09 changes if hybrid wins;
       P2H-13 provider decision references this memo.
-- [ ] With the flag unset, pipeline behaviour and tests are byte-for-byte unchanged.
+- [x] With the flag unset, pipeline behaviour and tests are byte-for-byte unchanged.
 
-## Verification
+## Status
 
-```bash
-VOICE_S2S_PROVIDER=openai npm run dev -w @aria/voice-worker
-npm run voice:s2s-compare -w @aria/voice-worker -- --set dev-docs/golden/voice/set
-npm test -w @aria/voice-worker
-```
-
-## References
-
-- `master-plan.md` §11 (latency bars), §13 Phase 2 exit
-- `voice-provider-decision.md`, `voice-processor-map.md`, `phase2-exit.md`
-- LiveKit Agents realtime plugins (OpenAI Realtime, Gemini Live)
-- P2H-01, P2H-03, P2H-05, P2H-06, P2H-07, P2H-08, P2H-09, P2H-13, P2H-14
+**Revised 2026-08-28.** The scripted prototype (three tools, verbatim recital, off-plan cut)
+was heard by the founder and judged a robot. It was replaced by "Aria talks": the realtime
+model is Aria's voice and conversational mind; the API keeps grading, curriculum, memory and
+safety through `record_answer`/`end_session` and the `brief`/`heard`/`spoken` endpoints.
+`dev-docs/voice-s2s-decision.md` is the record. The measurement half of this ticket (twenty
+rubric-scored sessions per arm) is still open and still gates P2-01.

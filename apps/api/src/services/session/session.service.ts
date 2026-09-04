@@ -1,6 +1,7 @@
 import {
   PROTOCOL_VERSION,
   sessionIdSchema,
+  type Band,
   type Grade,
   type TutorInputEvent,
   type TutorMove,
@@ -15,6 +16,7 @@ import type { SkillStateRepository } from '@/repositories/skill-state.repository
 import type { StudentRepository } from '@/repositories/student.repository';
 import type { ResumedSession } from '@/services/session/resume.service';
 import type { TutorSessionRecord } from '@/types/session';
+import type { RuntimeSkill } from '@/types/skill-state';
 
 export type SessionStart = Readonly<{
   session: TutorSessionRecord;
@@ -39,7 +41,7 @@ export type SessionService = Readonly<{
 export function createSessionService(deps: {
   students: Pick<StudentRepository, 'requireById'>;
   sessions: Pick<SessionRepository, 'create' | 'findOpen' | 'end'>;
-  skills: Pick<SkillStateRepository, 'findDue'>;
+  skills: Pick<SkillStateRepository, 'findDue' | 'findPractice'>;
   arrivals: Pick<ArrivalEventRepository, 'findById' | 'setAccepted'>;
   clock: Clock;
   ids: IdGenerator;
@@ -85,13 +87,8 @@ async function createOrResume(
   }
   const student = await deps.students.requireById(input.studentId);
   const recommendationAccepted = await recommendationAcceptance(deps, input);
-  const due = await deps.skills.findDue(input.studentId, deps.clock.now());
-  const skill = due.find(
-    (candidate) =>
-      candidate.band === student.band && subjectMatches(input.subject, candidate.subject),
-  );
-  if (skill === undefined)
-    throw new ValidationError('subject is not available for this grade band');
+  const skill = await skillToPractise(deps, input.studentId, input.subject, student);
+  if (skill === null) throw new ValidationError('subject is not available for this grade band');
   const session = await createSessionOrResumeWinner(deps, {
     studentId: input.studentId,
     subject: input.subject,
@@ -120,6 +117,29 @@ async function createOrResume(
     await deps.sessions.end(session.id, 'break', deps.clock.now());
     throw error;
   }
+}
+
+/**
+ * What this class practises: a due skill in the child's band first, and otherwise whatever
+ * comes next. A class with nothing due is still a class, and the child is never told the
+ * subject does not exist today.
+ */
+async function skillToPractise(
+  deps: Parameters<typeof createSessionService>[0],
+  studentId: string,
+  subject: string,
+  student: Readonly<{ band: Band; grade: Grade }>,
+): Promise<RuntimeSkill | null> {
+  const due = await deps.skills.findDue(studentId, deps.clock.now());
+  return (
+    due.find(
+      (candidate) => candidate.band === student.band && subjectMatches(subject, candidate.subject),
+    ) ??
+    (await deps.skills.findPractice(studentId, authoredSubject(subject), {
+      band: student.band,
+      grade: student.grade,
+    }))
+  );
 }
 
 async function createSessionOrResumeWinner(
@@ -172,5 +192,10 @@ function isResumable(
 }
 
 function subjectMatches(requested: string, authored: string): boolean {
-  return requested === authored || (requested === 'math' && authored === 'arithmetic');
+  return authoredSubject(requested) === authored;
+}
+
+/** The picker says "math"; the inventory says "arithmetic". */
+function authoredSubject(requested: string): string {
+  return requested === 'math' ? 'arithmetic' : requested;
 }

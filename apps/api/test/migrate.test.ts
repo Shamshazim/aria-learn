@@ -47,6 +47,7 @@ suite('runMigrations', () => {
       '008',
       '009',
       '010',
+      '011',
     ]);
     expect(rows[0]?.name).toBe('identity');
     expect(rows[1]?.name).toBe('ai_generation_log');
@@ -58,7 +59,7 @@ suite('runMigrations', () => {
     const outcome = await runMigrations({ pool: database.pool, logger });
 
     expect(outcome.applied).toEqual([]);
-    expect(outcome.skipped).toBe(10);
+    expect(outcome.skipped).toBe(11);
   });
 
   it('stays a no-op when two runs race for the lock', async () => {

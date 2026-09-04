@@ -14,6 +14,7 @@ import { parseVoiceRoomContext, type VoiceRoomContext } from '@/session/session-
 import { createSilenceTimer, type SilenceTimer } from '@/session/silence-timer';
 import { finishSilentTerminal, speakSilence, speakStream } from '@/session/speak';
 import { prepareVoiceStartup } from '@/session/startup-handshake';
+import { runTalkVoiceAgent } from '@/session/talk-session';
 import { bindVoiceEvents } from '@/session/voice-events';
 import { createSpeechRenderer, type SpeechRenderer } from '@/voice/speech-renderer';
 
@@ -25,6 +26,8 @@ export default defineAgent({ entry: runVoiceAgent });
 
 async function runVoiceAgent(job: JobContext): Promise<void> {
   const config = readVoiceWorkerConfig(process.env);
+  // P2H-15: the spike replaces the whole pipeline for this worker, or nothing about it.
+  if (config.s2s !== null) return runTalkVoiceAgent(job, config, config.s2s);
   await job.connect();
   const participant = await job.waitForParticipant();
   const room = parseVoiceRoomContext(

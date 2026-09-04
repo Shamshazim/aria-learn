@@ -6,6 +6,7 @@ import {
   INTENT_MODEL_BUDGET_MS,
   type IntentFallbackReason,
 } from '@/ai/intent/model-intent.classifier';
+import { PLANNER_TEXT_BUDGET_MS } from '@/ai/planner/planner.budget';
 import type { LlmResponse } from '@/ai/provider';
 import {
   createIntentFallbackObserver,
@@ -144,6 +145,6 @@ describe('intent classifier', () => {
   });
 
   it('keeps the budget in front of the turn, not behind it', () => {
-    expect(INTENT_MODEL_BUDGET_MS).toBeLessThanOrEqual(300);
+    expect(INTENT_MODEL_BUDGET_MS).toBeLessThan(PLANNER_TEXT_BUDGET_MS.early);
   });
 });

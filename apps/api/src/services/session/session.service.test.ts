@@ -24,7 +24,14 @@ function open(subject: string): TutorSessionRecord {
   };
 }
 
-function harness(existing: TutorSessionRecord | null, lastActivityAt: Date) {
+function harness(
+  existing: TutorSessionRecord | null,
+  lastActivityAt: Date,
+  skills: { due: RuntimeSkill[]; practice: RuntimeSkill | null } = {
+    due: [skill()],
+    practice: null,
+  },
+) {
   const fresh = { ...open('math'), id: 'session-fresh', startedAt: NOW };
   const sessions = {
     create: vi.fn(() => Promise.resolve(fresh)),
@@ -32,10 +39,14 @@ function harness(existing: TutorSessionRecord | null, lastActivityAt: Date) {
     end: vi.fn(() => Promise.resolve(existing)),
   };
   const start = vi.fn(() => Promise.resolve([]));
+  const findPractice = vi.fn(() => Promise.resolve(skills.practice));
   const service = createSessionService({
     students: { requireById: () => Promise.resolve(student()) },
     sessions,
-    skills: { findDue: () => Promise.resolve([skill()]) },
+    skills: {
+      findDue: () => Promise.resolve(skills.due),
+      findPractice,
+    },
     arrivals: {
       findById: () => Promise.resolve(null),
       setAccepted: () => Promise.resolve(true),
@@ -45,7 +56,7 @@ function harness(existing: TutorSessionRecord | null, lastActivityAt: Date) {
     resume: (session) => Promise.resolve({ session, moves: [], lastAppliedSeq: 3, lastActivityAt }),
     start,
   });
-  return { service, sessions, start, fresh };
+  return { service, sessions, start, fresh, findPractice };
 }
 
 function student(): Student {
@@ -117,5 +128,40 @@ describe('picking a class with a session still open', () => {
       resumed: false,
     });
     expect(sessions.end).toHaveBeenCalledExactlyOnceWith('session-math', 'break', NOW);
+  });
+});
+
+describe('picking a class with nothing due in it', () => {
+  it('practises the skill that comes up next instead of refusing the class', async () => {
+    const { service, sessions } = harness(null, NOW, {
+      due: [],
+      practice: { ...skill(), code: 'WR.PARAGRAPH', subject: 'writing' },
+    });
+
+    await expect(service.createOrResume({ ...pick, subject: 'writing' })).resolves.toMatchObject({
+      resumed: false,
+    });
+    expect(sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: { skillCode: 'WR.PARAGRAPH', checkIn: null } }),
+    );
+  });
+
+  it('asks the inventory by its own subject name: "math" is "arithmetic" there', async () => {
+    const { service, findPractice } = harness(null, NOW, { due: [], practice: skill() });
+
+    await service.createOrResume(pick);
+
+    expect(findPractice).toHaveBeenCalledExactlyOnceWith('student-1', 'arithmetic', {
+      band: 'middle',
+      grade: '4',
+    });
+  });
+
+  it('still refuses a class the inventory has no skill for at all', async () => {
+    const { service } = harness(null, NOW, { due: [], practice: null });
+
+    await expect(service.createOrResume({ ...pick, subject: 'science' })).rejects.toThrow(
+      'subject is not available',
+    );
   });
 });

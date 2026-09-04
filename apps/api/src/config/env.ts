@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Band } from '@aria/shared';
 
 import { authEnvSchema, toAuthConfig, toDemoStudentId } from './auth';
+import { withoutBlanks } from './blank';
 import { databaseEnvSchema, toDatabaseConfig } from './database';
 
 import type { AuthConfig } from './auth';
@@ -71,7 +72,7 @@ export const voiceIdEnvSchema = envObjectSchema.pick({
 export function readVoiceIds(
   source: NodeJS.ProcessEnv,
 ): Readonly<Record<Band, string | undefined>> {
-  const env = voiceIdEnvSchema.parse(source);
+  const env = voiceIdEnvSchema.parse(withoutBlanks(source));
   return {
     early: env.VOICE_TTS_VOICE_EARLY,
     middle: env.VOICE_TTS_VOICE_MIDDLE,
@@ -201,7 +202,7 @@ export class ConfigError extends Error {
 }
 
 export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfig {
-  const parsed = envSchema.safeParse(source);
+  const parsed = envSchema.safeParse(withoutBlanks(source));
 
   if (!parsed.success) {
     const details = parsed.error.issues

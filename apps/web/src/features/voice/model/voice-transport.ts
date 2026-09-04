@@ -18,6 +18,11 @@ export async function publishAcknowledgement(room: Room, acknowledgedSeq: number
   await publishClientEvent(room, { kind: 'ACK', acknowledgedSeq });
 }
 
+/** "Aria talks": a tap or some typing on the screen, handed to the voice so she knows at once. */
+export async function publishScreenAnswer(room: Room, moveId: string, text: string): Promise<void> {
+  await publishClientEvent(room, { kind: 'SCREEN_ANSWER', moveId, text });
+}
+
 export async function publishClientEvent(room: Room, event: VoiceClientEvent): Promise<void> {
   await room.localParticipant.publishData(encoder.encode(JSON.stringify(event)), {
     reliable: true,

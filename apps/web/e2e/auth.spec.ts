@@ -115,6 +115,7 @@ function arrival(): unknown {
     arrivalId: '00000000-0000-4000-8000-000000000001',
     recommendedSubject: 'math',
     student: { grade: '4', band: 'middle' },
+    classes: [{ subjectId: 'mathematics', name: 'Mathematics', grade: '4' }],
     moves: [
       { ...base, id: 'welcome-1', kind: 'WELCOME', speech: { text: 'Welcome back, Sam.' } },
       {

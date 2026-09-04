@@ -41,6 +41,7 @@ function repository(personalisedFor: string | null): ContentItemRepository {
     findEligible: vi.fn(() => Promise.resolve(item)),
     markUsed: vi.fn(() => Promise.resolve()),
     listContentHashes: vi.fn(() => Promise.resolve([])),
+    listPrompts: vi.fn(() => Promise.resolve([])),
   };
 }
 

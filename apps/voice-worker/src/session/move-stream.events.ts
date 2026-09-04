@@ -66,6 +66,16 @@ export function transcriptEvent(
   };
 }
 
+/** P2H-15: a spoken answer the speech-to-speech model handed to `check_answer`. */
+export function answerEvent(
+  input: EventInput,
+  state: MoveStreamState,
+  respondsTo: string,
+  text: string,
+): TutorInputEvent {
+  return { ...commonEvent(input, state), kind: 'ANSWER', respondsTo, text };
+}
+
 export function resumeEvent(input: EventInput, state: MoveStreamState): TutorInputEvent {
   return { ...commonEvent(input, state), kind: 'RESUME' };
 }

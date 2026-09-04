@@ -64,9 +64,9 @@ describe('lesson notes', () => {
     );
   });
 
-  it('has a note for every skill in the inventory', () => {
+  it('has a note for every authored skill in the inventory', () => {
     const notes = loadLessonNotes();
-    for (const skill of createInventoryService({ lessons: notes }).listSkills()) {
+    for (const skill of createInventoryService({ lessons: notes }).listAuthoredSkills()) {
       expect(notes.get(skill.code), skill.code).toBeDefined();
     }
   });

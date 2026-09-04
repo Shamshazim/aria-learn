@@ -11,7 +11,7 @@ import {
 } from '@/ai/provider/__fixtures__/ai-config.fixtures';
 
 const tempDirectories: string[] = [];
-const TEST_ENV = { ANTHROPIC_API_KEY: 'test-key' };
+const TEST_ENV = { ANTHROPIC_API_KEY: 'test-key', GROQ_API_KEY: 'test-key' };
 
 function writeConfig(contents: string): string {
   const directory = mkdtempSync(join(tmpdir(), 'aria-ai-config-'));
@@ -41,6 +41,12 @@ describe('loadAiConfig loading', () => {
   it('loads the checked-in Anthropic, OpenAI, and Groq-compatible endpoints', () => {
     const config = loadAiConfig(TEST_ENV);
 
+    expect(config.app.ai.endpoints['groq-compatible']?.['json-via']).toBe('prompt');
+    expect(config.app.ai.endpoints['groq-fast']?.['json-via']).toBe('prompt');
+    for (const name of ['groq-compatible', 'groq-fast']) {
+      expect(config.app.ai.endpoints[name]?.['reasoning-effort']).toBe('low');
+      expect(config.app.ai.endpoints[name]?.['reasoning-tokens']).toBe(256);
+    }
     expect(config.app.ai.endpoints['anthropic-sonnet']?.api).toBe('anthropic');
     expect(config.app.ai.endpoints['openai-gpt']?.api).toBe('openai');
     expect(config.app.ai.endpoints['groq-compatible']?.['base-url']).toBe(

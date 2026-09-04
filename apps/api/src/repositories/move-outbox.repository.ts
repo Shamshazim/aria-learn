@@ -14,7 +14,8 @@ type OutboxRow = QueryResultRow & z.infer<typeof rowSchema>;
 
 export type MoveOutboxRepository = Readonly<{
   withDb(db: Queryable): MoveOutboxRepository;
-  enqueueIfOpen(sessionId: string, move: TutorMove): Promise<void>;
+  /** The move as stored — stamped with its `serverSeq` — or `null` when no voice session is open. */
+  enqueueIfOpen(sessionId: string, move: TutorMove): Promise<TutorMove | null>;
   listAfter(sessionId: string, acknowledgedSeq: number): Promise<readonly OutboxMove[]>;
   acknowledge(sessionId: string, acknowledgedSeq: number, at: Date): Promise<void>;
 }>;
@@ -36,10 +37,10 @@ async function enqueueIfOpen(
   deps: Parameters<typeof createMoveOutboxRepository>[0],
   sessionId: string,
   move: TutorMove,
-): Promise<void> {
+): Promise<TutorMove | null> {
   const generationId = move.speech === null ? undefined : (move.generationId ?? deps.ids.next());
   const delivered = generationId === undefined ? move : { ...move, generationId };
-  await runQuery<QueryResultRow>({
+  const result = await runQuery<OutboxRow>({
     db: deps.db,
     operation: 'moveOutbox.enqueueIfOpen',
     sql: `WITH next_seq AS (
@@ -51,9 +52,12 @@ async function enqueueIfOpen(
             (id, session_id, server_seq, move_id, generation_id, payload)
           SELECT $1, $2, next_seq.value, $3, $4,
                  jsonb_set($5::jsonb, '{serverSeq}', to_jsonb(next_seq.value))
-          FROM next_seq ON CONFLICT (session_id, move_id) DO NOTHING`,
+          FROM next_seq ON CONFLICT (session_id, move_id) DO NOTHING
+          RETURNING server_seq, payload`,
     params: [deps.ids.next(), sessionId, move.id, generationId ?? null, JSON.stringify(delivered)],
   });
+  const row = result.rows[0];
+  return row === undefined ? null : tutorMoveSchema.parse(rowSchema.parse(row).payload);
 }
 
 async function listAfter(

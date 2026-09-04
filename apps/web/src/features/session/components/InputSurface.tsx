@@ -2,6 +2,7 @@ import type { Band, TutorMove } from '@aria/shared';
 
 import { TapNumbers, TextEntry } from '@/features/session/components/AnswerEntry';
 import { SpeakButton } from '@/features/session/components/SpeakButton';
+import { WritingPad } from '@/features/session/components/WritingPad';
 import { inputModeFor } from '@/features/session/model/answer-input';
 import type { VoiceAvailability } from '@/features/session/model/voice-availability';
 
@@ -42,7 +43,21 @@ function typedControl(props: InputProps): React.JSX.Element | null {
       ) : (
         <TextEntry inputMode="numeric" onAnswer={props.onAnswer} />
       );
-    case 'text':
+    case 'text': {
+      // A work pad that expects an answer is a place to write, not a line to fill in.
+      const pad = props.move.display.find(
+        (item) => item.type === 'workpad' && item.mode === 'answer',
+      );
+      if (pad?.type === 'workpad') {
+        return (
+          <WritingPad
+            key={props.move.id}
+            large={props.band === 'early'}
+            onAnswer={props.onAnswer}
+            prompt={pad.prompt ?? null}
+          />
+        );
+      }
       return (
         <TextEntry
           inputMode={inputModeFor(props.move)}
@@ -51,6 +66,7 @@ function typedControl(props: InputProps): React.JSX.Element | null {
           onAnswer={props.onAnswer}
         />
       );
+    }
     case 'speech':
       // The speak button below is the whole of this control.
       return <></>;

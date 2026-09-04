@@ -27,12 +27,35 @@ describe('curriculum inventory', () => {
 
     expect(
       inventory
-        .listSkills()
+        .listAuthoredSkills()
         .map((skill) => skill.code)
         .sort(),
     ).toEqual(EXPECTED_CODES);
     expect(inventory.getSkill('ADD.REGROUP.2D')?.prerequisites).toEqual(['ADD.FACT.10']);
     expect(inventory.getSkill('NOT.A.SKILL')).toBeNull();
+  });
+
+  it('carries the legacy catalogue alongside, as skills the same reads resolve', () => {
+    const inventory = createInventoryService();
+
+    expect(inventory.listSkills()).toHaveLength(EXPECTED_CODES.length + 394);
+    expect(inventory.listSubjects().map((subject) => subject.id)).toEqual([
+      'english-writing',
+      'mathematics',
+      'math-adventures',
+      'science',
+    ]);
+    expect(inventory.listTopics('science', '4').map((skill) => skill.name)).toEqual([
+      'Animal Groups',
+      'Habitats',
+    ]);
+    expect(inventory.getSkill('MATH.G4.U01.L01.T01')).toMatchObject({
+      name: 'Place Value to Millions',
+      band: 'middle',
+      lessonRef: null,
+    });
+    expect(inventory.getLesson('MATH.G4.U01.L01.T01')).toBeNull();
+    expect(inventory.listMisconceptions('MATH.G4.U01.L01.T01')).toEqual([]);
   });
 
   it.each(['ADD.REGROUP.2D', 'FRAC.COMPARE', 'PH.SILENT_E'])(

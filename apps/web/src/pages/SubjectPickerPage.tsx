@@ -10,61 +10,21 @@ import { RecommendationCard } from '@/features/arrival/components/Recommendation
 import { WelcomeBanner } from '@/features/arrival/components/WelcomeBanner';
 import { useArrival } from '@/features/arrival/hooks/useArrival';
 import type { ArrivalState } from '@/features/arrival/model/arrival.machine';
+import { faceFor, type SubjectFace } from '@/features/arrival/model/subject-face';
 import { AriaOwl } from '@/features/session';
 import '@/features/session/styles/session.css';
 import '@/features/session/styles/session-chrome.css';
 import '@/features/session/styles/subject-picker.css';
 
+import type { CSSProperties } from 'react';
+
 const arrivalApi = createArrivalApi(createApiClient({ baseUrl: webConfig.apiBaseUrl }));
 
-const CLASSES: readonly Readonly<{
-  subject: string;
-  emoji: string;
-  note: string;
-  theme: string;
-}>[] = [
-  {
-    subject: 'Math',
-    emoji: '🧮',
-    note: 'Numbers, shapes and patterns.',
-    theme: 'math',
-  },
-  {
-    subject: 'Reading',
-    emoji: '📖',
-    note: 'Stories, sounds and new words.',
-    theme: 'reading',
-  },
-  {
-    subject: 'Writing',
-    emoji: '✍️',
-    note: 'Words, sentences and stories.',
-    theme: 'science',
-  },
-];
-
-const PLACEHOLDER_CLASSES = [
-  {
-    subject: 'Math',
-    emoji: '🧮',
-    note: 'Numbers, shapes and patterns.',
-    theme: 'math',
-    grade: '1' as const,
-  },
-  {
-    subject: 'Reading',
-    emoji: '📖',
-    note: 'Stories, sounds and new words.',
-    theme: 'reading',
-    grade: '4' as const,
-  },
-  {
-    subject: 'Science',
-    emoji: '🔬',
-    note: 'How the world actually works.',
-    theme: 'science',
-    grade: '7' as const,
-  },
+/** What the picker shows before the arrival answers, so the page has a shape to load into. */
+const PLACEHOLDER_CLASSES: readonly Readonly<{ subject: string; grade: Grade }>[] = [
+  { subject: 'Mathematics', grade: '1' },
+  { subject: 'Reading', grade: '4' },
+  { subject: 'Science', grade: '7' },
 ];
 
 export default function SubjectPickerPage(): React.JSX.Element {
@@ -99,18 +59,10 @@ export default function SubjectPickerPage(): React.JSX.Element {
   );
 }
 
-function availableClasses(band: 'early' | 'middle' | 'senior') {
-  if (band === 'early') return CLASSES;
-  if (band === 'middle') return CLASSES.filter((item) => item.subject !== 'Reading');
-  return CLASSES.filter((item) => item.subject === 'Writing');
-}
-
 type CardView = Readonly<{
   grade: Grade;
   subject: string;
-  emoji: string;
-  note: string;
-  theme: string;
+  face: SubjectFace;
   href: string | null;
 }>;
 
@@ -118,17 +70,25 @@ function ClassCard({ card }: Readonly<{ card: CardView }>): React.JSX.Element {
   const content = (
     <>
       <span aria-hidden="true" className="class-card__face">
-        {card.emoji}
+        {card.face.emoji}
       </span>
       <strong>{card.subject}</strong>
-      <span className="class-card__note">{card.note}</span>
+      <span className="class-card__note">{card.face.note}</span>
       <small>Grade {card.grade}</small>
     </>
   );
-  const className = `class-card class-card--${card.theme}`;
+  // The two colours go in as custom properties rather than as styles directly, so each band
+  // can decide what to do with them: the younger bands fill the card, the senior band takes
+  // an edge.
+  const style = { '--class-tint': card.face.tint, '--class-edge': card.face.edge } as CSSProperties;
   if (card.href === null) {
     return (
-      <div aria-disabled="true" className={className} data-band={bandForGrade(card.grade)}>
+      <div
+        aria-disabled="true"
+        className="class-card"
+        data-band={bandForGrade(card.grade)}
+        style={style}
+      >
         {content}
       </div>
     );
@@ -136,8 +96,9 @@ function ClassCard({ card }: Readonly<{ card: CardView }>): React.JSX.Element {
   return (
     <Link
       aria-label={`${card.subject} Grade ${card.grade}`}
-      className={className}
+      className="class-card"
       data-band={bandForGrade(card.grade)}
+      style={style}
       to={card.href}
     >
       {content}
@@ -172,11 +133,12 @@ function arrivalView(state: ArrivalState) {
     checkIn: moveByKind(data.moves, 'CHECK_IN'),
     recommendation,
     recommendedHref: recommendationHref(recommendation, data.arrivalId, state.checkIn),
-    cards: availableClasses(data.student.band).map((item) => ({
-      ...item,
-      grade: data.student.grade,
+    cards: data.classes.map((item) => ({
+      grade: item.grade,
+      subject: item.name,
+      face: faceFor(item.name),
       href: sessionHref(
-        { grade: data.student.grade, subject: item.subject.toLowerCase() },
+        { grade: item.grade, subject: item.subjectId },
         data.arrivalId,
         false,
         state.checkIn,
@@ -186,7 +148,7 @@ function arrivalView(state: ArrivalState) {
 }
 
 function placeholderCards(): readonly CardView[] {
-  return PLACEHOLDER_CLASSES.map((item) => ({ ...item, href: null }));
+  return PLACEHOLDER_CLASSES.map((item) => ({ ...item, face: faceFor(item.subject), href: null }));
 }
 
 function recommendationHref(

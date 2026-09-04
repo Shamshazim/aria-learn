@@ -38,6 +38,20 @@ const endpointSchema = z.strictObject({
   'cost-per-mtok-out': z.number().nonnegative().max(MAX_COST_PER_MTOK),
   'supports-temperature': z.boolean().optional(),
   reasoning: z.boolean().optional(),
+  /**
+   * How JSON is asked for. `response-format` (the default) sends `response_format`; `prompt`
+   * asks in the system prompt and extracts the object — for vendors whose JSON constraint
+   * fails a generation outright (Groq's `json_validate_failed`) rather than shaping it.
+   */
+  'json-via': z.enum(['response-format', 'prompt']).optional(),
+  /**
+   * Groq's gpt-oss models reason before they answer, and the reasoning is billed against
+   * `max_tokens`: a 120-token planning call came back as 120 tokens of hidden thought and an
+   * empty answer. `reasoning-effort` asks for less of it; `reasoning-tokens` is the allowance
+   * added to every request's budget so the answer itself still fits.
+   */
+  'reasoning-effort': z.enum(['low', 'medium', 'high']).optional(),
+  'reasoning-tokens': z.number().int().nonnegative().max(MAX_TOKENS).optional(),
 });
 
 const routeSchema = z.strictObject({

@@ -1,3 +1,5 @@
+import type { Skill } from '@aria/shared';
+
 import { createRespondStreamer, type AiClient, type RespondStreamer } from '@/ai';
 import {
   createContentCacheService,
@@ -13,6 +15,7 @@ import {
 } from '@/content/generation';
 import { outputSafety } from '@/content/output-safety';
 import type { InventoryService } from '@/curriculum';
+import { describeSkill } from '@/curriculum/describe-skill';
 import { ServiceUnavailableError } from '@/errors';
 import { createGateObserver } from '@/observability/gate-metrics';
 import { scrubLearnerContext } from '@/privacy';
@@ -109,8 +112,12 @@ async function generateContent(
   const skill = inventory.getSkill(input.skillCode);
   if (skill === null) throw new ServiceUnavailableError('use verified fallback');
   if (skill.subject === 'arithmetic') return generateArithmetic(bank, input);
-  return generatePrompted({ ai, skill, input, ...(signal === undefined ? {} : { signal }) });
+  return generatePrompted({ ai, skill, bank, input, ...(signal === undefined ? {} : { signal }) });
 }
+
+/** How many of the child's existing items a prompted generation is told to differ from. */
+const AVOID_RECENT_ITEMS = 8;
+const AVOID_PROMPT_CHARS = 240;
 
 /**
  * The next item of this skill the bank does not already hold.
@@ -139,24 +146,37 @@ async function generateArithmetic(
   return toGeneratedContent(item, input.kind);
 }
 
+/**
+ * A prompted item is written against what the child already has: at temperature zero the same
+ * skill description produced the same item every time, so a correct answer was followed by the
+ * identical question under a new id. A repeat that slips through anyway is refused, which is
+ * what sends the reliable service to its second attempt and then to the fallback.
+ */
 async function generatePrompted(
   request: Readonly<{
     ai: AiClient;
-    skill: Readonly<{ code: string; name: string }>;
+    skill: Skill;
+    bank: ContentItemRepository;
     input: ContentRequest;
     signal?: AbortSignal;
   }>,
 ): Promise<GeneratedContent> {
-  const { ai, skill, input, signal } = request;
+  const { ai, skill, bank, input, signal } = request;
   const context = scrubLearnerContext(
     { identifiers: {}, gradeBand: input.band, skill: skill.code },
     { pseudonym: 'omit' },
   );
+  const avoid = (await bank.listPrompts(input, AVOID_RECENT_ITEMS)).map((prompt) =>
+    prompt.slice(0, AVOID_PROMPT_CHARS),
+  );
   const result = await ai.run(
     'practice-item',
-    { context, skill: skill.name, difficulty: 'same' },
+    { context, skill: describeSkill(skill), difficulty: 'same', avoid },
     { studentId: input.studentId, ...(signal === undefined ? {} : { signal }) },
   );
+  if (avoid.some((prompt) => sameItem(prompt, result.data.prompt))) {
+    throw new ServiceUnavailableError('practice item repeated one the child already has');
+  }
   const body = {
     prompt: result.data.prompt,
     answerKey: result.data.answer,
@@ -184,4 +204,10 @@ async function generatePrompted(
       scope: contentScope({ studentId: input.studentId, usesLearnerMemory: false }),
     },
   };
+}
+
+function sameItem(left: string, right: string): boolean {
+  const normalise = (text: string): string =>
+    text.toLowerCase().replaceAll(/[^a-z0-9]+/gu, ' ').trim().slice(0, AVOID_PROMPT_CHARS);
+  return normalise(left) === normalise(right);
 }

@@ -62,6 +62,7 @@ async function runPrompt<Name extends PromptName>(
       user: definition.render(parsedInput),
       maxTokens: definition.maxTokens,
       jsonMode: definition.jsonMode,
+      ...(definition.temperature === undefined ? {} : { temperature: definition.temperature }),
       ...(options?.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
       ...(options?.signal === undefined ? {} : { signal: options.signal }),
       accounting: {

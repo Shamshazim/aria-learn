@@ -17,10 +17,10 @@ const CLAIM_IDS = new Set(STRATEGY_CLAIMS.map((claim) => claim.id));
 describe('the strategy evidence table', () => {
   const inventory = createInventoryService();
 
-  it('names every skill in the inventory and no others', () => {
+  it('names every authored skill in the inventory and no others', () => {
     expect(Object.keys(SKILL_STRATEGIES).sort()).toEqual(
       inventory
-        .listSkills()
+        .listAuthoredSkills()
         .map((skill) => skill.code)
         .sort(),
     );

@@ -35,7 +35,7 @@ function service(
     pronunciation?: Readonly<Record<string, string>>;
   }> = {},
 ) {
-  const enqueueIfOpen = vi.fn(() => Promise.resolve());
+  const enqueueIfOpen = vi.fn(() => Promise.resolve(null));
   const closeRoom = vi.fn(() => Promise.resolve());
   const mint = vi.fn(overrides.mint ?? (() => Promise.resolve('short-lived-token')));
   const findGranted = () =>

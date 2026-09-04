@@ -1,6 +1,7 @@
 import { tutorMoveSchema, type TutorInputEvent, type VisualContent } from '@aria/shared';
 import type { LoadedTurnContext, PlannedTurn } from '@aria/tutor';
 
+import { createModelGrader } from '@/ai/grader/model-grader';
 import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { createModelPlanner } from '@/ai/planner/model-planner';
 import { plannerBudgetMs } from '@/ai/planner/planner.budget';
@@ -16,6 +17,7 @@ import { createIntentFallbackObserver } from '@/observability/intent-metrics';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
+import { classesFor } from '@/services/arrival/classes.service';
 import {
   createTurnContentService,
   type ApiModelContext,
@@ -35,6 +37,7 @@ import { createTutorService } from '@/services/tutor/tutor.service';
 import { buildContentServices, type ContentServices } from './content.runtime';
 import { buildPhase1Controllers } from './controllers.runtime';
 import { buildRepositories } from './repositories.runtime';
+import { buildTalkPorts, type TalkPorts } from './talk.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
@@ -45,6 +48,8 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
     /** P2H-12: the child gate, the idle sweep, and the routers a signed-in parent uses. */
     identity: ReturnType<typeof buildPhase1Controllers>['identity'];
     repositories: Phase1Repositories;
+    /** "Aria talks": what the realtime-model voice path needs from here. */
+    talk: TalkPorts;
   }>
 > {
   const repositories = buildRepositories(deps);
@@ -60,11 +65,12 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
     crisis,
     gate: content.gate,
     skillName: (code) => inventory.getSkill(code)?.name ?? null,
+    classes: (student) => classesFor(inventory, student),
     cancelAhead: (sessionId) => {
       content.ahead.cancel(sessionId);
     },
   });
-  return { ...controllers, repositories };
+  return { ...controllers, repositories, talk: buildTalkPorts(deps, repositories, inventory) };
 }
 
 async function seedInventory(
@@ -129,6 +135,7 @@ function buildTutor(
       ai: deps.ai,
       onFallback: createIntentFallbackObserver({ metrics: deps.metrics }),
     }),
+    judge: createModelGrader({ ai: deps.ai }),
     ...plannerPorts(deps),
   });
 }

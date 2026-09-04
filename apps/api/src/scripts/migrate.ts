@@ -1,4 +1,4 @@
-import { databaseEnvSchema, toDatabaseConfig } from '@/config';
+import { databaseEnvSchema, loadRepoEnvFile, toDatabaseConfig, withoutBlanks } from '@/config';
 import type { DatabaseConfig } from '@/config';
 import { closePool, createPool, runMigrations } from '@/db';
 import { createLogger } from '@/lib/logger';
@@ -16,8 +16,14 @@ import { MIGRATE_USAGE, parseMigrateArgs } from './migrate-args';
  * deploy migrates before the new code starts (X-01), and at that moment the release's other
  * variables are not this job's business — demanding them would make a schema change fail for
  * a reason that has nothing to do with the schema.
+ *
+ * The repo's `.env` is loaded first, as every other entry point does. Without it the command
+ * the README documents fails on a developer's machine, where `DATABASE_URL` lives in that file
+ * and nowhere else. A deploy is unaffected: there is no `.env` to find, and a variable already
+ * exported still wins over one read from the file.
  */
 async function main(): Promise<void> {
+  loadRepoEnvFile();
   const args = parseMigrateArgs(process.argv.slice(2));
   const logger = createLogger({ level: process.env.LOG_LEVEL ?? 'info' });
   const pool = createPool(databaseConfig(args.url), logger);
@@ -37,7 +43,7 @@ async function main(): Promise<void> {
 
 function databaseConfig(url: string | undefined): DatabaseConfig {
   const source = url === undefined ? process.env : { ...process.env, DATABASE_URL: url };
-  const parsed = databaseEnvSchema.safeParse(source);
+  const parsed = databaseEnvSchema.safeParse(withoutBlanks(source));
 
   if (!parsed.success) {
     const details = parsed.error.issues

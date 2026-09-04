@@ -16,8 +16,10 @@ import type { ScrubbedContext } from '@/privacy';
  * it, never a dependency: it runs only for a low-confidence result, inside a hard budget, and
  * any failure — slow, down, over budget, nonsense output — falls back to the rules and is
  * counted. A turn must never wait on a classifier to find out that a child said "seven".
+ * The budget is set above what the FAST endpoint actually takes (0.3–0.6 s); below that the
+ * model pass never finishes and the rules decide every uncertain turn.
  */
-export const INTENT_MODEL_BUDGET_MS = 300;
+export const INTENT_MODEL_BUDGET_MS = 1_200;
 
 export type IntentFallbackReason = 'timeout' | 'provider_error' | 'disabled';
 

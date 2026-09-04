@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { BANDS, type Band } from '@aria/shared';
 
+import { readS2SConfig, type S2SConfig } from '@/session/s2s-config';
 import { voiceFor, type BandVoiceIds, type VoiceProfile } from '@/voice/voice-catalog';
 
 const voiceId = z.string().min(1).max(128);
@@ -35,6 +36,8 @@ export type VoiceWorkerConfig = Readonly<{
   sttModel: string;
   ttsModel: string;
   voices: BandVoiceIds;
+  /** P2H-15: set only on a worker running the speech-to-speech spike. */
+  s2s: S2SConfig | null;
 }>;
 
 export function readVoiceWorkerConfig(source: NodeJS.ProcessEnv): VoiceWorkerConfig {
@@ -55,6 +58,7 @@ export function readVoiceWorkerConfig(source: NodeJS.ProcessEnv): VoiceWorkerCon
     sttModel: parsed.VOICE_STT_MODEL,
     ttsModel: parsed.VOICE_TTS_MODEL,
     voices,
+    s2s: readS2SConfig(source),
   };
 }
 

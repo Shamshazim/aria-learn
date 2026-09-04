@@ -1,10 +1,11 @@
-import { ConnectionState, Room, RoomEvent, Track } from 'livekit-client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Room, RoomEvent, Track } from 'livekit-client';
+import { useEffect, useRef, useState } from 'react';
 
 import type { TutorMove } from '@aria/shared';
 import { createMoveInbox } from '@aria/voice';
 
 import type { SessionApi } from '@/features/session/api/session.api';
+import { useLeaveOnEnd, useScreenBridge } from '@/features/voice/hooks/useScreenBridge';
 import { useVoiceActions, type VoiceActions } from '@/features/voice/hooks/useVoiceActions';
 import { setRemoteVolume } from '@/features/voice/model/voice-audio';
 import { parseVoiceMove, parseVoiceWorkerState } from '@/features/voice/model/voice-messages';
@@ -16,20 +17,27 @@ import {
 import {
   microphones,
   publishAcknowledgement,
-  publishClientEvent,
   readAcknowledgedSeq,
   storeAcknowledgedSeq,
 } from '@/features/voice/model/voice-transport';
-import { workerReadyAcknowledgement } from '@/features/voice/model/worker-ready';
+import { applyWorkerState, statusWhenReady } from '@/features/voice/model/worker-state';
 
 export type RealtimeVoice = VoiceState &
   VoiceActions &
   Readonly<{
     syncMove(move: TutorMove): Promise<void>;
+    /**
+     * "Aria talks": an answer given on the screen goes to the voice, not the API, so Aria
+     * reacts to it out loud. Returns false when there is no talking voice to give it to, and
+     * the caller sends it the usual way.
+     */
+    answerOnScreen(moveId: string, text: string): Promise<boolean>;
   }>;
 
 type RealtimeVoiceInput = Readonly<{
   sessionId: string | null;
+  /** The session is over on the screen, so a talking voice is told to say goodbye. */
+  ended?: boolean;
   autoEnable?: boolean;
   api: SessionApi;
   renderedMoves: Set<string>;
@@ -45,6 +53,7 @@ export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
   const autoEnableAttempt = useRef<string | null>(null);
   const connectionEpoch = useRef<number | null>(null);
   const acknowledgedSeq = useRef(0);
+  const talks = useRef(false);
   const onMove = input.onMove;
   useEffect(
     () =>
@@ -63,6 +72,7 @@ export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
         enabled: enabledRef,
         connectionEpoch,
         acknowledgedSeq,
+        talks,
       }),
     [input.api, input.sessionId, onMove],
   );
@@ -81,17 +91,9 @@ export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
     setState,
   });
   useAutoEnableVoice(input, state.status, actions.enable, autoEnableAttempt);
-  const syncMove = useCallback(
-    async (move: TutorMove) => {
-      input.renderedMoves.add(move.id);
-      const room = roomRef.current;
-      if (enabledRef.current && room?.state === ConnectionState.Connected) {
-        await publishClientEvent(room, { kind: 'SYNC' });
-      }
-    },
-    [input.renderedMoves],
-  );
-  return { ...state, ...actions, syncMove };
+  useLeaveOnEnd(input.ended === true, { room: roomRef, enabled: enabledRef, talks });
+  const bridge = useScreenBridge({ room: roomRef, enabled: enabledRef, talks }, input.renderedMoves);
+  return { ...state, ...actions, ...bridge };
 }
 
 function useAutoEnableVoice(
@@ -120,6 +122,7 @@ type VoiceConnectionDeps = Readonly<{
   enabled: React.RefObject<boolean>;
   connectionEpoch: React.RefObject<number | null>;
   acknowledgedSeq: React.RefObject<number>;
+  talks: React.RefObject<boolean>;
 }>;
 
 function connect(input: VoiceConnectionDeps): (() => void) | undefined {
@@ -180,6 +183,7 @@ type RoomBindings = Readonly<{
   enabled: React.RefObject<boolean>;
   connectionEpoch: React.RefObject<number | null>;
   acknowledgedSeq: React.RefObject<number>;
+  talks: React.RefObject<boolean>;
   sessionId: string;
 }>;
 
@@ -202,9 +206,14 @@ function bindRoom(room: Room, input: RoomBindings): void {
     input.renderedMoves.add(parsed.id);
     input.setGenerationId(parsed.generationId ?? null);
     setRemoteVolume(room, 1);
-    input.setState((current) => ({ ...current, caption: parsed.speech?.text ?? '' }));
+    // Where Aria talks, the caption is her own sentence, not the move's line.
+    if (!input.talks.current) {
+      input.setState((current) => ({ ...current, caption: parsed.speech?.text ?? '' }));
+    }
     if (!alreadyRendered) input.onMove(parsed);
-    if (parsed.speech === null && parsed.serverSeq !== undefined) {
+    // A silent move is delivered once it is on screen; so is every move where Aria talks,
+    // because a realtime model says it in its own words rather than playing it back.
+    if (parsed.serverSeq !== undefined && (parsed.speech === null || input.talks.current)) {
       acknowledgeDelivered(room, input, parsed.serverSeq);
     }
   });
@@ -218,11 +227,7 @@ function bindRoom(room: Room, input: RoomBindings): void {
     if (input.enabled.current) acknowledge(room, input.inbox.acknowledgedSeq());
     input.setState((current) => ({
       ...current,
-      status: !input.enabled.current
-        ? 'ready'
-        : room.localParticipant.isMicrophoneEnabled
-          ? 'listening'
-          : 'muted',
+      status: statusWhenReady(room, input.enabled.current),
     }));
   });
   room.on(RoomEvent.Disconnected, () => {
@@ -234,34 +239,17 @@ function applyVoiceState(room: Room, payload: Uint8Array, input: RoomBindings): 
   const state = parseVoiceWorkerState(payload);
   if (state === null) return;
   if (state.kind === 'WORKER_READY') {
-    const acknowledgement = workerReadyAcknowledgement(
-      state,
-      input.enabled.current,
-      input.inbox.acknowledgedSeq(),
-    );
-    if (acknowledgement !== null) {
-      void publishClientEvent(room, acknowledgement).catch(() => undefined);
-    }
-    input.setState((current) => ({
-      ...current,
-      status: !input.enabled.current
-        ? 'ready'
-        : room.localParticipant.isMicrophoneEnabled
-          ? 'listening'
-          : 'muted',
-    }));
-    return;
+    const talks = input.talks;
+    talks.current = state.talks;
   }
-  if (state.kind === 'METRICS_UNAVAILABLE') return;
-  if (state.kind === 'SPEECH_FINISHED') {
-    acknowledgeDelivered(room, input, state.acknowledgedSeq);
-    return;
-  }
-  input.setState((current) => ({
-    ...current,
-    caption: "I didn't catch that. Please try again.",
-    status: current.status === 'muted' ? 'muted' : 'listening',
-  }));
+  applyWorkerState(room, state, {
+    enabled: input.enabled.current,
+    acknowledgedSeq: input.inbox.acknowledgedSeq,
+    setState: input.setState,
+    acknowledgeDelivered: (serverSeq) => {
+      acknowledgeDelivered(room, input, serverSeq);
+    },
+  });
 }
 
 function acknowledgeDelivered(room: Room, input: RoomBindings, serverSeq: number): void {
