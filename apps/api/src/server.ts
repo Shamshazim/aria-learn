@@ -2,6 +2,7 @@ import { AiConfigError, loadAiConfig } from '@/ai/provider';
 import { createAiRuntime } from '@/ai/runtime';
 import { createApp } from '@/app';
 import { loadRepoEnvFile, readConfigOrExit } from '@/config';
+import type { AppConfig } from '@/config';
 import { createInventoryService } from '@/curriculum';
 import { closePool, createPool, runMigrations, verifyConnection } from '@/db';
 import { systemClock } from '@/lib/clock';
@@ -12,6 +13,8 @@ import { createMetrics } from '@/observability/metrics';
 import type { Metrics } from '@/observability/metrics';
 import { createPhase1Runtime } from '@/phase1/runtime';
 import { createPhase2Runtime } from '@/phase2/runtime';
+import { createIdempotencyRepository } from '@/repositories/idempotency.repository';
+import { createPostgresRateLimitStore } from '@/repositories/rate-limit.repository';
 import { createVoiceSessionRepository } from '@/repositories/voice-session.repository';
 import { createSegmentBus } from '@/services/content/segment-bus';
 
@@ -59,16 +62,7 @@ export async function start(): Promise<void> {
   const phase1 = await createPhase1Runtime(runtimeDeps);
   const voice = config.voice === undefined ? undefined : createPhase2Runtime(runtimeDeps, phase1);
   const identity = phase1.identity.routerDeps(voice?.consent);
-  const app = createApp({
-    config,
-    logger,
-    clock: systemClock,
-    ids: uuidGenerator,
-    statusService: ai.status,
-    student: phase1.student,
-    ...(identity === undefined ? {} : { identity }),
-    ...(voice === undefined ? {} : { voice: voice.routes }),
-  });
+  const app = composeApp({ config, logger, ai, pool, phase1, identity, voice });
   const stopSweeper = startIdleSweeper(phase1.identity.expiry, logger);
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
@@ -82,6 +76,43 @@ export async function start(): Promise<void> {
       stopSweeper();
       await closePool(pool, logger);
     },
+  });
+}
+
+/**
+ * The app, and the two stores X-05 added to it.
+ *
+ * Extracted from `start` because that function is a sequence of boot steps and this is one of
+ * them; inlining it pushed `start` past the length the standards allow, which is the rule
+ * doing its job rather than an obstacle to route around.
+ *
+ * Both stores are Postgres-backed here and in-process nowhere: a deployment runs more than one
+ * instance, and a rate limit or a replay record that only one of them can see is a promise the
+ * others do not keep.
+ */
+function composeApp(
+  input: Readonly<{
+    config: AppConfig;
+    logger: Logger;
+    ai: Awaited<ReturnType<typeof createAiRuntime>>;
+    pool: Pool;
+    phase1: Awaited<ReturnType<typeof createPhase1Runtime>>;
+    identity: ReturnType<Awaited<ReturnType<typeof createPhase1Runtime>>['identity']['routerDeps']>;
+    voice: ReturnType<typeof createPhase2Runtime> | undefined;
+  }>,
+): ReturnType<typeof createApp> {
+  const { config, logger, ai, pool, phase1, identity, voice } = input;
+  return createApp({
+    config,
+    logger,
+    clock: systemClock,
+    ids: uuidGenerator,
+    statusService: ai.status,
+    rateLimitStore: createPostgresRateLimitStore(pool),
+    idempotency: createIdempotencyRepository(pool),
+    student: phase1.student,
+    ...(identity === undefined ? {} : { identity }),
+    ...(voice === undefined ? {} : { voice: voice.routes }),
   });
 }
 

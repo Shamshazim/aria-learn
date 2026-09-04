@@ -29,6 +29,14 @@ type RequestOptions = Readonly<{
   signal?: AbortSignal;
   timeoutMs?: number;
   /**
+   * X-05: the key that makes this call safe for the API to receive twice.
+   *
+   * Supplied by the caller, not generated here, because the whole value is in it being the
+   * *same* key on a retry — a fresh one per attempt would make every retry a new request and
+   * buy nothing. A caller that retries holds its key for as long as it retries.
+   */
+  idempotencyKey?: string;
+  /**
    * P2H-12: the parent's bearer token, on the routes that need one. The child's session is a
    * cookie and never passes through here — no script should be able to read or set it.
    */
@@ -103,6 +111,7 @@ async function request<T>(input: {
         accept: 'application/json',
         'content-type': 'application/json',
         'x-request-id': crypto.randomUUID(),
+        ...idempotencyHeader(input.method, options),
         ...options.headers,
       },
       // P2H-12: the child session is an http-only cookie, so every call has to carry it.
@@ -183,6 +192,23 @@ async function parseJson(response: Response): Promise<unknown> {
   } catch {
     throw new ApiError('malformed', 'MALFORMED_JSON', response.status);
   }
+}
+
+/**
+ * `Idempotency-Key`, on the methods that change something (X-05).
+ *
+ * A `GET` never carries one: it changes nothing, so replaying it is already safe and a key
+ * would only fill the server's table. Where a caller supplies no key we generate one per
+ * attempt, which still protects the server from a *network-level* duplicate — the same request
+ * arriving twice because a proxy resent it — while a caller that wants its own retries
+ * de-duplicated passes `idempotencyKey` and keeps it across them.
+ */
+function idempotencyHeader(
+  method: 'GET' | 'POST' | 'PATCH',
+  options: RequestOptions,
+): Record<string, string> {
+  if (method === 'GET') return {};
+  return { 'idempotency-key': options.idempotencyKey ?? crypto.randomUUID() };
 }
 
 function httpError(status: number, body: unknown): ApiError {

@@ -1,4 +1,4 @@
-import { ERROR_CODES, isAppError } from '@/errors';
+import { ERROR_CODES, isAppError, RateLimitedError } from '@/errors';
 import type { ApiError } from '@/types/http';
 
 import type { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
@@ -32,6 +32,12 @@ export function errorHandler(): ErrorRequestHandler {
       log.error(payload, 'Request failed');
     } else {
       log.warn(payload, 'Request rejected');
+    }
+
+    // X-05: the one header an error is allowed to carry. A 429 without it asks every client
+    // to invent its own backoff, and the ones that guess badly are already sending too much.
+    if (error instanceof RateLimitedError) {
+      res.setHeader('Retry-After', String(error.retryAfterSeconds));
     }
 
     const body: ApiError = { error: { code, message, requestId: req.id } };

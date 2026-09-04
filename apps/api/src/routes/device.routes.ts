@@ -4,6 +4,7 @@ import type { DeviceControllers } from '@/controllers/device.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
 import { deviceLoginSchema } from '@/schemas/parent-access.schema';
+import type { RateLimiter } from '@/types/rate-limit';
 
 import type { RequestHandler } from 'express';
 
@@ -14,13 +15,18 @@ import type { RequestHandler } from 'express';
  * parent router does: a route added below cannot be added without it.
  */
 export function createDeviceRouter(
-  deps: Readonly<{ deviceAuth: RequestHandler; controller: DeviceControllers }>,
+  deps: Readonly<{
+    deviceAuth: RequestHandler;
+    limit: RateLimiter;
+    controller: DeviceControllers;
+  }>,
 ): Router {
   const router = Router();
   router.use('/device', deps.deviceAuth);
-  router.get('/device/children', asyncHandler(deps.controller.listChildren));
+  router.get('/device/children', deps.limit('read'), asyncHandler(deps.controller.listChildren));
   router.post(
     '/device/children/login',
+    deps.limit('auth'),
     validate(deviceLoginSchema, 'body'),
     asyncHandler(deps.controller.login),
   );

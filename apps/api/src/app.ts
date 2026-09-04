@@ -31,6 +31,14 @@ export type AppDeps = {
   clock: Clock;
   ids: IdGenerator;
   statusService?: StatusService;
+  /**
+   * X-05: where rate-limit buckets live. Absent keeps them in this process, which is right
+   * for one instance and for every test; a deployment running several passes the Postgres
+   * store so the configured limit means what it says across all of them.
+   */
+  rateLimitStore?: RouterDeps['rateLimitStore'];
+  /** X-05: where a request that already happened is recorded, so a retry replays it. */
+  idempotency?: RouterDeps['idempotency'];
   /** P2H-12: parent sign-in and the child picker. Absent where no project is configured. */
   identity?: RouterDeps['identity'];
   student?: RouterDeps['student'];
@@ -43,6 +51,8 @@ export function createApp({
   clock,
   ids,
   statusService,
+  rateLimitStore,
+  idempotency,
   identity,
   student,
   voice,
@@ -79,6 +89,8 @@ export function createApp({
               authorize: operatorOnly(config.statusOperatorToken),
             },
           }),
+      ...(rateLimitStore === undefined ? {} : { rateLimitStore }),
+      ...(idempotency === undefined ? {} : { idempotency }),
       ...(identity === undefined ? {} : { identity }),
       ...(student === undefined ? {} : { student }),
       ...(voice === undefined ? {} : { voice }),
