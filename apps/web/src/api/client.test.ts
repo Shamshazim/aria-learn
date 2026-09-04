@@ -58,6 +58,34 @@ describe('api client', () => {
     expect(call[1]).toMatchObject({ method: 'POST', body: '{"answer":7}' });
   });
 
+  /**
+   * X-05: the API requires the header on a mutating route, so a client that omits it is a
+   * client every write fails for. A caller that supplies its own key keeps it across retries,
+   * which is the whole point — a fresh key per attempt would make each retry a new request.
+   */
+  it("sends an idempotency key on writes, the caller's own where given, and none on a GET", async () => {
+    // A fresh Response per call: a body can only be read once, and this test makes three.
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ data: { value: 'saved' } }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      ),
+    );
+    const client = createApiClient({ baseUrl: '', fetcher });
+
+    await client.post('/api', { answer: 7 }, valueSchema);
+    await client.post('/api', { answer: 7 }, valueSchema, {
+      idempotencyKey: 'held-across-retries',
+    });
+    await client.get('/api', valueSchema);
+
+    expect(headerOf(fetcher, 0, 'idempotency-key')).not.toHaveLength(0);
+    expect(headerOf(fetcher, 1, 'idempotency-key')).toBe('held-across-retries');
+    expect(headerOf(fetcher, 2, 'idempotency-key')).toBeUndefined();
+  });
+
   it('rejects malformed JSON and schema-invalid data as typed errors', async () => {
     const malformed = vi.fn<typeof fetch>().mockResolvedValue(new Response('not json'));
     const invalid = vi
@@ -122,3 +150,15 @@ describe('api client', () => {
     expect(frames).toEqual([{ value: 'ok' }]);
   });
 });
+
+/** Reads one header from a recorded `fetch` call, without asserting the init's shape. */
+function headerOf(
+  fetcher: { mock: { calls: [unknown, RequestInit | undefined][] } },
+  index: number,
+  name: string,
+): string | undefined {
+  const call = fetcher.mock.calls[index];
+  if (call === undefined) throw new Error(`Fetch call ${String(index)} was not made`);
+  const headers = call[1]?.headers;
+  return headers === undefined ? undefined : (new Headers(headers).get(name) ?? undefined);
+}

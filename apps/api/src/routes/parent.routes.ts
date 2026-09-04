@@ -15,6 +15,7 @@ import {
   parentVoiceConsentSchema,
   updateChildRequestSchema,
 } from '@/schemas/parent.schema';
+import type { RateLimiter } from '@/types/rate-limit';
 
 import type { RequestHandler } from 'express';
 
@@ -28,6 +29,9 @@ import type { RequestHandler } from 'express';
 export function createParentRouter(
   deps: Readonly<{
     parentAuth: RequestHandler;
+    limit: RateLimiter;
+    /** X-05: makes a mutating route safe to send twice. See `middleware/idempotency`. */
+    replay: RequestHandler;
     controller: ParentControllers;
     /** P0-28: consent, devices, erasure and sign-out. Absent where they are not configured. */
     access?: ParentAccessControllers;
@@ -35,6 +39,14 @@ export function createParentRouter(
 ): Router {
   const router = Router();
   router.use('/parent', deps.parentAuth);
+  // X-05: one limit for the whole prefix, after the gate, so a route added below cannot be
+  // added without one. Reads and writes share the parent's `mutation` budget, which is set
+  // well above what an app driven by a person can reach.
+  router.use('/parent', deps.limit('mutation'));
+  // Every write below, in one place: a route added later cannot be added without it.
+  router.post('/parent/*splat', deps.replay);
+  router.patch('/parent/*splat', deps.replay);
+  router.delete('/parent/*splat', deps.replay);
   router.get('/parent/children', asyncHandler(deps.controller.listChildren));
   router.post(
     '/parent/children',

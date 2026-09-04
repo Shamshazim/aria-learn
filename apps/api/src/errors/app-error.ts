@@ -93,6 +93,25 @@ export class ConflictError extends AppError {
   }
 }
 
+/**
+ * X-05: the actor has spent its budget for this route class.
+ *
+ * It carries `retryAfterSeconds` because a 429 without one asks every client to invent its
+ * own backoff, and the ones that guess badly are exactly the ones already sending too much.
+ * The error handler puts it on the wire as `Retry-After`; the safe message stays a sentence
+ * a child could read, since the child UI is one of the things that receives it.
+ */
+export class RateLimitedError extends AppError {
+  readonly retryAfterSeconds: number;
+
+  constructor(logMessage: string, retryAfterSeconds: number) {
+    super(ERROR_CODES.RATE_LIMITED, 429, 'Let us slow down for a moment.', { logMessage });
+    // A `Retry-After` of 0 tells a client to retry immediately, which is the one thing a
+    // spent bucket must not invite. One second is the floor.
+    this.retryAfterSeconds = Math.max(1, Math.ceil(retryAfterSeconds));
+  }
+}
+
 /** A dependency is down. Distinct from INTERNAL so a caller can sensibly retry. */
 export class ServiceUnavailableError extends AppError {
   constructor(logMessage: string, cause?: unknown) {

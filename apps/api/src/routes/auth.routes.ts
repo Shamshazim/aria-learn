@@ -4,6 +4,7 @@ import type { AuthControllers } from '@/controllers/auth.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
 import { childLoginRequestSchema } from '@/schemas/auth.schema';
+import type { RateLimiter } from '@/types/rate-limit';
 
 import type { RequestHandler } from 'express';
 
@@ -17,16 +18,22 @@ import type { RequestHandler } from 'express';
  * adult is a session that outlives the child using it.
  */
 export function createAuthRouter(
-  deps: Readonly<{ parentAuth: RequestHandler; controller: AuthControllers }>,
+  deps: Readonly<{ parentAuth: RequestHandler; limit: RateLimiter; controller: AuthControllers }>,
 ): Router {
   const router = Router();
+  // X-05: `auth` is the tightest class. Login is where volume is itself the attack — P2H-12
+  // locks a child's credential after repeated failures, and this bounds how fast an attacker
+  // can walk a family towards that lock. The limit sits *before* `parentAuth` here, because
+  // an unauthenticated caller guessing at the door is exactly what needs bounding.
   router.post(
     '/auth/child/login',
+    deps.limit('auth'),
     deps.parentAuth,
     validate(childLoginRequestSchema, 'body'),
     asyncHandler(deps.controller.login),
   );
+  // Logout is never limited into failure: a child must always be able to leave.
   router.post('/auth/child/logout', asyncHandler(deps.controller.logout));
-  router.post('/auth/child/refresh', asyncHandler(deps.controller.refresh));
+  router.post('/auth/child/refresh', deps.limit('read'), asyncHandler(deps.controller.refresh));
   return router;
 }

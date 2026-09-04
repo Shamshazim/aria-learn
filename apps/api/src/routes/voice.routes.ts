@@ -18,12 +18,14 @@ import {
   workerVoiceMetricSchema,
   workerVoiceTurnSchema,
 } from '@/schemas/voice.schema';
+import type { RateLimiter } from '@/types/rate-limit';
 
 import type { RequestHandler } from 'express';
 
 export function createVoiceStudentRouter(
   input: Readonly<{
     authorize: RequestHandler;
+    limit: RateLimiter;
     controller: VoiceControllers;
   }>,
 ): Router {
@@ -31,15 +33,24 @@ export function createVoiceStudentRouter(
   router.post(
     '/student/session/:id/realtime',
     input.authorize,
+    input.limit('session'),
     validate(realtimeParamsSchema, 'params'),
     asyncHandler(input.controller.realtime),
   );
   return router;
 }
 
+/**
+ * X-05: the worker's actor class is declared, never inferred.
+ *
+ * These routes sit behind `workerOnly`, so by the time a limit runs the shared secret has
+ * already been checked. Inferring "worker" from the presence of an `Authorization` header
+ * would instead let anybody who sends one claim the worker's much larger budget.
+ */
 export function createVoiceWorkerRouter(
   input: Readonly<{
     authorize: RequestHandler;
+    limit: RateLimiter;
     controller: VoiceControllers;
     /** P2H-09. Always mounted: a deployment with no clips answers with an empty library. */
     bridges: VoiceBridgeControllers;
@@ -49,6 +60,9 @@ export function createVoiceWorkerRouter(
 ): Router {
   const router = Router();
   mountTalkRoutes(router, input);
+  // One bucket for the fleet: a circuit breaker on our own reconnect loops, never a defence
+  // against a worker we issued the secret to.
+  router.use('/internal/voice', input.limit('read', { actorClass: 'worker' }));
   router.get(
     '/internal/voice/bridges',
     input.authorize,
@@ -81,8 +95,11 @@ export function createVoiceWorkerRouter(
 /** "Aria talks": the brief, the two halves of the transcript, and the screen. */
 function mountTalkRoutes(
   router: Router,
-  input: Readonly<{ authorize: RequestHandler; talk: VoiceTalkControllers }>,
+  input: Readonly<{ authorize: RequestHandler; limit: RateLimiter; talk: VoiceTalkControllers }>,
 ): void {
+  // Mounted before the shared `/internal/voice` limit above, so these carry their own: a
+  // turn's worth of transcript is far more frequent than a bridge library lookup.
+  router.use('/internal/voice/session', input.limit('turn', { actorClass: 'worker' }));
   router.get(
     '/internal/voice/session/:id/brief',
     input.authorize,
@@ -116,10 +133,12 @@ function mountTalkRoutes(
 export function createVoiceAdminRouter(
   input: Readonly<{
     authorize: RequestHandler;
+    limit: RateLimiter;
     controller: VoiceControllers;
   }>,
 ): Router {
   const router = Router();
+  router.use('/operator', input.limit('mutation'));
   router.post(
     '/operator/voice-consent',
     input.authorize,

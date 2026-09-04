@@ -9,6 +9,7 @@ export {
   ForbiddenError,
   ConsentRequiredError,
   ConflictError,
+  RateLimitedError,
   ServiceUnavailableError,
   isAppError,
 } from './app-error';

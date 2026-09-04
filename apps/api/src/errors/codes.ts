@@ -24,6 +24,14 @@ export const ERROR_CODES = {
   LOCKED: 'LOCKED',
   /** The request was well formed but conflicts with what is already stored (P0-04). */
   CONFLICT: 'CONFLICT',
+  /**
+   * X-05: the actor has spent its budget for this route class.
+   *
+   * Its own code because the child UI must never render it as a number. The web app maps
+   * this to the P0-25 calm screen for the length of the window; a child who taps twice too
+   * fast is not told off, and never sees "429".
+   */
+  RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL: 'INTERNAL',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 } as const;
