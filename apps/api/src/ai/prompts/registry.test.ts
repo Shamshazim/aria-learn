@@ -6,7 +6,7 @@ import type { PromptName } from '@/ai/prompts/types';
 const EXPECTED_PROMPTS: Readonly<
   Record<PromptName, { tier: 'TEACH' | 'FAST'; version?: string; jsonMode?: boolean }>
 > = {
-  'classify-intent': { tier: 'FAST' },
+  'classify-intent': { tier: 'FAST', version: '1.1.0' },
   'classify-safety': { tier: 'FAST' },
   explain: { tier: 'TEACH' },
   'grade-short-answer': { tier: 'FAST', version: '1.1.0' },

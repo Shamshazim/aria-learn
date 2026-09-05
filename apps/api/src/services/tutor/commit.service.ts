@@ -43,10 +43,11 @@ async function commit(
     await events.append(moveRecord(turn, move, sessionId, deps.clock));
     await deps.outbox?.withDb(tx).enqueueIfOpen(sessionId, move);
   }
-  if (turn.decision.graded !== null && turn.plan.skillCode !== null) {
+  const practised = turn.practisedSkillCode ?? turn.plan.skillCode;
+  if (turn.decision.graded !== null && practised !== null) {
     await skills.recordAttempt({
       studentId: (await requireSession(deps.sessions.withDb(tx), sessionId)).studentId,
-      skillCode: turn.plan.skillCode,
+      skillCode: practised,
       correct: turn.decision.graded.correct,
     });
     if (turn.decision.graded.misconception !== null) {
@@ -55,6 +56,16 @@ async function commit(
         misconceptionRuntimeId(turn.decision.graded.misconception),
       );
     }
+  }
+  // A SWITCH names where the lesson goes next. Writing it on the session is what makes the
+  // next turn load the new skill; before this the tutor announced a change of step and then
+  // kept asking about the old one.
+  if (
+    turn.plan.kind === 'SWITCH' &&
+    turn.plan.skillCode !== null &&
+    turn.plan.skillCode !== practised
+  ) {
+    await deps.sessions.withDb(tx).updatePlan(sessionId, { skillCode: turn.plan.skillCode });
   }
   if (turn.decision.terminal) {
     await deps.sessions.withDb(tx).end(sessionId, endReason(turn), deps.clock.now());

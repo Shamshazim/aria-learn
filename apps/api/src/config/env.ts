@@ -170,6 +170,11 @@ export type AppConfig = {
   sessionLimitMinutes: Readonly<Record<'early' | 'middle' | 'senior', number>>;
   memoryRepetitionsForDurableFact: number;
   demoStudentId: string | undefined;
+  /**
+   * Development only: a request may name a grade other than the child's, so the picker's
+   * grade dropdown can open any grade's classes for testing. Never true in production.
+   */
+  allowGradeOverride: boolean;
   /** P2H-12. Absent means no parent can sign in and no child session can be issued. */
   auth: AuthConfig | undefined;
   safeguardingWebhookUrl: string | undefined;
@@ -233,6 +238,7 @@ export function loadConfig(source: NodeJS.ProcessEnv, version: string): AppConfi
     },
     memoryRepetitionsForDurableFact: env.MEMORY_REPETITIONS_FOR_DURABLE_FACT,
     demoStudentId: toDemoStudentId(env),
+    allowGradeOverride: env.NODE_ENV === 'development',
     auth: toAuthConfig(env),
     safeguardingWebhookUrl: env.SAFEGUARDING_WEBHOOK_URL,
     safeguardingWebhookToken: env.SAFEGUARDING_WEBHOOK_TOKEN,

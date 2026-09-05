@@ -87,3 +87,23 @@
     display: none;
   }
 }
+
+/* "Aria talks": her own words as she says them, above the question she is talking about. */
+.session-speech-row--live {
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.session-speech--live {
+  border-left: 0.25rem solid var(--session-accent, #6b5acb);
+  padding-left: 0.75rem;
+  transition: opacity 160ms ease;
+}
+
+.session-speech-row--live[data-speaking='true'] .session-speech--live {
+  opacity: 1;
+}
+
+.session-speech-row--live[data-speaking='false'] .session-speech--live {
+  opacity: 0.85;
+}

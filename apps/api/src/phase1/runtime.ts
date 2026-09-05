@@ -105,6 +105,7 @@ function buildTutor(
     retrieve: memory.retrieve,
     misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
     lesson: (skillCode) => inventory.getLesson(skillCode),
+    nextTopic: (skillCode) => inventory.nextTopic(skillCode),
   });
   const turnContent = buildTurnContent(deps, repositories, inventory, content);
   const commit = createTurnCommitService({

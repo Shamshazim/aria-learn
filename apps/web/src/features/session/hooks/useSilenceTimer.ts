@@ -22,6 +22,11 @@ export function useSilenceTimer(input: {
   move: TutorMove | null;
   band: Band;
   speaking: boolean;
+  /**
+   * A voice worker is connected and runs the same countdown on its own clock. Two timers on
+   * one child meant two "still there?" nudges and two re-askings of the question.
+   */
+  suspended?: boolean;
   onSilence: (payload: Readonly<{ waitedMs: number; afterMoveId: string }>) => void;
 }): SilenceControls {
   const attended = useDocumentVisible();
@@ -36,8 +41,9 @@ export function useSilenceTimer(input: {
     setCancelled(false);
   }, [move]);
 
+  const suspended = input.suspended === true;
   useEffect(() => {
-    if (cancelled) return;
+    if (cancelled || suspended) return;
     if (!shouldArmSilenceTimer({ move, speaking: input.speaking, attended })) return;
     const moveId = move?.id;
     if (moveId === undefined) return;
@@ -48,7 +54,7 @@ export function useSilenceTimer(input: {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [attended, cancelled, input.band, input.speaking, move, restarts]);
+  }, [attended, cancelled, input.band, input.speaking, move, restarts, suspended]);
 
   return {
     backchannel: useCallback(() => {

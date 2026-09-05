@@ -1,4 +1,9 @@
-import { PROTOCOL_VERSION, type TutorInputEvent, type VoiceTurnRequest } from '@aria/shared';
+import {
+  PROTOCOL_VERSION,
+  type SkipReason,
+  type TutorInputEvent,
+  type VoiceTurnRequest,
+} from '@aria/shared';
 import { decideInterruption } from '@aria/voice';
 
 import type { MoveStreamState } from '@/session/move-stream.state';
@@ -74,6 +79,21 @@ export function answerEvent(
   text: string,
 ): TutorInputEvent {
   return { ...commonEvent(input, state), kind: 'ANSWER', respondsTo, text };
+}
+
+/** The child, or Aria on the child's behalf, is done with the open question. */
+export function skipEvent(
+  input: EventInput,
+  state: MoveStreamState,
+  respondsTo: string | null,
+  reason: SkipReason,
+): TutorInputEvent {
+  return {
+    ...commonEvent(input, state),
+    kind: 'SKIP',
+    reason,
+    ...(respondsTo === null ? {} : { respondsTo }),
+  };
 }
 
 export function resumeEvent(input: EventInput, state: MoveStreamState): TutorInputEvent {

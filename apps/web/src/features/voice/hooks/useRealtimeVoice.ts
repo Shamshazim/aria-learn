@@ -1,7 +1,7 @@
 import { Room, RoomEvent, Track } from 'livekit-client';
 import { useEffect, useRef, useState } from 'react';
 
-import type { TutorMove } from '@aria/shared';
+import type { AgentState, TutorMove } from '@aria/shared';
 import { createMoveInbox } from '@aria/voice';
 
 import type { SessionApi } from '@/features/session/api/session.api';
@@ -32,6 +32,8 @@ export type RealtimeVoice = VoiceState &
      * the caller sends it the usual way.
      */
     answerOnScreen(moveId: string, text: string): Promise<boolean>;
+    /** The same for a skip: the voice closes the question and asks the next one out loud. */
+    skipOnScreen(moveId: string): Promise<boolean>;
   }>;
 
 type RealtimeVoiceInput = Readonly<{
@@ -42,6 +44,8 @@ type RealtimeVoiceInput = Readonly<{
   api: SessionApi;
   renderedMoves: Set<string>;
   onMove(move: TutorMove): void;
+  /** Aria started or stopped talking, so the session's status line can follow her. */
+  onAgentState?(state: AgentState): void;
 }>;
 
 export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
@@ -55,6 +59,8 @@ export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
   const acknowledgedSeq = useRef(0);
   const talks = useRef(false);
   const onMove = input.onMove;
+  const onAgentState = useRef(input.onAgentState);
+  onAgentState.current = input.onAgentState;
   useEffect(
     () =>
       connect({
@@ -62,6 +68,7 @@ export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
         api: input.api,
         setState,
         onMove,
+        onAgentState: (state) => onAgentState.current?.(state),
         setRoom: (room) => {
           roomRef.current = room;
         },
@@ -92,7 +99,10 @@ export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
   });
   useAutoEnableVoice(input, state.status, actions.enable, autoEnableAttempt);
   useLeaveOnEnd(input.ended === true, { room: roomRef, enabled: enabledRef, talks });
-  const bridge = useScreenBridge({ room: roomRef, enabled: enabledRef, talks }, input.renderedMoves);
+  const bridge = useScreenBridge(
+    { room: roomRef, enabled: enabledRef, talks },
+    input.renderedMoves,
+  );
   return { ...state, ...actions, ...bridge };
 }
 
@@ -116,6 +126,7 @@ type VoiceConnectionDeps = Readonly<{
   api: SessionApi;
   setState: React.Dispatch<React.SetStateAction<VoiceState>>;
   onMove(move: TutorMove): void;
+  onAgentState(state: AgentState): void;
   setRoom(room: Room | null): void;
   setGenerationId(generationId: string | null): void;
   renderedMoves: Set<string>;
@@ -178,6 +189,7 @@ type RoomBindings = Readonly<{
   inbox: ReturnType<typeof createMoveInbox>;
   setState: React.Dispatch<React.SetStateAction<VoiceState>>;
   onMove(move: TutorMove): void;
+  onAgentState(state: AgentState): void;
   setGenerationId(generationId: string | null): void;
   renderedMoves: Set<string>;
   enabled: React.RefObject<boolean>;
@@ -249,6 +261,7 @@ function applyVoiceState(room: Room, payload: Uint8Array, input: RoomBindings): 
     acknowledgeDelivered: (serverSeq) => {
       acknowledgeDelivered(room, input, serverSeq);
     },
+    onAgentState: input.onAgentState,
   });
 }
 

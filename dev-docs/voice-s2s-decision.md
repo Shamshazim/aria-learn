@@ -21,7 +21,8 @@ unset.
 | Flag, model, voice, run log                    | `apps/voice-worker/src/session/s2s-config.ts`          |
 | The session                                    | `apps/voice-worker/src/session/talk-session.ts`        |
 | The brief → system prompt                      | `apps/voice-worker/src/session/talk-instructions.ts`   |
-| `record_answer` / `end_session`                | `apps/voice-worker/src/session/talk-tools.ts`          |
+| `record_answer` / `move_on` / `end_session`    | `apps/voice-worker/src/session/talk-tools.ts`          |
+| The stuck ladder and skips                     | `packages/tutor/src/policy/stuck-policy.ts`, `apps/api/src/services/tutor/session-counters.ts` |
 | `show_on_screen`, answers from the screen      | `apps/voice-worker/src/session/talk-screen.ts`         |
 | Sentence tap on Aria's output transcript       | `apps/voice-worker/src/session/talk-agent.ts`          |
 | Worker → API client                            | `apps/voice-worker/src/api/talk-client.ts`             |
@@ -99,6 +100,57 @@ the other.
   `HEARD` for each final child transcript; the browser shows both under the voice controls.
 - With the flag unset the pipeline worker ignores `SCREEN_ANSWER` and `LEAVE`, and the
   browser never sends them, because `talks` is false.
+
+## A child who is stuck, or done with a question
+
+The first build could only re-ask. "I don't know" was classified as confusion, confusion earned
+a reteach, and a reteach re-asked the same question — so a child who shrugged three times
+heard the same question four times, and the realtime model, told never to invent a question
+and never to move on, had nothing else to do. Two things changed (2026-09-04).
+
+- **The policy counts turns that went nowhere, per item.** `consecutiveStuck` in
+  `@aria/tutor` is the number of wrong answers, "I don't know"s and skips since the current
+  question was first asked. It drives one ladder for all of them: a hint, then the idea
+  another way, then the answer (`REVEAL:move-on`) and a fresh question. It starts again at
+  zero on a new item, which the old wrong-answer count never did — the first miss on a new
+  question could be met with the answer. "Skip", "next one", "I give up" is its own intent
+  (`SKIP_REQUEST`) and its own event (`SKIP`), honoured at once. Three right in a row with a
+  next topic in the grade is a `SWITCH:next-topic`, and the commit moves the session onto it;
+  before this a `SWITCH` announced a change of step and kept asking about the old skill.
+- **The voice has a third tool.** `move_on(reason)` sends `SKIP` through the same turn path;
+  `record_answer` is now called for anything the child says in response to the question,
+  including "I don't know", so the API's ladder decides what comes next rather than the
+  model. The prompt says so in words as well: never a fourth asking, never word-for-word,
+  call `move_on` when the child asks or has stopped engaging. When a turn switches topic the
+  worker fetches the brief again and rewrites the agent's instructions around it.
+- **The screen has a skip button** (`SessionControls`), which reaches the voice as
+  `SCREEN_SKIP` where Aria talks and the API as `SKIP` otherwise.
+
+## The screen follows the voice
+
+Three things kept the screen and the voice out of step, all fixed the same day.
+
+- The browser ran its own silence countdown beside the worker's, from a status line that
+  said "explaining" from the moment a spoken move arrived until the next tap. Two timers on
+  one child meant two nudges and two re-askings of the question under new ids, after which
+  the worker's idea of the open question was stale and a tap on the screen was read to the
+  model as typed words. The browser's timer is now suspended while a voice worker is
+  connected, and the status line follows the worker: `AGENT_STATE` (`listening`,
+  `thinking`, `speaking`) is published on every agent state change and reduced into the
+  session state (`VOICE_STATE`); the pipeline's `SPEECH_FINISHED` does the same. With no
+  voice at all a move is "explained" the moment it is on screen (`SPEECH_SETTLED`).
+- The screen showed the move's stored line while Aria said something else. Where she talks,
+  the layouts now show her own words as she says them (`LiveSpeech`, fed by `CAPTION` and
+  reset on each new `speaking`), keep a question's exact text, and drop the stored line and
+  its duplicate text body from a hint, praise or reveal card.
+- The ordering rule stands: a question's screen is set the moment `record_answer` or
+  `move_on` returns, before Aria says it, and holds until the child answers or skips.
+
+Prior art looked at while designing this: Khan Academy's Khanmigo (Socratic by design, and
+the published finding that its refusal to move on is where students disengage), the
+TutorBot-DPO work from UMass (AIED 2025) on strategic hinting and withholding as trainable
+pedagogical principles, and OATutor's multi-path hint ladders. None ship a "move on" rule; the
+ladder here is the one a human tutor follows.
 
 ## Known gaps
 

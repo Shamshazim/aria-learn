@@ -67,6 +67,31 @@ describe('session reducer', () => {
     expect(silent.status).toBe('waiting');
   });
 
+  it('lets the voice say when Aria is talking, and settles a move nothing will play', async () => {
+    const ask = (await allMoves()).find((move) => move.kind === 'ASK');
+    expect(ask).toBeDefined();
+    if (ask === undefined) return;
+    const spoken = reduceSession(initialSessionState('middle'), ask);
+    expect(spoken.status).toBe('speaking');
+
+    // The voice worker: Aria finished, the child's turn.
+    const listening = reduceSession(spoken, { kind: 'VOICE_STATE', state: 'listening' });
+    expect(listening.status).toBe('waiting');
+    // The voice worker: she started again, then stopped to think.
+    expect(reduceSession(listening, { kind: 'VOICE_STATE', state: 'speaking' }).status).toBe(
+      'speaking',
+    );
+    expect(reduceSession(listening, { kind: 'VOICE_STATE', state: 'thinking' }).status).toBe(
+      'thinking',
+    );
+    // Already waiting: a listening report changes nothing.
+    expect(reduceSession(listening, { kind: 'VOICE_STATE', state: 'listening' })).toBe(listening);
+
+    // No voice at all: the move is explained as soon as it is on the screen.
+    expect(reduceSession(spoken, { kind: 'SPEECH_SETTLED' }).status).toBe('waiting');
+    expect(reduceSession(listening, { kind: 'SPEECH_SETTLED' })).toBe(listening);
+  });
+
   it('uses a longer silence window as learners get older', () => {
     expect((['early', 'middle', 'senior'] as const).map(silenceWindowMs)).toEqual([
       12_000, 18_000, 25_000,

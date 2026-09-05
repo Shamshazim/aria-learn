@@ -10,7 +10,11 @@ async function* lines(...items: string[]): AsyncIterable<string> {
 
 const opts = { ctx: {}, toolCallId: 'call', abortSignal: new AbortController().signal } as never;
 
-function move(kind: TutorMove['kind'], text: string, extra: Record<string, unknown> = {}): TutorMove {
+function move(
+  kind: TutorMove['kind'],
+  text: string,
+  extra: Record<string, unknown> = {},
+): TutorMove {
   return tutorMoveSchema.parse({
     id: `${kind.toLowerCase()}-1`,
     at: '2026-08-28T00:00:00.000Z',
@@ -27,12 +31,20 @@ function move(kind: TutorMove['kind'], text: string, extra: Record<string, unkno
 function hooks(
   published: readonly TutorMove[],
   terminal = false,
-): TalkToolHooks & { answers: [string, string][]; transcripts: string[]; ended: number } {
+): TalkToolHooks & {
+  answers: [string, string][];
+  skips: [string | null, string][];
+  transcripts: string[];
+  ended: number;
+} {
   const answers: [string, string][] = [];
+  const skips: [string | null, string][] = [];
   const transcripts: string[] = [];
   const state = { ended: 0 };
+  const said = () => lines(...published.flatMap((m) => (m.speech === null ? [] : [m.speech.text])));
   return {
     answers,
+    skips,
     transcripts,
     get ended() {
       return state.ended;
@@ -40,11 +52,15 @@ function hooks(
     moves: {
       answer: (respondsTo, text) => {
         answers.push([respondsTo, text]);
-        return lines(...published.flatMap((m) => (m.speech === null ? [] : [m.speech.text])));
+        return said();
+      },
+      skip: (respondsTo, reason) => {
+        skips.push([respondsTo, reason]);
+        return said();
       },
       handleTranscript: (text) => {
         transcripts.push(text);
-        return lines(...published.flatMap((m) => (m.speech === null ? [] : [m.speech.text])));
+        return said();
       },
       terminalDelivered: () => terminal,
     },
@@ -80,7 +96,10 @@ describe('the tools a talking Aria has', () => {
 
     expect(h.answers).toEqual([['ask-1', 'four hundred seventy']]);
     expect(out.verdict).toBe('correct');
-    expect(out.teacher_says).toEqual(['Yes, four hundred seventy.', 'Round 374 to the nearest ten.']);
+    expect(out.teacher_says).toEqual([
+      'Yes, four hundred seventy.',
+      'Round 374 to the nearest ten.',
+    ]);
     expect(out.next_question).toEqual({
       id: 'ask-1',
       prompt: 'Round 374 to the nearest ten.',
@@ -104,6 +123,39 @@ describe('the tools a talking Aria has', () => {
     await createTalkTools(h).record_answer.execute({ answer: 'seven' }, opts);
     expect(h.transcripts).toEqual(['seven']);
     expect(h.answers).toEqual([]);
+  });
+
+  it('move_on closes the question through the API and hands back the answer and the next one', async () => {
+    const h = hooks([
+      move('REVEAL', 'No problem. The answer was 470. Here is a new one.', { answer: '470' }),
+      move('ASK', 'Round 512 to the nearest ten.', { expects: 'text', display: [] }),
+    ]);
+    const out = await createTalkTools(h).move_on.execute({ reason: 'child_asked' }, opts);
+
+    expect(h.skips).toEqual([['ask-1', 'child_asked']]);
+    expect(h.answers).toEqual([]);
+    expect(out.verdict).toBe('not_yet');
+    expect(out.next_question?.prompt).toBe('Round 512 to the nearest ten.');
+    expect(out.new_topic).toBeNull();
+    expect(out.instruction).toContain('kindly');
+    expect(out.instruction).toContain('next question');
+  });
+
+  it('tells the model the topic changed, after the prompt was rewritten, on a SWITCH', async () => {
+    const h = {
+      ...hooks([
+        move('SWITCH', 'Three in a row. Let us try Counting to 120.', {
+          reason: 'The child has this topic today; move on to the next one.',
+        }),
+        move('ASK', 'Count on from 98.', { expects: 'text', display: [] }),
+      ]),
+      onTopicChanged: () => Promise.resolve('"Counting to 120". Objectives: count to 120.'),
+    };
+    const out = await createTalkTools(h).record_answer.execute({ answer: 'twenty' }, opts);
+
+    expect(out.verdict).toBe('correct');
+    expect(out.new_topic).toBe('"Counting to 120". Objectives: count to 120.');
+    expect(out.instruction).toContain('new topic');
   });
 
   it('end_session goes through the policy path a child saying "stop" reaches', async () => {

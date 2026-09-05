@@ -5,12 +5,15 @@ import { SessionIcon } from '@/features/session/components/SessionIcon';
 export function SessionControls(props: {
   band: Band;
   paused: boolean;
+  /** A question is open, so the child may leave it: the answer is shown and a new one follows. */
+  canSkip: boolean;
   onBackchannel: () => void;
   onConfused: () => void;
   onInterrupt: () => void;
   onPause: () => void;
   onQuestion: (text?: string) => void;
   onResume: () => void;
+  onSkip: () => void;
   showQuestion: boolean;
 }): React.JSX.Element {
   return (
@@ -21,6 +24,11 @@ export function SessionControls(props: {
       <button onClick={props.onConfused} type="button">
         <SessionIcon name="confused" /> <span>I don&apos;t get it</span>
       </button>
+      {props.canSkip ? (
+        <button className="session-controls__skip" onClick={props.onSkip} type="button">
+          <SessionIcon name="send" /> <span>Skip this one</span>
+        </button>
+      ) : null}
       <button onClick={props.onInterrupt} type="button">
         <SessionIcon name="hand" /> <span>Let me talk</span>
       </button>

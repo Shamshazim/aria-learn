@@ -153,7 +153,7 @@ describe('api client', () => {
 
 /** Reads one header from a recorded `fetch` call, without asserting the init's shape. */
 function headerOf(
-  fetcher: { mock: { calls: [unknown, RequestInit | undefined][] } },
+  fetcher: { mock: { calls: readonly (readonly [unknown, (RequestInit | undefined)?])[] } },
   index: number,
   name: string,
 ): string | undefined {

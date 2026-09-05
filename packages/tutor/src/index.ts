@@ -3,6 +3,7 @@ export { allowedMovesFor } from './policy/allowed-moves';
 export { approachesFor, PLANNER_APPROACHES } from './policy/approaches';
 export { createTeachingPolicy } from './policy/teaching-policy';
 export { silenceRung } from './policy/silence-ladder';
+export { MASTERED_TOPIC_REASON, MASTERY_STREAK } from './policy/stuck-policy';
 export { shouldArmSilenceTimer, silenceWindowMs } from './policy/silence-timer';
 export type { SilenceArmInput } from './policy/silence-timer';
 export { classifyIntent } from './intent/rules';

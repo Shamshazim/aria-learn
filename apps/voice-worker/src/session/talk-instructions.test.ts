@@ -7,7 +7,9 @@ import {
   crisisInstruction,
   openingInstruction,
   screenAnswerInstruction,
+  screenSkipInstruction,
   silenceInstruction,
+  topicChangedLine,
   typedOnScreen,
 } from '@/session/talk-instructions';
 
@@ -47,12 +49,21 @@ describe('the brief the realtime model teaches from', () => {
       'Likes frogs.',
       '12 minutes',
       'record_answer',
+      'move_on',
       'end_session',
       'show_on_screen',
       'surface "writing"',
     ]) {
       expect(text).toContain(expected);
     }
+  });
+
+  it('tells the model how a stuck child is handled, and never to re-ask a fourth time', () => {
+    const text = buildTalkInstructions(BRIEF);
+    expect(text).toContain('Never ask the same question a fourth time');
+    expect(text).toContain('call move_on right away');
+    expect(text).toContain('not_engaging');
+    expect(text).toContain('Never invent a practice question');
   });
 
   it('never says the model is an AI and never asks for personal information', () => {
@@ -83,12 +94,39 @@ describe('the brief the realtime model teaches from', () => {
     const text = screenAnswerInstruction('apple', {
       verdict: 'correct',
       teacher_says: ['Yes, apple is a noun.'],
+      new_topic: null,
       session_over: false,
       instruction: 'Respond in your own words.',
     });
     expect(text).toContain('answered on the screen: "apple". It was correct.');
     expect(text).toContain('Yes, apple is a noun.');
-    expect(screenAnswerInstruction('7', { verdict: 'not_yet', teacher_says: [], session_over: false, instruction: 'x' })).toContain('not right yet');
+    expect(
+      screenAnswerInstruction('7', {
+        verdict: 'not_yet',
+        teacher_says: [],
+        new_topic: null,
+        session_over: false,
+        instruction: 'x',
+      }),
+    ).toContain('not right yet');
     expect(typedOnScreen('hello')).toBe('(typed on the screen) hello');
+  });
+
+  it('tells the model a skip from the screen is final, and names a new topic when there is one', () => {
+    const text = screenSkipInstruction({
+      verdict: 'not_yet',
+      teacher_says: ['No problem. The answer was 470.'],
+      new_topic: '"Counting to 120". Objectives: count to 120.',
+      session_over: false,
+      instruction: 'Respond in your own words.',
+    });
+    expect(text).toContain('pressed skip');
+    expect(text).toContain('Do not try to keep them on it');
+    expect(text).toContain('No problem. The answer was 470.');
+    expect(text).toContain('moved to a new topic: "Counting to 120"');
+    expect(topicChangedLine(BRIEF)).toBe(
+      '"Rounding to tens and hundreds". Objectives: Round to the nearest ten.',
+    );
+    expect(topicChangedLine({ ...BRIEF, skill: null })).toBeNull();
   });
 });
