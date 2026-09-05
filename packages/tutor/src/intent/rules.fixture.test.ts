@@ -6,14 +6,15 @@ import { classifyIntent } from './rules';
 const RULES_AGREEMENT_BAR = 0.9;
 
 describe('intent rules against hand-labelled utterances', () => {
-  it('has sixty utterances covering every intent', () => {
-    expect(UTTERANCE_FIXTURE).toHaveLength(60);
+  it('has sixty-four utterances covering every intent', () => {
+    expect(UTTERANCE_FIXTURE).toHaveLength(64);
     for (const intent of [
       'ANSWER',
       'QUESTION',
       'CONFUSED',
       'CHAT',
       'STOP_REQUEST',
+      'SKIP_REQUEST',
       'PERSONAL_INFO',
       'UNCLEAR',
     ]) {

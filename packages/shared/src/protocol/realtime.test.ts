@@ -32,7 +32,10 @@ describe('voice client control events', () => {
     expect(
       voiceClientEventSchema.parse({ kind: 'SCREEN_ANSWER', moveId: 'ask-1', text: '470' }),
     ).toEqual({ kind: 'SCREEN_ANSWER', moveId: 'ask-1', text: '470' });
-    expect(voiceClientEventSchema.safeParse({ kind: 'SCREEN_ANSWER', moveId: 'ask-1', text: '' }).success).toBe(false);
+    expect(
+      voiceClientEventSchema.safeParse({ kind: 'SCREEN_ANSWER', moveId: 'ask-1', text: '' })
+        .success,
+    ).toBe(false);
     expect(voiceWorkerStateSchema.parse({ kind: 'WORKER_READY', talks: true })).toEqual({
       kind: 'WORKER_READY',
       talks: true,
@@ -43,5 +46,19 @@ describe('voice client control events', () => {
     });
     expect(voiceWorkerStateSchema.parse({ kind: 'HEARD', text: 'seven' }).kind).toBe('HEARD');
     expect(voiceClientEventSchema.parse({ kind: 'LEAVE' })).toEqual({ kind: 'LEAVE' });
+  });
+
+  it('carries a skip from the screen, and what the voice is doing, so the two stay in step', () => {
+    expect(voiceClientEventSchema.parse({ kind: 'SCREEN_SKIP', moveId: 'ask-1' })).toEqual({
+      kind: 'SCREEN_SKIP',
+      moveId: 'ask-1',
+    });
+    expect(voiceWorkerStateSchema.parse({ kind: 'AGENT_STATE', state: 'speaking' })).toEqual({
+      kind: 'AGENT_STATE',
+      state: 'speaking',
+    });
+    expect(voiceWorkerStateSchema.safeParse({ kind: 'AGENT_STATE', state: 'idle' }).success).toBe(
+      false,
+    );
   });
 });

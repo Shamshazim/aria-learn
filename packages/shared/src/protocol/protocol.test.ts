@@ -30,9 +30,15 @@ const roundTrip = <T>(schema: { parse: (input: unknown) => T }, fixture: unknown
   schema.parse(JSON.parse(JSON.stringify(schema.parse(fixture))));
 
 describe('the event union', () => {
-  it('declares the sixteen text and realtime event kinds', () => {
-    expect(EVENT_KINDS).toHaveLength(16);
-    expect(new Set(EVENT_KINDS).size).toBe(16);
+  it('declares the seventeen text and realtime event kinds', () => {
+    expect(EVENT_KINDS).toHaveLength(17);
+    expect(new Set(EVENT_KINDS).size).toBe(17);
+  });
+
+  it('lets a child skip a question, and defaults the reason to their own request', () => {
+    const parsed = tutorInputEventSchema.parse({ ...eventOf('SKIP'), reason: undefined });
+    expect(parsed.kind).toBe('SKIP');
+    if (parsed.kind === 'SKIP') expect(parsed.reason).toBe('child_asked');
   });
 
   it.each(eventEntries)('parses a valid %s', (kind, fixture) => {

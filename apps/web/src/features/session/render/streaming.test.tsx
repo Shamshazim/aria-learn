@@ -31,6 +31,7 @@ function session(state: SessionState): TutorSession {
     backchannel: unused,
     speechPartial: unused,
     confused: unused,
+    skip: unused,
     completeDrag: unused,
     interrupt: unused,
     leave: unused,
@@ -38,6 +39,7 @@ function session(state: SessionState): TutorSession {
     resume: unused,
     speak: unused,
     receive: () => undefined,
+    voiceState: () => undefined,
   };
 }
 

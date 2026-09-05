@@ -122,6 +122,7 @@ function buildLifecycle(runtime: ControllerRuntime) {
     ids: deps.ids,
     resume: resume.rebuild,
     start: (session, event) => runtime.tutor.handle(session.studentId, event),
+    allowGradeOverride: deps.config.allowGradeOverride,
   });
   const end = createEndService({
     sessions: repositories.sessions,
@@ -163,6 +164,7 @@ function buildArrival(
     gate,
     classes: runtime.classes,
     nowMs: () => deps.clock.now().getTime(),
+    allowGradeOverride: deps.config.allowGradeOverride,
   });
 }
 

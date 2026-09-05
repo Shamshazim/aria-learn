@@ -1,4 +1,5 @@
 import {
+  type SkipReason,
   type TutorInputEvent,
   type TutorMove,
   type MoveSegment,
@@ -12,6 +13,7 @@ import {
   answerEvent,
   commonEvent,
   resumeEvent,
+  skipEvent,
   transcriptEvent,
   turnRequest,
 } from '@/session/move-stream.events';
@@ -39,6 +41,8 @@ export type MoveStream = Readonly<{
   handleTranscript(text: string, confidence?: number, signal?: AbortSignal): AsyncIterable<string>;
   /** P2H-15: an answer to a named `ASK`, graded by the API's existing scoring. */
   answer(respondsTo: string, text: string): AsyncIterable<string>;
+  /** The open question is closed with its answer shown, and a fresh one follows. */
+  skip(respondsTo: string | null, reason: SkipReason): AsyncIterable<string>;
   /** P2H-01: the child said nothing inside the band window. */
   silence(payload: Readonly<{ waitedMs: number; afterMoveId: string }>): AsyncIterable<string>;
   resume(signal?: AbortSignal): AsyncIterable<string>;
@@ -112,13 +116,14 @@ function harnessTurns(
   input: MoveStreamInput,
   state: MoveStreamState,
   serialize: ReturnType<typeof createStreamSerializer>,
-): Pick<MoveStream, 'answer' | 'silence' | 'resume'> {
+): Pick<MoveStream, 'answer' | 'skip' | 'silence' | 'resume'> {
   const turn = (event: TutorInputEvent, replayOnly: boolean, signal?: AbortSignal) =>
     serialize(() =>
       send(input, state, { event, replayOnly, ...(signal === undefined ? {} : { signal }) }),
     );
   return {
     answer: (respondsTo, text) => turn(answerEvent(input, state, respondsTo, text), false),
+    skip: (respondsTo, reason) => turn(skipEvent(input, state, respondsTo, reason), false),
     silence: (payload) =>
       turn({ ...commonEvent(input, state), kind: 'SILENCE', ...payload }, false),
     resume: (signal) => turn(resumeEvent(input, state), true, signal),

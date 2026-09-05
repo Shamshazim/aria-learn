@@ -126,18 +126,33 @@ suite('Phase 1 exit acceptance', () => {
     expect(count.rows[0]?.count).toBeGreaterThanOrEqual(8);
   });
 
-  it('changes the explanation structure after repeated confusion', async () => {
+  it('climbs the ladder on repeated confusion: a nudge, another way, then the answer and a new question', async () => {
     const fixture = await createPhase1Fixture(database, '4', sequentialUuids());
     const started = await startSession(fixture, '4', 'math');
+    const firstAsk = requireAsk(started.moves);
     await sendTurn(fixture, started.session.sessionId, { kind: 'CONFUSED' });
     await sendTurn(fixture, started.session.sessionId, { kind: 'CONFUSED' });
-    const result = await database.pool.query<{ approach: string; text: string }>(
-      `SELECT evidence ->> 'approach' AS approach, text FROM session_event
-       WHERE session_id = $1 AND actor = 'aria' AND kind = 'RETEACH' ORDER BY seq`,
+    await sendTurn(fixture, started.session.sessionId, { kind: 'CONFUSED' });
+    const result = await database.pool.query<{ kind: string; approach: string; text: string }>(
+      `SELECT kind, evidence ->> 'approach' AS approach, text FROM session_event
+       WHERE session_id = $1 AND actor = 'aria' AND kind IN ('HINT', 'RETEACH', 'REVEAL')
+       ORDER BY seq`,
       [started.session.sessionId],
     );
-    expect(result.rows.map((row) => row.approach)).toEqual(['visual-model', 'worked-example']);
-    expect(new Set(result.rows.map((row) => row.text)).size).toBe(2);
+    expect(result.rows.map((row) => [row.kind, row.approach])).toEqual([
+      ['HINT', 'single-nudge'],
+      ['RETEACH', 'visual-model'],
+      ['REVEAL', 'move-on'],
+    ]);
+    expect(new Set(result.rows.map((row) => row.text)).size).toBe(3);
+    // The reveal is followed by a fresh question, not a fourth asking of the same one.
+    const asks = await database.pool.query<{ item_id: string }>(
+      `SELECT payload ->> 'itemId' AS item_id FROM session_event
+       WHERE session_id = $1 AND actor = 'aria' AND kind = 'ASK' ORDER BY seq DESC LIMIT 1`,
+      [started.session.sessionId],
+    );
+    expect(asks.rows[0]?.item_id).toBeDefined();
+    expect(asks.rows[0]?.item_id).not.toBe(firstAsk.itemId);
   });
 
   it('recalls tomorrow only from a fact supported by today evidence', async () => {

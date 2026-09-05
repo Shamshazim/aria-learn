@@ -14,6 +14,7 @@ const EVENTS: readonly EventPayload[] = [
   { kind: 'ANSWER', respondsTo: 'ask-3', text: '7' },
   { kind: 'QUESTION', text: 'Why?' },
   { kind: 'CONFUSED', aboutMoveId: 'ask-2' },
+  { kind: 'SKIP', respondsTo: 'ask-2', reason: 'child_asked' },
   { kind: 'SPEECH_PARTIAL', text: 'sev' },
   { kind: 'SPEECH_FINAL', text: 'seven' },
   { kind: 'SILENCE', waitedMs: 18_000, afterMoveId: 'ask-2' },

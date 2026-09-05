@@ -10,6 +10,7 @@ const PAYLOADS: readonly EventPayload[] = [
   { kind: 'ANSWER', respondsTo: 'ask-1', text: '7' },
   { kind: 'QUESTION', text: 'Why?' },
   { kind: 'CONFUSED', aboutMoveId: 'ask-1' },
+  { kind: 'SKIP', respondsTo: 'ask-1', reason: 'child_asked' },
   { kind: 'SPEECH_PARTIAL', text: 'sev' },
   { kind: 'SPEECH_FINAL', text: 'seven' },
   { kind: 'SILENCE', waitedMs: 18_000, afterMoveId: 'ask-1' },

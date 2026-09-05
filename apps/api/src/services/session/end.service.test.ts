@@ -51,6 +51,7 @@ function repository(session: TutorSessionRecord): SessionRepository {
     findLatestEnded: vi.fn(() => Promise.resolve(null)),
     end: vi.fn(() => Promise.resolve(ended)),
     saveSummary: vi.fn((_id: string, summary: string) => Promise.resolve({ ...ended, summary })),
+    updatePlan: vi.fn(() => Promise.resolve(session)),
   };
   return value;
 }

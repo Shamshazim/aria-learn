@@ -1,5 +1,6 @@
 import {
   PROTOCOL_VERSION,
+  bandForGrade,
   sessionIdSchema,
   type Band,
   type Grade,
@@ -47,6 +48,12 @@ export function createSessionService(deps: {
   ids: IdGenerator;
   resume(session: TutorSessionRecord): Promise<ResumedSession>;
   start(session: TutorSessionRecord, event: TutorInputEvent): Promise<readonly TutorMove[]>;
+  /**
+   * Development only: the requested grade is used instead of the child's, so a developer
+   * can open any grade's class from the picker's dropdown. Off, the request's grade is
+   * ignored and the child's own grade decides, as it always did.
+   */
+  allowGradeOverride?: boolean;
 }): SessionService {
   return {
     createOrResume: (
@@ -85,7 +92,7 @@ async function createOrResume(
     }
     await deps.sessions.end(open.id, 'break', deps.clock.now());
   }
-  const student = await deps.students.requireById(input.studentId);
+  const student = learnerFor(deps, await deps.students.requireById(input.studentId), input.grade);
   const recommendationAccepted = await recommendationAcceptance(deps, input);
   const skill = await skillToPractise(deps, input.studentId, input.subject, student);
   if (skill === null) throw new ValidationError('subject is not available for this grade band');
@@ -117,6 +124,16 @@ async function createOrResume(
     await deps.sessions.end(session.id, 'break', deps.clock.now());
     throw error;
   }
+}
+
+/** The grade and band the session is taught at: the child's, unless a developer overrode it. */
+function learnerFor(
+  deps: Pick<Parameters<typeof createSessionService>[0], 'allowGradeOverride'>,
+  student: Readonly<{ band: Band; grade: Grade }>,
+  requested: Grade,
+): Readonly<{ band: Band; grade: Grade }> {
+  if (deps.allowGradeOverride !== true || requested === student.grade) return student;
+  return { grade: requested, band: bandForGrade(requested) };
 }
 
 /**

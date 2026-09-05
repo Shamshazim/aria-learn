@@ -33,6 +33,8 @@ const BY_INTENT: Readonly<Record<Intent, BridgeBucket | null>> = {
   UNCLEAR: 'confirm-heard',
   STOP_REQUEST: null,
   PERSONAL_INFO: null,
+  // The child asked to move on, so the next thing out of the harness is a fresh question.
+  SKIP_REQUEST: 'transition',
 };
 
 /**

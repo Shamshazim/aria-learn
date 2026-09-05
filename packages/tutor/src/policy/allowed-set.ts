@@ -43,9 +43,11 @@ const LIMITS: Readonly<Partial<Record<MoveKind, Limit>>> = {
   HINT: stillWorking,
   RETEACH: stillWorking,
   SHOW: stillWorking,
-  // Two attempts is where productive struggle ends; before that, revealing is giving up for
-  // the child.
-  REVEAL: (input) => input.graded?.correct === false && input.session.consecutiveWrong >= 2,
+  // Two turns that went nowhere is where productive struggle ends; before that, revealing is
+  // giving up for the child. A skip is the child giving up out loud, and is honoured.
+  REVEAL: (input) =>
+    input.event.kind === 'SKIP' ||
+    (input.graded?.correct !== true && input.session.consecutiveStuck >= 2),
   SWITCH: (input) => input.session.unmetPrerequisite !== null,
   // Stopping is the policy's call, never the planner's.
   BREAK: (input) => input.defaultPlan.kind === 'BREAK',

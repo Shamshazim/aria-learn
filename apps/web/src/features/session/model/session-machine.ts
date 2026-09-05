@@ -5,7 +5,11 @@ import type { SessionState, TutorStatus } from '@/features/session/model/session
 export type UiAction =
   | Readonly<{ kind: 'SOURCE_PENDING' }>
   | Readonly<{ kind: 'SOURCE_SETTLED' }>
-  | Readonly<{ kind: 'STOP_ACTIVE' }>;
+  | Readonly<{ kind: 'STOP_ACTIVE' }>
+  /** The voice said whether Aria is talking; the status line follows her, not the last move. */
+  | Readonly<{ kind: 'VOICE_STATE'; state: 'listening' | 'thinking' | 'speaking' }>
+  /** No voice is playing this move, so "Aria is explaining" ends the moment it is on screen. */
+  | Readonly<{ kind: 'SPEECH_SETTLED' }>;
 
 export function reduceSession(
   state: SessionState,
@@ -37,6 +41,8 @@ const UI_ACTIONS: ReadonlySet<UiAction['kind']> = new Set([
   'SOURCE_PENDING',
   'SOURCE_SETTLED',
   'STOP_ACTIVE',
+  'VOICE_STATE',
+  'SPEECH_SETTLED',
 ]);
 
 function isUiAction(input: TutorMove | UiAction): input is UiAction {
@@ -46,7 +52,29 @@ function isUiAction(input: TutorMove | UiAction): input is UiAction {
 function reduceUiAction(state: SessionState, input: UiAction): SessionState {
   if (input.kind === 'STOP_ACTIVE') return stopActive(state);
   if (input.kind === 'SOURCE_PENDING') return { ...state, status: 'thinking' };
+  if (input.kind === 'VOICE_STATE') return voiceState(state, input.state);
+  if (input.kind === 'SPEECH_SETTLED') {
+    return state.status === 'speaking' ? { ...state, status: 'waiting' } : state;
+  }
   return state.status === 'thinking' ? { ...state, status: 'waiting' } : state;
+}
+
+/**
+ * The voice is the authority on whether Aria is talking. Before this the status said
+ * "explaining" from the moment a spoken move arrived until the next tap, whatever the voice
+ * was doing, so the screen and the voice disagreed for most of every turn.
+ */
+function voiceState(
+  state: SessionState,
+  voice: 'listening' | 'thinking' | 'speaking',
+): SessionState {
+  if (state.ended) return state;
+  if (voice === 'speaking')
+    return state.status === 'speaking' ? state : { ...state, status: 'speaking' };
+  if (voice === 'thinking')
+    return state.status === 'thinking' ? state : { ...state, status: 'thinking' };
+  if (state.status !== 'speaking' && state.status !== 'thinking') return state;
+  return { ...state, status: state.currentMove === null ? 'listening' : 'waiting' };
 }
 
 type ResponseOrSessionMove = Exclude<

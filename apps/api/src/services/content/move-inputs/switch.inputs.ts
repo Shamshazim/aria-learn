@@ -11,6 +11,7 @@ import type { ApiModelContext } from '@/services/content/turn-content.types';
  * fact rather than left to the model to guess from context it does not have.
  */
 export function switchInputs(turn: PlannedTurn<ApiModelContext>): MoveInputs {
+  if (turn.plan.approach === 'next-topic') return nextTopicInputs(turn);
   return {
     lines: [
       `Why you are moving on: ${turn.plan.reason}`,
@@ -27,6 +28,22 @@ export function switchInputs(turn: PlannedTurn<ApiModelContext>): MoveInputs {
       ...(turn.context.session.consecutiveSilences > 0
         ? ['The child has gone quiet, so keep this to one sentence and hand them something easy.']
         : []),
+    ],
+  };
+}
+
+/** Forward, not back: the child has this topic today, and the next one is named. */
+function nextTopicInputs(turn: PlannedTurn<ApiModelContext>): MoveInputs {
+  const said = turn.event.kind === 'ANSWER' ? (turn.event.text ?? turn.event.choiceId) : undefined;
+  return {
+    lines: [
+      `Why you are moving on: ${turn.plan.reason}`,
+      ...(said === undefined || said === ''
+        ? []
+        : [`The child's latest answer, which was right: "${said}".`]),
+      `They have answered ${String(turn.context.session.correctStreak + 1)} in a row correctly on this topic.`,
+      ...(turn.plan.skillCode === null ? [] : [`What is coming next: ${turn.plan.skillCode}.`]),
+      'This is a step forward, not a rescue: say what they did right, then name what is next.',
     ],
   };
 }

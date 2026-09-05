@@ -38,17 +38,21 @@ describe('curriculum inventory', () => {
   it('carries the legacy catalogue alongside, as skills the same reads resolve', () => {
     const inventory = createInventoryService();
 
-    expect(inventory.listSkills()).toHaveLength(EXPECTED_CODES.length + 394);
+    expect(inventory.listSkills()).toHaveLength(EXPECTED_CODES.length + 791);
     expect(inventory.listSubjects().map((subject) => subject.id)).toEqual([
       'english-writing',
+      'english-reading',
+      'history-social-science',
       'mathematics',
       'math-adventures',
       'science',
     ]);
-    expect(inventory.listTopics('science', '4').map((skill) => skill.name)).toEqual([
-      'Animal Groups',
-      'Habitats',
-    ]);
+    expect(
+      inventory
+        .listTopics('science', '4')
+        .map((skill) => skill.name)
+        .slice(0, 2),
+    ).toEqual(['Animal Groups', 'Habitats']);
     expect(inventory.getSkill('MATH.G4.U01.L01.T01')).toMatchObject({
       name: 'Place Value to Millions',
       band: 'middle',
@@ -56,6 +60,19 @@ describe('curriculum inventory', () => {
     });
     expect(inventory.getLesson('MATH.G4.U01.L01.T01')).toBeNull();
     expect(inventory.listMisconceptions('MATH.G4.U01.L01.T01')).toEqual([]);
+  });
+
+  it('knows the topic after a catalogue topic, and that an authored skill has none', () => {
+    const inventory = createInventoryService();
+
+    expect(inventory.nextTopic('SCI.G4.U01.L01.T01')).toBe('SCI.G4.U01.L01.T02');
+    expect(inventory.nextTopic('SCI.G4.U01.L01.T02')).toBe('SCI.G4.U01.L02.T01');
+    const grade4Science = inventory.listTopics('science', '4');
+    const last = grade4Science.at(-1);
+    expect(last).toBeDefined();
+    expect(inventory.nextTopic(last?.code ?? '')).toBeNull();
+    expect(inventory.nextTopic('ADD.REGROUP.2D')).toBeNull();
+    expect(inventory.nextTopic('NOT.A.SKILL')).toBeNull();
   });
 
   it.each(['ADD.REGROUP.2D', 'FRAC.COMPARE', 'PH.SILENT_E'])(

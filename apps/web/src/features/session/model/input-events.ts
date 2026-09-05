@@ -2,6 +2,7 @@ import {
   PROTOCOL_VERSION,
   tutorInputEventSchema,
   type Grade,
+  type SkipReason,
   type TutorInputEvent,
 } from '@aria/shared';
 
@@ -16,6 +17,7 @@ export type EventPayload =
   | Readonly<{ kind: 'ANSWER'; respondsTo: string; text: string }>
   | Readonly<{ kind: 'QUESTION'; text: string }>
   | Readonly<{ kind: 'CONFUSED'; aboutMoveId?: string }>
+  | Readonly<{ kind: 'SKIP'; respondsTo?: string; reason: SkipReason }>
   | Readonly<{ kind: 'SPEECH_PARTIAL'; text: string }>
   | Readonly<{ kind: 'SPEECH_FINAL'; text: string }>
   | Readonly<{ kind: 'SILENCE'; waitedMs: number; afterMoveId?: string }>

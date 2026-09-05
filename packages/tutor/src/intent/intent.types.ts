@@ -15,6 +15,8 @@ export const INTENTS = [
   'CONFUSED',
   'CHAT',
   'STOP_REQUEST',
+  /** "Skip", "next one", "I give up": the child wants a different question, not more help. */
+  'SKIP_REQUEST',
   /** The child volunteered a surname, address, phone number, email or school. */
   'PERSONAL_INFO',
   /** Nothing usable came through — bad audio, a fragment, silence with a cough in it. */

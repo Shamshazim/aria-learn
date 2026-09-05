@@ -24,6 +24,9 @@ function context(overrides: Partial<Session> = {}): LoadedTurnContext<null> {
       attempts: 0,
       consecutiveWrong: 0,
       consecutiveSilences: 0,
+      consecutiveStuck: 0,
+      correctStreak: 0,
+      nextTopic: null,
       repeatedMisconception: null,
       lastApproach: null,
       unmetPrerequisite: null,
@@ -75,7 +78,11 @@ describe('the set a planner may choose from', () => {
       { unmetPrerequisite: 'ADD.TO_5' },
       ['HINT', 'RETEACH', 'SWITCH'],
     ],
-    ['a third wrong answer', { consecutiveWrong: 2 }, ['HINT', 'RETEACH', 'REVEAL']],
+    [
+      'a third wrong answer',
+      { consecutiveWrong: 2, consecutiveStuck: 2 },
+      ['HINT', 'RETEACH', 'REVEAL'],
+    ],
   ] as const)('widens on %s', (_name, session, expected) => {
     const decision = policyFor({ correct: false })(context(session), ANSWER);
     expect(decision.allowedMoves).toEqual(expected);
@@ -86,7 +93,7 @@ describe('the set a planner may choose from', () => {
   it.each([
     ['QUESTION', ['SAY', 'SHOW', 'ASK']],
     ['CHAT', ['SAY', 'ASK']],
-    ['CONFUSED', ['RETEACH', 'SHOW']],
+    ['CONFUSED', ['HINT', 'RETEACH', 'SHOW']],
   ] as const)('answers intent %s from more than one move', (intent, expected) => {
     const decision = policyFor({ correct: false, intent })(context(), ANSWER);
     expect(decision.allowedMoves).toEqual(expected);
@@ -139,6 +146,17 @@ describe('the set a planner may choose from', () => {
       'SAY',
     ],
     ['a child who left', () => policyFor({ correct: false })(context(), event('LEAVE')), 'END'],
+    [
+      'a skip',
+      () => policyFor({ correct: false, intent: 'SKIP_REQUEST' })(context(), ANSWER),
+      'REVEAL',
+    ],
+    [
+      'a third turn that went nowhere',
+      () =>
+        policyFor({ correct: false, intent: 'CONFUSED' })(context({ consecutiveStuck: 2 }), ANSWER),
+      'REVEAL',
+    ],
   ] as const)('decides %s without a planner', (_name, run, kind) => {
     const decision = run();
     expect(decision.decisive).toBe(true);

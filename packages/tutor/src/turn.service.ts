@@ -65,6 +65,7 @@ async function finalizeTurn<TModelContext>(
     moves: resolved.moves,
     privateEvidence: resolved.privateEvidence,
     spans: { eou_ms: 0, gate_ms: gateMs, e2e_ms: Math.max(0, ports.nowMs() - started) },
+    practisedSkillCode: checked.context.session.skillCode,
   };
   updateStateIntent(turn);
   await recordTurn(ports.commit, turn);

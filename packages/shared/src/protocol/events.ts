@@ -12,6 +12,8 @@ export {
   answerEventSchema,
   questionEventSchema,
   confusedEventSchema,
+  skipEventSchema,
+  SKIP_REASONS,
   speechPartialEventSchema,
   speechFinalEventSchema,
   silenceEventSchema,
@@ -26,4 +28,4 @@ export {
   EVENT_KINDS,
 } from './schemas/events.schema';
 
-export type { TutorInputEvent, EventKind } from './schemas/events.schema';
+export type { TutorInputEvent, EventKind, SkipReason } from './schemas/events.schema';

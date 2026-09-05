@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { PROTOCOL_VERSION, tutorMoveSchema, type TutorMove } from '@aria/shared';
 
-import { answerFromScreen, createScreenTools } from '@/session/talk-screen';
+import { answerFromScreen, createScreenTools, skipFromScreen } from '@/session/talk-screen';
 import type { TalkToolHooks } from '@/session/talk-tools';
 
 const opts = { ctx: {}, toolCallId: 'call', abortSignal: new AbortController().signal } as never;
@@ -45,7 +45,12 @@ describe('what Aria puts on the screen', () => {
     const shown = move('SHOW', { expects: 'text', display: [{ type: 'workpad', mode: 'answer' }] });
     const screen = vi.fn((_sessionId: string, _body: unknown) => Promise.resolve({ move: shown }));
     const publish = vi.fn((_move: TutorMove) => Promise.resolve());
-    const tools = createScreenTools({ talk: { screen }, room: ROOM, publish, currentAsk: () => null });
+    const tools = createScreenTools({
+      talk: { screen },
+      room: ROOM,
+      publish,
+      currentAsk: () => null,
+    });
 
     const out = await tools.show_on_screen.execute(
       { surface: 'writing', text: '  Write a sentence with "because".  ', options: null },
@@ -64,7 +69,9 @@ describe('what Aria puts on the screen', () => {
   });
 
   it('leaves out empty text and too few options', async () => {
-    const screen = vi.fn((_sessionId: string, _body: unknown) => Promise.resolve({ move: move('SHOW') }));
+    const screen = vi.fn((_sessionId: string, _body: unknown) =>
+      Promise.resolve({ move: move('SHOW') }),
+    );
     const tools = createScreenTools({
       talk: { screen },
       room: ROOM,
@@ -161,7 +168,10 @@ describe('while a question is on the screen', () => {
     });
     await t.show_on_screen.execute({ surface: 'text', text: 'one', options: null }, opts);
     ask = { ...ASK, id: 'ask-3' };
-    const out = await t.show_on_screen.execute({ surface: 'text', text: 'two', options: null }, opts);
+    const out = await t.show_on_screen.execute(
+      { surface: 'text', text: 'two', options: null },
+      opts,
+    );
     expect(out.shown).toBe('text');
     expect(screen).toHaveBeenCalledTimes(2);
   });
@@ -169,14 +179,20 @@ describe('while a question is on the screen', () => {
 
 function harness(ask: TutorMove | null, published: readonly TutorMove[] = [], crisis = false) {
   const answers: [string, string][] = [];
+  const skips: [string | null, string][] = [];
   const heard: unknown[] = [];
   const replies: unknown[] = [];
   const interrupted = { count: 0 };
+  const said = () => lines(...published.flatMap((m) => (m.speech === null ? [] : [m.speech.text])));
   const hooks: TalkToolHooks = {
     moves: {
       answer: (respondsTo, text) => {
         answers.push([respondsTo, text]);
-        return lines(...published.flatMap((m) => (m.speech === null ? [] : [m.speech.text])));
+        return said();
+      },
+      skip: (respondsTo, reason) => {
+        skips.push([respondsTo, reason]);
+        return said();
       },
       handleTranscript: () => lines(),
       terminalDelivered: () => false,
@@ -204,6 +220,7 @@ function harness(ask: TutorMove | null, published: readonly TutorMove[] = [], cr
   return {
     deps: { session, hooks, talk, room: ROOM, currentAsk: () => ask },
     answers,
+    skips,
     heard,
     replies,
     interrupted,
@@ -225,7 +242,7 @@ describe('what the child does on the screen', () => {
     expect(instructions).toContain('Yes, apple is a noun.');
   });
 
-  it('reads what was typed in the writing pad to the model as the child\'s words', async () => {
+  it("reads what was typed in the writing pad to the model as the child's words", async () => {
     const h = harness(ASK);
 
     await answerFromScreen(h.deps, {
@@ -243,12 +260,41 @@ describe('what the child does on the screen', () => {
     );
   });
 
+  it('closes the question when the child presses skip, and tells the model not to hold on', async () => {
+    const h = harness(ASK, [
+      move('REVEAL', { speech: { text: 'No problem. It was apple.' }, answer: 'apple' }),
+      move('ASK', { speech: { text: 'Which word is a verb?' }, expects: 'text' }),
+    ]);
+
+    await skipFromScreen(h.deps, { kind: 'SCREEN_SKIP', moveId: 'ask-1' });
+
+    expect(h.skips).toEqual([['ask-1', 'child_asked']]);
+    expect(h.answers).toEqual([]);
+    const instructions = String(Reflect.get(h.replies[0] ?? {}, 'instructions'));
+    expect(instructions).toContain('pressed skip');
+    expect(instructions).toContain('No problem. It was apple.');
+  });
+
+  it('still skips when the screen names a question the voice has already moved past', async () => {
+    const h = harness(ASK, [move('ASK', { speech: { text: 'Next one.' }, expects: 'text' })]);
+
+    await skipFromScreen(h.deps, { kind: 'SCREEN_SKIP', moveId: 'ask-old' });
+
+    expect(h.skips).toEqual([[null, 'child_asked']]);
+  });
+
   it('cuts in with the crisis line when the typed words disclose something', async () => {
     const h = harness(null, [], true);
 
-    await answerFromScreen(h.deps, { kind: 'SCREEN_ANSWER', moveId: 'show-1', text: 'I am scared' });
+    await answerFromScreen(h.deps, {
+      kind: 'SCREEN_ANSWER',
+      moveId: 'show-1',
+      text: 'I am scared',
+    });
 
     expect(h.interrupted.count).toBe(1);
-    expect(String(Reflect.get(h.replies[0] ?? {}, 'instructions'))).toContain('"I am here with you."');
+    expect(String(Reflect.get(h.replies[0] ?? {}, 'instructions'))).toContain(
+      '"I am here with you."',
+    );
   });
 });

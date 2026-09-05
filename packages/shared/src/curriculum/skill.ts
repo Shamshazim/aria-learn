@@ -4,9 +4,10 @@ import type { Band, Grade } from '../band/band';
 /**
  * The subjects a skill can belong to.
  *
- * The first three are the rewrite's authored inventory. The rest are the legacy curricula
- * carried across whole (`apps/api/src/curriculum/catalogue`): the subject name slugified the
- * way the legacy seeder did it, so a bookmark from the old app still names the same class.
+ * The first three are the rewrite's authored inventory. The rest are the catalogue subjects
+ * (`apps/api/src/curriculum/catalogue`): the four legacy curricula carried across whole, plus
+ * the California-aligned subjects that fill TK–8 — each the subject name slugified the way
+ * the legacy seeder did it, so a bookmark from the old app still names the same class.
  */
 export type SkillSubject =
   | 'arithmetic'
@@ -14,8 +15,10 @@ export type SkillSubject =
   | 'writing'
   | 'mathematics'
   | 'english-writing'
+  | 'english-reading'
   | 'math-adventures'
-  | 'science';
+  | 'science'
+  | 'history-social-science';
 
 /** The smallest authored curriculum capability Aria can teach or measure. */
 export type Skill = Readonly<{
