@@ -23,7 +23,7 @@ import { moveSegmentSchema } from './segment.schema';
 /** A turn may produce several moves: a `SAY` that explains, then the `ASK` that follows it. */
 const MAX_MOVES_PER_TURN = 8;
 
-export const turnRequestSchema = z.object({
+export const turnRequestSchema = z.strictObject({
   protocolVersion: protocolVersionSchema,
   sessionId: sessionIdSchema.optional(),
   event: tutorInputEventSchema,
@@ -31,7 +31,7 @@ export const turnRequestSchema = z.object({
 
 export type TurnRequest = z.infer<typeof turnRequestSchema>;
 
-export const turnResponseSchema = z.object({
+export const turnResponseSchema = z.strictObject({
   protocolVersion: protocolVersionSchema,
   sessionId: sessionIdSchema,
   /** Echoes the event that produced these moves, so a client can drop a stale turn. */
@@ -51,7 +51,7 @@ export type TurnResponse = z.infer<typeof turnResponseSchema>;
  */
 export const turnFrameSchema = z.discriminatedUnion('kind', [
   moveSegmentSchema,
-  z.object({ kind: z.literal('TURN_MOVES'), turn: turnResponseSchema }),
+  z.strictObject({ kind: z.literal('TURN_MOVES'), turn: turnResponseSchema }),
 ]);
 
 export type TurnFrame = z.infer<typeof turnFrameSchema>;
@@ -62,7 +62,7 @@ export type TurnFrame = z.infer<typeof turnFrameSchema>;
  * `band` is resolved server-side from the child's grade so the two cannot disagree; the UI
  * renders the band it is given rather than deriving one from a grade string.
  */
-export const sessionContextSchema = z.object({
+export const sessionContextSchema = z.strictObject({
   sessionId: sessionIdSchema,
   subjectId: z.string().min(1).max(64),
   grade: gradeSchema,

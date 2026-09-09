@@ -16,7 +16,7 @@ export function voiceRoomName(sessionId: string, connectionEpoch: number): strin
   return `aria_${sessionId}_${String(connectionEpoch)}`;
 }
 
-export const realtimeCredentialsSchema = z.object({
+export const realtimeCredentialsSchema = z.strictObject({
   url: z.url(),
   token: z.string().min(1).max(8_192),
   room: z.string().min(1).max(128),
@@ -27,13 +27,13 @@ export const realtimeCredentialsSchema = z.object({
 });
 
 /** What the child actually heard before they talked over it (P2H-07 barge-in). */
-export const spokenPrefixSchema = z.object({
+export const spokenPrefixSchema = z.strictObject({
   generationId: messageIdSchema,
   /** The index of the last segment that reached the speaker. */
   index: sequenceSchema,
 });
 
-export const voiceTurnRequestSchema = z.object({
+export const voiceTurnRequestSchema = z.strictObject({
   protocolVersion: protocolVersionSchema,
   event: tutorInputEventSchema,
   replayOnly: z.boolean().default(false),
@@ -44,7 +44,7 @@ export const voiceTurnRequestSchema = z.object({
   spokenPrefix: spokenPrefixSchema.optional(),
 });
 
-export const voiceTurnResponseSchema = z.object({
+export const voiceTurnResponseSchema = z.strictObject({
   connectionEpoch: sequenceSchema,
   moves: z.array(tutorMoveSchema).max(128),
 });
@@ -52,39 +52,39 @@ export const voiceTurnResponseSchema = z.object({
 /** The voice channel, over NDJSON: gated sentences, then the moves that close the turn. */
 export const voiceTurnFrameSchema = z.discriminatedUnion('kind', [
   moveSegmentSchema,
-  z.object({ kind: z.literal('TURN_MOVES'), turn: voiceTurnResponseSchema }),
+  z.strictObject({ kind: z.literal('TURN_MOVES'), turn: voiceTurnResponseSchema }),
 ]);
 
 export const voiceClientEventSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('ACK'), acknowledgedSeq: sequenceSchema }),
-  z.object({ kind: z.literal('SPEECH_STARTED') }),
-  z.object({ kind: z.literal('SYNC') }),
-  z.object({ kind: z.literal('STOP'), generationId: z.string().min(1).max(128) }),
+  z.strictObject({ kind: z.literal('ACK'), acknowledgedSeq: sequenceSchema }),
+  z.strictObject({ kind: z.literal('SPEECH_STARTED') }),
+  z.strictObject({ kind: z.literal('SYNC') }),
+  z.strictObject({ kind: z.literal('STOP'), generationId: z.string().min(1).max(128) }),
   /**
    * "Aria talks": something the child did on the screen — a tapped choice, a typed answer, a
    * paragraph in the writing pad — handed to the worker so the voice knows about it at once.
    * `moveId` says which move the screen was showing, so an answer to the open question is
    * graded and anything else is read to Aria as words the child gave her.
    */
-  z.object({
+  z.strictObject({
     kind: z.literal('SCREEN_ANSWER'),
     moveId: messageIdSchema,
     text: z.string().min(1).max(4_000),
   }),
   /** The session ended on the screen — the child pressed the button — so the voice says goodbye. */
-  z.object({ kind: z.literal('LEAVE') }),
+  z.strictObject({ kind: z.literal('LEAVE') }),
 ]);
 
 export const voiceWorkerStateSchema = z.discriminatedUnion('kind', [
   /** `talks` is true where a realtime model is Aria's voice, so the screen answers through it. */
-  z.object({ kind: z.literal('WORKER_READY'), talks: z.boolean().default(false) }),
-  z.object({ kind: z.literal('TRANSCRIPT_UNCLEAR') }),
-  z.object({ kind: z.literal('METRICS_UNAVAILABLE') }),
-  z.object({ kind: z.literal('SPEECH_FINISHED'), acknowledgedSeq: sequenceSchema }),
+  z.strictObject({ kind: z.literal('WORKER_READY'), talks: z.boolean().default(false) }),
+  z.strictObject({ kind: z.literal('TRANSCRIPT_UNCLEAR') }),
+  z.strictObject({ kind: z.literal('METRICS_UNAVAILABLE') }),
+  z.strictObject({ kind: z.literal('SPEECH_FINISHED'), acknowledgedSeq: sequenceSchema }),
   /** A sentence Aria just said in her own words, for the caption ("Aria talks"). */
-  z.object({ kind: z.literal('CAPTION'), text: z.string().min(1).max(4_000) }),
+  z.strictObject({ kind: z.literal('CAPTION'), text: z.string().min(1).max(4_000) }),
   /** What Aria heard the child say, so the screen shows the microphone is working. */
-  z.object({ kind: z.literal('HEARD'), text: z.string().min(1).max(2_000) }),
+  z.strictObject({ kind: z.literal('HEARD'), text: z.string().min(1).max(2_000) }),
 ]);
 
 const boundedMetric = z.number().nonnegative().max(120_000);
@@ -94,7 +94,7 @@ const boundedMetric = z.number().nonnegative().max(120_000);
  * `bucket` and `rule` are counter labels, not protocol vocabulary — the bucket names live in
  * `@aria/voice`, which the shared package cannot import without inverting the dependency.
  */
-export const bridgeMetricSchema = z.object({
+export const bridgeMetricSchema = z.strictObject({
   kind: z.literal('bridge'),
   played: z.boolean(),
   bucket: z.string().min(1).max(32).nullable(),
@@ -103,25 +103,25 @@ export const bridgeMetricSchema = z.object({
 });
 
 export const voiceMetricSchema = z.discriminatedUnion('kind', [
-  z.object({
+  z.strictObject({
     kind: z.literal('end_of_turn'),
     endOfUtteranceMs: boundedMetric,
     transcriptionMs: boundedMetric,
   }),
-  z.object({
+  z.strictObject({
     kind: z.literal('tts'),
     ttfbMs: boundedMetric,
     durationMs: boundedMetric,
     cancelled: z.boolean(),
   }),
-  z.object({ kind: z.literal('stt'), audioDurationMs: boundedMetric }),
-  z.object({
+  z.strictObject({ kind: z.literal('stt'), audioDurationMs: boundedMetric }),
+  z.strictObject({
     kind: z.literal('interruption'),
     detectionMs: boundedMetric,
     interruptions: sequenceSchema,
     backchannels: sequenceSchema,
   }),
-  z.object({
+  z.strictObject({
     kind: z.literal('turn_detector'),
     totalMs: boundedMetric,
     inferenceMs: boundedMetric,
@@ -130,7 +130,7 @@ export const voiceMetricSchema = z.discriminatedUnion('kind', [
   bridgeMetricSchema,
 ]);
 
-export const voiceMetricRequestSchema = z.object({
+export const voiceMetricRequestSchema = z.strictObject({
   connectionEpoch: sequenceSchema,
   metric: voiceMetricSchema,
 });
@@ -141,13 +141,13 @@ export const voiceMetricRequestSchema = z.object({
  * Text, not audio: the worker fetches each clip's bytes separately, so a library with a
  * hundred clips in it is one small response and not a hundred embedded blobs.
  */
-const bridgeClipDescriptorSchema = z.object({
+const bridgeClipDescriptorSchema = z.strictObject({
   id: z.string().min(1).max(128),
   bucket: z.string().min(1).max(32),
   text: z.string().min(1).max(200),
 });
 
-export const bridgeLibrarySchema = z.object({
+export const bridgeLibrarySchema = z.strictObject({
   band: bandSchema,
   voice: z.string().min(1).max(64),
   /** Mono signed 16-bit PCM; the worker needs the rate to build frames from the bytes. */

@@ -27,7 +27,7 @@ function move(kind: 'ASK' | 'SWITCH') {
     speech: { text: 'Something.' },
     display: [],
     expects: 'none',
-    ...(kind === 'SWITCH' ? { skillCode: 'MATH.1.OA.1', reason: 'prerequisite' } : {}),
+    ...(kind === 'SWITCH' ? { reason: 'prerequisite' } : {}),
   });
 }
 

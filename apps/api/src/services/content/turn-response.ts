@@ -1,3 +1,4 @@
+import { SKILL_EVIDENCE_MOVE_KINDS } from '@aria/shared';
 import type { MoveKind, TutorInputEvent, TutorMove } from '@aria/shared';
 import type { PlannedTurn } from '@aria/tutor';
 
@@ -90,7 +91,12 @@ export function responseMove(
     speech: { text },
     display: [{ type: 'text', body: text, markdown: false }],
     expects: turn.plan.approach === 'confirm-spoken-answer' ? 'speech' : 'none',
-    skillId: turn.plan.skillCode ?? undefined,
+    // X-05: only where the schema declares it. `BREAK` and `END` are not evidence about a
+    // skill, and since every move schema is strict, offering them one is now a parse error
+    // rather than a field quietly dropped on the way out.
+    ...(SKILL_EVIDENCE_MOVE_KINDS.includes(turn.plan.kind)
+      ? { skillId: turn.plan.skillCode ?? undefined }
+      : {}),
     ...(identity ?? {}),
   };
   return factory.make({ ...common, ...(MOVE_FIELDS[turn.plan.kind]?.(turn) ?? {}) });

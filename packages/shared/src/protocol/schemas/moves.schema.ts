@@ -40,6 +40,26 @@ export const MOVE_KINDS = [
 
 export type MoveKind = (typeof MOVE_KINDS)[number];
 
+/**
+ * The moves that are evidence about a skill, and so carry `skillId`.
+ *
+ * Teaching a thing and responding to an attempt at it are both about a skill; arriving,
+ * switching class, taking a break and finishing are not. Callers building a move need this to
+ * know whether `skillId` belongs on it — and since X-05 made every move schema strict, adding
+ * it to a move that does not declare it is a parse failure rather than a field silently
+ * dropped. `moves.strictness.test.ts` holds this list to the schemas.
+ */
+export const SKILL_EVIDENCE_MOVE_KINDS: readonly MoveKind[] = [
+  'SAY',
+  'SHOW',
+  'ASK',
+  'LISTEN',
+  'HINT',
+  'RETEACH',
+  'REVEAL',
+  'PRAISE',
+];
+
 export * from './moves/arrival.schema';
 export * from './moves/response.schema';
 export * from './moves/session.schema';

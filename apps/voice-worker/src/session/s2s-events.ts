@@ -7,7 +7,7 @@ import {
   createAcknowledgementGate,
   type AcknowledgementGate,
 } from '@/session/acknowledgement-gate';
-import { parseClientEvent } from '@/session/client-event';
+import { createEventValidator } from '@/session/event-validator';
 import type { MoveStream } from '@/session/move-stream';
 import type { S2SMetrics } from '@/session/s2s-metrics';
 import type { SilenceTimer } from '@/session/silence-timer';
@@ -72,9 +72,16 @@ function bindClientEvents(
   input: Parameters<typeof bindS2SEvents>[0],
   gate: AcknowledgementGate,
 ): void {
+  // X-05: the same gate the pipeline session uses, for the same reason — an unparseable
+  // frame never reaches the model, and a flood of them ends the room.
+  const events = createEventValidator({
+    onAbuse: () => {
+      input.finish();
+    },
+  });
   input.job.room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
     if (topic !== 'aria.client-event') return;
-    const event = parseClientEvent(payload);
+    const event = events.accept(payload);
     if (event === null) return;
     if (event.kind === 'ACK') {
       input.moves.acceptAcknowledgement(event.acknowledgedSeq);

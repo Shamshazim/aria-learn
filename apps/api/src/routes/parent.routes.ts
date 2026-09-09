@@ -4,6 +4,7 @@ import type { ParentAccessControllers } from '@/controllers/parent-access.contro
 import type { ParentControllers } from '@/controllers/parent.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
+import { noBodySchema } from '@/schemas/common.schema';
 import {
   createDeviceSchema,
   deviceParamsSchema,
@@ -61,7 +62,11 @@ export function createParentRouter(
   );
   // Not under `/parent/children`: it is about the devices the family is signed in on, and it
   // names no child because it ends every one of them.
-  router.post('/parent/sessions/revoke', asyncHandler(deps.controller.revokeSessions));
+  router.post(
+    '/parent/sessions/revoke',
+    validate(noBodySchema, 'body'),
+    asyncHandler(deps.controller.revokeSessions),
+  );
   router.post(
     '/parent/children/:id/consent/voice',
     validate(childParamsSchema, 'params'),
@@ -94,18 +99,28 @@ function mountAccess(router: Router, controller: ParentAccessControllers): void 
   router.delete(
     '/parent/devices/:id',
     validate(deviceParamsSchema, 'params'),
+    validate(noBodySchema, 'body'),
     asyncHandler(controller.revokeDevice),
   );
 
   router.delete(
     '/parent/children/:id',
     validate(childParamsSchema, 'params'),
+    validate(noBodySchema, 'body'),
     asyncHandler(controller.deleteChild),
   );
   // Not under `/parent/children`: it ends the account, and the children go with it.
-  router.delete('/parent/account', asyncHandler(controller.deleteAccount));
+  router.delete(
+    '/parent/account',
+    validate(noBodySchema, 'body'),
+    asyncHandler(controller.deleteAccount),
+  );
 
   // The parent's own sessions, as distinct from their children's — which
   // `/parent/sessions/revoke` above already ends.
-  router.post('/parent/sessions/sign-out-everywhere', asyncHandler(controller.signOutEverywhere));
+  router.post(
+    '/parent/sessions/sign-out-everywhere',
+    validate(noBodySchema, 'body'),
+    asyncHandler(controller.signOutEverywhere),
+  );
 }

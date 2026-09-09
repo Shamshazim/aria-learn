@@ -24,7 +24,10 @@ logs/
 *.sql.bak
 *.dump
 *.sqlite
-data/
+# Anchored to the repo root. Unanchored, this matched every `data/` at every depth — including
+# `apps/api/src/curriculum/catalogue/data/`, which is source the API cannot boot without and
+# which was therefore never committed.
+/data/
 
 # ── IDE / editor ─────────────────────────────────────────────
 .idea/

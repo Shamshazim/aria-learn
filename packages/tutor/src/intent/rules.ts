@@ -1,3 +1,4 @@
+import { foldForMatching } from './normalise';
 import { PERSONAL_INFO_PATTERNS } from './personal-info.patterns';
 
 import type { IntentHints, IntentResult } from './intent.types';
@@ -51,7 +52,9 @@ const NUMBER_WORDS: Readonly<Record<string, string>> = {
 };
 
 export function classifyIntent(rawText: string, hints: IntentHints): IntentResult {
-  const text = rawText.trim();
+  // X-05: every rule below matches the folded text, never the raw text. A rule that can be
+  // stepped around with a Cyrillic `е` or a zero-width space is not a deterministic rule.
+  const text = foldForMatching(rawText).trim();
   if (text === '') return matched('UNCLEAR', 'empty');
   // A poor transcript is unclear whatever the words appear to say: acting on a misheard
   // sentence is worse than asking the child to repeat it.
