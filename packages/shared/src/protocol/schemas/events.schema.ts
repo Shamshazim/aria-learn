@@ -5,7 +5,8 @@ import { bandSchema, gradeSchema } from '../../band/band';
 import { envelopeShape, sequenceSchema } from './common.schema';
 
 /**
- * The sixteen events Aria receives (`master-plan.md` §4.1 plus P0-27 realtime signals).
+ * The seventeen events Aria receives (`master-plan.md` §4.1, P0-27 realtime signals, and the
+ * child's `SKIP`).
  *
  * One schema per kind, then a discriminated union over `kind`. Discriminated rather than a
  * plain union so an unknown kind fails with a readable error naming the field, and so
@@ -68,6 +69,21 @@ export const confusedEventSchema = event('CONFUSED', {
   aboutMoveId: z.string().min(1).max(128).optional(),
 });
 
+/**
+ * The child wants a different question, or has stopped engaging with this one.
+ *
+ * A human tutor does not re-ask the same question a fourth time. `reason` says who decided:
+ * the child ("skip", "next one", "I give up"), or Aria, who watched them disengage. Either
+ * way the open item is closed with its answer shown and a fresh one follows.
+ */
+export const SKIP_REASONS = ['child_asked', 'not_engaging', 'too_hard', 'too_easy'] as const;
+
+export const skipEventSchema = event('SKIP', {
+  /** The question being skipped, when the client knows which one it is showing. */
+  respondsTo: z.string().min(1).max(128).optional(),
+  reason: z.enum(SKIP_REASONS).default('child_asked'),
+});
+
 /** Live transcription while the child talks. Partials are advisory and may be revised. */
 export const speechPartialEventSchema = event('SPEECH_PARTIAL', {
   text: z.string().max(MAX_TEXT),
@@ -125,6 +141,7 @@ export const tutorInputEventSchema = z.discriminatedUnion('kind', [
   answerEventSchema,
   questionEventSchema,
   confusedEventSchema,
+  skipEventSchema,
   speechPartialEventSchema,
   speechFinalEventSchema,
   silenceEventSchema,
@@ -139,6 +156,7 @@ export const tutorInputEventSchema = z.discriminatedUnion('kind', [
 ]);
 
 export type TutorInputEvent = z.infer<typeof tutorInputEventSchema>;
+export type SkipReason = (typeof SKIP_REASONS)[number];
 
 export const EVENT_KINDS = [
   'ARRIVED',
@@ -146,6 +164,7 @@ export const EVENT_KINDS = [
   'ANSWER',
   'QUESTION',
   'CONFUSED',
+  'SKIP',
   'SPEECH_PARTIAL',
   'SPEECH_FINAL',
   'SILENCE',

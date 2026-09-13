@@ -4,8 +4,9 @@ import { allowedSet } from './allowed-set';
 import { answerOutcome } from './answer-policy';
 import { isDecisive } from './decisive';
 import { intentOutcome } from './intent-policy';
-import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
+import { outcome, plan, type PolicyOutcome } from './outcome';
 import { silenceRung } from './silence-ladder';
+import { skipOutcome, stuckOutcome } from './stuck-policy';
 
 import type { Intent } from '../intent/intent.types';
 import type { LoadedTurnContext, MovePlan, PolicyDecision } from '../types';
@@ -76,6 +77,9 @@ function decide<TModelContext>(
     return utteranceOutcome(input, context, event);
   }
   if (event.kind === 'SILENCE') return silenceOutcome(context);
+  // The "I don't get it" button and a spoken "I don't know" climb the same ladder.
+  if (event.kind === 'CONFUSED') return stuckOutcome(context, ['event_confused']);
+  if (event.kind === 'SKIP') return skipOutcome(context, event.reason);
   return outcome(defaultPlan(context, event), [`event_${event.kind.toLowerCase()}`], {
     terminal: event.kind === 'LEAVE',
   });
@@ -128,19 +132,12 @@ function defaultPlan<TModelContext>(
   event: TutorInputEvent,
 ): MovePlan {
   const kind =
-    event.kind === 'CONFUSED'
-      ? 'RETEACH'
-      : event.kind === 'PAUSE'
-        ? 'BREAK'
-        : event.kind === 'LEAVE'
-          ? 'END'
-          : event.kind === 'SUBJECT_CHOSEN' || event.kind === 'RESUME'
-            ? 'ASK'
-            : 'SAY';
-  return plan(
-    kind,
-    event.kind === 'CONFUSED' ? nextApproach(context) : 'direct',
-    `Policy for ${event.kind}.`,
-    context,
-  );
+    event.kind === 'PAUSE'
+      ? 'BREAK'
+      : event.kind === 'LEAVE'
+        ? 'END'
+        : event.kind === 'SUBJECT_CHOSEN' || event.kind === 'RESUME'
+          ? 'ASK'
+          : 'SAY';
+  return plan(kind, 'direct', `Policy for ${event.kind}.`, context);
 }

@@ -64,6 +64,17 @@ function movesFor(
           misconception: 'The first representation did not connect.',
         }),
       ];
+    case 'SKIP':
+      return [
+        make({ ...speechMove('REVEAL', 'No problem. The answer was seven.'), answer: '7' }),
+        make({
+          ...speechMove('ASK', 'Here is a different one. What is three plus three?'),
+          skillId: 'ADD.FACT.10',
+          itemId: 'item-skip',
+          attempt: 1,
+          expects: 'number',
+        }),
+      ];
     case 'SPEECH_PARTIAL':
     case 'BACKCHANNEL':
     case 'SPEECH_STARTED':

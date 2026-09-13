@@ -61,6 +61,65 @@ export const REVEAL_FALLBACKS: BandVariants = {
   ],
 };
 
+/**
+ * The child asked to skip, or has had three turns that went nowhere. The answer, said kindly
+ * and briefly, and a fresh question on its way — never a fourth asking of the same one.
+ */
+export const REVEAL_MOVE_ON_FALLBACKS: BandVariants = {
+  early: [
+    'No problem. The answer is {answer}. Let us try a new one.',
+    'That is okay. It was {answer}. Here comes a different one.',
+    'Okay. The answer is {answer}. New one coming up.',
+    'Sure. It was {answer}. Let us do another.',
+    'That is fine. Let us leave that one and try a new one.',
+    'Okay, we can skip it. Here is a different one.',
+  ],
+  middle: [
+    'No problem. The answer was {answer}. Let us try a different one.',
+    'That is fine — it was {answer}. Here is a new one.',
+    'Okay. The answer is {answer}. Moving to a fresh question.',
+    'Sure. It works out to {answer}. Let us do another.',
+    'Fair enough. Let us leave that one and try something different.',
+    'Okay, we will skip it. Here is a different question.',
+  ],
+  senior: [
+    'No problem. The answer was {answer}. Let us move to a different one.',
+    'That is fine — it was {answer}. Here is a new one.',
+    'Okay. The answer is {answer}. On to a fresh question.',
+    'Sure. It comes out to {answer}. Let us take another.',
+    'Fair enough. We will leave that one and try something different.',
+    'Okay, we will skip it. Here is a different question.',
+  ],
+};
+
+/** Three right in a row: the topic is done for today, and the next one is named. */
+export const SWITCH_NEXT_TOPIC_FALLBACKS: BandVariants = {
+  early: [
+    'Yes. That is three in a row. Let us try {skillName} now.',
+    'You have got this one. Now we do {skillName}.',
+    'That is right again. Time for something new: {skillName}.',
+    'Yes. You know this now. Next is {skillName}.',
+    'That is right. You are ready for the next thing.',
+    'Yes. Let us move on to something new.',
+  ],
+  middle: [
+    'That is right — three in a row. Let us move on to {skillName}.',
+    'You have this one down. Next up is {skillName}.',
+    'Right again. Time for something new: {skillName}.',
+    'Yes. That is enough of these. Let us try {skillName}.',
+    'That is right. You are ready for the next topic.',
+    'Yes. Let us move on to something new.',
+  ],
+  senior: [
+    'Correct — three in a row. Let us move on to {skillName}.',
+    'You have this one. Next is {skillName}.',
+    'Right again. On to something new: {skillName}.',
+    'Yes. That is enough of these; let us take {skillName}.',
+    'Correct. You are ready for the next topic.',
+    'Right. Let us move on to something new.',
+  ],
+};
+
 export const HINT_FALLBACKS: BandVariants = {
   early: [
     'Look at the first part.',

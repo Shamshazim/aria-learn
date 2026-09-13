@@ -15,7 +15,9 @@ import {
   PRAISE_FALLBACKS,
   RETEACH_FALLBACKS,
   REVEAL_FALLBACKS,
+  REVEAL_MOVE_ON_FALLBACKS,
   SWITCH_FALLBACKS,
+  SWITCH_NEXT_TOPIC_FALLBACKS,
 } from '@/services/content/fallback/feedback.data';
 import {
   ACKNOWLEDGE_CHAT_FALLBACKS,
@@ -59,6 +61,11 @@ export const APPROACH_FALLBACKS: Readonly<Record<string, BandVariants>> = {
   'SAY:reask-short': REASK_SHORT_FALLBACKS,
   'SAY:check-in': CHECK_IN_SAY_FALLBACKS,
   'SAY:teach': TEACH_FALLBACKS,
+  // A reveal because the child asked to move on is a different act from a reveal because they
+  // ran out of tries: no "that was a hard one", just the answer and a new question.
+  'REVEAL:move-on': REVEAL_MOVE_ON_FALLBACKS,
+  // A switch forward, to the next topic, is not a switch back to a prerequisite.
+  'SWITCH:next-topic': SWITCH_NEXT_TOPIC_FALLBACKS,
 };
 
 /** The fewest variants any key may offer, so no key quietly becomes a loop of two. */

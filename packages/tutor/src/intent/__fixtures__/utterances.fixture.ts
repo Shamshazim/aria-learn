@@ -1,7 +1,7 @@
 import type { Intent } from '../intent.types';
 
 /**
- * Sixty things a child actually says, hand-labelled (P2H-05).
+ * Sixty-four things a child actually says, hand-labelled (P2H-05).
  *
  * The label is what a human tutor would say the child meant, not what a regex can see. That
  * gap is the point: the rules are held to ≥ 90% agreement, and the utterances they get wrong
@@ -68,6 +68,12 @@ export const UTTERANCE_FIXTURE: readonly LabelledUtterance[] = [
   { text: 'im tired today', answerKey: '7', expected: 'CHAT' },
   { text: 'we have a test tomorrow', answerKey: '7', expected: 'CHAT' },
   { text: 'my birthday is soon', answerKey: '7', expected: 'CHAT' },
+
+  // Wanting a different question: not confusion, not stopping.
+  { text: 'skip this one', answerKey: '7', expected: 'SKIP_REQUEST' },
+  { text: 'can we do a different question', answerKey: '7', expected: 'SKIP_REQUEST' },
+  { text: 'next one please', answerKey: '7', expected: 'SKIP_REQUEST' },
+  { text: 'i give up', answerKey: '7', expected: 'SKIP_REQUEST' },
 
   // Stopping.
   { text: 'stop', answerKey: '7', expected: 'STOP_REQUEST' },

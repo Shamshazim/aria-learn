@@ -33,6 +33,7 @@ const MIN_IDEA_WORD = 4;
  */
 export function revealInputs(turn: PlannedTurn<ApiModelContext>, idea: string | null): MoveInputs {
   const answer = turn.context.modelContext.answerKey;
+  const movingOn = turn.plan.approach === 'move-on';
   return {
     lines: [
       ...(answer === null
@@ -40,10 +41,12 @@ export function revealInputs(turn: PlannedTurn<ApiModelContext>, idea: string | 
         : [`The answer is "${answer}". Say it, then say in one sentence why.`]),
       ...workingLine(turn),
       ...saidLine(turn),
-      ...(idea === null
+      ...(idea === null || movingOn
         ? []
         : [`This child's mistake was: ${idea}. Name that idea plainly, without calling it wrong.`]),
-      'Finish by offering one more of the same kind, so the reveal is not the end of the road.',
+      movingOn
+        ? 'The child wants to move on from this one, or has been stuck on it long enough. No consolation and nothing about their tries: the answer, one reason, and a new question is coming.'
+        : 'Finish by offering one more of the same kind, so the reveal is not the end of the road.',
     ],
     claims: {
       move: 'reveal',

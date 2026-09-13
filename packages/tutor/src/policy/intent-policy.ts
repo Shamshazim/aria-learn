@@ -1,4 +1,5 @@
-import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
+import { outcome, plan, type PolicyOutcome } from './outcome';
+import { skipOutcome, stuckOutcome } from './stuck-policy';
 
 import type { Intent } from '../intent/intent.types';
 import type { LoadedTurnContext } from '../types';
@@ -44,13 +45,10 @@ function classified<TModelContext>(
       ['unclear'],
     );
   }
-  if (intent === 'CONFUSED') {
-    return outcome(
-      plan('RETEACH', nextApproach(context), 'Intent CONFUSED: explain another way.', context),
-      ['intent_confused'],
-      { base: ['RETEACH', 'SHOW', 'SWITCH'] },
-    );
-  }
+  // "I don't know" is a turn on the item like a wrong answer is: it climbs the same ladder,
+  // and the third one ends in the answer and a fresh question rather than a fourth re-ask.
+  if (intent === 'CONFUSED') return stuckOutcome(context, ['intent_confused']);
+  if (intent === 'SKIP_REQUEST') return skipOutcome(context, 'child_asked');
   return conversationOutcome(intent, context);
 }
 

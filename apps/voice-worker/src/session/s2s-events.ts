@@ -1,7 +1,7 @@
 import { AgentSessionEventTypes, type JobContext, type voice } from '@livekit/agents';
 import { RoomEvent } from '@livekit/rtc-node';
 
-import type { VoiceClientEvent } from '@aria/shared';
+import type { AgentState, VoiceClientEvent } from '@aria/shared';
 
 import {
   createAcknowledgementGate,
@@ -34,6 +34,10 @@ export function bindS2SEvents(
     onScreenAnswer?(event: Extract<VoiceClientEvent, { kind: 'SCREEN_ANSWER' }>): void;
     /** The child ended the session on the screen; bound after the session starts. */
     onLeave?(): void;
+    /** The child pressed skip on the screen; bound after the session starts. */
+    onScreenSkip?(event: Extract<VoiceClientEvent, { kind: 'SCREEN_SKIP' }>): void;
+    /** Aria started or stopped talking, so the screen's status line can follow her. */
+    onAgentState?(state: AgentState): void;
   }>,
 ): AcknowledgementGate {
   const gate = createAcknowledgementGate();
@@ -63,9 +67,17 @@ export function bindS2SEvents(
     input.silence.speaking(event.newState === 'speaking');
     if (event.newState === 'speaking') input.metrics.firstAudio();
     if (event.oldState === 'speaking') input.metrics.interruptionSilent();
+    input.onAgentState?.(agentStateOf(event.newState));
   });
   bindClientEvents(input, gate);
   return gate;
+}
+
+/** The vendor's five agent states, as the three the screen distinguishes. */
+function agentStateOf(state: string): AgentState {
+  if (state === 'speaking') return 'speaking';
+  if (state === 'thinking') return 'thinking';
+  return 'listening';
 }
 
 function bindClientEvents(
@@ -88,6 +100,11 @@ function bindClientEvents(
     }
     if (event.kind === 'LEAVE') {
       input.onLeave?.();
+      return;
+    }
+    if (event.kind === 'SCREEN_SKIP') {
+      input.silence.speechPartial();
+      input.onScreenSkip?.(event);
       return;
     }
     if (event.kind !== 'STOP' || event.generationId !== input.moves.activeGenerationId()) return;

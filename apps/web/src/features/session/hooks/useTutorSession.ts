@@ -28,6 +28,11 @@ export function useTutorSession(input: {
   startupEvents?: readonly EventPayload[];
   onSpeak?: () => Promise<void>;
   onMove?: (move: TutorMove) => void;
+  /**
+   * A voice worker is connected. It owns the silence countdown and says when Aria has
+   * finished speaking; without one, a move is "explained" the moment it is on screen.
+   */
+  voiceLive?: boolean;
 }): TutorSession {
   const [state, dispatch] = useReducer(reduceSession, input.band, initialSessionState);
   const [connection, dispatchConnection] = useReducer(reduceConnection, ONLINE);
@@ -36,18 +41,20 @@ export function useTutorSession(input: {
   const queue = useRef<Promise<void>>(Promise.resolve());
   const stateRef = useRef(state);
   const onMove = useRef(input.onMove);
+  const voiceLive = useRef(input.voiceLive === true);
   stateRef.current = state;
   onMove.current = input.onMove;
+  voiceLive.current = input.voiceLive === true;
   const events = useEventFactory();
   const transport = useSend(
-    { source, active, queue, events, onMove },
+    { source, active, queue, events, onMove, voiceLive },
     { session: dispatch, connection: dispatchConnection },
   );
   const send = transport.send;
 
   useSourceLifecycle(input, source, active, send);
   useMediaEvents(send, transport.retry);
-  const silence = useSilence(state, send);
+  const silence = useSilence(state, send, input.voiceLive === true);
 
   const interrupt = useCallback(async (): Promise<void> => {
     const interruptedMoveId = stateRef.current.currentMove?.id;
@@ -59,15 +66,12 @@ export function useTutorSession(input: {
     });
   }, [send]);
 
-  const receive = useCallback((move: Parameters<typeof dispatch>[0]): void => {
-    dispatch(move);
-  }, []);
   return createSessionCommands({
     state,
     connectionStatus: connection.status,
     send,
     interrupt,
-    receive,
+    ...useDispatchers(dispatch),
     silence,
     retryFailed: transport.retryFailed,
     ...(input.onSpeak === undefined ? {} : { speak: input.onSpeak }),
@@ -76,11 +80,31 @@ export function useTutorSession(input: {
 
 type Send = (payload: EventPayload) => Promise<void>;
 
-function useSilence(state: SessionState, send: Send): SilenceControls {
+/** The two ways something other than the source reaches the reducer: a move, or the voice. */
+function useDispatchers(
+  dispatch: React.Dispatch<Parameters<typeof reduceSession>[1]>,
+): Pick<TutorSession, 'receive' | 'voiceState'> {
+  const receive = useCallback(
+    (move: TutorMove): void => {
+      dispatch(move);
+    },
+    [dispatch],
+  );
+  const voiceState = useCallback(
+    (voice: 'listening' | 'thinking' | 'speaking'): void => {
+      dispatch({ kind: 'VOICE_STATE', state: voice });
+    },
+    [dispatch],
+  );
+  return { receive, voiceState };
+}
+
+function useSilence(state: SessionState, send: Send, suspended: boolean): SilenceControls {
   return useSilenceTimer({
     move: state.currentMove,
     band: state.band,
     speaking: state.status === 'speaking',
+    suspended,
     onSilence: useCallback(
       (payload: Readonly<{ waitedMs: number; afterMoveId: string }>) => {
         void send({ kind: 'SILENCE', ...payload });
@@ -101,6 +125,7 @@ type SourceRefs = Readonly<{
   queue: React.RefObject<Promise<void>>;
   events: React.RefObject<ReturnType<typeof createEventFactory>>;
   onMove: React.RefObject<((move: TutorMove) => void) | undefined>;
+  voiceLive: React.RefObject<boolean>;
 }>;
 type SendDispatch = Readonly<{
   session: React.Dispatch<Parameters<typeof reduceSession>[1]>;
@@ -125,7 +150,15 @@ function useSend(refs: SourceRefs, dispatch: Omit<SendDispatch, 'failed'>): Tran
   const send = useCallback(
     (payload: EventPayload): Promise<void> =>
       enqueue(refs, { ...dispatch, failed: setFailed }, retryRef, payload),
-    [refs.active, refs.events, refs.queue, refs.source, dispatch.connection, dispatch.session],
+    [
+      refs.active,
+      refs.events,
+      refs.queue,
+      refs.source,
+      refs.voiceLive,
+      dispatch.connection,
+      dispatch.session,
+    ],
   );
   const retryFailed = useMemoRetryFailed(failed, refs.source, send, setFailed);
   const retry = useCallback(async (): Promise<void> => {
@@ -200,6 +233,7 @@ async function runSourceOperation(operation: SourceOperation): Promise<void> {
       if (move.kind !== 'MOVE_SEGMENT') operation.refs.onMove.current?.(move);
       operation.dispatchers.session(move);
     }
+    settleSpeech(operation, emitted);
     recoverConnection(operation);
     operation.dispatchers.failed(null);
   } catch (error) {
@@ -233,6 +267,12 @@ function reportRejection(operation: SourceOperation, error: unknown): void {
   if (operation.refs.source.current !== operation.source) return;
   operation.dispatchers.failed({ payload: operation.payload, source: operation.source });
   operation.dispatchers.session({ kind: 'SOURCE_SETTLED' });
+}
+
+/** With no voice to play the moves there is nothing to wait for: they are "explained" now. */
+function settleSpeech(operation: SourceOperation, emitted: boolean): void {
+  if (!emitted || operation.refs.voiceLive.current) return;
+  operation.dispatchers.session({ kind: 'SPEECH_SETTLED' });
 }
 
 function recoverConnection(operation: SourceOperation): void {

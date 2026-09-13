@@ -9,15 +9,20 @@ import type { IntentHints, IntentResult } from './intent.types';
  *
  * Order matters and is not alphabetical. Stopping comes first because a child who wants to
  * stop must not have to get past a pattern match to say so. Personal information comes before
- * anything that could grade or store it. The answer key is checked before question form,
- * because "is it seven?" is an answer.
+ * anything that could grade or store it. A skip comes before confusion because "I give up"
+ * asks for a different question, not another explanation. The answer key is checked before
+ * question form, because "is it seven?" is an answer.
  */
 // "Can I go now?" is a question in form and a request to stop in meaning. A child asking
 // permission to leave is asking to leave, and must not have to phrase it correctly first.
 const STOP =
   /\b(?:stop|i(?:'m| am) done|all done|quit|no more|(?:i want to|can i)\s+(?:stop|go|leave|be done)|bye)\b/iu;
 const CONFUSED =
-  /\b(?:i (?:don'?t|do not) (?:get|understand|know)|confus\w*|what do you mean|i'?m lost|too hard|huh)\b/iu;
+  /\b(?:i (?:don'?t|do not) (?:get|understand|know)|i (?:can'?t|cannot) do (?:it|this|that)|confus\w*|what do you mean|i'?m lost|too hard|huh)\b/iu;
+// A child asking for a different question is not confused and is not answering; they are
+// telling the tutor to move on, and a tutor who re-asks instead is not listening.
+const SKIP =
+  /\b(?:skip|next (?:one|question|problem)|(?:a )?different (?:one|question|problem)|another (?:one|question|problem)|i give up|move on|something else)\b|^(?:i )?pass\.?$/iu;
 const QUESTION_START =
   /^(?:what|why|how|who|when|where|which|can|could|do|does|did|is|are|will|would|should)\b/iu;
 const FIRST_PERSON = /\b(?:i|i'm|my|me|we|our|mine)\b/iu;
@@ -61,6 +66,7 @@ export function classifyIntent(rawText: string, hints: IntentHints): IntentResul
   if (STOP.test(text)) return matched('STOP_REQUEST', 'stop-words');
   const personal = personalInfoRule(text);
   if (personal !== null) return matched('PERSONAL_INFO', personal);
+  if (SKIP.test(text)) return matched('SKIP_REQUEST', 'skip-words');
   if (CONFUSED.test(text)) return matched('CONFUSED', 'confusion-phrase');
   if (containsAnswer(text, hints.answerKey)) return matched('ANSWER', 'matches-answer-key');
   if (text.endsWith('?') || QUESTION_START.test(text)) return matched('QUESTION', 'question-form');

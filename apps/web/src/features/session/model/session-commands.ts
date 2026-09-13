@@ -20,6 +20,8 @@ export type TutorSession = Readonly<{
   /** A partial transcript: the child is mid-sentence, so the silence window restarts. */
   speechPartial(text: string): Promise<void>;
   confused(): Promise<void>;
+  /** The child is done with the open question: its answer is shown and a fresh one follows. */
+  skip(): Promise<void>;
   completeDrag(moveId: string): Promise<void>;
   interrupt(): Promise<void>;
   leave(): Promise<void>;
@@ -27,6 +29,8 @@ export type TutorSession = Readonly<{
   resume(): Promise<void>;
   speak(): Promise<void>;
   receive(move: TutorMove): void;
+  /** What the voice is doing, so the status line says the same thing. */
+  voiceState(state: 'listening' | 'thinking' | 'speaking'): void;
   /** Sends the last input Aria never received again; `null` while there is nothing to resend. */
   retryFailed: (() => Promise<void>) | null;
 }>;
@@ -40,12 +44,13 @@ export function createSessionCommands(
     send: Send;
     interrupt(): Promise<void>;
     receive(move: TutorMove): void;
+    voiceState(state: 'listening' | 'thinking' | 'speaking'): void;
     silence: SilenceControls;
     speak?: () => Promise<void>;
     retryFailed: (() => Promise<void>) | null;
   }>,
 ): TutorSession {
-  const { state, connectionStatus, send, interrupt, receive, silence, speak } = input;
+  const { state, connectionStatus, send, interrupt, receive, voiceState, silence, speak } = input;
   return {
     state,
     connectionStatus,
@@ -66,6 +71,12 @@ export function createSessionCommands(
         kind: 'CONFUSED',
         ...(state.currentMove === null ? {} : { aboutMoveId: state.currentMove.id }),
       }),
+    skip: () =>
+      send({
+        kind: 'SKIP',
+        reason: 'child_asked',
+        ...(state.openQuestion === null ? {} : { respondsTo: state.openQuestion.id }),
+      }),
     completeDrag: (moveId) => send(completedDragEvent(moveId)),
     interrupt,
     leave: () => send(SESSION_ENDED_EVENT),
@@ -81,5 +92,6 @@ export function createSessionCommands(
         }
       }),
     receive,
+    voiceState,
   };
 }

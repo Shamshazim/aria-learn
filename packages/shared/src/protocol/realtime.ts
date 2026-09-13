@@ -73,7 +73,12 @@ export const voiceClientEventSchema = z.discriminatedUnion('kind', [
   }),
   /** The session ended on the screen — the child pressed the button — so the voice says goodbye. */
   z.object({ kind: z.literal('LEAVE') }),
+  /** The child pressed "skip" on the screen, so the voice closes the question and moves on. */
+  z.object({ kind: z.literal('SCREEN_SKIP'), moveId: messageIdSchema }),
 ]);
+
+/** What the voice is doing right now, so the screen's status line says the same thing. */
+export const AGENT_STATES = ['listening', 'thinking', 'speaking'] as const;
 
 export const voiceWorkerStateSchema = z.discriminatedUnion('kind', [
   /** `talks` is true where a realtime model is Aria's voice, so the screen answers through it. */
@@ -85,6 +90,12 @@ export const voiceWorkerStateSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('CAPTION'), text: z.string().min(1).max(4_000) }),
   /** What Aria heard the child say, so the screen shows the microphone is working. */
   z.object({ kind: z.literal('HEARD'), text: z.string().min(1).max(2_000) }),
+  /**
+   * Aria started or stopped talking, or is thinking. The screen's "Aria is explaining" /
+   * "Your turn" line follows the voice rather than guessing from the last move, and a new
+   * `speaking` starts a fresh transcript of what she is saying.
+   */
+  z.object({ kind: z.literal('AGENT_STATE'), state: z.enum(AGENT_STATES) }),
 ]);
 
 const boundedMetric = z.number().nonnegative().max(120_000);
@@ -162,6 +173,7 @@ export type SpokenPrefix = z.infer<typeof spokenPrefixSchema>;
 export type VoiceTurnFrame = z.infer<typeof voiceTurnFrameSchema>;
 export type VoiceClientEvent = z.infer<typeof voiceClientEventSchema>;
 export type VoiceWorkerState = z.infer<typeof voiceWorkerStateSchema>;
+export type AgentState = (typeof AGENT_STATES)[number];
 export type VoiceMetric = z.infer<typeof voiceMetricSchema>;
 export type VoiceMetricRequest = z.infer<typeof voiceMetricRequestSchema>;
 export type BridgeLibrary = z.infer<typeof bridgeLibrarySchema>;

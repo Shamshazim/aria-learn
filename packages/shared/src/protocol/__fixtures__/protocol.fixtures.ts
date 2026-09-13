@@ -91,6 +91,13 @@ export const EVENT_FIXTURES: Record<EventKind, unknown> = {
   },
   QUESTION: { ...eventBase, id: 'evt_question', kind: 'QUESTION', text: 'Why is it four?' },
   CONFUSED: { ...eventBase, id: 'evt_confused', kind: 'CONFUSED', aboutMoveId: 'mov_say' },
+  SKIP: {
+    ...eventBase,
+    id: 'evt_skip',
+    kind: 'SKIP',
+    respondsTo: 'mov_ask',
+    reason: 'child_asked',
+  },
   SPEECH_PARTIAL: {
     ...eventBase,
     id: 'evt_partial',

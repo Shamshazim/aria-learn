@@ -23,6 +23,11 @@ export async function publishScreenAnswer(room: Room, moveId: string, text: stri
   await publishClientEvent(room, { kind: 'SCREEN_ANSWER', moveId, text });
 }
 
+/** "Aria talks": the child pressed skip on the screen, so the voice closes the question too. */
+export async function publishScreenSkip(room: Room, moveId: string): Promise<void> {
+  await publishClientEvent(room, { kind: 'SCREEN_SKIP', moveId });
+}
+
 export async function publishClientEvent(room: Room, event: VoiceClientEvent): Promise<void> {
   await room.localParticipant.publishData(encoder.encode(JSON.stringify(event)), {
     reliable: true,

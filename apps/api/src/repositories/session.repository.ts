@@ -16,6 +16,11 @@ export type SessionRepository = Readonly<{
   end(id: string, reason: SessionEndReason, endedAt: Date): Promise<TutorSessionRecord | null>;
   /** P2H-11: what this session came to, written once when it ends. */
   saveSummary(id: string, summary: string): Promise<TutorSessionRecord | null>;
+  /** Merges into the plan: a `SWITCH` moves the session onto another skill mid-lesson. */
+  updatePlan(
+    id: string,
+    patch: Readonly<Record<string, unknown>>,
+  ): Promise<TutorSessionRecord | null>;
 }>;
 
 export function createSessionRepository(deps: {
@@ -30,7 +35,22 @@ export function createSessionRepository(deps: {
     findLatestEnded: (studentId) => findLatestEnded(deps.db, studentId),
     end: (id, reason, endedAt) => end(deps.db, id, reason, endedAt),
     saveSummary: (id, summary) => saveSummary(deps.db, id, summary),
+    updatePlan: (id, patch) => updatePlan(deps.db, id, patch),
   };
+}
+
+async function updatePlan(
+  db: Queryable,
+  id: string,
+  patch: Readonly<Record<string, unknown>>,
+): Promise<TutorSessionRecord | null> {
+  const result = await runQuery<SessionRow>({
+    db,
+    operation: 'session.updatePlan',
+    sql: `UPDATE session SET plan = plan || $2::jsonb WHERE id = $1 RETURNING ${COLUMNS}`,
+    params: [id, JSON.stringify(patch)],
+  });
+  return result.rows[0] === undefined ? null : toTutorSession(result.rows[0]);
 }
 
 async function findLatestEnded(

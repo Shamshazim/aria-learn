@@ -1,4 +1,4 @@
-import type { TutorMove } from '@aria/shared';
+import { bandForGrade, type Grade, type TutorMove } from '@aria/shared';
 
 import type { QualityGate } from '@/quality';
 import type { ArrivalEventRepository } from '@/repositories/arrival-event.repository';
@@ -19,7 +19,12 @@ export type ArrivalResult = Readonly<{
   classes: readonly ClassOption[];
 }>;
 
-export type ArrivalService = Readonly<{ arrive(studentId: string): Promise<ArrivalResult> }>;
+/** `grade` is the development-only override; see `arrival.schema.ts`. */
+export type ArrivalOptions = Readonly<{ grade?: Grade }>;
+
+export type ArrivalService = Readonly<{
+  arrive(studentId: string, options?: ArrivalOptions): Promise<ArrivalResult>;
+}>;
 
 export function createArrivalService(deps: {
   load(studentId: string): Promise<ArrivalContext>;
@@ -28,16 +33,19 @@ export function createArrivalService(deps: {
   gate: QualityGate;
   classes(student: ArrivalContext['student']): readonly ClassOption[];
   nowMs(): number;
+  /** Development only. Absent or false means the child's own grade, always. */
+  allowGradeOverride?: boolean;
 }): ArrivalService {
-  return { arrive: (studentId: string) => arrive(deps, studentId) };
+  return { arrive: (studentId, options = {}) => arrive(deps, studentId, options) };
 }
 
 async function arrive(
   deps: Parameters<typeof createArrivalService>[0],
   studentId: string,
+  options: ArrivalOptions,
 ): Promise<ArrivalResult> {
   const started = deps.nowMs();
-  const context = await deps.load(studentId);
+  const context = withGradeOverride(deps, await deps.load(studentId), options);
   const opening = composeWelcome(deps.moves, context);
   const recommendation = recommend(deps.moves, context);
   const moves = recommendation === null ? opening : [...opening, recommendation.move];
@@ -57,6 +65,21 @@ async function arrive(
     student: { grade: context.student.grade, band: context.student.band },
     classes: deps.classes(context.student),
   };
+}
+
+/**
+ * The child as another grade, for a developer opening that grade's classes. The band follows
+ * the grade, so the picker and the session render in the layout that grade would see.
+ */
+function withGradeOverride(
+  deps: Pick<Parameters<typeof createArrivalService>[0], 'allowGradeOverride'>,
+  context: ArrivalContext,
+  options: ArrivalOptions,
+): ArrivalContext {
+  const grade = options.grade;
+  if (deps.allowGradeOverride !== true || grade === undefined || grade === context.student.grade)
+    return context;
+  return { ...context, student: { ...context.student, grade, band: bandForGrade(grade) } };
 }
 
 function gateMove(

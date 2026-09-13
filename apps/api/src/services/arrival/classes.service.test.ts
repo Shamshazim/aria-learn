@@ -17,31 +17,47 @@ function student(grade: Student['grade'], band: Student['band']): Student {
   };
 }
 
+const CORE = [
+  'Mathematics',
+  'English Reading',
+  'English Writing',
+  'Science',
+  'History-Social Science',
+];
+
 describe('the classes a child can open', () => {
   const inventory = createInventoryService();
 
-  it('lists the legacy subjects at the grade, and Reading, for a grade-4 child', () => {
+  it('lists the five California subjects, maths first, for a grade-4 child', () => {
     expect(classesFor(inventory, student('4', 'middle'))).toEqual([
-      { subjectId: 'english-writing', name: 'English Writing', grade: '4' },
       { subjectId: 'mathematics', name: 'Mathematics', grade: '4' },
+      { subjectId: 'english-reading', name: 'English Reading', grade: '4' },
+      { subjectId: 'english-writing', name: 'English Writing', grade: '4' },
       { subjectId: 'science', name: 'Science', grade: '4' },
+      { subjectId: 'history-social-science', name: 'History-Social Science', grade: '4' },
     ]);
   });
 
-  it('adds Math Adventures in the grades the legacy curriculum had it', () => {
+  it('adds Math Adventures, last, in the grades the legacy curriculum had it', () => {
     expect(classesFor(inventory, student('1', 'early')).map((item) => item.name)).toEqual([
-      'English Writing',
-      'Mathematics',
+      ...CORE,
       'Math Adventures',
-      'Reading',
     ]);
   });
 
-  it('keeps the authored Math and Writing for a grade the legacy curricula never covered', () => {
-    expect(classesFor(inventory, student('TK', 'early')).map((item) => item.subjectId)).toEqual([
-      'math',
-      'reading',
-      'writing',
-    ]);
+  it.each(['TK', 'K', '8'] as const)('covers grade %s with the same five subjects', (grade) => {
+    const band = grade === '8' ? 'senior' : 'early';
+    const classes = classesFor(inventory, student(grade, band));
+    expect(classes.map((item) => item.name)).toEqual(CORE);
+    expect(classes.every((item) => item.grade === grade)).toBe(true);
+  });
+
+  it('never shows an authored subject beside the catalogue subject that covers it', () => {
+    for (const grade of ['TK', 'K', '1', '2', '3', '4', '5', '6', '7', '8'] as const) {
+      const ids = classesFor(inventory, student(grade, 'middle')).map((item) => item.subjectId);
+      expect(ids).not.toContain('math');
+      expect(ids).not.toContain('reading');
+      expect(ids).not.toContain('writing');
+    }
   });
 });
