@@ -5,6 +5,7 @@ import { bandForGrade, parseGrade, type TutorMove } from '@aria/shared';
 
 import { createApiClient } from '@/api';
 import { webConfig } from '@/app/config';
+import { useAuth } from '@/features/auth';
 import {
   EarlyLayout,
   MiddleLayout,
@@ -21,6 +22,7 @@ import {
   VoiceControls,
   voiceAvailability,
 } from '@/features/session';
+import type { SessionLearner } from '@/features/session';
 import type { LiveVoice } from '@/features/session/model/live-voice';
 import { isVoiceLive } from '@/features/voice/model/voice-state';
 import '@/features/session/styles/session.css';
@@ -82,9 +84,11 @@ function SessionForGrade(props: SessionProps): React.JSX.Element {
   voiceSync.current = voice.syncMove;
   const live = useLiveVoice(voice, voiceLive, setVoiceLive);
   const withVoiceAnswers = useVoiceAnswers(session, voice.answerOnScreen, voice.skipOnScreen);
+  const learner = useLearner();
   return (
     <SessionView
       band={band}
+      learner={learner}
       live={live}
       scenario={scenario}
       session={withVoiceAnswers}
@@ -92,6 +96,19 @@ function SessionForGrade(props: SessionProps): React.JSX.Element {
       voice={voice}
     />
   );
+}
+
+/**
+ * The child whose session this is, from the one place that knows: the device's child session.
+ *
+ * Read here rather than inside the topbar so the topbar stays a component that renders what it
+ * is given — and so there is one answer to "who is using this device" (`P2H-12`) rather than a
+ * second one kept in the session feature.
+ */
+function useLearner(): SessionLearner | null {
+  const { state } = useAuth();
+  const child = state.child?.child ?? null;
+  return child === null ? null : { firstName: child.firstName };
 }
 
 /** Where the moves come from: a scripted scenario, a staged failure, or the API. */
@@ -178,6 +195,7 @@ function useVoiceAnswers(
 
 function SessionView(props: {
   band: ReturnType<typeof bandForGrade>;
+  learner: SessionLearner | null;
   live: LiveVoice;
   scenario: string | null;
   session: ReturnType<typeof useTutorSession>;
@@ -189,7 +207,7 @@ function SessionView(props: {
   const layout = { live: props.live, session: props.session, voice };
   return (
     <div className="session-app" data-band={props.band}>
-      <SessionTopbar band={props.band} subject={props.subject} />
+      <SessionTopbar band={props.band} learner={props.learner} subject={props.subject} />
       <ConnectionNotice band={props.band} status={props.session.connectionStatus} />
       <main>
         <h1 className="visually-hidden">{props.subject} learning session</h1>
