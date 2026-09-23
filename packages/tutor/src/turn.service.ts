@@ -68,6 +68,13 @@ async function finalizeTurn<TModelContext>(
     practisedSkillCode: checked.context.session.skillCode,
   };
   updateStateIntent(turn);
+  // Before the commit, and outside it: the observation is about the turn the child just had,
+  // whether or not writing it down succeeds.
+  ports.observeTurn?.({
+    band: checked.context.session.band,
+    moveKinds: resolved.moves.map((move) => move.kind),
+    spans: turn.spans,
+  });
   await recordTurn(ports.commit, turn);
   return emitMoves(ports.emit, resolved.moves);
 }

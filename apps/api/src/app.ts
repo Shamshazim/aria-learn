@@ -5,6 +5,7 @@ import helmet from 'helmet';
 
 import type { AppConfig } from '@/config';
 import { createHealthController } from '@/controllers/health.controller';
+import { createMetricsController } from '@/controllers/metrics.controller';
 import { createStatusController } from '@/controllers/status.controller';
 import type { Clock } from '@/lib/clock';
 import type { IdGenerator } from '@/lib/ids';
@@ -14,6 +15,7 @@ import { notFound } from '@/middleware/not-found';
 import { operatorOnly } from '@/middleware/operator-only';
 import { requestId } from '@/middleware/request-id';
 import { requestLogger } from '@/middleware/request-logger';
+import type { Metrics } from '@/observability/metrics';
 import { API_PREFIX, createApiRouter } from '@/routes';
 import type { RouterDeps } from '@/routes';
 import { createHealthService } from '@/services/health.service';
@@ -31,6 +33,13 @@ export type AppDeps = {
   clock: Clock;
   ids: IdGenerator;
   statusService?: StatusService;
+  /**
+   * X-04: the process's metric store, exposed at `/metrics` behind the operator token.
+   *
+   * Absent means no scrape endpoint, which is right for every test and for a process nobody
+   * is watching; the route appears only where there is something to serve from.
+   */
+  metrics?: Metrics;
   /**
    * X-05: where rate-limit buckets live. Absent keeps them in this process, which is right
    * for one instance and for every test; a deployment running several passes the Postgres
@@ -51,6 +60,7 @@ export function createApp({
   clock,
   ids,
   statusService,
+  metrics,
   rateLimitStore,
   idempotency,
   identity,
@@ -87,6 +97,7 @@ export function createApp({
             status: {
               controller: createStatusController(statusService),
               authorize: operatorOnly(config.statusOperatorToken),
+              ...(metrics === undefined ? {} : { metrics: createMetricsController({ metrics }) }),
             },
           }),
       ...(rateLimitStore === undefined ? {} : { rateLimitStore }),

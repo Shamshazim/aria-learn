@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 
+import { sloCoverage } from '@/observability/slo/slos';
 import { createStatusService } from '@/services/status.service';
 
 it('combines endpoint health, live breaker state and spend without sensitive configuration', async () => {
@@ -23,8 +24,13 @@ it('combines endpoint health, live breaker state and spend without sensitive con
   });
 
   const result = await service.getStatus();
+  // X-04 added SLO coverage to the response. Checked apart from the deep-equal below so that
+  // adding a bar to the registry does not fail an unrelated test; `slo/slos.test.ts` owns the
+  // numbers themselves.
+  const { slos, ...reported } = result;
 
-  expect(result).toEqual({
+  expect(slos).toEqual(sloCoverage());
+  expect(reported).toEqual({
     endpoints: [
       {
         name: 'primary',

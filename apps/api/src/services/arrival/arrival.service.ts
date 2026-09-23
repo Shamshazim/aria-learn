@@ -33,6 +33,14 @@ export function createArrivalService(deps: {
   gate: QualityGate;
   classes(student: ArrivalContext['student']): readonly ClassOption[];
   nowMs(): number;
+  /**
+   * X-04: how long the child waited to be welcomed, for whatever watches the §11 bar.
+   *
+   * Optional, and never awaited: the same number is written to `arrival_event.latency_ms` for
+   * the report, and a metrics sink has no business standing between a child and their
+   * welcome.
+   */
+  observe?(observation: Readonly<{ band: ArrivalContext['student']['band']; ms: number }>): void;
   /** Development only. Absent or false means the child's own grade, always. */
   allowGradeOverride?: boolean;
 }): ArrivalService {
@@ -51,12 +59,14 @@ async function arrive(
   const moves = recommendation === null ? opening : [...opening, recommendation.move];
   for (const move of moves)
     gateMove(deps.gate, move, context.student.band, context.student.displayName);
+  const latencyMs = Math.max(0, deps.nowMs() - started);
+  deps.observe?.({ band: context.student.band, ms: latencyMs });
   const record = await deps.arrivals.insert({
     studentId,
     welcomeKind: welcomeKind(context),
     recommendation: recommendation === null ? null : { subjectId: recommendation.subjectId },
     accepted: null,
-    latencyMs: Math.max(0, deps.nowMs() - started),
+    latencyMs,
   });
   return {
     arrivalId: record.id,
