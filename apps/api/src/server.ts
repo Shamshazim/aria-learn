@@ -58,11 +58,14 @@ export async function start(): Promise<void> {
     throw error;
   }
 
-  const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger, metrics: createMetrics() });
+  // One store for the process: the same instance the runtime writes to is the one `/metrics`
+  // reads from, so a scrape sees the turns this machine actually served (X-04).
+  const metrics = createMetrics();
+  const runtimeDeps = createRuntimeDeps({ pool, ai, config, logger, metrics });
   const phase1 = await createPhase1Runtime(runtimeDeps);
   const voice = config.voice === undefined ? undefined : createPhase2Runtime(runtimeDeps, phase1);
   const identity = phase1.identity.routerDeps(voice?.consent);
-  const app = composeApp({ config, logger, ai, pool, phase1, identity, voice });
+  const app = composeApp({ config, logger, ai, pool, phase1, identity, voice, metrics });
   const stopSweeper = startIdleSweeper(phase1.identity.expiry, logger);
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port, env: config.env }, 'API listening');
@@ -97,6 +100,7 @@ function composeApp(
     ai: Awaited<ReturnType<typeof createAiRuntime>>;
     pool: Pool;
     phase1: Awaited<ReturnType<typeof createPhase1Runtime>>;
+    metrics: Metrics;
     identity: ReturnType<Awaited<ReturnType<typeof createPhase1Runtime>>['identity']['routerDeps']>;
     voice: ReturnType<typeof createPhase2Runtime> | undefined;
   }>,
@@ -108,6 +112,7 @@ function composeApp(
     clock: systemClock,
     ids: uuidGenerator,
     statusService: ai.status,
+    metrics: input.metrics,
     rateLimitStore: createPostgresRateLimitStore(pool),
     idempotency: createIdempotencyRepository(pool),
     student: phase1.student,

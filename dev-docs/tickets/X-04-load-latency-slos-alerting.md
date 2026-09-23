@@ -88,29 +88,50 @@ Rules:
   outbox resume (P2-13) is exercised, not hidden.
 - Probe student deleted by accident: the probe recreates it and alerts once.
 
+## Status
+
+**Part 1 delivered** — the export path, the SLO registry and the alert rules. Three of the
+seven bars are watched; the other four are in `slos.ts` as `not_instrumented` with the reason,
+and `/status` and the generated rule file both report the gap.
+
+**Part 2, not built.** Each of these is a deliverable of its own and none is blocked by the
+other:
+
+- **Client timings** (`apps/web/src/lib/observability/timing.ts`, `POST /telemetry/turn`).
+  This is what instruments the audible-welcome and interrupt-to-silence bars, because only the
+  browser can see both ends of either. It needs the route, its rate limit (X-05), the
+  `is_synthetic` column, and report exclusion.
+- **Per-turn spans and the OTLP exporter.** The traces the tracing criterion asks for. The
+  histograms here answer "is a bar being missed"; spans answer "where did the time go", and
+  the second question is only worth the dependency once somebody is asking it.
+- **The synthetic probe and the capacity run.** Both need a deployed staging environment to
+  run against, so neither can be written and *verified* from here — and an unrun capacity test
+  would put a number in `capacity.md` that nobody measured.
+
 ## Acceptance criteria
 
-- [ ] `/metrics` exports every counter and histogram from the `Metrics` port with SLO-aligned
-      buckets; scraped in staging.
+- [x] `/metrics` exports every counter and histogram from the `Metrics` port with SLO-aligned
+      buckets. **Scraped in staging: not verified** — no staging environment to scrape from.
 - [ ] A full voice turn produces one trace with spans from `speech_final` to `playback_end`
-      across web, API and worker, visible in the X-01 platform.
-- [ ] Every §11 bar exists in `slos.ts`; `slo:rules` generates alert rules; each rule fires
+      across web, API and worker, visible in the X-01 platform. (**Part 2**)
+- [x] Every §11 bar exists in `slos.ts`; `slo:rules` generates alert rules; each rule fires
       in a test with synthetic bad data and has a runbook.
 - [ ] Client timings arrive for arrival, first audio and interrupt silence, and are
-      excluded from reports when `is_synthetic`.
+      excluded from reports when `is_synthetic`. (**Part 2**)
 - [ ] The synthetic probe runs on a schedule against staging and pages on a failed session.
+      (**Part 2** — needs staging)
 - [ ] `capacity.md` records the concurrency at which staging first breaks an SLO and the
-      resulting scaling rule.
-- [ ] No label carries a student or session id (test on the exporter).
+      resulting scaling rule. (**Part 2** — needs staging)
+- [x] No label carries a student or session id (test on the exporter).
 
 ## Verification
 
 ```bash
-npm run test -w @aria/api -- observability testing/synthetic
-npm run slo:rules -w @aria/api
-npm run synthetic:probe -w @aria/api -- --env staging
-npm run voice:golden -- --capacity 20 --env staging
+npm run test -w @aria/api -- observability routes/status
+npm run slo:rules -w @aria/api -- --check   # fails if the committed rules are stale
 ```
+
+Part 2 adds `synthetic:probe` and the capacity run, both of which need a deployed environment.
 
 ## References
 

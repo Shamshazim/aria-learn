@@ -15,6 +15,7 @@
     "identity:replay-deletions": "tsx src/scripts/replay-deletions.ts",
     "prewarm:content": "tsx src/scripts/prewarm-content.ts",
     "report:phase1": "tsx src/scripts/phase1-report.ts",
+    "slo:rules": "tsx src/scripts/slo-rules.ts",
     "start": "tsx src/index.ts",
     "synth:bridges": "tsx src/scripts/synth-bridges.ts",
     "test": "cd ../.. && vitest run --project api",

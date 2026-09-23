@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import type { HealthController } from '@/controllers/health.controller';
+import type { MetricsController } from '@/controllers/metrics.controller';
 import type { StatusController } from '@/controllers/status.controller';
 import { idempotent } from '@/middleware/idempotency';
 import { createRateLimiter } from '@/middleware/rate-limit';
@@ -51,7 +52,12 @@ export type RouterDeps = {
     /** P0-28: a tablet a parent trusted, signing a child in without the parent's own token. */
     device?: WithoutLimit<Parameters<typeof createDeviceRouter>[0]>;
   }>;
-  status?: Readonly<{ controller: StatusController; authorize: RequestHandler }>;
+  status?: Readonly<{
+    controller: StatusController;
+    authorize: RequestHandler;
+    /** X-04: the scrape endpoint, behind the same operator token as `/status`. */
+    metrics?: MetricsController;
+  }>;
   /**
    * X-05: where rate-limit buckets live. Absent means this process keeps its own, which is
    * right for one instance and for every test; a deployment running several passes the
@@ -105,7 +111,9 @@ export function createApiRouter({
       router.use(createDeviceRouter({ ...identity.device, limit }));
     }
   }
-  if (status !== undefined) router.use(createStatusRouter(status.controller, status.authorize));
+  if (status !== undefined) {
+    router.use(createStatusRouter(status.controller, status.authorize, status.metrics));
+  }
   if (student !== undefined) router.use(createStudentRouter({ ...student, limit, replay }));
   if (voice !== undefined) {
     router.use(createVoiceStudentRouter({ ...voice.student, limit }));

@@ -1,4 +1,5 @@
 import type { SpendReport } from '@/ai/cost';
+import { sloCoverage, type SloCoverage } from '@/observability/slo/slos';
 
 type EndpointHealthReader = Readonly<{
   get(
@@ -21,6 +22,15 @@ export type StatusResponse = Readonly<{
     consecutiveFailures: number;
   }>[];
   spend: Readonly<{ totalTodayUsd: number; studentsAtCap: number }>;
+  /**
+   * X-04: which of the §11 bars something is actually watching, and which are not.
+   *
+   * Here rather than only in a generated file because this is the route an operator reads
+   * during an incident. "We promised seven numbers and two of them are measured" is a fact
+   * worth having in front of somebody at that moment, and a gap that only exists in a source
+   * constant is a gap nobody finds.
+   */
+  slos: SloCoverage;
 }>;
 
 export type StatusService = Readonly<{ getStatus(): Promise<StatusResponse> }>;
@@ -51,6 +61,7 @@ export function createStatusService(dependencies: {
           totalTodayUsd: report.totalTodayUsd,
           studentsAtCap: report.studentsAtCap,
         },
+        slos: sloCoverage(),
       };
     },
   };
