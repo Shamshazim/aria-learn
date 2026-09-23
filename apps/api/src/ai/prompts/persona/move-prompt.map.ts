@@ -48,6 +48,12 @@ export const APPROACH_INSTRUCTIONS: Readonly<Record<string, string>> = {
     'The child went quiet. Ask the open question again in a shorter, friendlier way. Do not repeat your earlier wording.',
   'SAY:check-in':
     'The child has been quiet for a while. Gently check whether they are still there and want to keep going. One or two sentences.',
+  'HINT:single-nudge':
+    'The child does not know where to start. Say that is fine, then give one small nudge toward the first step — a question to ask themselves, or the one thing to look at first. Do not give the answer. One or two sentences.',
+  'REVEAL:move-on':
+    'The child asked to skip this one, or has been stuck on it for a while. Say that is fine in a few words, say the answer with one short reason, and say a new question is coming. No "that was a hard one", no consolation, nothing about what they did wrong. Two sentences at most.',
+  'SWITCH:next-topic':
+    'The child just got this right, and has now got several right in a row. Name the specific thing they did, say they have this topic for today, and name the topic you are moving on to. Two sentences; warm, not gushing.',
   // P2H-06: every approach the planner may choose that is not `default`. An approach it can
   // pick but nobody wrote an instruction for would be a choice with no consequence, so
   // `approach-coverage.test.ts` fails if this list falls behind `PLANNER_APPROACHES`.

@@ -159,10 +159,15 @@ function plannedTurn(text: string, band: Band): PlannedTurn<ApiModelContext> {
       startedAt: NOW,
       attempts: 1,
       consecutiveWrong: 0,
+      consecutiveStuck: 0,
+      correctStreak: 0,
       consecutiveSilences: 0,
       repeatedMisconception: null,
       lastApproach: null,
       unmetPrerequisite: null,
+      // A topic to move on to, so a fixture that earns a `SWITCH` gets one rather than being
+      // quietly funnelled into the no-next-topic branch.
+      nextTopic: 'ADD.WITHIN_20',
     },
     modelContext: {
       scrubbed: scrubLearnerContext({ identifiers: {}, gradeBand: band }, { pseudonym: 'omit' }),

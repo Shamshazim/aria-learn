@@ -24,6 +24,11 @@ export type InventoryService = Readonly<{
   listSubjects(): readonly CatalogueSubject[];
   /** The catalogue topics filed under a subject and grade, in teaching order. */
   listTopics(subject: Skill['subject'], grade: Grade): readonly Skill[];
+  /**
+   * The catalogue topic after this one at the same subject and grade, or `null` at the end
+   * of the grade or for an authored skill. What a finished topic hands the session to.
+   */
+  nextTopic(code: string): string | null;
   getSkill(code: string): Skill | null;
   getMisconception(id: string): Misconception | null;
   listMisconceptions(skillCode: string): readonly Misconception[];
@@ -60,6 +65,7 @@ export function createInventoryService(
     listSubjects: () => catalogue.subjects,
     listTopics: (subject, grade) =>
       skills.filter((skill) => skill.subject === subject && skill.grade === grade),
+    nextTopic: (code) => nextTopic(skills, skillsByCode.get(code) ?? null),
     getSkill: (code) => skillsByCode.get(code) ?? null,
     getMisconception: (id) => misconceptionsById.get(id) ?? null,
     listMisconceptions: (skillCode) =>
@@ -67,6 +73,21 @@ export function createInventoryService(
     getLesson: (skillCode) => lessons.get(skillCode) ?? null,
     lessonReview: () => reviewReport(skills, lessons),
   };
+}
+
+function nextTopic(skills: readonly Skill[], current: Skill | null): string | null {
+  if (current?.ordering === undefined || current.grade === undefined) return null;
+  const { subject, grade, ordering } = current;
+  const following = skills
+    .filter(
+      (skill) =>
+        skill.subject === subject &&
+        skill.grade === grade &&
+        skill.ordering !== undefined &&
+        skill.ordering > ordering,
+    )
+    .sort((left, right) => (left.ordering ?? 0) - (right.ordering ?? 0));
+  return following[0]?.code ?? null;
 }
 
 function reviewReport(

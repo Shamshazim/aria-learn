@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { bandForGrade, type Grade, type TutorMove } from '@aria/shared';
@@ -6,6 +7,7 @@ import { createApiClient } from '@/api';
 import { webConfig } from '@/app/config';
 import { createArrivalApi } from '@/features/arrival/api/arrival.api';
 import { CheckInPrompt } from '@/features/arrival/components/CheckInPrompt';
+import { GradeOverride } from '@/features/arrival/components/GradeOverride';
 import { RecommendationCard } from '@/features/arrival/components/RecommendationCard';
 import { WelcomeBanner } from '@/features/arrival/components/WelcomeBanner';
 import { useArrival } from '@/features/arrival/hooks/useArrival';
@@ -28,7 +30,9 @@ const PLACEHOLDER_CLASSES: readonly Readonly<{ subject: string; grade: Grade }>[
 ];
 
 export default function SubjectPickerPage(): React.JSX.Element {
-  const arrival = useArrival(arrivalApi);
+  // Development only: the grade a developer chose to look at; undefined is the child's own.
+  const [gradeOverride, setGradeOverride] = useState<Grade | undefined>(undefined);
+  const arrival = useArrival(arrivalApi, gradeOverride);
   const view = arrivalView(arrival.state);
   return (
     <div className="session-app class-picker-app" data-band={view.band}>
@@ -36,7 +40,10 @@ export default function SubjectPickerPage(): React.JSX.Element {
         <Link aria-label="Aria Learn" className="session-brand" to="/">
           {view.showOwl ? <AriaOwl avatar size={34} /> : null} Aria Learn
         </Link>
-        <span className="class-picker-topbar__note">Your classes</span>
+        <span className="class-picker-topbar__note">
+          <GradeOverride grade={gradeOverride ?? view.grade} onChange={setGradeOverride} />
+          Your classes
+        </span>
       </header>
       <main className="class-picker">
         <div aria-live="polite" className="class-picker__hello">

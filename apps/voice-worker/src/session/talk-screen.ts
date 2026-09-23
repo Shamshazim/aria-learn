@@ -12,6 +12,7 @@ import type { TalkClient } from '@/api/talk-client';
 import {
   crisisInstruction,
   screenAnswerInstruction,
+  screenSkipInstruction,
   typedOnScreen,
 } from '@/session/talk-instructions';
 import { outcome, type TalkToolHooks } from '@/session/talk-tools';
@@ -33,6 +34,7 @@ import { outcome, type TalkToolHooks } from '@/session/talk-tools';
  * screen that changed every time the model felt like it is what this replaces.
  */
 export type ScreenAnswer = Extract<VoiceClientEvent, { kind: 'SCREEN_ANSWER' }>;
+export type ScreenSkip = Extract<VoiceClientEvent, { kind: 'SCREEN_SKIP' }>;
 
 type RoomRef = Readonly<{ sessionId: string; connectionEpoch: number }>;
 
@@ -177,6 +179,21 @@ export async function answerFromScreen(deps: ScreenAnswerDeps, event: ScreenAnsw
     return;
   }
   deps.session.generateReply({ userInput: typedOnScreen(event.text), allowInterruptions: true });
+}
+
+/**
+ * The child pressed skip on the screen. The question is closed the same way `move_on` closes
+ * it, and the model is told, so the voice says "no problem" and asks the next one instead of
+ * carrying on with a question the screen no longer shows.
+ */
+export async function skipFromScreen(deps: ScreenAnswerDeps, event: ScreenSkip): Promise<void> {
+  const ask = deps.currentAsk();
+  const askId = ask !== null && ask.id === event.moveId ? ask.id : null;
+  const result = await outcome(deps.hooks, deps.hooks.moves.skip(askId, 'child_asked'));
+  deps.session.generateReply({
+    instructions: screenSkipInstruction(result),
+    allowInterruptions: true,
+  });
 }
 
 /** A tapped choice arrives as its id; the model should hear what the child saw on the tile. */

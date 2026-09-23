@@ -5,7 +5,9 @@ const BY_EVENT: Readonly<Record<TutorInputEvent['kind'], readonly MoveKind[]>> =
   SUBJECT_CHOSEN: ['SAY', 'SHOW', 'ASK', 'LISTEN'],
   ANSWER: ['PRAISE', 'HINT', 'RETEACH', 'REVEAL', 'SWITCH', 'END'],
   QUESTION: ['SAY', 'SHOW', 'ASK'],
-  CONFUSED: ['RETEACH', 'SHOW', 'SWITCH', 'BREAK'],
+  CONFUSED: ['HINT', 'RETEACH', 'SHOW', 'SWITCH', 'BREAK'],
+  // A skip closes the item: the answer shown and a fresh question, or the next topic.
+  SKIP: ['REVEAL', 'ASK', 'SWITCH'],
   SPEECH_PARTIAL: ['SAY'],
   SPEECH_FINAL: ['PRAISE', 'HINT', 'RETEACH', 'SAY'],
   // P2H-01: never `LISTEN`. A child who has said nothing for twelve seconds does not need to

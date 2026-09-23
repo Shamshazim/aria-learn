@@ -77,6 +77,9 @@ function context() {
       attempts: 0,
       consecutiveWrong: 0,
       consecutiveSilences: 0,
+      consecutiveStuck: 0,
+      correctStreak: 0,
+      nextTopic: null,
       repeatedMisconception: null,
       lastApproach: null,
       unmetPrerequisite: null,
@@ -108,9 +111,8 @@ describe('grading a spoken answer that misses the key word for word', () => {
   });
 
   it('is right when the judge says the words mean the same', async () => {
-    const { turn, asked } = await runTurn(
-      'five hundred and four hundred seventy',
-      () => Promise.resolve('correct'),
+    const { turn, asked } = await runTurn('five hundred and four hundred seventy', () =>
+      Promise.resolve('correct'),
     );
     expect(turn.decision.graded?.correct).toBe(true);
     expect(asked).toEqual([

@@ -3,18 +3,26 @@ import type { TutorMove } from '@aria/shared';
 import { DeliveryNotice } from '@/features/session/components/DeliveryNotice';
 import { DoneCard } from '@/features/session/components/DoneCard';
 import { InputSurface } from '@/features/session/components/InputSurface';
+import { LiveSpeech } from '@/features/session/components/LiveSpeech';
 import { SessionControls } from '@/features/session/components/SessionControls';
 import { TutorStatus } from '@/features/session/components/TutorStatus';
 import type { TutorSession } from '@/features/session/hooks/useTutorSession';
+import { NO_LIVE_VOICE, type LiveVoice } from '@/features/session/model/live-voice';
 import { composeScreen } from '@/features/session/model/screen-composition';
 import type { SessionState } from '@/features/session/model/session-state';
 import type { VoiceAvailability } from '@/features/session/model/voice-availability';
 import { MoveView } from '@/features/session/render/registry';
 
-type LayoutProps = Readonly<{ session: TutorSession; voice: VoiceAvailability }>;
+type LayoutProps = Readonly<{
+  session: TutorSession;
+  voice: VoiceAvailability;
+  /** What the voice is saying, where a realtime model is Aria's voice. */
+  live?: LiveVoice | undefined;
+}>;
 
 function CurrentMove(props: LayoutProps): React.JSX.Element | null {
   const state = props.session.state;
+  const live = props.live ?? NO_LIVE_VOICE;
   // P2H-07: the sentences Aria has already said. No input surface until the move arrives —
   // a half-written answer has nothing to answer yet.
   if (state.currentMove === null && state.streaming !== null) {
@@ -25,12 +33,16 @@ function CurrentMove(props: LayoutProps): React.JSX.Element | null {
   // silence ladder is what decides whether that silence needs anything said about it.
   const screen = composeScreen(state);
   const input = screen.input;
-  if (input === null) return null;
+  if (input === null) return live.talks ? <LiveSpeech band={state.band} voice={live} /> : null;
   return (
     <>
-      {screen.cards.map((card) => (
-        <MoveView band={state.band} key={card.id} move={withSupportingVisual(state, card)} />
-      ))}
+      {live.talks ? <LiveSpeech band={state.band} voice={live} /> : null}
+      {screen.cards
+        .map((card) => asShown(state, card, live))
+        .filter((card) => card.speech !== null || card.display.length > 0)
+        .map((card) => (
+          <MoveView band={state.band} key={card.id} move={card} />
+        ))}
       <InputSurface
         band={state.band}
         move={input}
@@ -52,23 +64,25 @@ function CurrentMove(props: LayoutProps): React.JSX.Element | null {
 export function LayoutContent(props: LayoutProps): React.JSX.Element {
   if (props.session.state.ended) return <DoneCard />;
   const retryFailed = props.session.retryFailed;
+  const state = props.session.state;
   return (
     <div className="session-main">
-      <TutorStatus status={props.session.state.status} />
+      <TutorStatus status={state.status} />
       {retryFailed === null ? null : (
         <DeliveryNotice
-          band={props.session.state.band}
+          band={state.band}
           onRetry={() => {
             void retryFailed();
           }}
         />
       )}
       <section className="session-card">
-        <CurrentMove session={props.session} voice={props.voice} />
+        <CurrentMove {...props} />
       </section>
       <SessionControls
-        band={props.session.state.band}
-        paused={props.session.state.paused}
+        band={state.band}
+        canSkip={state.openQuestion !== null && !state.paused}
+        paused={state.paused}
         onBackchannel={() => {
           void props.session.backchannel();
         }}
@@ -87,7 +101,10 @@ export function LayoutContent(props: LayoutProps): React.JSX.Element {
         onResume={() => {
           void props.session.resume();
         }}
-        showQuestion={props.session.state.band === 'early'}
+        onSkip={() => {
+          void props.session.skip();
+        }}
+        showQuestion={state.band === 'early'}
       />
       <button
         className="session-action"
@@ -100,6 +117,23 @@ export function LayoutContent(props: LayoutProps): React.JSX.Element {
       </button>
     </div>
   );
+}
+
+/**
+ * The card as the child should see it beside a talking voice: a question keeps its exact
+ * words, because the voice is told to keep them exact too; anything else — a hint, praise, a
+ * reveal — drops its stored line and the text that repeats it, because Aria is saying it in
+ * her own words above. A picture or a passage stays: that is what the card is for.
+ */
+function asShown(state: SessionState, move: TutorMove, live: LiveVoice): TutorMove {
+  const card = withSupportingVisual(state, move);
+  if (!live.talks || card.kind === 'ASK' || card.speech === null) return card;
+  const line = card.speech.text;
+  return {
+    ...card,
+    speech: null,
+    display: card.display.filter((item) => !(item.type === 'text' && item.body === line)),
+  };
 }
 
 function withSupportingVisual(state: SessionState, move: TutorMove): TutorMove {

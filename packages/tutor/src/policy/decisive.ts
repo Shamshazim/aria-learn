@@ -15,6 +15,14 @@ export const DECISIVE_REASONS = [
   'repeated_misconception',
   'silence_rung_3',
   'silence_rung_4',
+  // The child asked for a different question, or has had three turns that went nowhere:
+  // the answer is shown and the lesson moves on. Nothing to weigh.
+  'skip_child_asked',
+  'skip_not_engaging',
+  'skip_too_hard',
+  'skip_too_easy',
+  'stuck_move_on',
+  'mastered_topic',
 ] as const;
 
 export type DecisiveReason = (typeof DECISIVE_REASONS)[number];

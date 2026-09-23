@@ -17,6 +17,14 @@ import {
   resolveAnswerTarget,
   type AskRecord,
 } from '@/services/tutor/answer-target';
+import {
+  consecutiveSilences,
+  consecutiveStuck,
+  consecutiveWrong,
+  correctStreak,
+  latestEvidenceString,
+  recentEvidenceStrings,
+} from '@/services/tutor/session-counters';
 
 export type TutorContextLoader = Readonly<{
   load(event: TutorInputEvent): Promise<LoadedTurnContext<ApiModelContext>>;
@@ -30,6 +38,8 @@ export function createTutorContextLoader(deps: {
   misconceptionIds(skillCode: string): readonly string[];
   /** P2H-10: the teaching note for a skill, or nothing where the skill has no note. */
   lesson(skillCode: string): LessonNote | null;
+  /** The topic after this one in teaching order, so a finished topic has somewhere to go. */
+  nextTopic(skillCode: string): string | null;
   retrieve(
     input: Readonly<{
       sessionId: string;
@@ -101,10 +111,13 @@ function sessionContext(
     attempts: Math.min(10, consecutiveWrong(records)),
     consecutiveWrong: consecutiveWrong(records),
     consecutiveSilences: consecutiveSilences(records),
+    consecutiveStuck: consecutiveStuck(records),
+    correctStreak: correctStreak(records),
     repeatedMisconception:
       latestEvidenceString(records, 'misconception') ?? skillContext.repeatedMisconception,
     lastApproach: latestEvidenceString(records, 'approach'),
     unmetPrerequisite: skillContext.unmet[0]?.code ?? null,
+    nextTopic: skillContext.nextTopic,
   };
 }
 
@@ -144,13 +157,15 @@ async function loadSkillContext(
   studentId: string,
   skillCode: string | null,
 ) {
-  if (skillCode === null) return { state: null, unmet: [], repeatedMisconception: null } as const;
+  if (skillCode === null) {
+    return { state: null, unmet: [], repeatedMisconception: null, nextTopic: null } as const;
+  }
   const [state, unmet, repeatedMisconception] = await Promise.all([
     deps.skills.findState(studentId, skillCode),
     deps.skills.findUnmetPrerequisites(studentId, skillCode),
     findKnownMisconception(deps, studentId, skillCode),
   ]);
-  return { state, unmet, repeatedMisconception };
+  return { state, unmet, repeatedMisconception, nextTopic: deps.nextTopic(skillCode) };
 }
 
 async function findKnownMisconception(
@@ -205,45 +220,9 @@ function answerAsk(
   return target.ask;
 }
 
-function recentEvidenceStrings(
-  records: Awaited<ReturnType<SessionEventRepository['list']>>,
-  key: string,
-  limit: number,
-): readonly string[] {
-  return [...records]
-    .reverse()
-    .flatMap((record) => {
-      const value = record.evidence[key];
-      return typeof value === 'string' ? [value] : [];
-    })
-    .slice(0, limit);
-}
-
 function stringPlanValue(plan: Readonly<Record<string, unknown>>, key: string): string | null {
   const value = plan[key];
   return typeof value === 'string' ? value : null;
-}
-
-function consecutiveWrong(records: Awaited<ReturnType<SessionEventRepository['list']>>): number {
-  let count = 0;
-  for (const record of [...records].reverse()) {
-    if (record.actor !== 'child' || (record.kind !== 'ANSWER' && record.kind !== 'SPEECH_FINAL'))
-      continue;
-    if (record.correct === true) break;
-    if (record.correct === false) count += 1;
-  }
-  return count;
-}
-
-/** P2H-01: silences since the child last did anything. Backchannels do not reset the count. */
-function consecutiveSilences(records: Awaited<ReturnType<SessionEventRepository['list']>>): number {
-  let count = 0;
-  for (const record of [...records].reverse()) {
-    if (record.actor !== 'child') continue;
-    if (record.kind === 'SILENCE') count += 1;
-    else if (record.kind !== 'BACKCHANNEL' && record.kind !== 'SPEECH_STARTED') break;
-  }
-  return count;
 }
 
 const DIALOGUE_TURNS: Readonly<Record<string, number>> = { early: 6, middle: 10, senior: 14 };
@@ -269,15 +248,4 @@ function dialogueWindow(
       // The crisis path stamps `evidence.safety`; that turn's words never leave the API.
       ...(record.evidence.safety === undefined ? {} : { safetyFlagged: true }),
     }));
-}
-
-function latestEvidenceString(
-  records: Awaited<ReturnType<SessionEventRepository['list']>>,
-  key: string,
-): string | null {
-  for (const record of [...records].reverse()) {
-    const value = record.evidence[key];
-    if (typeof value === 'string') return value;
-  }
-  return null;
 }

@@ -201,3 +201,28 @@
     margin: 0 auto;
   }
 }
+
+/* Development only: the grade dropdown beside "Your classes". */
+.grade-override {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.375rem;
+  margin-right: 1rem;
+}
+
+.grade-override__tag {
+  background: #fde68a;
+  border-radius: 999px;
+  color: #713f12;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.45rem;
+  text-transform: uppercase;
+}
+
+.grade-override select {
+  border: 0.125rem solid #d4d0f5;
+  border-radius: 0.5rem;
+  font: inherit;
+  padding: 0.25rem 0.5rem;
+}

@@ -17,6 +17,7 @@ export function stubSession(state: Partial<SessionState> = {}): TutorSession {
     backchannel: nothing,
     speechPartial: nothing,
     confused: nothing,
+    skip: nothing,
     completeDrag: nothing,
     interrupt: nothing,
     leave: nothing,
@@ -24,6 +25,7 @@ export function stubSession(state: Partial<SessionState> = {}): TutorSession {
     resume: nothing,
     speak: nothing,
     receive: () => undefined,
+    voiceState: () => undefined,
     retryFailed: null,
   };
 }

@@ -1,5 +1,6 @@
-import type { ArrivalResponse } from '@aria/shared';
+import type { ArrivalResponse, Grade } from '@aria/shared';
 
+import { arrivalRequestSchema } from '@/schemas/arrival.schema';
 import type { ArrivalResult } from '@/services/arrival/arrival.service';
 import type { ApiResponse } from '@/types/http';
 
@@ -9,12 +10,16 @@ export type ArrivalController = RequestHandler;
 
 export function createArrivalController(
   service: Readonly<{
-    arrive(studentId: string): Promise<ArrivalResult>;
+    arrive(studentId: string, options?: Readonly<{ grade?: Grade }>): Promise<ArrivalResult>;
   }>,
 ): ArrivalController {
   return async (request: Request, response: Response<ApiResponse<ArrivalResponse>>) => {
     const studentId = requireStudentId(request.studentId);
-    const result = await service.arrive(studentId);
+    const body = arrivalRequestSchema.parse(request.validated?.body ?? {});
+    const result = await service.arrive(
+      studentId,
+      body.grade === undefined ? {} : { grade: body.grade },
+    );
     response
       .status(200)
       .json({ data: { ...result, moves: [...result.moves], classes: [...result.classes] } });

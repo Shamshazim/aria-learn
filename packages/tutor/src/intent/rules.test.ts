@@ -18,6 +18,11 @@ describe('intent rules', () => {
     ['I am confused', 'CONFUSED'],
     ['I want to stop', 'STOP_REQUEST'],
     ["I'm done", 'STOP_REQUEST'],
+    ['skip', 'SKIP_REQUEST'],
+    ['can I have a different one', 'SKIP_REQUEST'],
+    ['I give up', 'SKIP_REQUEST'],
+    ['pass', 'SKIP_REQUEST'],
+    ["I can't do this", 'CONFUSED'],
     ['8', 'ANSWER'],
   ] as const)('"%s" is %s', (text, intent) => {
     expect(classifyIntent(text, KEY).intent).toBe(intent);

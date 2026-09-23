@@ -48,7 +48,9 @@ describe('planner approaches and persona instructions', () => {
       'RETEACH:worked-example',
       'PRAISE:specific-evidence',
       'REVEAL:worked-example',
+      'REVEAL:move-on',
       'SWITCH:prerequisite-step',
+      'SWITCH:next-topic',
       'HINT:single-nudge',
     ]);
 

@@ -9,12 +9,25 @@ export type SessionSnapshot = Readonly<{
   skillCode: string | null;
   startedAt: Date;
   attempts: number;
+  /** Wrong answers since the last right one, across items: the signal that a *skill* is stuck. */
   consecutiveWrong: number;
   /** `SILENCE` events since the child last did anything (P2H-01). */
   consecutiveSilences: number;
+  /**
+   * Turns on the *current item* that went nowhere: a wrong answer, "I don't know", a skip.
+   *
+   * This is what a human tutor counts. Hint, then another way, then show it and move on —
+   * whether the child guessed wrong three times or shrugged three times. It starts again at
+   * zero when a fresh question is asked, so a reveal never bleeds into the next item.
+   */
+  consecutiveStuck: number;
+  /** Right answers in a row on the current skill, for knowing when a topic is done for today. */
+  correctStreak: number;
   repeatedMisconception: string | null;
   lastApproach: string | null;
   unmetPrerequisite: string | null;
+  /** The topic after this one in teaching order, or `null` where there is none to move to. */
+  nextTopic: string | null;
 }>;
 
 export type LoadedTurnContext<TModelContext> = Readonly<{
@@ -98,6 +111,11 @@ export type CommittedTurn = Readonly<{
   moves: readonly TutorMove[];
   privateEvidence: Readonly<Record<string, unknown>>;
   spans: Readonly<Record<string, number>>;
+  /**
+   * The skill the child was working on when this turn arrived. A `SWITCH` plan names where
+   * the lesson goes next, so a graded answer is recorded against this, not against the plan.
+   */
+  practisedSkillCode?: string | null;
 }>;
 
 export type ResolvedContent = Readonly<{

@@ -6,28 +6,51 @@ import { loadCatalogue } from '@/curriculum/catalogue/catalogue.loader';
 describe('the legacy curriculum catalogue', () => {
   const catalogue = loadCatalogue();
 
-  it('carries every legacy subject across with its grades', () => {
+  const ALL_GRADES = ['TK', 'K', '1', '2', '3', '4', '5', '6', '7', '8'];
+
+  it('covers every subject from TK to grade 8, and Math Adventures where the legacy app had it', () => {
     expect(catalogue.subjects.map((subject) => [subject.id, subject.name, subject.grades])).toEqual(
       [
-        ['english-writing', 'English Writing', ['1', '2', '3', '4', '5', '6', '7', '8']],
-        ['mathematics', 'Mathematics', ['1', '2', '3', '4', '5', '6', '7', '8']],
+        ['english-writing', 'English Writing', ALL_GRADES],
+        ['english-reading', 'English Reading', ALL_GRADES],
+        ['history-social-science', 'History-Social Science', ALL_GRADES],
+        ['mathematics', 'Mathematics', ALL_GRADES],
         ['math-adventures', 'Math Adventures', ['1', '2', '3']],
-        ['science', 'Science', ['4']],
+        ['science', 'Science', ALL_GRADES],
       ],
     );
   });
 
-  it('carries every topic across: 392 from the JSON files and 2 from the Science migration', () => {
+  it('carries every legacy topic across and adds the California-aligned ones', () => {
     const bySubject = new Map<string, number>();
     for (const skill of catalogue.skills) {
       bySubject.set(skill.subject, (bySubject.get(skill.subject) ?? 0) + 1);
     }
     expect(Object.fromEntries(bySubject)).toEqual({
-      'english-writing': 156,
-      'mathematics': 209,
+      'english-writing': 169,
+      'english-reading': 132,
+      'history-social-science': 109,
+      mathematics: 237,
       'math-adventures': 27,
-      'science': 2,
+      science: 117,
     });
+    expect(catalogue.skills).toHaveLength(791);
+  });
+
+  it('keeps the two legacy Science topics on the codes they had', () => {
+    expect(catalogue.skills.find((skill) => skill.code === 'SCI.G4.U01.L01.T01')?.name).toBe(
+      'Animal Groups',
+    );
+    expect(catalogue.skills.find((skill) => skill.code === 'SCI.G4.U01.L01.T02')?.name).toBe(
+      'Habitats',
+    );
+  });
+
+  it('files TK and K topics under their own grades and the early band', () => {
+    const tk = catalogue.skills.find((skill) => skill.code === 'MATH.GTK.U01.L01.T01');
+    const k = catalogue.skills.find((skill) => skill.code === 'HSS.GK.U01.L01.T01');
+    expect(tk).toMatchObject({ grade: 'TK', band: 'early', name: 'Counting to 10' });
+    expect(k).toMatchObject({ grade: 'K', band: 'early', subject: 'history-social-science' });
   });
 
   it('gives a topic a positional code that fits the skill table and a band from its grade', () => {
@@ -68,8 +91,8 @@ describe('the legacy curriculum catalogue', () => {
   it('slugs a subject the way the legacy seeder did', () => {
     expect(subjectSlug('English Writing')).toBe('english-writing');
     expect(subjectSlug('  Math Adventures! ')).toBe('math-adventures');
-    expect(
-      topicCode({ subject: 'science', grade: '4', unit: 1, lesson: 1, topic: 2 }),
-    ).toBe('SCI.G4.U01.L01.T02');
+    expect(topicCode({ subject: 'science', grade: '4', unit: 1, lesson: 1, topic: 2 })).toBe(
+      'SCI.G4.U01.L01.T02',
+    );
   });
 });
