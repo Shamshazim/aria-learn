@@ -15,6 +15,17 @@ const EVENT = {
   text: 'wrong',
 } satisfies TutorInputEvent;
 
+/**
+ * The envelope alone, for building an event of another kind (X-05).
+ *
+ * Every event schema is strict now, so spreading an `ANSWER` into a `PAUSE` no longer drops
+ * `respondsTo` and `text` quietly — it fails to parse, which is the point.
+ */
+function envelopeOf(event: typeof EVENT): Omit<typeof EVENT, 'kind' | 'respondsTo' | 'text'> {
+  const { kind: _kind, respondsTo: _respondsTo, text: _text, ...envelope } = event;
+  return envelope;
+}
+
 function context(wrong: number, lastApproach: string | null): LoadedTurnContext<null> {
   return {
     session: {
@@ -77,8 +88,8 @@ describe('teaching policy', () => {
   });
 
   it.each([
-    [{ ...EVENT, kind: 'PAUSE' }, 'BREAK'],
-    [{ ...EVENT, kind: 'LEAVE', reason: 'done' }, 'END'],
+    [{ ...envelopeOf(EVENT), kind: 'PAUSE' }, 'BREAK'],
+    [{ ...envelopeOf(EVENT), kind: 'LEAVE', reason: 'done' }, 'END'],
   ] as const)('handles explicit stopping conditions', (event, kind) => {
     expect(policy(context(0, null), tutorInputEventSchema.parse(event)).defaultPlan.kind).toBe(
       kind,

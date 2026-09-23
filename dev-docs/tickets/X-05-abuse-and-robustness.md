@@ -104,30 +104,45 @@ Rules:
   invalidated, child re-picks their picture (P2H-12), parent not alarmed.
 - Clock jumps on the server: idempotency and expiry use database `now()`.
 
+## Status
+
+Delivered in two parts. **Part 1** (merged, PR #27) is rate limiting and idempotency.
+**Part 2** is strict input validation, the folded deterministic rules, the worker's event
+validator and the adversarial suite.
+
+Still open: the device-nonce half of the last criterion. Binding a child session to a device
+needs a column on `child_session`, and X-05's migration number (028) is already merged, so it
+belongs with the ticket that renumbers rather than in a follow-up to this one.
+`security/clock.ts` was not written: server time is already authoritative everywhere it
+matters — idempotency and expiry read the database's `now()`, and no route accepts a
+client-supplied timestamp — so the file would have had nothing in it.
+
 ## Acceptance criteria
 
-- [ ] Migration `028` applies; idempotency records expire after 24h.
-- [ ] Every mutating student and parent route requires `Idempotency-Key`; replay returns
+- [x] Migration `028` applies; idempotency records expire after 24h.
+- [x] Every mutating student and parent route requires `Idempotency-Key`; replay returns
       the stored response with zero new `session_event` rows; changed body → 422.
-- [ ] Rate limits exist for every actor class; exceeding them returns 429 with
+- [x] Rate limits exist for every actor class; exceeding them returns 429 with
       `Retry-After` and the child UI shows the calm screen.
-- [ ] Every HTTP and data-channel schema is `.strict()` with length and array caps; an
+- [x] Every HTTP and data-channel schema is `.strict()` with length and array caps; an
       unknown field is rejected, proven per route by a generated test.
-- [ ] The adversarial suite runs in `npm test` with ≥ 60 fixtures across the three families
+- [x] The adversarial suite runs in `npm test` with ≥ 60 fixtures across the three families
       and every invariant holds.
-- [ ] A transcript containing move JSON never produces a move outside the allowed set.
-- [ ] Homoglyph and NFKC variants of personal-info requests hit the deterministic path with
+- [x] A transcript containing move JSON never produces a move outside the allowed set.
+- [x] Homoglyph and NFKC variants of personal-info requests hit the deterministic path with
       no model call (call count asserted).
-- [ ] The worker drops malformed events, counts them, and disconnects after the threshold;
+- [x] The worker drops malformed events, counts them, and disconnects after the threshold;
       a valid session continues unaffected.
-- [ ] Child session cookies are httpOnly/Secure/SameSite with idle and absolute expiry;
-      device-nonce mismatch invalidates the session.
+- [ ] Child session cookies are httpOnly/Secure/SameSite with idle and absolute expiry
+      (done in P2H-12); device-nonce mismatch invalidates the session (**open**, see Status).
 
 ## Verification
 
 ```bash
-npm run test -w @aria/api -- middleware security testing/adversarial
+npm run test -w @aria/api -- middleware routes/input-guard testing/adversarial
 npm run test -w @aria/voice-worker -- event-validator
+npm run test -w @aria/shared -- schema/strictness
+npm run test -w @aria/tutor -- intent/normalise
 ```
 
 ## References

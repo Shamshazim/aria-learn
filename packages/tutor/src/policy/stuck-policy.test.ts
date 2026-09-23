@@ -20,6 +20,18 @@ const EVENT = {
   text: 'wrong',
 } satisfies TutorInputEvent;
 
+/**
+ * The envelope alone, for building an event of another kind (X-05).
+ *
+ * Every event schema is strict, so spreading an `ANSWER` into a `CONFUSED` or a `SKIP` no
+ * longer drops `respondsTo` and `text` quietly — it fails to parse, which is the point: those
+ * fields mean something on an answer and nothing on a shrug.
+ */
+function envelopeOf(event: typeof EVENT): Omit<typeof EVENT, 'kind' | 'respondsTo' | 'text'> {
+  const { kind: _kind, respondsTo: _respondsTo, text: _text, ...envelope } = event;
+  return envelope;
+}
+
 function context(wrong: number, lastApproach: string | null): LoadedTurnContext<null> {
   return {
     session: {
@@ -77,7 +89,7 @@ describe('a child who is stuck or wants to move on', () => {
 
   it('treats the "I don\'t get it" button the same as saying it', () => {
     const button = tutorInputEventSchema.parse({
-      ...EVENT,
+      ...envelopeOf(EVENT),
       kind: 'CONFUSED',
       aboutMoveId: 'ask-1',
     });
@@ -111,7 +123,7 @@ describe('a child who is stuck or wants to move on', () => {
     });
     expect(asked).toMatchObject({ decisive: true, allowedMoves: ['REVEAL'] });
     const button = tutorInputEventSchema.parse({
-      ...EVENT,
+      ...envelopeOf(EVENT),
       kind: 'SKIP',
       respondsTo: 'ask-1',
       reason: 'not_engaging',
@@ -127,7 +139,11 @@ describe('a child who is stuck or wants to move on', () => {
       ...stuck(0),
       session: { ...stuck(0).session, nextTopic: 'ADD.WITHIN_20' },
     };
-    const tooEasy = tutorInputEventSchema.parse({ ...EVENT, kind: 'SKIP', reason: 'too_easy' });
+    const tooEasy = tutorInputEventSchema.parse({
+      ...envelopeOf(EVENT),
+      kind: 'SKIP',
+      reason: 'too_easy',
+    });
     expect(policy(withNext, tooEasy).defaultPlan).toMatchObject({
       kind: 'SWITCH',
       approach: 'next-topic',

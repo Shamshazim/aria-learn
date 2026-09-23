@@ -7,23 +7,33 @@ import type { Router } from 'express';
  * next year appears here without anybody remembering to add it, which is what makes the guard
  * test a guard rather than a snapshot of what somebody once wrote down.
  */
-export type MountedRoute = Readonly<{ method: string; path: string }>;
+export type MountedRoute = Readonly<{
+  method: string;
+  path: string;
+  /** X-05: the handlers mounted on it, so a guard can ask what each one validates. */
+  handlers: readonly unknown[];
+}>;
 
 export function walkRoutes(router: Router): readonly MountedRoute[] {
   return layersOf(router).flatMap(routesIn);
 }
 
 type Layer = Readonly<{
-  route?: Readonly<{ path?: unknown; methods?: Readonly<Record<string, unknown>> }>;
+  route?: Readonly<{
+    path?: unknown;
+    methods?: Readonly<Record<string, unknown>>;
+    stack?: unknown;
+  }>;
   handle?: unknown;
 }>;
 
 function routesIn(layer: Layer): readonly MountedRoute[] {
   const path = layer.route?.path;
   if (typeof path === 'string') {
+    const handlers = handlersOf(layer.route?.stack);
     return Object.entries(layer.route?.methods ?? {})
       .filter(([, enabled]) => enabled === true)
-      .map(([method]) => ({ method: method.toUpperCase(), path }));
+      .map(([method]) => ({ method: method.toUpperCase(), path, handlers }));
   }
   // A mounted sub-router: its own stack is where the paths actually are.
   return layersOf(layer.handle).flatMap(routesIn);
@@ -34,4 +44,12 @@ function layersOf(value: unknown): readonly Layer[] {
   const stack: unknown = Object.getOwnPropertyDescriptor(value, 'stack')?.value;
   if (!Array.isArray(stack)) return [];
   return stack.filter((layer): layer is Layer => typeof layer === 'object' && layer !== null);
+}
+
+/** The functions a route will actually run, in order, unwrapped from their layers. */
+function handlersOf(stack: unknown): readonly unknown[] {
+  if (!Array.isArray(stack)) return [];
+  return stack.map((layer: unknown) =>
+    typeof layer === 'object' && layer !== null ? (layer as Layer).handle : undefined,
+  );
 }

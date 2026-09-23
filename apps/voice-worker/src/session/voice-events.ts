@@ -6,7 +6,7 @@ import type { VoiceMetric } from '@aria/shared';
 import type { AcknowledgementGate } from '@/session/acknowledgement-gate';
 import { createAcknowledgementGate } from '@/session/acknowledgement-gate';
 import type { AriaAgentSession } from '@/session/agent-session';
-import { parseClientEvent } from '@/session/client-event';
+import { createEventValidator } from '@/session/event-validator';
 import { toVoiceMetric } from '@/session/metrics';
 import type { MoveStream } from '@/session/move-stream';
 import type { SilenceTimer } from '@/session/silence-timer';
@@ -52,9 +52,10 @@ export function bindVoiceEvents(input: VoiceEventBindings): AcknowledgementGate 
       });
     });
   });
+  const events = clientEventValidator(input);
   input.job.room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
     if (topic !== 'aria.client-event') return;
-    const event = parseClientEvent(payload);
+    const event = events.accept(payload);
     if (event === null) return;
     if (event.kind === 'ACK') {
       input.moves.acceptAcknowledgement(event.acknowledgedSeq);
@@ -81,6 +82,21 @@ export function bindVoiceEvents(input: VoiceEventBindings): AcknowledgementGate 
     void input.session.interrupt({ force: true });
   });
   return gate;
+}
+
+/**
+ * X-05: a client sending nothing parseable is a client this worker stops talking to.
+ *
+ * Ending the session is the mild outcome it looks like: the child's session state lives in the
+ * API, so the browser reconnects into the same session and loses at most the sentence in
+ * flight — while a worker stuck decoding a flood serves nobody at all.
+ */
+function clientEventValidator(input: VoiceEventBindings): ReturnType<typeof createEventValidator> {
+  return createEventValidator({
+    onAbuse: () => {
+      input.finish();
+    },
+  });
 }
 
 function bindCloseEvents(input: VoiceEventBindings, gate: AcknowledgementGate): void {

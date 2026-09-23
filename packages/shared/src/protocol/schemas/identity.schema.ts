@@ -11,7 +11,7 @@ import { childPictureSchema } from '../../identity/pictures';
  * master-plan.md §12 asks that nothing identifying about the adult reach a child's device —
  * and a shape with no field for it cannot leak one by accident.
  */
-export const childSummarySchema = z.object({
+export const childSummarySchema = z.strictObject({
   id: z.uuid(),
   firstName: z.string().min(1).max(64),
   grade: gradeSchema,
@@ -21,12 +21,12 @@ export const childSummarySchema = z.object({
   loginMethod: z.enum(['pin', 'picture', 'family-device', 'none']),
 });
 
-export const childListResponseSchema = z.object({
+export const childListResponseSchema = z.strictObject({
   children: z.array(childSummarySchema).max(20),
 });
 
 /** The login response. The session itself travels as a cookie; this is what the UI shows. */
-export const childSessionResponseSchema = z.object({
+export const childSessionResponseSchema = z.strictObject({
   child: childSummarySchema,
   /** Server-side truth. The client's idle timer is advisory and re-derived from this. */
   expiresAt: z.iso.datetime({ offset: false }),

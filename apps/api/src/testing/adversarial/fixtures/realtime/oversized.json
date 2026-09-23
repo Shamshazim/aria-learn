@@ -1,0 +1,20 @@
+[
+  {
+    "id": "rt-oversized-screen-answer",
+    "note": "A screen answer far past the 4 000-character cap: refused by the schema, before any work.",
+    "frame": "{\"kind\":\"SCREEN_ANSWER\",\"moveId\":\"move-1\",\"text\":\"__FILL__\"}",
+    "repeatToBytes": 20000
+  },
+  {
+    "id": "rt-oversized-unknown-field",
+    "note": "Bulk hidden in a field nobody declared, which strictness refuses before size ever matters.",
+    "frame": "{\"kind\":\"ACK\",\"acknowledgedSeq\":1,\"padding\":\"__FILL__\"}",
+    "repeatToBytes": 50000
+  },
+  {
+    "id": "rt-oversized-not-json",
+    "note": "A large frame that is not JSON at all, which must cost a length check and nothing more.",
+    "frame": "__FILL__",
+    "repeatToBytes": 100000
+  }
+]

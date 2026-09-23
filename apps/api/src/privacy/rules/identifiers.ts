@@ -22,10 +22,13 @@ const GENERIC_RULES: readonly IdentifierRule[] = [
     pattern:
       /\b(?:i(?:'m| am)|call me)\s+[\p{L}'-]+(?:\s+[\p{L}'-]+){0,3}?(?=[,.!?;]|$|\s+(?:and|but|because)\b)/giu,
   },
+  // The verb is what makes a pair of capitalised words a person rather than a place: "Maple
+  // Street" is never *doing* anything. X-05 widened the list after the adversarial suite found
+  // that "how is Amelia Okonkwo doing" and "how Daniel Fitzgerald ranked" both crossed intact.
   {
     kind: 'full_name',
     pattern:
-      /(?<![\p{L}'-])(?:[\p{Lu}][\p{L}'-]*)(?:\s+[\p{Lu}][\p{L}'-]*){1,3}(?=\s+(?:answered|asked|got|read|said|selected|solved|tried|wrote)\b)/gu,
+      /(?<![\p{L}'-])(?:[\p{Lu}][\p{L}'-]*)(?:\s+[\p{Lu}][\p{L}'-]*){1,3}(?=\s+(?:answered|asked|compares|did|doing|finished|got|improved|learned|managed|performed|ranked|read|said|scored|selected|solved|started|struggled|tried|wrote)\b)/gu,
   },
   {
     kind: 'full_name',

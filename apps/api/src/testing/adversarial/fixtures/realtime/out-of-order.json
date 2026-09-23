@@ -1,0 +1,35 @@
+[
+  {
+    "id": "rt-negative-seq",
+    "note": "A negative acknowledgement. There is no such position in the outbox.",
+    "frame": { "kind": "ACK", "acknowledgedSeq": -1 }
+  },
+  {
+    "id": "rt-fractional-seq",
+    "note": "A fractional sequence, which array indexing would silently round and act on.",
+    "frame": { "kind": "ACK", "acknowledgedSeq": 1.5 }
+  },
+  {
+    "id": "rt-seq-beyond-safe-integer",
+    "note": "A sequence past the point where integer arithmetic stops being exact.",
+    "frame": { "kind": "ACK", "acknowledgedSeq": 9007199254740993 }
+  },
+  {
+    "id": "rt-seq-infinity",
+    "note": "Infinity arrives as 1e999 over JSON, and compares greater than every real position.",
+    "frame": "{\"kind\":\"ACK\",\"acknowledgedSeq\":1e999}"
+  },
+  {
+    "id": "rt-stop-with-empty-generation",
+    "note": "A cancel naming no generation, which would match whatever was playing if it were let through.",
+    "frame": { "kind": "STOP", "generationId": "" }
+  },
+  {
+    "id": "rt-stop-with-oversized-generation",
+    "note": "An identifier past its cap, from a client that built one out of a whole transcript.",
+    "frame": {
+      "kind": "STOP",
+      "generationId": "g-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+]

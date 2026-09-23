@@ -8,6 +8,9 @@
  * Anything not exported here is internal to the package.
  */
 
+export { findLooseObjects } from './schema/strictness';
+export type { LooseObject } from './schema/strictness';
+
 export { PROTOCOL_VERSION } from './version';
 export type { ProtocolVersion } from './version';
 

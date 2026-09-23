@@ -8,6 +8,7 @@
 export {
   tutorMoveSchema,
   MOVE_KINDS,
+  SKILL_EVIDENCE_MOVE_KINDS,
   welcomeMoveSchema,
   checkInMoveSchema,
   recommendMoveSchema,
