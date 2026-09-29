@@ -144,10 +144,26 @@ export type TutorPorts<TModelContext> = Readonly<{
    */
   plannerBudgetMs?(context: LoadedTurnContext<TModelContext>, event: TutorInputEvent): number;
   observePlan?(observation: PlannerObservation): void;
+  /**
+   * X-04: what the turn cost, for whatever is watching the §11 bars.
+   *
+   * Separate from `commit`, which writes the same spans to `session_event` for the report to
+   * read later. A report answers "did we meet the bar last week"; this is what can answer
+   * "are we meeting it now", and the two must not be the same call — a metrics sink that
+   * fails has no business failing a child's turn.
+   */
+  observeTurn?(observation: TurnObservation): void;
   resolveContent(input: PlannedTurn<TModelContext>, signal?: AbortSignal): Promise<ResolvedContent>;
   commit(turn: CommittedTurn): Promise<void>;
   emit(moves: readonly TutorMove[]): Promise<readonly TutorMove[]>;
   nowMs(): number;
+}>;
+
+/** One finished turn, reduced to what a metric may carry: no child, no session, no words. */
+export type TurnObservation = Readonly<{
+  band: Band;
+  moveKinds: readonly MoveKind[];
+  spans: Readonly<Record<string, number>>;
 }>;
 
 export type SpeculativeTurn<TModelContext> = Readonly<{

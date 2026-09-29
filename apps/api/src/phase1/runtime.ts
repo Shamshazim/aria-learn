@@ -14,6 +14,7 @@ import {
 import { ForbiddenError } from '@/errors';
 import { createTurnContentObserver } from '@/observability/content-metrics';
 import { createIntentFallbackObserver } from '@/observability/intent-metrics';
+import { createTurnObserver } from '@/observability/turn-metrics';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
@@ -185,6 +186,7 @@ function plannerPorts(deps: Phase1RuntimeDeps) {
     plannerBudgetMs: (context: LoadedTurnContext<ApiModelContext>, event: TutorInputEvent) =>
       plannerBudgetMs(context.session.band, event),
     observePlan: createPlannerObserver({ metrics: deps.metrics, logger: deps.logger }),
+    observeTurn: createTurnObserver({ metrics: deps.metrics }),
   };
 }
 

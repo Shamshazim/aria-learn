@@ -9,6 +9,7 @@ import {
 import { createArrivalController } from '@/controllers/arrival.controller';
 import { createSessionControllers } from '@/controllers/session.controller';
 import { ForbiddenError, ValidationError } from '@/errors';
+import { createArrivalObserver } from '@/observability/turn-metrics';
 import type { QualityGate } from '@/quality';
 import type { RouterDeps } from '@/routes';
 import { createArrivalService } from '@/services/arrival/arrival.service';
@@ -164,6 +165,7 @@ function buildArrival(
     gate,
     classes: runtime.classes,
     nowMs: () => deps.clock.now().getTime(),
+    observe: createArrivalObserver({ metrics: deps.metrics }),
     allowGradeOverride: deps.config.allowGradeOverride,
   });
 }

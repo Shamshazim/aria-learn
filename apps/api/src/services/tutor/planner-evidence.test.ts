@@ -46,7 +46,7 @@ describe('planner evidence', () => {
   it('records the set, the proposal and the verdict for an accepted plan', () => {
     const { counters, histograms, logged } = observe(observation());
     expect(counters[`${PLANNER_DECISION_TOTAL}{reason=accepted,source=planner}`]).toBe(1);
-    expect(histograms[`${PLANNER_LATENCY_MS}{source=planner}`]).toEqual([240]);
+    expect(histograms[`${PLANNER_LATENCY_MS}{source=planner}`]).toEqual({ count: 1, sum: 240 });
     expect(logged[0]).toMatchObject({
       event: 'planner_decision',
       sessionId: 'session-1',
@@ -124,6 +124,6 @@ describe('planner evidence', () => {
         rationale: null,
       }),
     );
-    expect(histograms[`${PLANNER_LATENCY_MS}{source=policy}`]).toEqual([901]);
+    expect(histograms[`${PLANNER_LATENCY_MS}{source=policy}`]).toEqual({ count: 1, sum: 901 });
   });
 });
