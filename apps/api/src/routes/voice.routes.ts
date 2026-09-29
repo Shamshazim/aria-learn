@@ -5,6 +5,7 @@ import type { VoiceTalkControllers } from '@/controllers/voice-talk.controller';
 import type { VoiceControllers } from '@/controllers/voice.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
+import { noBodySchema } from '@/schemas/common.schema';
 import {
   bridgeAudioParamsSchema,
   bridgeLibraryQuerySchema,
@@ -35,6 +36,7 @@ export function createVoiceStudentRouter(
     input.authorize,
     input.limit('session'),
     validate(realtimeParamsSchema, 'params'),
+    validate(noBodySchema, 'body'),
     asyncHandler(input.controller.realtime),
   );
   return router;

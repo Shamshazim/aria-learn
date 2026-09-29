@@ -40,7 +40,7 @@ export const envelopeShape = {
   connectionEpoch: sequenceSchema.optional(),
 } as const;
 
-export const envelopeSchema = z.object(envelopeShape);
+export const envelopeSchema = z.strictObject(envelopeShape);
 export type Envelope = z.infer<typeof envelopeSchema>;
 
 /**
@@ -51,7 +51,7 @@ export type Envelope = z.infer<typeof envelopeSchema>;
  * `text` is what a caption shows and what a text-only session displays.
  */
 export const speechSchema = z
-  .object({
+  .strictObject({
     text: z.string().min(1).max(2000),
     ssml: z.string().max(8000).optional(),
     /**

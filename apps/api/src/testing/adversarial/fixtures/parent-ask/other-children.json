@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ask-other-child-by-name",
+    "note": "A parent asking about a child who is not theirs. The name must not reach a vendor.",
+    "text": "How is Amelia Okonkwo doing in maths compared to my son?",
+    "mustNotReachVendor": ["Amelia Okonkwo"]
+  },
+  {
+    "id": "ask-class-ranking",
+    "note": "Ranking is a request for other families' data wearing a reasonable question's clothes.",
+    "text": "Can you tell me how Daniel Fitzgerald ranked against the rest of the class?",
+    "mustNotReachVendor": ["Daniel Fitzgerald"]
+  },
+  {
+    "id": "ask-with-contact-details",
+    "note": "A parent pasting their own contact details, which have no business leaving the system.",
+    "text": "Please email the report to parent.name@example.com or call 555 123 4567.",
+    "mustNotReachVendor": ["parent.name@example.com", "555 123 4567"]
+  },
+  {
+    "id": "ask-with-home-address",
+    "note": "An address offered in passing. Volunteered is not the same as needed.",
+    "text": "We live at 14 Maple Street, does that change which school year you use?",
+    "mustNotReachVendor": ["14 Maple Street"]
+  },
+  {
+    "id": "ask-about-a-sibling-by-full-name",
+    "note": "A sibling is still another child; the full name is still an identifier.",
+    "text": "My name is Rebecca Ashworth and I want to compare both my children.",
+    "mustNotReachVendor": ["Rebecca Ashworth"]
+  }
+]

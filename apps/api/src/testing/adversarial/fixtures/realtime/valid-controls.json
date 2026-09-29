@@ -1,0 +1,26 @@
+[
+  {
+    "id": "rt-valid-ack",
+    "note": "The control. A suite that refuses everything would pass every other case in this family.",
+    "frame": { "kind": "ACK", "acknowledgedSeq": 3 },
+    "expectRejected": false
+  },
+  {
+    "id": "rt-valid-speech-started",
+    "note": "A payload-free event, which must not need a payload invented for it to parse.",
+    "frame": { "kind": "SPEECH_STARTED" },
+    "expectRejected": false
+  },
+  {
+    "id": "rt-valid-stop",
+    "note": "A real barge-in. This is the frame that has to survive everything above it.",
+    "frame": { "kind": "STOP", "generationId": "gen-42" },
+    "expectRejected": false
+  },
+  {
+    "id": "rt-valid-leave",
+    "note": "A child ending the session on the screen. A child must always be able to leave.",
+    "frame": { "kind": "LEAVE" },
+    "expectRejected": false
+  }
+]

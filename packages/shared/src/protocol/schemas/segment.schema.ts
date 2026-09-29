@@ -10,7 +10,7 @@ import { messageIdSchema, sequenceSchema } from './common.schema';
  * gate on its own, and it is numbered, so the worker speaks them in the order they were
  * written and drops the ones that arrive after a barge-in.
  */
-export const moveSegmentSchema = z.object({
+export const moveSegmentSchema = z.strictObject({
   kind: z.literal('MOVE_SEGMENT'),
   /** The generation this sentence belongs to. Cancelling a generation drops all of them. */
   generationId: messageIdSchema,

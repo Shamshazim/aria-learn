@@ -16,9 +16,9 @@ import { tutorMoveSchema } from './schemas/moves.schema';
  */
 const shortText = z.string().min(1).max(500);
 
-export const voiceBriefSchema = z.object({
+export const voiceBriefSchema = z.strictObject({
   connectionEpoch: sequenceSchema,
-  student: z.object({
+  student: z.strictObject({
     /** Only when the parent allowed the first name to be shared with a model (P2H-12). */
     firstName: z.string().min(1).max(64).nullable(),
     grade: gradeSchema,
@@ -26,7 +26,7 @@ export const voiceBriefSchema = z.object({
   }),
   subject: z.string().min(1).max(64),
   skill: z
-    .object({
+    .strictObject({
       code: z.string().min(1).max(64),
       name: shortText,
       unit: shortText.nullable(),
@@ -36,7 +36,7 @@ export const voiceBriefSchema = z.object({
     .nullable(),
   /** P2H-10: the teacher's note where the skill has one; most catalogue topics do not yet. */
   note: z
-    .object({
+    .strictObject({
       whatItIs: z.string().max(1_000),
       oneIdea: z.string().max(1_000),
       stumbles: z.array(z.string().max(500)).max(8),
@@ -47,12 +47,12 @@ export const voiceBriefSchema = z.object({
     })
     .nullable(),
   openQuestion: z
-    .object({
+    .strictObject({
       id: messageIdSchema,
       prompt: z.string().min(1).max(2_000),
       /** The key stays server-side for the browser; the tutor's own voice needs it. */
       answerKey: z.string().max(500).nullable(),
-      options: z.array(z.object({ id: z.string().min(1).max(64), text: shortText })).max(6),
+      options: z.array(z.strictObject({ id: z.string().min(1).max(64), text: shortText })).max(6),
     })
     .nullable(),
   /** What Aria remembers about this child, already scrubbed for a model. */
@@ -60,24 +60,24 @@ export const voiceBriefSchema = z.object({
   minutesLeft: z.number().int().min(0).max(240),
 });
 
-export const voiceHeardRequestSchema = z.object({
+export const voiceHeardRequestSchema = z.strictObject({
   connectionEpoch: sequenceSchema,
   text: z.string().min(1).max(2_000),
   /** Where the words came from: the microphone, or something the child typed on the screen. */
   via: z.enum(['voice', 'screen']).default('voice'),
 });
 
-export const voiceHeardResponseSchema = z.object({
+export const voiceHeardResponseSchema = z.strictObject({
   /** The fixed crisis response Aria must say, verbatim, instead of anything else. */
-  crisis: z.object({ say: z.string().min(1).max(2_000) }).nullable(),
+  crisis: z.strictObject({ say: z.string().min(1).max(2_000) }).nullable(),
 });
 
-export const voiceSpokenRequestSchema = z.object({
+export const voiceSpokenRequestSchema = z.strictObject({
   connectionEpoch: sequenceSchema,
   text: z.string().min(1).max(4_000),
 });
 
-export const voiceSpokenResponseSchema = z.object({
+export const voiceSpokenResponseSchema = z.strictObject({
   verdict: z.enum(['ok', 'unsafe']),
 });
 
@@ -92,7 +92,7 @@ export const voiceSpokenResponseSchema = z.object({
  */
 export const SCREEN_SURFACES = ['writing', 'text', 'number', 'choices', 'clear'] as const;
 
-export const voiceScreenRequestSchema = z.object({
+export const voiceScreenRequestSchema = z.strictObject({
   connectionEpoch: sequenceSchema,
   surface: z.enum(SCREEN_SURFACES),
   /** The prompt above a writing pad, the sentence or problem to read, the question over choices. */
@@ -101,7 +101,7 @@ export const voiceScreenRequestSchema = z.object({
   options: z.array(z.string().trim().min(1).max(300)).min(2).max(6).optional(),
 });
 
-export const voiceScreenResponseSchema = z.object({ move: tutorMoveSchema });
+export const voiceScreenResponseSchema = z.strictObject({ move: tutorMoveSchema });
 
 export type VoiceBrief = z.infer<typeof voiceBriefSchema>;
 export type ScreenSurface = (typeof SCREEN_SURFACES)[number];

@@ -24,7 +24,7 @@ export const eventShape = {
 
 /** Every event schema starts from the same envelope; only the payload differs. */
 function event<K extends string, T extends z.ZodRawShape>(kind: K, payload: T) {
-  return z.object({ ...eventShape, kind: z.literal(kind), ...payload });
+  return z.strictObject({ ...eventShape, kind: z.literal(kind), ...payload });
 }
 
 /** The student home became active. No session yet — this is what creates one. */
@@ -95,12 +95,10 @@ export const speechFinalEventSchema = event('SPEECH_FINAL', {
   confidence: z.number().min(0).max(1).optional(),
   alternatives: z
     .array(
-      z
-        .object({
-          text: z.string().min(1).max(MAX_TEXT),
-          confidence: z.number().min(0).max(1),
-        })
-        .strict(),
+      z.strictObject({
+        text: z.string().min(1).max(MAX_TEXT),
+        confidence: z.number().min(0).max(1),
+      }),
     )
     .max(5)
     .optional(),

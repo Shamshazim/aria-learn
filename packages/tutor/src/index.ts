@@ -7,6 +7,7 @@ export { MASTERED_TOPIC_REASON, MASTERY_STREAK } from './policy/stuck-policy';
 export { shouldArmSilenceTimer, silenceWindowMs } from './policy/silence-timer';
 export type { SilenceArmInput } from './policy/silence-timer';
 export { classifyIntent } from './intent/rules';
+export { foldForMatching } from './intent/normalise';
 export { INTENTS, MODEL_PASS_CONFIDENCE } from './intent/intent.types';
 export { PERSONAL_INFO_PATTERNS } from './intent/personal-info.patterns';
 export type { Intent, IntentHints, IntentResult } from './intent/intent.types';

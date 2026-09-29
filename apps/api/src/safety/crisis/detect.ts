@@ -1,3 +1,5 @@
+import { foldForMatching } from '@aria/tutor';
+
 import type { CrisisCategory } from '@/safety/crisis/matrix';
 
 export type SafetyInput = Readonly<{
@@ -43,9 +45,27 @@ export function detectCrisis(input: SafetyInput): CrisisDetection {
   return { kind: 'none' };
 }
 
+/**
+ * The child's words as written, and again folded (X-05).
+ *
+ * `master-plan.md` §12 rule 3 says crisis routing is never model-dependent, which makes these
+ * patterns the whole of it — and a pattern list that can be stepped around with a Cyrillic `е`
+ * or a zero-width space is not a safety net. The original text is tried first so a match keeps
+ * the child's exact words for the adult who reads the escalation; the fold is what catches the
+ * disclosure that was typed on a phone, pasted from elsewhere, or deliberately disguised.
+ */
 function match(text: string): Readonly<{ category: CrisisCategory; matchedText: string }> | null {
+  return matchIn(text, text) ?? matchIn(foldForMatching(text), text);
+}
+
+function matchIn(
+  candidate: string,
+  original: string,
+): Readonly<{ category: CrisisCategory; matchedText: string }> | null {
   for (const pattern of PATTERNS) {
-    if (pattern.expression.test(text)) return { category: pattern.category, matchedText: text };
+    if (pattern.expression.test(candidate)) {
+      return { category: pattern.category, matchedText: original };
+    }
   }
   return null;
 }

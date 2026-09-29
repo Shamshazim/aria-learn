@@ -14,7 +14,7 @@ const MAX_CHOICES = 8;
 const MAX_LABEL = 300;
 
 /** A block of prose. The `markdown` flag stays explicit so nothing is rendered as markup by accident. */
-export const textContentSchema = z.object({
+export const textContentSchema = z.strictObject({
   type: z.literal('text'),
   body: z.string().min(1).max(MAX_TEXT),
   markdown: z.boolean().default(false),
@@ -27,11 +27,11 @@ export const textContentSchema = z.object({
  * two labels may render identically once whitespace is normalised. The first version's
  * grading bugs all came from comparing answers by their display text.
  */
-export const choicesContentSchema = z.object({
+export const choicesContentSchema = z.strictObject({
   type: z.literal('choices'),
   options: z
     .array(
-      z.object({
+      z.strictObject({
         id: z.string().min(1).max(64),
         label: z.string().min(1).max(MAX_LABEL),
       }),
@@ -41,7 +41,7 @@ export const choicesContentSchema = z.object({
 });
 
 /** Something to look at: a number line, a manipulative, a picture. */
-export const visualContentSchema = z.object({
+export const visualContentSchema = z.strictObject({
   type: z.literal('visual'),
   visual: z.string().min(1).max(64),
   /** Renderer-specific parameters, validated by the renderer that understands them. */
@@ -50,14 +50,14 @@ export const visualContentSchema = z.object({
 });
 
 /** Text the child reads, aloud or silently. Phase 4 measures oral reading against it. */
-export const passageContentSchema = z.object({
+export const passageContentSchema = z.strictObject({
   type: z.literal('passage'),
   body: z.string().min(1).max(MAX_TEXT),
   title: z.string().max(MAX_LABEL).optional(),
 });
 
 /** A surface for the child's own working — the senior band's work pad. */
-export const workpadContentSchema = z.object({
+export const workpadContentSchema = z.strictObject({
   type: z.literal('workpad'),
   prompt: z.string().max(MAX_TEXT).optional(),
   mode: z.enum(['scratch', 'answer']).default('scratch'),

@@ -20,15 +20,11 @@ import { displaySchema } from '../content.schema';
 /**
  * What the client may do on its own when the child starts talking.
  *
- * `.strict()` is the rule, not tidiness: the only reflex a client gets is to duck the audio.
+ * Strict is the rule, not tidiness: the only reflex a client gets is to duck the audio.
  * Stopping is a server decision (it confirms the interruption by `generationId`), so a
  * `stopOnSpeech` flag must fail to parse rather than be silently ignored.
  */
-const reflexesSchema = z
-  .object({
-    duckOnSpeech: z.boolean(),
-  })
-  .strict();
+const reflexesSchema = z.strictObject({ duckOnSpeech: z.boolean() });
 
 export const moveShape = {
   ...envelopeShape,
@@ -47,7 +43,7 @@ export function move<K extends string, T extends z.ZodRawShape>(
   payload: T,
 ): z.ZodObject<typeof moveShape & { kind: z.ZodLiteral<K> } & T> {
   return z
-    .object({ ...moveShape, kind: z.literal(kind), ...payload })
+    .strictObject({ ...moveShape, kind: z.literal(kind), ...payload })
     .refine((parsed) => hasSpeechForGeneration(parsed), {
       message: 'generationId identifies audio, so it needs speech',
       path: ['generationId'],

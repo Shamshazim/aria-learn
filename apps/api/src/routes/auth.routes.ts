@@ -4,6 +4,7 @@ import type { AuthControllers } from '@/controllers/auth.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
 import { childLoginRequestSchema } from '@/schemas/auth.schema';
+import { noBodySchema } from '@/schemas/common.schema';
 import type { RateLimiter } from '@/types/rate-limit';
 
 import type { RequestHandler } from 'express';
@@ -33,7 +34,16 @@ export function createAuthRouter(
     asyncHandler(deps.controller.login),
   );
   // Logout is never limited into failure: a child must always be able to leave.
-  router.post('/auth/child/logout', asyncHandler(deps.controller.logout));
-  router.post('/auth/child/refresh', deps.limit('read'), asyncHandler(deps.controller.refresh));
+  router.post(
+    '/auth/child/logout',
+    validate(noBodySchema, 'body'),
+    asyncHandler(deps.controller.logout),
+  );
+  router.post(
+    '/auth/child/refresh',
+    deps.limit('read'),
+    validate(noBodySchema, 'body'),
+    asyncHandler(deps.controller.refresh),
+  );
   return router;
 }
