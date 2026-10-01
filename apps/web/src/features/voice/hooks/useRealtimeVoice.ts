@@ -1,5 +1,5 @@
-import { Room, RoomEvent, Track } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
+import { Room } from 'livekit-client';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { AgentState, TutorMove } from '@aria/shared';
 import { createMoveInbox } from '@aria/voice';
@@ -7,20 +7,15 @@ import { createMoveInbox } from '@aria/voice';
 import type { SessionApi } from '@/features/session/api/session.api';
 import { useLeaveOnEnd, useScreenBridge } from '@/features/voice/hooks/useScreenBridge';
 import { useVoiceActions, type VoiceActions } from '@/features/voice/hooks/useVoiceActions';
-import { setRemoteVolume } from '@/features/voice/model/voice-audio';
-import { parseVoiceMove, parseVoiceWorkerState } from '@/features/voice/model/voice-messages';
+import { bindRoom } from '@/features/voice/model/room-bindings';
 import {
   INITIAL_VOICE_STATE,
   type VoiceState,
   withVoiceDevices,
 } from '@/features/voice/model/voice-state';
-import {
-  microphones,
-  publishAcknowledgement,
-  readAcknowledgedSeq,
-  storeAcknowledgedSeq,
-} from '@/features/voice/model/voice-transport';
-import { applyWorkerState, statusWhenReady } from '@/features/voice/model/worker-state';
+import { createVoiceTimings, type VoiceTimings } from '@/features/voice/model/voice-timings';
+import { microphones, readAcknowledgedSeq } from '@/features/voice/model/voice-transport';
+import type { TurnTimingReporter } from '@/lib/observability/timing';
 
 export type RealtimeVoice = VoiceState &
   VoiceActions &
@@ -46,64 +41,130 @@ type RealtimeVoiceInput = Readonly<{
   onMove(move: TutorMove): void;
   /** Aria started or stopped talking, so the session's status line can follow her. */
   onAgentState?(state: AgentState): void;
+  /** X-04: the two §11 bars only this tab can see. Absent in a scripted session. */
+  timings?: TurnTimingReporter;
 }>;
 
 export function useRealtimeVoice(input: RealtimeVoiceInput): RealtimeVoice {
   const [state, setState] = useState(INITIAL_VOICE_STATE);
-  const roomRef = useRef<Room | null>(null);
+  const refs = useVoiceRefs();
+  const onAgentState = useRef(input.onAgentState);
+  onAgentState.current = input.onAgentState;
+  const timings = useMemo(() => createVoiceTimings(input.timings), [input.timings]);
+
+  useVoiceConnection({ input, refs, setState, timings, onAgentState });
+  const actions = useVoiceActions({
+    room: refs.room,
+    generation: refs.generation,
+    enabled: refs.enabled,
+    acknowledgedSeq: refs.acknowledgedSeq,
+    vad: refs.vad,
+    setState,
+    ...(input.timings === undefined ? {} : { timings: input.timings }),
+  });
+  useAutoEnableVoice(input, state.status, actions.enable, refs.autoEnableAttempt);
+  useLeaveOnEnd(input.ended === true, refs);
+  const bridge = useScreenBridge(refs, input.renderedMoves);
+  return { ...state, ...actions, ...bridge };
+}
+
+/**
+ * Everything about the voice that survives a render.
+ *
+ * Refs rather than state because none of it belongs on screen: the room, the generation being
+ * spoken, the acknowledgement cursor and the VAD's cleanup are read by event handlers that
+ * were registered once, and a re-render for any of them would reconnect the room.
+ */
+type VoiceRefs = Readonly<{
+  room: React.RefObject<Room | null>;
+  generation: React.RefObject<string | null>;
+  enabled: React.RefObject<boolean>;
+  connectionEpoch: React.RefObject<number | null>;
+  acknowledgedSeq: React.RefObject<number>;
+  talks: React.RefObject<boolean>;
+  autoEnableAttempt: React.RefObject<string | null>;
+  vad: Readonly<{ current(): (() => void) | null; set(cleanup: (() => void) | null): void }>;
+}>;
+
+function useVoiceRefs(): VoiceRefs {
+  const room = useRef<Room | null>(null);
   const vadCleanup = useRef<(() => void) | null>(null);
-  const generationRef = useRef<string | null>(null);
-  const enabledRef = useRef(false);
-  const autoEnableAttempt = useRef<string | null>(null);
+  const generation = useRef<string | null>(null);
+  const enabled = useRef(false);
   const connectionEpoch = useRef<number | null>(null);
   const acknowledgedSeq = useRef(0);
   const talks = useRef(false);
+  const autoEnableAttempt = useRef<string | null>(null);
+  // The VAD's teardown outlives every room: a microphone left analysing after the session is a
+  // microphone still running, so it is stopped on unmount and nowhere else.
+  useEffect(() => () => vadCleanup.current?.(), []);
+  return useMemo(
+    () => ({
+      room,
+      generation,
+      enabled,
+      connectionEpoch,
+      acknowledgedSeq,
+      talks,
+      autoEnableAttempt,
+      vad: {
+        current: () => vadCleanup.current,
+        set: (cleanup: (() => void) | null) => {
+          vadCleanup.current = cleanup;
+        },
+      },
+    }),
+    [],
+  );
+}
+
+/** One room per session, torn down when the session id changes or the page goes away. */
+function useVoiceConnection(
+  args: Readonly<{
+    input: RealtimeVoiceInput;
+    refs: VoiceRefs;
+    setState: React.Dispatch<React.SetStateAction<VoiceState>>;
+    timings: VoiceTimings;
+    onAgentState: React.RefObject<RealtimeVoiceInput['onAgentState']>;
+  }>,
+): void {
+  const { input, refs, setState, timings, onAgentState } = args;
   const onMove = input.onMove;
-  const onAgentState = useRef(input.onAgentState);
-  onAgentState.current = input.onAgentState;
   useEffect(
     () =>
       connect({
+        enabled: refs.enabled,
+        connectionEpoch: refs.connectionEpoch,
+        acknowledgedSeq: refs.acknowledgedSeq,
+        talks: refs.talks,
         sessionId: input.sessionId,
         api: input.api,
         setState,
+        timings,
         onMove,
-        onAgentState: (state) => onAgentState.current?.(state),
+        onAgentState: (state) => {
+          timings.agentState(state);
+          onAgentState.current?.(state);
+        },
         setRoom: (room) => {
-          roomRef.current = room;
+          refs.room.current = room;
         },
         setGenerationId: (generationId) => {
-          generationRef.current = generationId;
+          refs.generation.current = generationId;
         },
         renderedMoves: input.renderedMoves,
-        enabled: enabledRef,
-        connectionEpoch,
-        acknowledgedSeq,
-        talks,
       }),
-    [input.api, input.sessionId, onMove],
+    [
+      input.api,
+      input.renderedMoves,
+      input.sessionId,
+      onAgentState,
+      onMove,
+      refs,
+      setState,
+      timings,
+    ],
   );
-  useEffect(() => () => vadCleanup.current?.(), []);
-  const actions = useVoiceActions({
-    room: roomRef,
-    generation: generationRef,
-    enabled: enabledRef,
-    acknowledgedSeq,
-    vad: {
-      current: () => vadCleanup.current,
-      set: (cleanup) => {
-        vadCleanup.current = cleanup;
-      },
-    },
-    setState,
-  });
-  useAutoEnableVoice(input, state.status, actions.enable, autoEnableAttempt);
-  useLeaveOnEnd(input.ended === true, { room: roomRef, enabled: enabledRef, talks });
-  const bridge = useScreenBridge(
-    { room: roomRef, enabled: enabledRef, talks },
-    input.renderedMoves,
-  );
-  return { ...state, ...actions, ...bridge };
 }
 
 function useAutoEnableVoice(
@@ -125,6 +186,7 @@ type VoiceConnectionDeps = Readonly<{
   sessionId: string | null;
   api: SessionApi;
   setState: React.Dispatch<React.SetStateAction<VoiceState>>;
+  timings: VoiceTimings;
   onMove(move: TutorMove): void;
   onAgentState(state: AgentState): void;
   setRoom(room: Room | null): void;
@@ -148,10 +210,13 @@ function connect(input: VoiceConnectionDeps): (() => void) | undefined {
   const controller = new AbortController();
   input.setGenerationId(null);
   input.setRoom(room);
+  input.timings.bind(input.sessionId);
   bindRoom(room, { ...input, sessionId: input.sessionId, inbox });
   void negotiateAndConnect(input, room, controller.signal);
   return () => {
     controller.abort();
+    input.timings.disconnected();
+    input.timings.bind(null);
     enabled.current = false;
     input.setRoom(null);
     input.setGenerationId(null);
@@ -178,101 +243,12 @@ async function negotiateAndConnect(
   try {
     input.setState((current) => ({ ...current, status: 'connecting' }));
     await room.connect(credentials.url, credentials.token);
+    // X-04: sound is now possible. `audio_unlocked` runs from here to the browser actually
+    // permitting it, which is one tap for a child and nothing at all where autoplay is allowed.
+    input.timings.roomConnected();
     const devices = await microphones();
     input.setState((current) => withVoiceDevices(current, devices));
   } catch {
     input.setState((current) => ({ ...current, status: 'unavailable' }));
   }
-}
-
-type RoomBindings = Readonly<{
-  inbox: ReturnType<typeof createMoveInbox>;
-  setState: React.Dispatch<React.SetStateAction<VoiceState>>;
-  onMove(move: TutorMove): void;
-  onAgentState(state: AgentState): void;
-  setGenerationId(generationId: string | null): void;
-  renderedMoves: Set<string>;
-  enabled: React.RefObject<boolean>;
-  connectionEpoch: React.RefObject<number | null>;
-  acknowledgedSeq: React.RefObject<number>;
-  talks: React.RefObject<boolean>;
-  sessionId: string;
-}>;
-
-function bindRoom(room: Room, input: RoomBindings): void {
-  room.on(RoomEvent.TrackSubscribed, (track) => {
-    if (track.kind === Track.Kind.Audio) document.body.append(track.attach());
-  });
-  room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
-    if (topic === 'aria.voice-state') {
-      applyVoiceState(room, payload, input);
-      return;
-    }
-    if (topic !== 'aria.moves') return;
-    const parsed = parseVoiceMove(payload);
-    if (parsed === null) return;
-    if (parsed.connectionEpoch !== input.connectionEpoch.current) return;
-    const delivered = input.inbox.receive(parsed);
-    if (delivered.duplicate) return;
-    const alreadyRendered = input.renderedMoves.has(parsed.id);
-    input.renderedMoves.add(parsed.id);
-    input.setGenerationId(parsed.generationId ?? null);
-    setRemoteVolume(room, 1);
-    // Where Aria talks, the caption is her own sentence, not the move's line.
-    if (!input.talks.current) {
-      input.setState((current) => ({ ...current, caption: parsed.speech?.text ?? '' }));
-    }
-    if (!alreadyRendered) input.onMove(parsed);
-    // A silent move is delivered once it is on screen; so is every move where Aria talks,
-    // because a realtime model says it in its own words rather than playing it back.
-    if (parsed.serverSeq !== undefined && (parsed.speech === null || input.talks.current)) {
-      acknowledgeDelivered(room, input, parsed.serverSeq);
-    }
-  });
-  room.on(RoomEvent.ParticipantConnected, () => {
-    if (input.enabled.current) acknowledge(room, input.inbox.acknowledgedSeq());
-  });
-  room.on(RoomEvent.Reconnecting, () => {
-    input.setState((current) => ({ ...current, status: 'recovering' }));
-  });
-  room.on(RoomEvent.Reconnected, () => {
-    if (input.enabled.current) acknowledge(room, input.inbox.acknowledgedSeq());
-    input.setState((current) => ({
-      ...current,
-      status: statusWhenReady(room, input.enabled.current),
-    }));
-  });
-  room.on(RoomEvent.Disconnected, () => {
-    input.setState((current) => ({ ...current, status: 'unavailable' }));
-  });
-}
-
-function applyVoiceState(room: Room, payload: Uint8Array, input: RoomBindings): void {
-  const state = parseVoiceWorkerState(payload);
-  if (state === null) return;
-  if (state.kind === 'WORKER_READY') {
-    const talks = input.talks;
-    talks.current = state.talks;
-  }
-  applyWorkerState(room, state, {
-    enabled: input.enabled.current,
-    acknowledgedSeq: input.inbox.acknowledgedSeq,
-    setState: input.setState,
-    acknowledgeDelivered: (serverSeq) => {
-      acknowledgeDelivered(room, input, serverSeq);
-    },
-    onAgentState: input.onAgentState,
-  });
-}
-
-function acknowledgeDelivered(room: Room, input: RoomBindings, serverSeq: number): void {
-  input.inbox.acknowledge(serverSeq);
-  const acknowledgedSeq = input.acknowledgedSeq;
-  acknowledgedSeq.current = input.inbox.acknowledgedSeq();
-  storeAcknowledgedSeq(input.sessionId, input.inbox.acknowledgedSeq());
-  acknowledge(room, input.inbox.acknowledgedSeq());
-}
-
-function acknowledge(room: Room, acknowledgedSeq: number): void {
-  void publishAcknowledgement(room, acknowledgedSeq).catch(() => undefined);
 }

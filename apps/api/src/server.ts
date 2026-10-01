@@ -116,6 +116,7 @@ function composeApp(
     rateLimitStore: createPostgresRateLimitStore(pool),
     idempotency: createIdempotencyRepository(pool),
     student: phase1.student,
+    telemetry: phase1.telemetry,
     ...(identity === undefined ? {} : { identity }),
     ...(voice === undefined ? {} : { voice: voice.routes }),
   });

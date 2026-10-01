@@ -8,7 +8,9 @@ import {
 
 import { createArrivalController } from '@/controllers/arrival.controller';
 import { createSessionControllers } from '@/controllers/session.controller';
+import { createTelemetryController } from '@/controllers/telemetry.controller';
 import { ForbiddenError, ValidationError } from '@/errors';
+import { createClientTimingObserver } from '@/observability/client-metrics';
 import { createArrivalObserver } from '@/observability/turn-metrics';
 import type { QualityGate } from '@/quality';
 import type { RouterDeps } from '@/routes';
@@ -21,6 +23,7 @@ import { createMoveFactory } from '@/services/moves/move-factory';
 import { createEndService } from '@/services/session/end.service';
 import { createResumeService } from '@/services/session/resume.service';
 import { createSessionService } from '@/services/session/session.service';
+import { createTurnTimingService } from '@/services/telemetry/turn-timing.service';
 import type { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
 import { turnMoves } from '@/services/tutor/safety-first';
 import type { createTutorService } from '@/services/tutor/tutor.service';
@@ -45,6 +48,8 @@ type ControllerRuntime = Readonly<{
 
 export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
   student: NonNullable<RouterDeps['student']>;
+  /** X-04: the client timing route, behind the same child gate as `student`. */
+  telemetry: NonNullable<RouterDeps['telemetry']>;
   turn(studentId: string, request: TurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
   identity: IdentityRuntime;
 }> {
@@ -74,9 +79,28 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
         ...(runtime.deps.segments === undefined ? {} : { segments: runtime.deps.segments }),
       }),
     },
+    telemetry: {
+      authorize: identity.childAuth,
+      controller: createTelemetryController({ timings: buildTurnTimings(runtime) }),
+    },
     turn,
     identity,
   };
+}
+
+/**
+ * X-04 part 2: the two §11 bars only a browser can see.
+ *
+ * The observer is built here, from the same `metrics` instance the arrival observer uses, so
+ * that one scrape of one process reports the server's halves and the client's halves of the
+ * same session's latency.
+ */
+function buildTurnTimings(runtime: ControllerRuntime) {
+  return createTurnTimingService({
+    sessions: runtime.repositories.sessions,
+    students: runtime.repositories.students,
+    observe: createClientTimingObserver({ metrics: runtime.deps.metrics }),
+  });
 }
 
 function createSessionTurnQueue() {
