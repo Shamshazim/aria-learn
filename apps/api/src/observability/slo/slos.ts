@@ -86,6 +86,13 @@ export const SLOS: readonly Slo[] = [
     title: 'The welcome appears',
     bar: 'Visible personalised welcome after arrival — < 500ms at the 95th percentile',
     objective: LATENCY_P95(500),
+    // The server's own measure of the arrival, and the bar stays on it. X-04 part 2 added a
+    // client companion, `arrival_visible_ms`, which is the truer number — it includes the
+    // network and the paint that the child actually waited through. It is exported and
+    // reportable but is not yet what pages anybody, because this bar is already watched and
+    // moving it onto a signal that depends on a browser choosing to report would trade
+    // coverage for accuracy. Re-sourcing it is one line here once staging shows what share of
+    // real sessions send the client number.
     source: { good: 'arrival_ms', total: 'arrival_ms' },
     status: 'instrumented',
   },
@@ -94,25 +101,23 @@ export const SLOS: readonly Slo[] = [
     title: 'The welcome is spoken',
     bar: 'Audible welcome after audio is activated — starts < 1s at the 95th percentile',
     objective: LATENCY_P95(1_000),
-    source: { good: null, total: null },
-    status: 'not_instrumented',
-    blockedBy:
-      'The clock starts in the browser, at the moment audio is unlocked, and stops at the ' +
-      'first sample out of the speaker. Only the client can see both ends, so this needs the ' +
-      'client timing route (X-04 part 2) before it can be anything but a guess.',
+    // X-04 part 2. The clock starts in the browser, at the moment audio is unlocked, and stops
+    // at the first sample out of the speaker; only the client can see both ends, so the number
+    // arrives through `POST /telemetry/turn` rather than from anything this process timed.
+    source: { good: 'audible_welcome_ms', total: 'audible_welcome_ms' },
+    status: 'instrumented',
   },
   {
     id: 'interrupt_silence',
     title: 'Aria stops when a child talks over her',
     bar: "Child interruption stops Aria's speech — < 250ms at the 95th percentile",
     objective: LATENCY_P95(250),
-    source: { good: null, total: null },
-    status: 'not_instrumented',
-    blockedBy:
-      'Measured from the child speaking to the speaker going quiet, which again only the ' +
-      'client observes. The worker records its own half (detection to cancel) in P2H-07; the ' +
-      'bar in §11 is the longer one, and reporting the shorter one as if it were the bar ' +
-      'would be worse than reporting nothing.',
+    // X-04 part 2, and the same reasoning: measured from the child speaking to the speaker
+    // going quiet. The worker records its own half (detection to cancel) in P2H-07, but the
+    // bar in §11 is the longer one, and reporting the shorter one under its name would have
+    // been worse than reporting nothing.
+    source: { good: 'interrupt_silence_ms', total: 'interrupt_silence_ms' },
+    status: 'instrumented',
   },
   {
     id: 'end_of_turn',

@@ -5,6 +5,7 @@ import { bandForGrade, type Grade, type TutorMove } from '@aria/shared';
 
 import { createApiClient } from '@/api';
 import { webConfig } from '@/app/config';
+import { turnTimings } from '@/app/services';
 import { createArrivalApi } from '@/features/arrival/api/arrival.api';
 import { CheckInPrompt } from '@/features/arrival/components/CheckInPrompt';
 import { GradeOverride } from '@/features/arrival/components/GradeOverride';
@@ -32,7 +33,7 @@ const PLACEHOLDER_CLASSES: readonly Readonly<{ subject: string; grade: Grade }>[
 export default function SubjectPickerPage(): React.JSX.Element {
   // Development only: the grade a developer chose to look at; undefined is the child's own.
   const [gradeOverride, setGradeOverride] = useState<Grade | undefined>(undefined);
-  const arrival = useArrival(arrivalApi, gradeOverride);
+  const arrival = useArrival(arrivalApi, gradeOverride, turnTimings);
   const view = arrivalView(arrival.state);
   return (
     <div className="session-app class-picker-app" data-band={view.band}>

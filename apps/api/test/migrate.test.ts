@@ -48,9 +48,11 @@ suite('runMigrations', () => {
       '009',
       '010',
       '011',
-      // X-05. Numbered by the ticket map, not by merge order (AGENT-INSTRUCTIONS §4), so it
-      // lands ahead of 012–027 and the ledger is not contiguous. That is expected.
+      // X-05 and X-04 part 2. Numbered by the ticket map, not by merge order
+      // (AGENT-INSTRUCTIONS §4), so they land ahead of 012–027 and the ledger is not
+      // contiguous. That is expected.
       '028',
+      '029',
     ]);
     expect(rows[0]?.name).toBe('identity');
     expect(rows[1]?.name).toBe('ai_generation_log');
@@ -62,7 +64,7 @@ suite('runMigrations', () => {
     const outcome = await runMigrations({ pool: database.pool, logger });
 
     expect(outcome.applied).toEqual([]);
-    expect(outcome.skipped).toBe(12);
+    expect(outcome.skipped).toBe(13);
   });
 
   it('stays a no-op when two runs race for the lock', async () => {

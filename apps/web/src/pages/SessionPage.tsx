@@ -5,6 +5,7 @@ import { bandForGrade, parseGrade, type TutorMove } from '@aria/shared';
 
 import { createApiClient } from '@/api';
 import { webConfig } from '@/app/config';
+import { turnTimings } from '@/app/services';
 import { useAuth } from '@/features/auth';
 import {
   EarlyLayout,
@@ -79,6 +80,9 @@ function SessionForGrade(props: SessionProps): React.JSX.Element {
     renderedMoves: renderedMoves.current,
     onMove: session.receive,
     onAgentState: session.voiceState,
+    // X-04: not in a scripted scenario. A canned session has no worker and no speaker, so a
+    // measurement taken from it would be a number about the fixture, not about a child.
+    ...(scenario === null ? { timings: turnTimings } : {}),
   });
   voiceEnable.current = voice.enable;
   voiceSync.current = voice.syncMove;

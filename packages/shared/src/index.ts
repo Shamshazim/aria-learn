@@ -53,6 +53,21 @@ export type {
   ChildSummary,
 } from './protocol/schemas/identity.schema';
 export {
+  CLIENT_TIMING_KINDS,
+  MAX_CLIENT_TIMING_MS,
+  MAX_CLIENT_TIMINGS_PER_REPORT,
+  clientTimingKindSchema,
+  clientTimingSchema,
+  turnTimingReportSchema,
+  turnTimingResponseSchema,
+} from './protocol/schemas/telemetry.schema';
+export type {
+  ClientTiming,
+  ClientTimingKind,
+  TurnTimingReport,
+  TurnTimingResponse,
+} from './protocol/schemas/telemetry.schema';
+export {
   arrivalResponseSchema,
   currentSessionResponseSchema,
   endSessionResponseSchema,

@@ -93,6 +93,7 @@ function mountedRoutes(): readonly MountedRoute[] {
         arrival: ok,
         sessions: { create: ok, current: ok, end: ok, turn: ok },
       },
+      telemetry: { authorize: ok, controller: { turn: ok } },
       voice: {
         student: { authorize: ok, controller: voiceControllers(ok) },
         worker: {

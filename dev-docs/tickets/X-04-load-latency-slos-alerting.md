@@ -91,22 +91,57 @@ Rules:
 ## Status
 
 **Part 1 delivered** — the export path, the SLO registry and the alert rules. Three of the
-seven bars are watched; the other four are in `slos.ts` as `not_instrumented` with the reason,
-and `/status` and the generated rule file both report the gap.
+seven bars were watched; the other four were in `slos.ts` as `not_instrumented` with the
+reason, and `/status` and the generated rule file both reported the gap.
 
-**Part 2, not built.** Each of these is a deliverable of its own and none is blocked by the
-other:
+**Part 2: client timings delivered.** Five of the seven bars are now watched. The two the
+browser alone can see — the audible welcome and interrupt-to-silence — are instrumented from
+`POST /api/v1/telemetry/turn`:
 
-- **Client timings** (`apps/web/src/lib/observability/timing.ts`, `POST /telemetry/turn`).
-  This is what instruments the audible-welcome and interrupt-to-silence bars, because only the
-  browser can see both ends of either. It needs the route, its rate limit (X-05), the
-  `is_synthetic` column, and report exclusion.
+- `packages/shared/src/protocol/schemas/telemetry.schema.ts` — the report: a list of
+  `{ kind, ms }` durations and an optional session id, and nothing else about the child.
+  Durations, never timestamps, so a tablet with a wrong clock still reports a true number.
+  `sessionId` is optional because `arrival_visible` is measured on the class picker, before a
+  session exists.
+- `apps/api/src/routes/telemetry.routes.ts` + controller + `services/telemetry/` — behind the
+  child gate, rate-limited under a new `telemetry` route class (X-05), strict-schema validated
+  and covered by `routes/input-guard.test.ts` like every other route.
+- `apps/api/src/observability/client-metrics.ts` — the histograms, labelled by band and by
+  nothing else. It refuses a duration no bar could believe (a backgrounded tab reports four
+  minutes for a one-second measurement) and counts the refusal in
+  `client_timing_implausible_total`; the ceilings are far above anything a working system
+  produces and are **not** a second copy of the §11 thresholds.
+- `apps/web/src/lib/observability/timing.ts` — the stopwatch: marks, durations, a batched
+  outbox, and a send that is allowed to fail silently. Its clock, sender and scheduler are
+  injected, so the whole module is unit-tested without a browser.
+  `features/voice/model/voice-timings.ts` decides which room event means "the speaker made a
+  sound" and which worker state means "she stopped".
+- Migration `029` adds `student.is_synthetic`, and every statement in
+  `phase1-metrics.repository.ts` now filters on it — asserted per statement, because the
+  mistake worth guarding is one query out of five forgetting the join.
+
+Two decisions the ticket did not settle:
+
+- **`visible_welcome` stays sourced from the server's `arrival_ms`.** The client's
+  `arrival_visible_ms` is the truer number and is exported beside it, but that bar is already
+  watched, and moving it onto a signal that depends on a browser choosing to report would
+  trade coverage for accuracy. Re-sourcing is one line in `slos.ts` once staging shows what
+  share of real sessions report.
+- **The visible stop button is not measured.** The §11 bar is "child interruption stops
+  Aria's speech"; the button silences the room locally and instantly, so folding it in would
+  dilute the bar with a path that cannot miss it.
+
+**Part 2, still not built.** Neither is blocked by the other:
+
 - **Per-turn spans and the OTLP exporter.** The traces the tracing criterion asks for. The
   histograms here answer "is a bar being missed"; spans answer "where did the time go", and
   the second question is only worth the dependency once somebody is asking it.
 - **The synthetic probe and the capacity run.** Both need a deployed staging environment to
   run against, so neither can be written and *verified* from here — and an unrun capacity test
-  would put a number in `capacity.md` that nobody measured.
+  would put a number in `capacity.md` that nobody measured. Migration `029` prepares the way:
+  the flag exists, the reports honour it, and `client_timing_synthetic_total` already counts
+  what a probe reports. Creating the probe student belongs with the probe — note that
+  `student.parent_id` stays `NOT NULL`, so it gets a probe parent rather than none.
 
 ## Acceptance criteria
 
@@ -116,22 +151,29 @@ other:
       across web, API and worker, visible in the X-01 platform. (**Part 2**)
 - [x] Every §11 bar exists in `slos.ts`; `slo:rules` generates alert rules; each rule fires
       in a test with synthetic bad data and has a runbook.
-- [ ] Client timings arrive for arrival, first audio and interrupt silence, and are
-      excluded from reports when `is_synthetic`. (**Part 2**)
+- [x] Client timings arrive for arrival, first audio and interrupt silence, and are
+      excluded from reports when `is_synthetic`. **End-to-end in a browser: not verified** —
+      the measuring, the route and the exclusion are each tested, but no real session has been
+      driven through a deployed environment.
 - [ ] The synthetic probe runs on a schedule against staging and pages on a failed session.
       (**Part 2** — needs staging)
 - [ ] `capacity.md` records the concurrency at which staging first breaks an SLO and the
       resulting scaling rule. (**Part 2** — needs staging)
-- [x] No label carries a student or session id (test on the exporter).
+- [x] No label carries a student or session id (test on the exporter, and on the client
+      timing observer — the report carries a session id, so the one thing that must never
+      happen is that id becoming a label).
 
 ## Verification
 
 ```bash
-npm run test -w @aria/api -- observability routes/status
+npm run test -w @aria/api -- observability routes/status routes/telemetry services/telemetry
+npm run test -w @aria/api -- repositories/phase1-metrics
+npm run test -w @aria/web -- lib/observability features/voice/model/voice-timings
 npm run slo:rules -w @aria/api -- --check   # fails if the committed rules are stale
 ```
 
-Part 2 adds `synthetic:probe` and the capacity run, both of which need a deployed environment.
+What is left of part 2 adds `synthetic:probe`, the spans and the capacity run — the probe and
+the capacity run both need a deployed environment.
 
 ## References
 

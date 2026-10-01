@@ -41,6 +41,15 @@ export type Student = {
   grade: Grade;
   band: Band;
   settings: StudentSettings;
+  /**
+   * X-04: this "child" is the synthetic probe, not a person.
+   *
+   * It lives on the domain type rather than being fetched where it is needed because every
+   * consumer that reports a number has to honour it, and a flag one caller has to remember to
+   * look up is a flag that will be forgotten by the third report. The §11 bars, the Phase 1
+   * report and the per-child cost report all mean "a real child" when they say a child.
+   */
+  isSynthetic: boolean;
   createdAt: Date;
 };
 

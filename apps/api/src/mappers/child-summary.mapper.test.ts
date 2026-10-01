@@ -12,6 +12,7 @@ const SAM: Student = {
   grade: '4',
   band: 'middle',
   settings: { ...DEFAULT_STUDENT_SETTINGS, avatar: 'owl', pronunciation: 'Sahm' },
+  isSynthetic: false,
   createdAt: new Date('2026-08-25T10:00:00.000Z'),
 };
 
