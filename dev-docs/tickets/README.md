@@ -135,7 +135,7 @@ exactly what is left.
 
 | Id    | Track        | Depends on     | Ticket                                                                                      |
 | ----- | ------------ | -------------- | ------------------------------------------------------------------------------------------- |
-| P3-01 | Backend      | P1-02          | [Episodes, briefs and corrections, migration 010](P3-01-episode-brief-correction-tables.md) |
+| P3-01 | Backend      | P1-02          | [Episodes, briefs and corrections, migration 030](P3-01-episode-brief-correction-tables.md) |
 | P3-02 | Backend      | 01, P1-09      | [Consolidation v2](P3-02-consolidation-v2.md)                                               |
 | P3-03 | Backend      | 01, 02         | [The learner brief](P3-03-learner-brief.md)                                                 |
 | P3-04 | Backend      | P1-03, P0-17   | [Full skill graph and scheduler](P3-04-skill-graph-and-scheduler.md)                        |

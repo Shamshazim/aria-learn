@@ -1,4 +1,4 @@
-# P3-01 — Episodes, briefs and correction history (migration 010)
+# P3-01 — Episodes, briefs and correction history (migration 030)
 
 | | |
 |---|---|
@@ -8,6 +8,28 @@
 | **Blocks** | P3-02, P3-03, P3-06 |
 | **Parallel-safe with** | P3-04, P3-05, P3-07 |
 | **Size** | M |
+
+## Status
+
+**Code complete 2026-10-12** on `feat/P3-01-episode-brief-correction-tables`, pending review.
+
+- **Migration is `030_learner_episode_brief.sql`, not `010`.** `010` was taken by identity work,
+  and the runner refuses any migration numbered behind one already applied: `028` (X-05) is on
+  `main` and `029` (X-04 part 2) is in review. The same applies to every number this backlog
+  reserves in `011`–`027` (P3-02's `011`, P3-04's `012`, P4-01's `013` …): each must take the
+  next free number above the highest applied one when it is built. Merge X-04 part 2 (`029`)
+  before this, or a database that ran `030` will refuse `029`.
+- **`insertVersion` retires the previous current brief in the same statement**, so there is no
+  separate `supersede` on the brief repository: two current briefs for one period can never
+  exist, even after a crash between two calls. A lost version race returns no row (`ON CONFLICT
+  DO NOTHING`) and retries once; a unique-violation error would abort the caller's transaction.
+- **Episodes are evidence-backed from birth**, like facts: `insert` and `supersede` require at
+  least one evidence row; `addEvidence` appends more.
+- **The database enforces the vocabularies** (`CHECK` lists mirrored from `@aria/shared`, held in
+  step by `src/db/memory-vocabulary.test.ts`), the author rule (a parent is always identified, a
+  child never is) and "a replacement carries a value; a retraction has neither".
+- Shared types are generic over the timestamp (`LearnerEpisode<Date>` in the API, ISO strings on
+  the wire), so the fields have one definition.
 
 ## Why
 
@@ -20,7 +42,7 @@ three has a table yet. Every later Phase 3 ticket writes into these.
 ## Scope
 
 ### Build
-Migration `010_learner_episode_brief.sql`, three tables, repositories, shared types, and the
+Migration `030_learner_episode_brief.sql`, three tables, repositories, shared types, and the
 row-level invariants below. Nothing that *produces* rows: that is P3-02 (episodes), P3-03
 (briefs) and P3-06 (corrections).
 
@@ -30,7 +52,7 @@ No consolidation logic, no brief generation, no parent routes, no UI.
 ## Design
 
 ```sql
--- 010 — episodes, briefs, correction history
+-- 030 — episodes, briefs, correction history
 CREATE TABLE learner_episode (
     id UUID PRIMARY KEY,
     student_id UUID NOT NULL REFERENCES student (id) ON DELETE CASCADE,
@@ -127,16 +149,16 @@ Rules:
 
 ## Acceptance criteria
 
-- [ ] Migration `010` applies on an empty database and on a database at `008`; `down` is
+- [x] Migration `030` applies on an empty database and on a database at `028`; `down` is
       not required (project convention) but the migration is idempotent under `IF NOT EXISTS`.
-- [ ] Every table cascades from `student`, proven by a test that deletes a student and
+- [x] Every table cascades from `student`, proven by a test that deletes a student and
       asserts zero rows in all four tables.
-- [ ] Repository tests cover insert/listCurrent/supersede/expiry for episodes; version
+- [x] Repository tests cover insert/listCurrent/supersede/expiry for episodes; version
       increment and concurrent-insert retry for briefs; retraction and replacement for
       corrections.
-- [ ] `listCurrent` never returns superseded or expired rows.
-- [ ] Shared types are exported from `@aria/shared` and have no `any`.
-- [ ] No file exceeds 300 lines; `learner-memory.repository.ts` is not modified.
+- [x] `listCurrent` never returns superseded or expired rows.
+- [x] Shared types are exported from `@aria/shared` and have no `any`.
+- [x] No file exceeds 300 lines; `learner-memory.repository.ts` is not modified.
 
 ## Verification
 
