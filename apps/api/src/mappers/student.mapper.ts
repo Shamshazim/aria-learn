@@ -21,6 +21,7 @@ export type StudentRow = {
   grade: string;
   band: string;
   settings: unknown;
+  is_synthetic: boolean;
   created_at: Date;
 };
 
@@ -55,6 +56,11 @@ export function toStudent(row: StudentRow): Student {
     grade,
     band: band.data,
     settings: settings.data,
+    // Copied rather than parsed, unlike `grade` and `band` above. Those carry a vocabulary
+    // that can change under an old row; this is a `BOOLEAN NOT NULL DEFAULT false` (migration
+    // 029) and the driver maps it to a JS boolean, so there is no second state to defend
+    // against — and inventing one would mean a third branch in every report that reads it.
+    isSynthetic: row.is_synthetic,
     createdAt: row.created_at,
   };
 }

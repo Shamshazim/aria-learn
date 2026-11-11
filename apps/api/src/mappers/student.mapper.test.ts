@@ -11,6 +11,7 @@ const row: StudentRow = {
   grade: '4',
   band: 'middle',
   settings: { shareFirstName: false, pronunciation: 'Sahm', avatar: 'owl' },
+  is_synthetic: false,
   created_at: new Date('2026-08-22T10:00:00Z'),
 };
 
@@ -23,6 +24,7 @@ describe('toStudent', () => {
       displayName: 'Sam',
       grade: '4',
       band: 'middle',
+      isSynthetic: false,
       createdAt: row.created_at,
     });
   });

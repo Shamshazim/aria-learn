@@ -28,7 +28,23 @@ export type ActorClass = (typeof ACTOR_CLASSES)[number];
  * "a turn costs a model call", "a sign-in attempt is cheap but guessable" — and pinning them
  * to paths means every new route silently arrives unlimited.
  */
-export const ROUTE_CLASSES = ['turn', 'session', 'read', 'auth', 'mutation'] as const;
+export const ROUTE_CLASSES = [
+  'turn',
+  'session',
+  'read',
+  'auth',
+  'mutation',
+  /**
+   * X-04: the client timing route, which is a write nobody reads back.
+   *
+   * It is not `mutation`, because it is not one. A mutation changes something a child can see
+   * and is worth a tight budget; a measurement changes a histogram and must never be lost —
+   * the numbers in `master-plan.md` §11 are only as true as the reports that reach them, and a
+   * dropped report makes a bar look better than it is. So it gets a class with a budget of its
+   * own, sized to be unreachable by a browser that is working and reachable by one that is not.
+   */
+  'telemetry',
+] as const;
 
 export type RouteClass = (typeof ROUTE_CLASSES)[number];
 

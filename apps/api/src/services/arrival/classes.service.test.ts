@@ -13,6 +13,7 @@ function student(grade: Student['grade'], band: Student['band']): Student {
     grade,
     band,
     settings: DEFAULT_STUDENT_SETTINGS,
+    isSynthetic: false,
     createdAt: new Date('2026-08-24T20:00:00.000Z'),
   };
 }

@@ -19,6 +19,7 @@ const SAM: Student = {
   grade: '4',
   band: 'middle',
   settings: DEFAULT_STUDENT_SETTINGS,
+  isSynthetic: false,
   createdAt: NOW,
 };
 

@@ -63,6 +63,7 @@ const STUDENT: Student = {
   grade: '4',
   band: 'middle',
   settings: { shareFirstName: true, pronunciation: null, avatar: 'fox' },
+  isSynthetic: false,
   createdAt: NOW,
 };
 
