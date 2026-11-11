@@ -1,5 +1,7 @@
 import type { Band, Grade, MoveKind, TutorInputEvent, TutorMove } from '@aria/shared';
 
+import type { MisconceptionHistory } from './scheduler/misconception';
+
 export type SessionSnapshot = Readonly<{
   id: string;
   studentId: string;
@@ -28,6 +30,17 @@ export type SessionSnapshot = Readonly<{
   unmetPrerequisite: string | null;
   /** The topic after this one in teaching order, or `null` where there is none to move to. */
   nextTopic: string | null;
+  /**
+   * P3-04: wrong answers in a row on the current skill, before this turn. Absent means the
+   * caller does not track skills separately, and `consecutiveWrong` stands in.
+   */
+  wrongOnSkill?: number;
+  /** P3-04: the misconception the last wrong answer on this item showed, if one was named. */
+  previousMisconception?: string | null;
+  /** P3-04: what the record says about each misconception seen on this skill, by id. */
+  misconceptionHistory?: Readonly<Record<string, MisconceptionHistory>>;
+  /** P3-04: a due skill in another strand of the subject, for when there is nothing to step back to. */
+  alternateStrandSkill?: string | null;
 }>;
 
 export type LoadedTurnContext<TModelContext> = Readonly<{

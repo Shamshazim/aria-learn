@@ -19,24 +19,6 @@ export type SkillRow = {
 
 export type PracticeFit = Readonly<{ band: Skill['band']; grade: Grade }>;
 
-export async function findDue(
-  db: Queryable,
-  studentId: string,
-  at: Date,
-): Promise<readonly RuntimeSkill[]> {
-  const result = await runQuery<SkillRow>({
-    db,
-    operation: 'skillState.findDue',
-    sql: `SELECT s.code, s.subject, s.strand, s.name, s.band, s.prerequisites
-          FROM skill s LEFT JOIN skill_state ss
-            ON ss.skill_code = s.code AND ss.student_id = $1
-          WHERE ss.student_id IS NULL OR ss.next_due_at <= $2
-          ORDER BY COALESCE(ss.next_due_at, '-infinity'::timestamptz), s.code`,
-    params: [studentId, at],
-  });
-  return result.rows.map(mapSkill);
-}
-
 /**
  * The soonest-due skill in a subject: the child's own grade first (a catalogue topic knows
  * its grade), then the child's band, then the authored teaching order.

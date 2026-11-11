@@ -5,6 +5,7 @@ import {
   type TurnRequest,
   type TurnResponse,
 } from '@aria/shared';
+import type { SkillGraph } from '@aria/tutor';
 
 import { createArrivalController } from '@/controllers/arrival.controller';
 import { createSessionControllers } from '@/controllers/session.controller';
@@ -38,6 +39,8 @@ type ControllerRuntime = Readonly<{
   repositories: Phase1Repositories;
   tutor: ReturnType<typeof createTutorService>;
   crisis: ReturnType<typeof createCrisisTurnService>;
+  /** P3-04: the skill graph the session plan and the arrival recommendation rank from. */
+  graph: SkillGraph;
   gate: QualityGate;
   /** P2H-11: the display name of a skill, for the summary written when a session ends. */
   skillName(skillCode: string): string | null;
@@ -142,6 +145,7 @@ function buildLifecycle(runtime: ControllerRuntime) {
     students: repositories.students,
     sessions: repositories.sessions,
     skills: repositories.skills,
+    graph: runtime.graph,
     arrivals: repositories.arrivals,
     clock: deps.clock,
     ids: deps.ids,
@@ -179,6 +183,7 @@ function buildArrival(
     sessions: repositories.sessions,
     events: repositories.events,
     skills: repositories.skills,
+    graph: runtime.graph,
     memory: repositories.memory,
     clock: deps.clock,
   });

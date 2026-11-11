@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { stepBack } from '@aria/tutor';
+
 import { createInventoryService } from '@/curriculum';
 import { fixedClock } from '@/lib/clock';
 import { sequentialUuids } from '@/lib/ids';
@@ -18,6 +20,9 @@ import { createArrivalContextLoader } from '@/services/arrival/context.loader';
 import { createConsolidationService } from '@/services/memory/consolidate.service';
 import { createMemoryRetrievalService } from '@/services/memory/retrieve.service';
 import { createMoveFactory } from '@/services/moves/move-factory';
+import { recordAttempt } from '@/services/scheduler/record-attempt';
+import { schedulerGraph } from '@/services/scheduler/scheduler-graph';
+import { progressMap } from '@/services/scheduler/scheduler-state';
 import type { NewLearnerFact } from '@/types/memory';
 
 import { createTestDatabase, shouldSkipDatabaseTests } from './db.harness';
@@ -80,27 +85,66 @@ suite('Phase 1 memory and skill repositories', () => {
     ]);
   });
 
-  it('seeds the graph, walks backwards and updates an attempt atomically', async () => {
+  it('seeds the graph, walks backwards and schedules an attempt in the child’s day', async () => {
     const inventory = createInventoryService();
+    const graph = schedulerGraph(inventory.listSkills());
     const skills = createSkillStateRepository({ db: database.pool, clock: fixedClock(NOW) });
     await skills.seed(
       inventory.listSkills(),
       inventory.listSkills().flatMap((skill) => inventory.listMisconceptions(skill.code)),
     );
-    const chain = await skills.findUnmetPrerequisites(studentId, 'ADD.REGROUP.2D');
-    expect(chain.map((skill) => skill.code)).toEqual(['NUM.CNT.20', 'ADD.FACT.10']);
-    const state = await skills.recordAttempt({
+    const nothingYet = progressMap(await skills.listForStudent(studentId));
+    expect(stepBack('ADD.REGROUP.2D', nothingYet, graph)).toBe('ADD.FACT.10');
+
+    // 20:00 UTC on 24 August is 13:00 in Los Angeles; "tomorrow" is their midnight.
+    await database.pool.query("UPDATE student SET timezone = 'America/Los_Angeles' WHERE id = $1", [
       studentId,
-      skillCode: 'ADD.FACT.10',
-      correct: true,
-    });
-    expect(state).toMatchObject({ attempts: 1, correctStreak: 1, strength: 0.15 });
-    const misconception = await skills.recordMisconception(
-      studentId,
-      misconceptionRuntimeId('misconception-add-regroup-no-carry'),
+    ]);
+    const attempt = { studentId, skillCode: 'ADD.FACT.10', latencyMs: 900, at: NOW };
+    const state = await recordAttempt(skills, graph, { ...attempt, correct: true });
+    expect(state).toMatchObject({ attempts: 1, correctStreak: 1, strength: 0.3, intervalDays: 3 });
+    expect(state.nextDueAt?.toISOString()).toBe('2026-08-27T07:00:00.000Z');
+    expect(await skills.findState(studentId, 'ADD.FACT.10')).toEqual(state);
+
+    const wrong = await recordAttempt(skills, graph, { ...attempt, correct: false });
+    expect(wrong).toMatchObject({ attempts: 2, correctStreak: 0, lapses: 1, strength: 0.18 });
+    expect(
+      stepBack('ADD.REGROUP.2D', progressMap(await skills.listForStudent(studentId)), graph),
+    ).toBe('NUM.CNT.20');
+  });
+
+  it('clears a misconception after three right answers, and a sighting brings it back', async () => {
+    const inventory = createInventoryService();
+    const graph = schedulerGraph(inventory.listSkills());
+    const skills = createSkillStateRepository({ db: database.pool, clock: fixedClock(NOW) });
+    await skills.seed(
+      inventory.listSkills(),
+      inventory.listSkills().flatMap((skill) => inventory.listMisconceptions(skill.code)),
     );
-    const repeated = await skills.recordMisconception(studentId, misconception.misconceptionId);
+    const authored = 'misconception-add-regroup-no-carry';
+    const id = misconceptionRuntimeId(authored);
+    await skills.recordMisconception(studentId, id);
+    const repeated = await skills.recordMisconception(studentId, id);
     expect(repeated.secondOrLater).toBe(true);
+
+    const right = {
+      studentId,
+      skillCode: 'ADD.REGROUP.2D',
+      correct: true,
+      latencyMs: null,
+      at: NOW,
+    };
+    for (let count = 1; count <= 3; count += 1) {
+      expect((await skills.findMisconceptionState(studentId, authored))?.cleared).toBe(false);
+      await recordAttempt(skills, graph, right);
+    }
+    expect(await skills.findMisconceptionState(studentId, authored)).toMatchObject({
+      seenCount: 2,
+      cleared: true,
+    });
+
+    await skills.recordMisconception(studentId, id);
+    expect((await skills.findMisconceptionState(studentId, authored))?.cleared).toBe(false);
   });
 
   it('consolidates evidence once and keeps a one-session mood temporary', async () => {
@@ -174,6 +218,7 @@ suite('Phase 1 memory and skill repositories', () => {
         sessions,
         events,
         skills,
+        graph: schedulerGraph(createInventoryService().listSkills()),
         memory,
         clock: tomorrowClock,
       }).load,

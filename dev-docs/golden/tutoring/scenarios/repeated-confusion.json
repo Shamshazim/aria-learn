@@ -2,7 +2,7 @@
   "id": "repeated-confusion",
   "title": "Repeated confusion",
   "grade": "4",
-  "description": "Two wrong attempts cause a real change from a verbal hint to a concrete visual reteach, and the reteach names the answer the child actually gave both times.",
+  "description": "Two wrong attempts cause a real change from a verbal hint to a concrete visual reteach, and the reteach names the answer the child actually gave both times. A third wrong answer does not get a third question: Aria steps back to the skill underneath (P3-04).",
   "context": {
     "answerOutcomes": [
       {
@@ -11,6 +11,10 @@
       },
       {
         "eventId": "evt_wrong_fraction_2",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_wrong_fraction_3",
         "outcome": "wrong"
       }
     ],
@@ -86,6 +90,37 @@
         ],
         "evidence": {
           "approachId": "fraction-bar-visual",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_wrong_fraction_3",
+        "at": "2026-08-23T13:00:14Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_fraction_ask_3",
+        "text": "5"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_fraction_step_back",
+            "at": "2026-08-23T13:00:14Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SWITCH",
+            "speech": {
+              "text": "Let's leave fractions for now and count some pieces together first."
+            },
+            "display": [],
+            "expects": "none",
+            "fromSkillId": "math.fraction_parts",
+            "reason": "The current skill is stuck; return to its weakest prerequisite."
+          }
+        ],
+        "evidence": {
+          "approachId": "prerequisite-step",
           "responseOrigin": "scripted"
         }
       }

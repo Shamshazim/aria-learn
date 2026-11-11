@@ -8,7 +8,9 @@ export function recommend(
   factory: MoveFactory,
   context: ArrivalContext,
 ): Readonly<{ move: TutorMove; subjectId: string }> | null {
-  const skill = context.dueSkills.find((candidate) => candidate.band === context.student.band);
+  // P3-04: the scheduler has already ranked goals, overdue and shaky skills ahead of anything
+  // new, and preferred the child's band and grade for that; the top of the list is the answer.
+  const skill = context.dueSkills[0];
   if (skill === undefined) return null;
   const subjectId = subjectIdFor(skill.subject);
   // Short words on purpose: "Math Adventures" already spends the early band's syllable budget.

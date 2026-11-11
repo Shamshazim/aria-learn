@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { createSkillGraph } from '@aria/tutor';
+
 import { fixedClock } from '@/lib/clock';
 import { createSessionService } from '@/services/session/session.service';
 import type { TutorSessionRecord } from '@/types/session';
@@ -44,9 +46,11 @@ function harness(
     students: { requireById: () => Promise.resolve(student()) },
     sessions,
     skills: {
-      findDue: () => Promise.resolve(skills.due),
+      listForStudent: () => Promise.resolve([]),
       findPractice,
     },
+    // The skills "due" here are the graph itself: a child with no state is due its entry skill.
+    graph: createSkillGraph(skills.due.map((due) => ({ ...due, facts: false }))),
     arrivals: {
       findById: () => Promise.resolve(null),
       setAccepted: () => Promise.resolve(true),
@@ -129,6 +133,25 @@ describe('picking a class with a session still open', () => {
       resumed: false,
     });
     expect(sessions.end).toHaveBeenCalledExactlyOnceWith('session-math', 'break', NOW);
+  });
+});
+
+describe('planning a fresh session (P3-04)', () => {
+  it('starts on the first step of the scheduler’s plan and stores the plan', async () => {
+    const { service, sessions } = harness(null, NOW);
+
+    await service.createOrResume(pick);
+
+    expect(sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plan: {
+          skillCode: 'add-within-100',
+          steps: [{ skillCode: 'add-within-100', mode: 'teach', maxItems: 14 }],
+          goalIndirect: false,
+          checkIn: null,
+        },
+      }),
+    );
   });
 });
 

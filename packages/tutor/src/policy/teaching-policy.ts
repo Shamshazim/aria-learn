@@ -1,10 +1,17 @@
 import type { TutorInputEvent } from '@aria/shared';
 
+import {
+  forbiddenAfterStuck,
+  neverStuckTwice,
+  STUCK_TWICE_EVENT,
+  STUCK_TWICE_REASON,
+} from '../scheduler/invariant';
+
 import { allowedSet } from './allowed-set';
 import { answerOutcome } from './answer-policy';
 import { isDecisive } from './decisive';
 import { intentOutcome } from './intent-policy';
-import { outcome, plan, type PolicyOutcome } from './outcome';
+import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
 import { silenceRung } from './silence-ladder';
 import { skipOutcome, stuckOutcome } from './stuck-policy';
 
@@ -34,28 +41,76 @@ export function createTeachingPolicy<TModelContext>(input: {
  * The allowed set is derived here, once, from what the branch decided and what the session
  * state permits (P2H-06). `decisive` is the planner's off switch: when the reason for the plan
  * is safety, a limit, a ladder rung or a repeated misconception, there is nothing to weigh.
+ *
+ * The stuck-twice invariant (P3-04) runs last, over every branch, and takes its forbidden
+ * moves out of the planner's set as well as out of the plan: a rule only the default plan obeys
+ * is a rule the planner can break.
  */
 function toDecision<TModelContext>(
   context: LoadedTurnContext<TModelContext>,
   event: TutorInputEvent,
-  result: PolicyOutcome,
+  decided: PolicyOutcome,
 ): PolicyDecision {
+  const forbidden = decided.terminal ? [] : forbiddenAfterStuck(stuckInput(context, decided));
+  const result = decided.terminal ? decided : enforceStuckTwice(context, decided);
   const decisive = result.terminal || isDecisive(result.reasons);
+  const allowed = allowedSet({
+    event,
+    session: context.session,
+    defaultPlan: result.plan,
+    graded: result.graded,
+    decisive,
+    base: result.base,
+  }).filter((kind) => kind === result.plan.kind || !forbidden.includes(kind));
   return {
-    allowedMoves: allowedSet({
-      event,
-      session: context.session,
-      defaultPlan: result.plan,
-      graded: result.graded,
-      decisive,
-      base: result.base,
-    }),
+    allowedMoves: allowed,
     defaultPlan: result.plan,
     graded: result.graded,
     terminal: result.terminal,
     decisive,
     reasons: result.reasons,
   };
+}
+
+function stuckInput<TModelContext>(
+  context: LoadedTurnContext<TModelContext>,
+  decided: PolicyOutcome,
+): Parameters<typeof forbiddenAfterStuck>[0] {
+  const before = context.session.wrongOnSkill ?? context.session.consecutiveWrong;
+  const correct = decided.graded?.correct;
+  return {
+    wrongOnSkill: correct === true ? 0 : before + (correct === false ? 1 : 0),
+    stuckOnItem: context.session.consecutiveStuck,
+  };
+}
+
+/**
+ * Rewrites a plan the invariant forbids: back a step when there is a weak prerequisite, and
+ * otherwise the idea explained another way. Either is a change; asking again is not.
+ */
+function enforceStuckTwice<TModelContext>(
+  context: LoadedTurnContext<TModelContext>,
+  decided: PolicyOutcome,
+): PolicyOutcome {
+  const forced = neverStuckTwice({ ...stuckInput(context, decided), kind: decided.plan.kind });
+  if (forced === null) return decided;
+  const prerequisite = context.session.unmetPrerequisite;
+  const rewritten =
+    prerequisite === null
+      ? plan(forced.kind, nextApproach(context), forced.reason, context)
+      : { ...plan('SWITCH', 'prerequisite-step', forced.reason, context), skillCode: prerequisite };
+  return outcome(
+    {
+      ...rewritten,
+      evidence: {
+        ...decided.plan.evidence,
+        invariant: STUCK_TWICE_EVENT,
+        rewrote: decided.plan.kind,
+      },
+    },
+    [...decided.reasons, STUCK_TWICE_REASON],
+    { graded: decided.graded },
+  );
 }
 
 function decide<TModelContext>(

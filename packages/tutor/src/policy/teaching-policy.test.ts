@@ -80,11 +80,21 @@ describe('teaching policy', () => {
     [0, null, 'HINT', 'single-nudge'],
     [1, 'single-nudge', 'RETEACH', 'visual-model'],
     [1, 'visual-model', 'RETEACH', 'worked-example'],
-    [2, 'visual-model', 'REVEAL', 'worked-example'],
+    // P3-04: the third wrong answer in a row goes back to the weak step underneath.
+    [2, 'visual-model', 'SWITCH', 'prerequisite-step'],
     [3, 'worked-example', 'SWITCH', 'prerequisite-step'],
   ] as const)('changes the approach across wrong attempts', (wrong, previous, kind, approach) => {
     const result = policy(context(wrong, previous), EVENT);
     expect(result.defaultPlan).toMatchObject({ kind, approach });
+  });
+
+  it('shows the answer on the third wrong answer when nothing underneath is weak', () => {
+    const solid = context(2, 'visual-model');
+    const result = policy(
+      { ...solid, session: { ...solid.session, unmetPrerequisite: null } },
+      EVENT,
+    );
+    expect(result.defaultPlan).toMatchObject({ kind: 'REVEAL', approach: 'worked-example' });
   });
 
   it.each([

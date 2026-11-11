@@ -112,3 +112,30 @@ function isStuckTurn(record: SessionEventRecord): boolean {
   const intent = record.evidence.intent;
   return typeof intent === 'string' && STUCK_INTENTS.has(intent);
 }
+
+/**
+ * P3-04: wrong answers in a row on one skill. Answers on other skills neither count nor break
+ * the run — a step back to a prerequisite does not wipe out what happened on the skill above.
+ */
+export function wrongOnSkill(records: Records, skillCode: string | null): number {
+  if (skillCode === null) return 0;
+  let count = 0;
+  for (const record of [...records].reverse()) {
+    if (!isUtterance(record) || record.skillCode !== skillCode) continue;
+    if (record.correct === true) break;
+    if (record.correct === false) count += 1;
+  }
+  return count;
+}
+
+/** P3-04: the misconception the last wrong answer on the current item showed, if any. */
+export function previousMisconception(records: Records): string | null {
+  const boundary = currentItemBoundary(records);
+  for (const record of [...records].reverse()) {
+    if (record.seq <= boundary) break;
+    if (!isUtterance(record) || record.correct !== false) continue;
+    const seen = record.evidence.misconception;
+    return typeof seen === 'string' ? seen : null;
+  }
+  return null;
+}

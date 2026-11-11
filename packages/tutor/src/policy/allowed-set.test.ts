@@ -78,11 +78,8 @@ describe('the set a planner may choose from', () => {
       { unmetPrerequisite: 'ADD.TO_5' },
       ['HINT', 'RETEACH', 'SWITCH'],
     ],
-    [
-      'a third wrong answer',
-      { consecutiveWrong: 2, consecutiveStuck: 2 },
-      ['HINT', 'RETEACH', 'REVEAL'],
-    ],
+    // P3-04: the item has had its hint, so a second one is not a change (stuck-twice).
+    ['a third wrong answer', { consecutiveWrong: 2, consecutiveStuck: 2 }, ['RETEACH', 'REVEAL']],
   ] as const)('widens on %s', (_name, session, expected) => {
     const decision = policyFor({ correct: false })(context(session), ANSWER);
     expect(decision.allowedMoves).toEqual(expected);

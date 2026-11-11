@@ -2,6 +2,9 @@ import type { TutorInputEvent, TutorMove } from '@aria/shared';
 import {
   createTeachingPolicy,
   createTutorHarness,
+  STUCK_TWICE_EVENT,
+  STUCK_TWICE_REASON,
+  type CommittedTurn,
   type Intent,
   type LoadedTurnContext,
   type PolicyDecision,
@@ -75,6 +78,10 @@ function buildHarness(
   const remembered = new Map<string, Promise<Judgement>>();
   return createTutorHarness<ApiModelContext>({
     ...deps.ports,
+    commit: async (turn) => {
+      await deps.ports.commit(turn);
+      logStuckTwice(deps.logger, turn);
+    },
     applyPolicy: async (context, event) => {
       // The intent decides which branch the turn takes, so it is resolved before the policy
       // runs rather than inside it: the model second pass is asynchronous, the policy is pure.
@@ -219,4 +226,21 @@ function choicesOf(context: ApiModelContext): readonly ChoiceOption[] {
 
 function normalise(value: string): string {
   return value.trim().toLocaleLowerCase().replaceAll(/\s+/g, ' ');
+}
+
+/**
+ * P3-04: the stuck-twice invariant rewrote this turn's plan. Logged once, after the commit —
+ * the policy can run twice in a turn (speculation, then the recheck), the commit only once.
+ */
+function logStuckTwice(logger: Pick<Logger, 'info'>, turn: CommittedTurn): void {
+  if (!turn.decision.reasons.includes(STUCK_TWICE_REASON)) return;
+  logger.info(
+    {
+      event: STUCK_TWICE_EVENT,
+      sessionId: turn.event.sessionId,
+      rewrote: turn.plan.evidence?.rewrote ?? null,
+      kind: turn.plan.kind,
+    },
+    'Two wrong answers on one skill: the plan was changed rather than asked again',
+  );
 }

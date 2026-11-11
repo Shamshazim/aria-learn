@@ -1,8 +1,15 @@
 import type { TutorInputEvent } from '@aria/shared';
-import type { LoadedTurnContext } from '@aria/tutor';
+import {
+  stepBack,
+  switchStrand,
+  type LoadedTurnContext,
+  type MisconceptionHistory,
+  type SkillGraph,
+} from '@aria/tutor';
 
 import type { LessonNote } from '@/curriculum';
 import { NotFoundError, ValidationError } from '@/errors';
+import type { Clock } from '@/lib/clock';
 import type { RawDialogueTurn } from '@/privacy';
 import { arithmeticProblemSchema } from '@/quality/arithmetic';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
@@ -11,6 +18,8 @@ import type { SkillStateRepository } from '@/repositories/skill-state.repository
 import type { StudentRepository } from '@/repositories/student.repository';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import type { MemoryRetrieval } from '@/services/memory/retrieve.service';
+import { progressMap } from '@/services/scheduler/scheduler-state';
+import { nextPlannedSkill, readPlanSteps } from '@/services/scheduler/session-plan';
 import {
   latestAskRecord,
   questionEvidence,
@@ -23,7 +32,9 @@ import {
   consecutiveWrong,
   correctStreak,
   latestEvidenceString,
+  previousMisconception,
   recentEvidenceStrings,
+  wrongOnSkill,
 } from '@/services/tutor/session-counters';
 
 export type TutorContextLoader = Readonly<{
@@ -35,6 +46,9 @@ export function createTutorContextLoader(deps: {
   events: SessionEventRepository;
   skills: SkillStateRepository;
   students: StudentRepository;
+  /** P3-04: the prerequisite graph the step back and the change of strand are read from. */
+  graph: SkillGraph;
+  clock: Clock;
   misconceptionIds(skillCode: string): readonly string[];
   /** P2H-10: the teaching note for a skill, or nothing where the skill has no note. */
   lesson(skillCode: string): LessonNote | null;
@@ -71,7 +85,7 @@ async function load(
   const askEvidence = ask === null ? {} : questionEvidence(records, ask);
   const skillCode = stringPlanValue(session.plan, 'skillCode');
   const [skillContext, memory] = await Promise.all([
-    loadSkillContext(deps, session.studentId, skillCode),
+    loadSkillContext(deps, session.studentId, skillCode, session.plan),
     deps.retrieve({
       sessionId: session.id,
       studentId: session.studentId,
@@ -116,8 +130,12 @@ function sessionContext(
     repeatedMisconception:
       latestEvidenceString(records, 'misconception') ?? skillContext.repeatedMisconception,
     lastApproach: latestEvidenceString(records, 'approach'),
-    unmetPrerequisite: skillContext.unmet[0]?.code ?? null,
+    unmetPrerequisite: skillContext.stepBack,
     nextTopic: skillContext.nextTopic,
+    wrongOnSkill: wrongOnSkill(records, skillCode),
+    previousMisconception: previousMisconception(records),
+    misconceptionHistory: skillContext.misconceptionHistory,
+    alternateStrandSkill: skillContext.alternateStrand,
   };
 }
 
@@ -152,31 +170,58 @@ function modelContext(
   };
 }
 
+/**
+ * What the policy needs to know about the skill (P3-04): the weakest step underneath it, a
+ * skill in another strand for when nothing underneath is weak, what the record says about its
+ * misconceptions, and where the plan goes next.
+ */
 async function loadSkillContext(
   deps: Parameters<typeof createTutorContextLoader>[0],
   studentId: string,
   skillCode: string | null,
+  plan: Readonly<Record<string, unknown>>,
 ) {
   if (skillCode === null) {
-    return { state: null, unmet: [], repeatedMisconception: null, nextTopic: null } as const;
+    return {
+      stepBack: null,
+      alternateStrand: null,
+      repeatedMisconception: null,
+      misconceptionHistory: {},
+      nextTopic: null,
+    } as const;
   }
-  const [state, unmet, repeatedMisconception] = await Promise.all([
-    deps.skills.findState(studentId, skillCode),
-    deps.skills.findUnmetPrerequisites(studentId, skillCode),
-    findKnownMisconception(deps, studentId, skillCode),
+  const [states, misconceptions] = await Promise.all([
+    deps.skills.listForStudent(studentId),
+    misconceptionHistory(deps, studentId, skillCode),
   ]);
-  return { state, unmet, repeatedMisconception, nextTopic: deps.nextTopic(skillCode) };
+  const progress = progressMap(states);
+  return {
+    stepBack: stepBack(skillCode, progress, deps.graph),
+    alternateStrand: switchStrand(skillCode, progress, deps.graph, deps.clock.now()),
+    repeatedMisconception:
+      Object.entries(misconceptions).find(([, history]) => !history.cleared)?.[0] ?? null,
+    misconceptionHistory: misconceptions,
+    nextTopic: nextPlannedSkill(readPlanSteps(plan), skillCode) ?? deps.nextTopic(skillCode),
+  };
 }
 
-async function findKnownMisconception(
+/** Every misconception on the skill this child has been seen with, by authored id. */
+async function misconceptionHistory(
   deps: Parameters<typeof createTutorContextLoader>[0],
   studentId: string,
   skillCode: string,
-): Promise<string | null> {
+): Promise<Readonly<Record<string, MisconceptionHistory>>> {
+  const ids = deps.misconceptionIds(skillCode);
   const states = await Promise.all(
-    deps.misconceptionIds(skillCode).map((id) => deps.skills.findMisconceptionState(studentId, id)),
+    ids.map((id) => deps.skills.findMisconceptionState(studentId, id)),
   );
-  return states.find((state) => state !== null && state.seenCount > 0)?.misconceptionId ?? null;
+  return Object.fromEntries(
+    states.flatMap((state) =>
+      state === null || state.seenCount === 0
+        ? []
+        : [[state.misconceptionId, { seenCount: state.seenCount, cleared: state.cleared }]],
+    ),
+  );
 }
 
 function checkInEvidence(

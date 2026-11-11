@@ -1,4 +1,4 @@
-import type { CommittedTurn } from '@aria/tutor';
+import type { CommittedTurn, SkillGraph } from '@aria/tutor';
 
 import { withTransaction } from '@/db/transaction';
 import type { Clock } from '@/lib/clock';
@@ -9,6 +9,7 @@ import {
   misconceptionRuntimeId,
   type SkillStateRepository,
 } from '@/repositories/skill-state.repository';
+import { recordAttempt } from '@/services/scheduler/record-attempt';
 import type { NewSessionEvent, SessionEndReason } from '@/types/session';
 
 import type { Pool } from 'pg';
@@ -21,6 +22,8 @@ export function createTurnCommitService(deps: {
   skills: SkillStateRepository;
   sessions: SessionRepository;
   clock: Clock;
+  /** P3-04: the skill graph, so an attempt knows whether its skill is a facts skill. */
+  graph: SkillGraph;
   outbox?: MoveOutboxRepository;
 }): TurnCommitService {
   return {
@@ -37,26 +40,13 @@ async function commit(
   const sessionId = turn.event.sessionId;
   if (sessionId === undefined) throw new Error('Committed tutor turn has no session id');
   const events = deps.events.withDb(tx);
-  const skills = deps.skills.withDb(tx);
   await events.append(inputRecord(turn, sessionId, deps.clock));
   for (const move of turn.moves) {
     await events.append(moveRecord(turn, move, sessionId, deps.clock));
     await deps.outbox?.withDb(tx).enqueueIfOpen(sessionId, move);
   }
-  const practised = turn.practisedSkillCode ?? turn.plan.skillCode;
-  if (turn.decision.graded !== null && practised !== null) {
-    await skills.recordAttempt({
-      studentId: (await requireSession(deps.sessions.withDb(tx), sessionId)).studentId,
-      skillCode: practised,
-      correct: turn.decision.graded.correct,
-    });
-    if (turn.decision.graded.misconception !== null) {
-      await skills.recordMisconception(
-        (await requireSession(deps.sessions.withDb(tx), sessionId)).studentId,
-        misconceptionRuntimeId(turn.decision.graded.misconception),
-      );
-    }
-  }
+  const practised = practisedSkill(turn);
+  await recordGraded(deps, tx, turn, sessionId);
   // A SWITCH names where the lesson goes next. Writing it on the session is what makes the
   // next turn load the new skill; before this the tutor announced a change of step and then
   // kept asking about the old one.
@@ -69,6 +59,30 @@ async function commit(
   }
   if (turn.decision.terminal) {
     await deps.sessions.withDb(tx).end(sessionId, endReason(turn), deps.clock.now());
+  }
+}
+
+/** The graded answer, through the scheduler, and the misconception it showed, if any. */
+async function recordGraded(
+  deps: Parameters<typeof createTurnCommitService>[0],
+  tx: Parameters<Parameters<typeof withTransaction>[1]>[0],
+  turn: CommittedTurn,
+  sessionId: string,
+): Promise<void> {
+  const graded = turn.decision.graded;
+  const practised = practisedSkill(turn);
+  if (graded === null || practised === null) return;
+  const skills = deps.skills.withDb(tx);
+  const { studentId } = await requireSession(deps.sessions.withDb(tx), sessionId);
+  await recordAttempt(skills, deps.graph, {
+    studentId,
+    skillCode: practised,
+    correct: graded.correct,
+    latencyMs: turn.event.kind === 'ANSWER' ? (turn.event.elapsedMs ?? null) : null,
+    at: deps.clock.now(),
+  });
+  if (graded.misconception !== null) {
+    await skills.recordMisconception(studentId, misconceptionRuntimeId(graded.misconception));
   }
 }
 
@@ -87,7 +101,9 @@ function inputRecord(turn: CommittedTurn, sessionId: string, clock: Clock): NewS
     actor: 'child',
     kind: turn.event.kind,
     text: redacted ? PERSONAL_INFO_MARKER : eventText(turn),
-    skillCode: turn.plan.skillCode,
+    // What the child answered *about*: a SWITCH plan names where the lesson goes next, and an
+    // answer filed under that skill would count a wrong answer against the step back (P3-04).
+    skillCode: practisedSkill(turn),
     correct: turn.decision.graded?.correct ?? null,
     latencyMs: turn.event.kind === 'ANSWER' ? (turn.event.elapsedMs ?? null) : null,
     evidence: {
@@ -132,6 +148,10 @@ function moveRecord(
     payload: move,
     at: clock.now(),
   };
+}
+
+function practisedSkill(turn: CommittedTurn): string | null {
+  return turn.practisedSkillCode ?? turn.plan.skillCode;
 }
 
 async function requireSession(repository: SessionRepository, id: string) {
