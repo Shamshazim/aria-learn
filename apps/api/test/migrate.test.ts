@@ -53,6 +53,9 @@ suite('runMigrations', () => {
       // contiguous. That is expected.
       '028',
       '029',
+      // P3-01. Its reserved 010 was taken, and the runner refuses anything numbered behind an
+      // applied migration, so it takes the next free number after X-04's 029.
+      '030',
     ]);
     expect(rows[0]?.name).toBe('identity');
     expect(rows[1]?.name).toBe('ai_generation_log');
@@ -64,7 +67,7 @@ suite('runMigrations', () => {
     const outcome = await runMigrations({ pool: database.pool, logger });
 
     expect(outcome.applied).toEqual([]);
-    expect(outcome.skipped).toBe(13);
+    expect(outcome.skipped).toBe(14);
   });
 
   it('stays a no-op when two runs race for the lock', async () => {

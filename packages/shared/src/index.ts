@@ -36,6 +36,27 @@ export type {
   VisualKind,
 } from './curriculum';
 
+export {
+  BRIEF_PERIODS,
+  CORRECTED_BY,
+  CORRECTION_TARGETS,
+  EPISODE_EVIDENCE_SOURCES,
+  EPISODE_KINDS,
+} from './memory';
+export type {
+  BriefEvidenceSnapshot,
+  BriefPeriod,
+  CorrectedBy,
+  CorrectionAuthor,
+  CorrectionTarget,
+  EpisodeEvidence,
+  EpisodeEvidenceSource,
+  EpisodeKind,
+  FactCorrection,
+  LearnerBrief,
+  LearnerEpisode,
+} from './memory';
+
 export * from './protocol/events';
 export * from './protocol/moves';
 export * from './protocol/content';
