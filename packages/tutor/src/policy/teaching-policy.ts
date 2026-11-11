@@ -1,6 +1,7 @@
 import type { TutorInputEvent } from '@aria/shared';
 
 import { utteranceStatement } from '../engagement/event-signals';
+import { selfCorrection } from '../intent/self-correction';
 import {
   forbiddenAfterStuck,
   neverStuckTwice,
@@ -15,6 +16,7 @@ import { isDecisive } from './decisive';
 import { statementOutcome, withEngagement } from './engagement-policy';
 import { intentOutcome } from './intent-policy';
 import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
+import { selfCorrectionOutcome } from './self-correction-policy';
 import { silenceRung } from './silence-ladder';
 import { skipOutcome, stuckOutcome } from './stuck-policy';
 
@@ -22,6 +24,12 @@ import type { Intent } from '../intent/intent.types';
 import type { LoadedTurnContext, MovePlan, PolicyDecision } from '../types';
 
 type ChildUtterance = Extract<TutorInputEvent, { kind: 'ANSWER' | 'SPEECH_FINAL' }>;
+
+/**
+ * P3-06: what may carry a self-correction. A stop, personal information or an unclear
+ * utterance is handled as itself first — "I don't want maths anymore, stop" is a stop.
+ */
+const CORRECTABLE: ReadonlySet<Intent> = new Set(['ANSWER', 'CHAT', 'QUESTION']);
 
 export type AnswerGrader = (
   event: ChildUtterance,
@@ -173,7 +181,10 @@ function utteranceOutcome<TModelContext>(
       ['low_confidence_speech'],
     );
   }
-  const detour = intentOutcome(input.classifyIntent?.(event) ?? 'ANSWER', context);
+  const intent = input.classifyIntent?.(event) ?? 'ANSWER';
+  const correction = CORRECTABLE.has(intent) ? selfCorrection(event.text ?? '') : null;
+  if (correction !== null) return selfCorrectionOutcome(context, correction);
+  const detour = intentOutcome(intent, context);
   if (detour !== null) return detour;
   if (utteranceStatement(event) !== null) return statementOutcome(context);
   const graded = input.gradeAnswer(event, context.session.skillCode);

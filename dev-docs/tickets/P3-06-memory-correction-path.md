@@ -9,6 +9,43 @@
 | **Parallel-safe with** | P3-02, P3-03, P3-04, P3-05 |
 | **Size** | M |
 
+## Status
+
+**Code complete 2026-11-10** on `feat/P3-06-memory-correction-path`, pending review. Stacked
+on P3-05 (#35) ← P3-04 (#34) ← P3-01 (#33): it builds on P3-01's correction table and
+touches the same policy files.
+
+- **P2H-12 is merged**, so the route sits behind the real parent gate: `POST
+  /parent/children/:id/learner-memory/correct`. Ownership is `ParentChildrenService.requireOwned`;
+  a target that is not that child's is the same 404, so another family's child, their fact and
+  a random id answer identically.
+- **Facts and episodes both correct.** A replaced episode keeps the evidence of the one it
+  replaces — the same moments happened, only their description changed.
+- **409 names the current row** in a new optional `error.details.currentId` (none when the
+  chain ends in a retraction). The target row is locked `FOR UPDATE`, so of two concurrent
+  corrections the second is the 409.
+- **422 is a new code, `VALUE_REJECTED`, with `details.rule`** (`sensitive` | `judgement`).
+  P3-02's `sensitivity.ts` did not exist, so it is written here, at the path P3-02 names, with
+  P3-02's list (health, family conflict, body, religion, immigration, money, plus the crisis
+  patterns); the describe-never-judge check is `correct/judgement.ts` until P3-03's lint lands.
+- **A corrected fact** is read back with `corrected: true` (evidence `correction`, or P1's
+  `parent_correction`), ranks first in retrieval, and is never replaced by consolidation.
+- **Child self-correction** is a deterministic pattern (`@aria/tutor` `selfCorrection`) checked
+  on ANSWER/CHAT/QUESTION before grading — a stop, personal information or an unclear
+  utterance is handled as itself first. It is acknowledged in one fixed sentence ("Got it, no
+  more trucks.") that repeats the child's word only when it is a short plain word, then the
+  question comes back. The change is applied in the turn's own transaction. "I don't like X
+  anymore" retracts the matching preference; "my dog is called Rex now" replaces the matching
+  relationship fact; "I'm in grade 3 now" is acknowledged and changes nothing (a grade is the
+  parent's). A claim that matches nothing is logged as `memory.correction.child_unmatched`.
+- **Brief invalidation is a port** (`correct/invalidate.ts`) called after every applied
+  correction; until P3-03's generator exists it logs `memory.brief.invalidated`. Parent
+  corrections also count `memory_correction_parent_total`.
+- **Not met yet:** "a test asserts the new brief no longer contains the corrected value" needs
+  P3-03. The golden "changed preference" scenario is scripted and still passes; the
+  no-old-value guarantee is proved at the retrieval layer and end to end instead (the
+  corrected fact is the only current one; retrieval ranks it first).
+
 ## Why
 
 `master-plan.md` §4.2: "A parent or child can correct them — 'I don't like Minecraft
@@ -83,18 +120,18 @@ packages/tutor/src/policy/teaching-policy.ts      CHAT/QUESTION intents containi
 
 ## Acceptance criteria
 
-- [ ] `replace` and `retract` produce the documented rows, and `listCurrent` reflects them
+- [x] `replace` and `retract` produce the documented rows, and `listCurrent` reflects them
       immediately.
-- [ ] A corrected fact survives a subsequent consolidation with contradicting evidence.
+- [x] A corrected fact survives a subsequent consolidation with contradicting evidence.
 - [ ] The tutoring golden set scenario "changed preference" passes: the old preference never
       appears in any prompt or move after the correction, asserted by a fake provider.
-- [ ] Child self-correction fixtures ("I don't like trucks anymore") supersede the
+- [x] Child self-correction fixtures ("I don't like trucks anymore") supersede the
       preference and produce a one-sentence acknowledgement, not a lecture.
-- [ ] Cross-family target returns 404 identical to a random uuid.
-- [ ] Sensitive or judging replacement values are rejected with 422 and no rows written.
+- [x] Cross-family target returns 404 identical to a random uuid.
+- [x] Sensitive or judging replacement values are rejected with 422 and no rows written.
 - [ ] Week brief is regenerated (or scheduled) after a parent correction; a test asserts the
       new brief no longer contains the corrected value.
-- [ ] Router/controller/service/schema/repository are separate files; no SQL outside repositories.
+- [x] Router/controller/service/schema/repository are separate files; no SQL outside repositories.
 
 ## Verification
 

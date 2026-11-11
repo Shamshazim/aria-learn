@@ -6,7 +6,7 @@ import {
 } from '@/observability/content-metrics';
 import { engagementCheckIn } from '@/services/content/check-in-move';
 import { createFallbackPicker, type FallbackPicker } from '@/services/content/fallback';
-import { fixedText } from '@/services/content/fixed-text';
+import { acknowledged, fixedText } from '@/services/content/fixed-text';
 import {
   generateGatedText,
   requiredGatedText,
@@ -61,7 +61,11 @@ async function resolve(
   if (turn.plan.kind === 'ASK') return resolveQuestion(deps, turn, signal);
   const reviewed = reviewedText(deps, turn);
   if (reviewed !== null) {
-    const text = requiredGatedText(deps.gate, reviewed.text, turn.context.session.band);
+    const text = requiredGatedText(
+      deps.gate,
+      acknowledged(deps.gate, turn, reviewed.text),
+      turn.context.session.band,
+    );
     return responseWithContinuation(deps, turn, { text, provenance: reviewed.provenance }, signal);
   }
   const said = await generated(

@@ -40,6 +40,7 @@ import { createVocalCueConsent } from '@/services/tutor/vocal-cue-consent';
 
 import { buildContentServices, type ContentServices } from './content.runtime';
 import { buildPhase1Controllers } from './controllers.runtime';
+import { childCorrections } from './memory.runtime';
 import { buildRepositories } from './repositories.runtime';
 import { buildTalkPorts, type TalkPorts } from './talk.runtime';
 
@@ -109,6 +110,7 @@ function buildTutor(
     clock: deps.clock,
     graph: curriculum.graph,
     outbox: repositories.outbox,
+    corrections: childCorrections(deps, repositories),
   });
   return createTutorService({
     ports: {

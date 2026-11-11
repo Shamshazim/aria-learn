@@ -27,6 +27,8 @@ const DETOUR_APPROACHES: ReadonlySet<string> = new Set([
   'acknowledge-chat',
   'reask-short',
   'check-in',
+  // P3-06: "Got it, no more trucks." — then the question the child was on.
+  'acknowledge-correction',
 ]);
 
 const MOVE_FIELDS: Partial<Readonly<Record<MoveKind, MoveFields>>> = {

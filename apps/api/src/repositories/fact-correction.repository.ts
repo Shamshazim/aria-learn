@@ -44,7 +44,7 @@ async function insert(deps: Deps, input: NewFactCorrection): Promise<CorrectionR
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10, $11)
           RETURNING ${CORRECTION_COLUMNS}`,
     params: [
-      deps.ids.next(),
+      input.id ?? deps.ids.next(),
       input.studentId,
       input.targetKind,
       input.targetId,

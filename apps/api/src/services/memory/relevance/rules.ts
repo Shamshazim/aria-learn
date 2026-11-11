@@ -7,6 +7,8 @@ const KIND_PRIORITY: Readonly<Record<string, number>> = {
   practice_persistence: 1,
 };
 const GLOBAL_KINDS = new Set(['goal', 'preference']);
+/** Above the most an uncorrected fact can score (skill 10 + kind 4 + confidence 3). */
+const CORRECTED_FIRST = 100;
 
 export type RelevantFact = Readonly<{ fact: LearnerFact; priority: number; text: string }>;
 
@@ -39,7 +41,11 @@ function score(fact: LearnerFact, skillCode: string | null): number {
   if (factSkill !== null && factSkill !== skillCode) return 0;
   if (factSkill === null && !GLOBAL_KINDS.has(fact.kind)) return 0;
   const skillScore = skillCode !== null && factSkill === skillCode ? 10 : 0;
-  return skillScore + (KIND_PRIORITY[fact.kind] ?? 0) + Math.round(fact.confidence * 3);
+  // P3-06: a corrected fact ranks ahead of everything an inference could earn.
+  const correctedScore = fact.corrected === true ? CORRECTED_FIRST : 0;
+  return (
+    correctedScore + skillScore + (KIND_PRIORITY[fact.kind] ?? 0) + Math.round(fact.confidence * 3)
+  );
 }
 
 function presentValue(fact: LearnerFact): string {

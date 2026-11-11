@@ -13,6 +13,8 @@ export type ApiError = {
     code: ErrorCode;
     message: string;
     requestId: string;
+    /** Identifiers the caller needs to act on the error (P3-06). Absent on almost every error. */
+    details?: Readonly<Record<string, string>>;
   };
 };
 
