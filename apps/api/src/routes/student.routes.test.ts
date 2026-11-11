@@ -70,6 +70,28 @@ describe('Phase 1 student HTTP surface', () => {
     expect(ended.body).toMatchObject({ data: { reason: 'complete' } });
   });
 
+  it('takes engagement signals on their own route, answered with nothing (P3-05)', async () => {
+    const app = buildApp();
+    const event = {
+      id: 'event-idle',
+      at: NOW.toISOString(),
+      protocolVersion: PROTOCOL_VERSION,
+      sessionId: SESSION_ID,
+      kind: 'ENGAGEMENT_SIGNAL',
+      signal: 'idle',
+      hiddenMs: 31_000,
+    };
+    const quiet = await request(app)
+      .post('/api/v1/student/session/engagement')
+      .send({ protocolVersion: PROTOCOL_VERSION, sessionId: SESSION_ID, event });
+    expect(quiet.status).toBe(200);
+    expect(quiet.body).toMatchObject({ data: { inResponseTo: 'event-idle', moves: [] } });
+    const onTurn = await request(app)
+      .post('/api/v1/student/session/turn')
+      .send({ protocolVersion: PROTOCOL_VERSION, sessionId: SESSION_ID, event });
+    expect(onTurn.status).toBe(400);
+  });
+
   it('rejects invalid input and an unauthorized student', async () => {
     expect(
       (await request(buildApp()).post('/api/v1/student/session').send({ grade: '4' })).status,
@@ -136,6 +158,14 @@ function buildApp(deny = false) {
         inResponseTo: input.event.id,
         at: NOW.toISOString(),
         moves: [ask],
+      }),
+    engagement: (_studentId, input) =>
+      Promise.resolve({
+        protocolVersion: PROTOCOL_VERSION,
+        sessionId: SESSION_ID,
+        inResponseTo: input.event.id,
+        at: NOW.toISOString(),
+        moves: [],
       }),
     end: () => Promise.resolve({ ...session, endedAt: NOW, endReason: 'complete' }),
   });

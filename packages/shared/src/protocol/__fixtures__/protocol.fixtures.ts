@@ -36,21 +36,21 @@ const moveBase = {
   generationId: 'gen_01',
 } as const;
 
-/** P0-02 payloads: prove the one-version compatibility window stays open after P0-27. */
+/** Previous-version payloads: prove the one-version compatibility window stays open. */
 export const PREVIOUS_VERSION_EVENT_FIXTURE = {
   id: 'evt_previous_pause',
   at: '2026-08-22T10:00:00Z',
   sessionId: 'ses_01',
-  protocolVersion: '1.0.0',
+  protocolVersion: '1.1.0',
   kind: 'PAUSE',
 } as const;
 
-/** What P0-08's scripted source emits: a 1.0.0 move with none of the realtime fields. */
+/** A previous-version move with none of the realtime fields. */
 export const PREVIOUS_VERSION_MOVE_FIXTURE = {
   id: 'mov_previous_say',
   at: '2026-08-22T10:00:00Z',
   sessionId: 'ses_01',
-  protocolVersion: '1.0.0',
+  protocolVersion: '1.1.0',
   kind: 'SAY',
   speech: { text: 'Let us look at fractions.' },
   display: [],
@@ -132,6 +132,13 @@ export const EVENT_FIXTURES: Record<EventKind, unknown> = {
   PAUSE: { ...eventBase, id: 'evt_pause', kind: 'PAUSE' },
   RESUME: { ...eventBase, id: 'evt_resume', kind: 'RESUME' },
   LEAVE: { ...eventBase, id: 'evt_leave', kind: 'LEAVE', reason: 'done' },
+  ENGAGEMENT_SIGNAL: {
+    ...eventBase,
+    id: 'evt_engagement',
+    kind: 'ENGAGEMENT_SIGNAL',
+    signal: 'idle',
+    hiddenMs: 31_000,
+  },
 };
 
 export const MOVE_FIXTURES: Record<MoveKind, unknown> = {

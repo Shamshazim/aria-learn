@@ -8,7 +8,7 @@ import {
   sessionIdSchema,
   timestampSchema,
 } from './common.schema';
-import { tutorInputEventSchema } from './events.schema';
+import { engagementSignalEventSchema, tutorInputEventSchema } from './events.schema';
 import { tutorMoveSchema } from './moves.schema';
 import { moveSegmentSchema } from './segment.schema';
 
@@ -23,11 +23,18 @@ import { moveSegmentSchema } from './segment.schema';
 /** A turn may produce several moves: a `SAY` that explains, then the `ASK` that follows it. */
 const MAX_MOVES_PER_TURN = 8;
 
-export const turnRequestSchema = z.strictObject({
-  protocolVersion: protocolVersionSchema,
-  sessionId: sessionIdSchema.optional(),
-  event: tutorInputEventSchema,
-});
+export const turnRequestSchema = z
+  .strictObject({
+    protocolVersion: protocolVersionSchema,
+    sessionId: sessionIdSchema.optional(),
+    event: tutorInputEventSchema,
+  })
+  // P3-05: an engagement signal often changes nothing a child should see, and a turn always
+  // shows them something. It has its own request, below, whose answer may be empty.
+  .refine((request) => request.event.kind !== 'ENGAGEMENT_SIGNAL', {
+    message: 'Engagement signals go to the engagement endpoint, not the turn endpoint',
+    path: ['event', 'kind'],
+  });
 
 export type TurnRequest = z.infer<typeof turnRequestSchema>;
 
@@ -41,6 +48,28 @@ export const turnResponseSchema = z.strictObject({
 });
 
 export type TurnResponse = z.infer<typeof turnResponseSchema>;
+
+/**
+ * P3-05: a hidden tab or an idle child, reported by the client. Answered with what it changed:
+ * usually nothing, sometimes a check-in. The one exchange whose answer may carry no moves.
+ */
+export const engagementRequestSchema = z.strictObject({
+  protocolVersion: protocolVersionSchema,
+  sessionId: sessionIdSchema,
+  event: engagementSignalEventSchema,
+});
+
+export type EngagementRequest = z.infer<typeof engagementRequestSchema>;
+
+export const engagementResponseSchema = z.strictObject({
+  protocolVersion: protocolVersionSchema,
+  sessionId: sessionIdSchema,
+  inResponseTo: messageIdSchema,
+  at: timestampSchema,
+  moves: z.array(tutorMoveSchema).max(MAX_MOVES_PER_TURN),
+});
+
+export type EngagementResponse = z.infer<typeof engagementResponseSchema>;
 
 /**
  * P2H-07: the text channel, over SSE — gated sentences, then the turn that closes them.

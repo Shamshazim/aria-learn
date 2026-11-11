@@ -2,6 +2,7 @@ import { useCallback, useReducer, useRef, useState } from 'react';
 
 import type { Grade, TutorMove } from '@aria/shared';
 
+import { useEngagementSignals } from '@/features/session/hooks/useEngagementSignals';
 import { useMediaEvents, useSourceLifecycle } from '@/features/session/hooks/useSessionLifecycle';
 import { useSilenceTimer, type SilenceControls } from '@/features/session/hooks/useSilenceTimer';
 import { ONLINE, reduceConnection } from '@/features/session/model/connection-state';
@@ -55,6 +56,7 @@ export function useTutorSession(input: {
   useSourceLifecycle(input, source, active, send);
   useMediaEvents(send, transport.retry);
   const silence = useSilence(state, send, input.voiceLive === true);
+  useEngagementSignals(send);
 
   const interrupt = useCallback(async (): Promise<void> => {
     const interruptedMoveId = stateRef.current.currentMove?.id;

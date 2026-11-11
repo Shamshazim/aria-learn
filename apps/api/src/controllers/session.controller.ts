@@ -3,16 +3,22 @@ import {
   turnFrameSchema,
   type CurrentSessionResponse,
   type EndSessionResponse,
+  type EngagementResponse,
   type SessionStartResponse,
   type TurnResponse,
 } from '@aria/shared';
 
 import { requestedFormat, streamTurn } from '@/controllers/turn-stream';
 import type { Logger } from '@/lib/logger';
-import type { CreateSessionRequest, SessionTurnRequest } from '@/schemas/session.schema';
+import type {
+  CreateSessionRequest,
+  SessionEngagementRequest,
+  SessionTurnRequest,
+} from '@/schemas/session.schema';
 import {
   createSessionRequestSchema,
   endSessionRequestSchema,
+  sessionEngagementRequestSchema,
   sessionTurnRequestSchema,
 } from '@/schemas/session.schema';
 import type { SegmentBus } from '@/services/content/segment-bus';
@@ -28,6 +34,8 @@ export type SessionControllers = Readonly<{
   current: RequestHandler;
   end: RequestHandler;
   turn: RequestHandler;
+  /** P3-05: an engagement signal, answered with whatever it changed — often nothing. */
+  engagement: RequestHandler;
 }>;
 
 export function createSessionControllers(deps: {
@@ -41,6 +49,7 @@ export function createSessionControllers(deps: {
     input: Readonly<{ sessionId: string; studentId: string; reason: SessionEndReason }>,
   ): Promise<TutorSessionRecord | null>;
   turn(studentId: string, request: SessionTurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
+  engagement(studentId: string, request: SessionEngagementRequest): Promise<EngagementResponse>;
   /** P2H-07: present when the deployment can stream sentences ahead of the turn. */
   segments?: SegmentBus;
   logger?: Pick<Logger, 'warn'>;
@@ -69,6 +78,7 @@ export function createSessionControllers(deps: {
         },
       });
     },
+    engagement: engagementHandler((id, body) => deps.engagement(id, body)),
     turn: async (request: Request, response: Response<ApiResponse<TurnResponse>>) => {
       const body = sessionTurnRequestSchema.parse(request.validated?.body);
       const controller = new AbortController();
@@ -85,6 +95,16 @@ export function createSessionControllers(deps: {
         request.off('aborted', abort);
       }
     },
+  };
+}
+
+/** P3-05: an engagement signal in, whatever it changed out — often no moves at all. */
+function engagementHandler(
+  engagement: Parameters<typeof createSessionControllers>[0]['engagement'],
+): RequestHandler {
+  return async (request: Request, response: Response<ApiResponse<EngagementResponse>>) => {
+    const body = sessionEngagementRequestSchema.parse(request.validated?.body);
+    response.status(200).json({ data: await engagement(studentId(request), body) });
   };
 }
 

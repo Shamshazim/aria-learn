@@ -22,6 +22,7 @@ const PAYLOADS: readonly EventPayload[] = [
   { kind: 'PAUSE' },
   { kind: 'RESUME' },
   { kind: 'LEAVE', reason: 'done' },
+  { kind: 'ENGAGEMENT_SIGNAL', signal: 'idle', hiddenMs: 30_000 },
 ];
 
 describe('input event factory', () => {

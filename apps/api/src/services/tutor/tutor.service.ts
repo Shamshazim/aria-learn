@@ -20,6 +20,7 @@ import type { Logger } from '@/lib/logger';
 import { checkArithmetic } from '@/quality/arithmetic';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import type { AnswerResync } from '@/services/tutor/answer-target';
+import { handleEngagementSignal } from '@/services/tutor/engagement-turn';
 import { resolveSpokenAnswer, type ChoiceOption } from '@/services/tutor/spoken-answer';
 import { isStaleSilence, type LatestMoveLookup } from '@/services/tutor/stale-silence';
 import { strategiesFor } from '@/services/tutor/strategy-evidence';
@@ -41,6 +42,8 @@ export function createTutorService(deps: {
   /** An answer to a question Aria has moved past gets the current moves back, not a 400. */
   resyncAnswer: AnswerResync;
   logger: Pick<Logger, 'info'>;
+  /** P3-05: whether the parent consented to vocal cues for this child; absent means no. */
+  vocalCuesAllowed?: (studentId: string) => Promise<boolean>;
   intent: IntentClassifier;
   /** A second opinion on an answer that missed the key word for word; absent means exact only. */
   judge?: AnswerJudge;
@@ -55,6 +58,16 @@ export function createTutorService(deps: {
       if (event.sessionId === undefined) throw new Error('Session turn requires sessionId');
       await deps.requireOwnership(studentId, event.sessionId);
       if (await isStaleSilence(event, deps.latestMoveId, deps.logger)) return [];
+      if (event.kind === 'ENGAGEMENT_SIGNAL') {
+        return handleEngagementSignal({
+          event,
+          studentId,
+          harness,
+          commit: deps.ports.commit,
+          vocalCuesAllowed: deps.vocalCuesAllowed,
+          logger: deps.logger,
+        });
+      }
       if (event.kind === 'ANSWER') {
         const resync = await deps.resyncAnswer({
           sessionId: event.sessionId,

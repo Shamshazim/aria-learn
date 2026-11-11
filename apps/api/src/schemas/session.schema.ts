@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { gradeSchema, turnRequestSchema } from '@aria/shared';
+import { engagementRequestSchema, gradeSchema, turnRequestSchema } from '@aria/shared';
 
 export const createSessionRequestSchema = z
   .object({
@@ -21,6 +21,10 @@ export const endSessionRequestSchema = z
 
 export const sessionTurnRequestSchema = turnRequestSchema;
 
+/** P3-05: a hidden tab or an idle child, from the client. */
+export const sessionEngagementRequestSchema = engagementRequestSchema;
+
 export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;
 export type EndSessionRequest = z.infer<typeof endSessionRequestSchema>;
 export type SessionTurnRequest = z.infer<typeof sessionTurnRequestSchema>;
+export type SessionEngagementRequest = z.infer<typeof sessionEngagementRequestSchema>;

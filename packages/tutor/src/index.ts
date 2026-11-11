@@ -26,3 +26,5 @@ export type {
   TutorPorts,
 } from './types';
 export * from './scheduler';
+export * from './engagement';
+export { ENGAGEMENT_NOTED } from './policy/engagement-policy';

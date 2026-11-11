@@ -21,11 +21,14 @@ import type { MemoryRetrieval } from '@/services/memory/retrieve.service';
 import { progressMap } from '@/services/scheduler/scheduler-state';
 import { nextPlannedSkill, readPlanSteps } from '@/services/scheduler/session-plan';
 import {
+  isCheckInReply,
   latestAskRecord,
   questionEvidence,
   resolveAnswerTarget,
   type AskRecord,
 } from '@/services/tutor/answer-target';
+import { dialogueWindow } from '@/services/tutor/dialogue-window';
+import { engagementContext } from '@/services/tutor/engagement-context';
 import {
   consecutiveSilences,
   consecutiveStuck,
@@ -99,7 +102,10 @@ async function load(
     }),
   ]);
   return {
-    session: sessionContext(session, records, skillCode, skillContext),
+    session: {
+      ...sessionContext(session, records, skillCode, skillContext),
+      engagement: engagementContext(records, event, session.band),
+    },
     modelContext: modelContext(deps, { records, memory, ask, askEvidence, skillCode }),
     recentKinds: records.map((record) => record.kind),
   };
@@ -258,6 +264,7 @@ function answerAsk(
   event: TutorInputEvent,
 ): AskRecord | null {
   if (event.kind !== 'ANSWER') return latestAskRecord(records);
+  if (isCheckInReply(records, event.respondsTo)) return latestAskRecord(records);
   const target = resolveAnswerTarget(records, event.respondsTo);
   if (target.kind === 'stale') {
     throw new ValidationError('answer does not target the active question');
@@ -268,29 +275,4 @@ function answerAsk(
 function stringPlanValue(plan: Readonly<Record<string, unknown>>, key: string): string | null {
   const value = plan[key];
   return typeof value === 'string' ? value : null;
-}
-
-const DIALOGUE_TURNS: Readonly<Record<string, number>> = { early: 6, middle: 10, senior: 14 };
-
-/** P2H-04: the last few spoken turns, oldest first, for the prompt's conversation block. */
-function dialogueWindow(
-  records: Awaited<ReturnType<SessionEventRepository['list']>>,
-  band: string,
-): readonly RawDialogueTurn[] {
-  return records
-    .filter(
-      (record): record is typeof record & { text: string } =>
-        (record.actor === 'aria' || record.actor === 'child') &&
-        typeof record.text === 'string' &&
-        record.text.trim() !== '' &&
-        // P2H-05: a turn that carried personal information never enters the window at all.
-        record.evidence.personalInfoRedacted !== true,
-    )
-    .slice(-(DIALOGUE_TURNS[band] ?? 10))
-    .map((record) => ({
-      speaker: record.actor === 'aria' ? 'aria' : 'child',
-      text: record.text.slice(0, 500),
-      // The crisis path stamps `evidence.safety`; that turn's words never leave the API.
-      ...(record.evidence.safety === undefined ? {} : { safetyFlagged: true }),
-    }));
 }

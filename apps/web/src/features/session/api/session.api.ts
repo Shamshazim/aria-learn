@@ -1,6 +1,7 @@
 import {
   currentSessionResponseSchema,
   endSessionResponseSchema,
+  engagementResponseSchema,
   sessionStartResponseSchema,
   turnFrameSchema,
   turnResponseSchema,
@@ -8,6 +9,8 @@ import {
   type Grade,
   type CurrentSessionResponse,
   type EndSessionResponse,
+  type EngagementRequest,
+  type EngagementResponse,
   type SessionStartResponse,
   type TurnResponse,
   type TurnFrame,
@@ -32,6 +35,8 @@ export type SessionApi = Readonly<{
   turn(input: TurnRequest, signal?: AbortSignal): Promise<TurnResponse>;
   /** P2H-07: the same turn, read sentence by sentence, closed by the moves themselves. */
   turnStream(input: TurnRequest, signal?: AbortSignal): AsyncIterable<TurnFrame>;
+  /** P3-05: a hidden tab or an idle child; answered with what it changed, often nothing. */
+  engagement(input: EngagementRequest, signal?: AbortSignal): Promise<EngagementResponse>;
   end(
     sessionId: string,
     reason: 'complete' | 'break' | 'child_left' | 'timeout',
@@ -75,6 +80,13 @@ export function createSessionApi(client: ApiClient): SessionApi {
         '/api/v1/student/session/turn',
         input,
         turnFrameSchema,
+        signal === undefined ? undefined : { signal },
+      ),
+    engagement: (input: EngagementRequest, signal?: AbortSignal) =>
+      client.post(
+        '/api/v1/student/session/engagement',
+        input,
+        engagementResponseSchema,
         signal === undefined ? undefined : { signal },
       ),
     end: (sessionId: string, reason: 'complete' | 'break' | 'child_left' | 'timeout') =>

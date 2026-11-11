@@ -30,9 +30,9 @@ const roundTrip = <T>(schema: { parse: (input: unknown) => T }, fixture: unknown
   schema.parse(JSON.parse(JSON.stringify(schema.parse(fixture))));
 
 describe('the event union', () => {
-  it('declares the seventeen text and realtime event kinds', () => {
-    expect(EVENT_KINDS).toHaveLength(17);
-    expect(new Set(EVENT_KINDS).size).toBe(17);
+  it('declares the eighteen text, realtime and engagement event kinds', () => {
+    expect(EVENT_KINDS).toHaveLength(18);
+    expect(new Set(EVENT_KINDS).size).toBe(18);
   });
 
   it('lets a child skip a question, and defaults the reason to their own request', () => {
@@ -112,20 +112,20 @@ describe('realtime envelope fields', () => {
 
 describe('protocol compatibility', () => {
   it('bumps the current protocol minor version', () => {
-    expect(PROTOCOL_VERSION).toBe('1.1.0');
+    expect(PROTOCOL_VERSION).toBe('1.2.0');
   });
 
-  it('still parses a P0-02 fixture without the optional realtime fields', () => {
+  it('still parses a previous-version event without the optional realtime fields', () => {
     const parsed = tutorInputEventSchema.parse(PREVIOUS_VERSION_EVENT_FIXTURE);
 
-    expect(parsed.protocolVersion).toBe('1.0.0');
+    expect(parsed.protocolVersion).toBe('1.1.0');
     expect(parsed).not.toHaveProperty('turnId');
   });
 
-  it('still parses a P0-02 move, which is what the scripted source emits', () => {
+  it('still parses a previous-version move', () => {
     const parsed = tutorMoveSchema.parse(PREVIOUS_VERSION_MOVE_FIXTURE);
 
-    expect(parsed.protocolVersion).toBe('1.0.0');
+    expect(parsed.protocolVersion).toBe('1.1.0');
     expect(parsed).not.toHaveProperty('serverSeq');
     expect(parsed).not.toHaveProperty('generationId');
   });

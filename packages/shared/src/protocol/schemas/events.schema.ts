@@ -5,8 +5,8 @@ import { bandSchema, gradeSchema } from '../../band/band';
 import { envelopeShape, sequenceSchema } from './common.schema';
 
 /**
- * The seventeen events Aria receives (`master-plan.md` §4.1, P0-27 realtime signals, and the
- * child's `SKIP`).
+ * The eighteen events Aria receives (`master-plan.md` §4.1, P0-27 realtime signals, the
+ * child's `SKIP`, and P3-05's client engagement signals).
  *
  * One schema per kind, then a discriminated union over `kind`. Discriminated rather than a
  * plain union so an unknown kind fails with a readable error naming the field, and so
@@ -128,6 +128,33 @@ export const mediaRestoredEventSchema = event('MEDIA_RESTORED', {});
 export const pauseEventSchema = event('PAUSE', {});
 export const resumeEventSchema = event('RESUME', {});
 
+/** The five engagement states a session can be in (`master-plan.md` §4.3, P3-05). */
+export const ENGAGEMENT_STATES = [
+  'ready',
+  'uncertain',
+  'frustrated',
+  'tired',
+  'disengaged',
+] as const;
+
+/**
+ * The engagement signals a client may send (P3-05). Every other signal — slow answers,
+ * repeated errors, silence, short answers, what the child said — is derived on the server
+ * from the session log, so a client cannot claim a child is tired.
+ *
+ * `vocal_cue` comes from the voice worker and names the state it suggests; the API drops it
+ * unless the parent consented to vocal cues. There is no camera signal and never will be.
+ */
+export const ENGAGEMENT_SIGNAL_KINDS = ['tab_hidden', 'idle', 'vocal_cue'] as const;
+
+export const engagementSignalEventSchema = event('ENGAGEMENT_SIGNAL', {
+  signal: z.enum(ENGAGEMENT_SIGNAL_KINDS),
+  /** How long the tab was hidden, for `tab_hidden` and `idle`. */
+  hiddenMs: z.number().int().nonnegative().max(86_400_000).optional(),
+  /** What a `vocal_cue` suggests. Ignored on the other signals. */
+  suggests: z.enum(ENGAGEMENT_STATES).optional(),
+});
+
 /** The child left. `reason` separates a deliberate exit from a dropped connection. */
 export const leaveEventSchema = event('LEAVE', {
   reason: z.enum(['done', 'navigated_away', 'disconnected']).default('navigated_away'),
@@ -151,10 +178,13 @@ export const tutorInputEventSchema = z.discriminatedUnion('kind', [
   pauseEventSchema,
   resumeEventSchema,
   leaveEventSchema,
+  engagementSignalEventSchema,
 ]);
 
 export type TutorInputEvent = z.infer<typeof tutorInputEventSchema>;
 export type SkipReason = (typeof SKIP_REASONS)[number];
+export type EngagementStateKind = (typeof ENGAGEMENT_STATES)[number];
+export type EngagementSignalKind = (typeof ENGAGEMENT_SIGNAL_KINDS)[number];
 
 export const EVENT_KINDS = [
   'ARRIVED',
@@ -174,6 +204,7 @@ export const EVENT_KINDS = [
   'PAUSE',
   'RESUME',
   'LEAVE',
+  'ENGAGEMENT_SIGNAL',
 ] as const;
 
 export type EventKind = (typeof EVENT_KINDS)[number];

@@ -1,9 +1,14 @@
 import {
   PROTOCOL_VERSION,
+  engagementResponseSchema,
   sessionIdSchema,
   turnResponseSchema,
+  type EngagementRequest,
+  type EngagementResponse,
   type TurnRequest,
   type TurnResponse,
+  type TutorInputEvent,
+  type TutorMove,
 } from '@aria/shared';
 import type { SkillGraph } from '@aria/tutor';
 
@@ -70,6 +75,11 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
     serialize(request.sessionId ?? request.event.sessionId ?? 'missing', () =>
       turnResponse({ ...runtime, end: lifecycle.end }, studentId, request, signal),
     );
+  // Through the same queue as turns: a check-in must not race the answer it interrupts.
+  const engagement = (studentId: string, request: EngagementRequest) =>
+    serialize(request.sessionId, () =>
+      engagementResponse({ ...runtime, end: lifecycle.end }, studentId, request),
+    );
   return {
     student: {
       authorize: identity.childAuth,
@@ -78,6 +88,7 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
         sessions: lifecycle.sessions,
         end: lifecycle.end,
         turn,
+        engagement,
         logger: runtime.deps.logger,
         ...(runtime.deps.segments === undefined ? {} : { segments: runtime.deps.segments }),
       }),
@@ -215,25 +226,11 @@ async function turnResponse(
   ) {
     throw new ValidationError('turn session ids must match');
   }
-  const session = await runtime.repositories.sessions.findById(sessionId);
-  if (session?.studentId !== studentId)
-    throw new ForbiddenError('student session ownership mismatch');
-  if (session.endedAt !== null) throw new ValidationError('session has already ended');
-  const event = { ...request.event, sessionId };
-  const moves = await turnMoves(runtime, studentId, event, signal);
-  const terminal = moves.find((move) => move.kind === 'END' || move.kind === 'BREAK');
-  if (terminal !== undefined) {
-    await runtime.end({
-      sessionId,
-      studentId,
-      reason:
-        request.event.kind === 'LEAVE'
-          ? 'child_left'
-          : terminal.kind === 'BREAK'
-            ? 'break'
-            : 'complete',
-    });
-  }
+  const moves = await sessionEventMoves(
+    runtime,
+    { studentId, sessionId, event: request.event },
+    signal,
+  );
   return turnResponseSchema.parse({
     protocolVersion: PROTOCOL_VERSION,
     sessionId: sessionIdSchema.parse(sessionId),
@@ -241,4 +238,55 @@ async function turnResponse(
     at: runtime.deps.clock.now().toISOString(),
     moves,
   });
+}
+
+/**
+ * P3-05: an engagement signal goes the same way as a turn — ownership, the session still
+ * open, a break or an end acted on — but its answer may carry no moves at all.
+ */
+async function engagementResponse(
+  runtime: TurnRuntime,
+  studentId: string,
+  request: EngagementRequest,
+): Promise<EngagementResponse> {
+  if (request.event.sessionId !== undefined && request.event.sessionId !== request.sessionId) {
+    throw new ValidationError('engagement session ids must match');
+  }
+  const moves = await sessionEventMoves(runtime, {
+    studentId,
+    sessionId: request.sessionId,
+    event: request.event,
+  });
+  return engagementResponseSchema.parse({
+    protocolVersion: PROTOCOL_VERSION,
+    sessionId: request.sessionId,
+    inResponseTo: request.event.id,
+    at: runtime.deps.clock.now().toISOString(),
+    moves,
+  });
+}
+
+/** One event through the tutor for a session this child owns and has not finished. */
+async function sessionEventMoves(
+  runtime: TurnRuntime,
+  target: Readonly<{ studentId: string; sessionId: string; event: TutorInputEvent }>,
+  signal?: AbortSignal,
+): Promise<readonly TutorMove[]> {
+  const { studentId, sessionId, event: incoming } = target;
+  const session = await runtime.repositories.sessions.findById(sessionId);
+  if (session?.studentId !== studentId)
+    throw new ForbiddenError('student session ownership mismatch');
+  if (session.endedAt !== null) throw new ValidationError('session has already ended');
+  const event = { ...incoming, sessionId: sessionIdSchema.parse(sessionId) };
+  const moves = await turnMoves(runtime, studentId, event, signal);
+  const terminal = moves.find((move) => move.kind === 'END' || move.kind === 'BREAK');
+  if (terminal !== undefined) {
+    await runtime.end({
+      sessionId,
+      studentId,
+      reason:
+        incoming.kind === 'LEAVE' ? 'child_left' : terminal.kind === 'BREAK' ? 'break' : 'complete',
+    });
+  }
+  return moves;
 }

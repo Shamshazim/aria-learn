@@ -28,7 +28,9 @@ export type EventPayload =
   | Readonly<{ kind: 'MEDIA_RESTORED' }>
   | Readonly<{ kind: 'PAUSE' }>
   | Readonly<{ kind: 'RESUME' }>
-  | Readonly<{ kind: 'LEAVE'; reason: 'done' | 'navigated_away' | 'disconnected' }>;
+  | Readonly<{ kind: 'LEAVE'; reason: 'done' | 'navigated_away' | 'disconnected' }>
+  /** P3-05: the only engagement signals a browser may report. */
+  | Readonly<{ kind: 'ENGAGEMENT_SIGNAL'; signal: 'tab_hidden' | 'idle'; hiddenMs: number }>;
 
 export type EventFactory = (payload: EventPayload) => TutorInputEvent;
 

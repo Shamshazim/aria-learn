@@ -4,6 +4,7 @@ import {
   NULL_TURN_CONTENT_OBSERVER,
   type TurnContentObserver,
 } from '@/observability/content-metrics';
+import { engagementCheckIn } from '@/services/content/check-in-move';
 import { createFallbackPicker, type FallbackPicker } from '@/services/content/fallback';
 import { fixedText } from '@/services/content/fixed-text';
 import {
@@ -55,6 +56,8 @@ async function resolve(
   signal?: AbortSignal,
 ): Promise<ResolvedContent> {
   throwIfAborted(signal);
+  const checkIn = engagementCheckIn(deps, turn);
+  if (checkIn !== null) return checkIn;
   if (turn.plan.kind === 'ASK') return resolveQuestion(deps, turn, signal);
   const reviewed = reviewedText(deps, turn);
   if (reviewed !== null) {

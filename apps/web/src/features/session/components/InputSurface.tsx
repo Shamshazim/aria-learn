@@ -1,6 +1,7 @@
 import type { Band, TutorMove } from '@aria/shared';
 
 import { TapNumbers, TextEntry } from '@/features/session/components/AnswerEntry';
+import { CheckInChoices } from '@/features/session/components/CheckInChoices';
 import { SpeakButton } from '@/features/session/components/SpeakButton';
 import { WritingPad } from '@/features/session/components/WritingPad';
 import { inputModeFor } from '@/features/session/model/answer-input';
@@ -36,7 +37,12 @@ function typedControl(props: InputProps): React.JSX.Element | null {
     case 'none':
       return null;
     case 'choice':
-      return <Choices band={props.band} move={props.move} onAnswer={props.onAnswer} />;
+      // P3-05: a check-in is answered with two big buttons, whatever the band.
+      return props.move.kind === 'CHECK_IN' ? (
+        <CheckInChoices band={props.band} move={props.move} onAnswer={props.onAnswer} />
+      ) : (
+        <Choices band={props.band} move={props.move} onAnswer={props.onAnswer} />
+      );
     case 'number':
       return props.band === 'early' ? (
         <TapNumbers key={props.move.id} onAnswer={props.onAnswer} />

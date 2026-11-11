@@ -135,6 +135,27 @@ describe('HTTP tutor source', () => {
     );
   });
 
+  it('sends an engagement signal to its own endpoint, never as a turn (P3-05)', async () => {
+    const checkIn = move('CHECK_IN', 'Something different, or keep going?');
+    const api = fakeApi({ createdMoves: [], turnMoves: [], engagementMoves: [checkIn] });
+    const source = await startedSource(api);
+    const idle = event({ kind: 'ENGAGEMENT_SIGNAL', signal: 'idle', hiddenMs: 30_000 });
+    await expect(collect(source, idle)).resolves.toEqual([checkIn]);
+    expect(api.turn).not.toHaveBeenCalled();
+    expect(vi.mocked(api.engagement).mock.calls[0]?.[0]).toMatchObject({
+      sessionId: SESSION_ID,
+      event: { kind: 'ENGAGEMENT_SIGNAL', sessionId: SESSION_ID },
+    });
+  });
+
+  it('says nothing to the child when an engagement signal fails to arrive', async () => {
+    const api = fakeApi({ createdMoves: [move('ASK', 'What is 2 + 2?')], turnMoves: [] });
+    vi.mocked(api.engagement).mockRejectedValueOnce(new Error('offline'));
+    const source = await startedSource(api);
+    const hidden = event({ kind: 'ENGAGEMENT_SIGNAL', signal: 'tab_hidden', hiddenMs: 5_000 });
+    await expect(collect(source, hidden)).resolves.toEqual([]);
+  });
+
   it('lets the API decide between resume and fresh on a class pick', async () => {
     const resumed = move('ASK', 'Keep going.');
     const api = fakeApi({ createdMoves: [resumed], turnMoves: [] });
@@ -165,6 +186,7 @@ function fakeApi(
   input: Readonly<{
     createdMoves: readonly TutorMove[];
     turnMoves: readonly TutorMove[];
+    engagementMoves?: readonly TutorMove[];
   }>,
 ): SessionApi {
   const current = vi.fn<SessionApi['current']>(() => Promise.resolve(null));
@@ -199,6 +221,15 @@ function fakeApi(
     turnStream: async function* (input: Parameters<SessionApi['turn']>[0], signal?: AbortSignal) {
       yield { kind: 'TURN_MOVES' as const, turn: await turn(input, signal) };
     },
+    engagement: vi.fn<SessionApi['engagement']>((request) =>
+      Promise.resolve({
+        protocolVersion: PROTOCOL_VERSION,
+        sessionId: SESSION_ID,
+        inResponseTo: request.event.id,
+        at: '2026-08-24T20:00:00.000Z',
+        moves: [...(input.engagementMoves ?? [])],
+      }),
+    ),
     end,
     realtime: vi.fn<SessionApi['realtime']>(() => Promise.reject(new Error('not used'))),
   };
@@ -229,7 +260,7 @@ function sessionContext() {
   };
 }
 
-function move(kind: 'ASK' | 'HINT', text: string): TutorMove {
+function move(kind: 'ASK' | 'HINT' | 'CHECK_IN', text: string): TutorMove {
   return tutorMoveSchema.parse({
     id: `move-${kind}`,
     at: '2026-08-24T20:00:00.000Z',
@@ -239,7 +270,11 @@ function move(kind: 'ASK' | 'HINT', text: string): TutorMove {
     speech: { text },
     display: [],
     expects: 'none',
-    ...(kind === 'ASK' ? { itemId: 'item-1' } : { attempt: 1 }),
+    ...(kind === 'ASK'
+      ? { itemId: 'item-1' }
+      : kind === 'CHECK_IN'
+        ? { about: 'preference' }
+        : { attempt: 1 }),
   });
 }
 
