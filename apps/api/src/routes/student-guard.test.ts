@@ -62,7 +62,7 @@ function routerDeps(authorize: RequestHandler): RouterDeps {
     student: {
       authorize,
       arrival: ok,
-      sessions: { create: ok, current: ok, end: ok, turn: ok },
+      sessions: { create: ok, current: ok, end: ok, turn: ok, engagement: ok },
     },
     voice: {
       student: { authorize, controller: voiceControllers(ok) },

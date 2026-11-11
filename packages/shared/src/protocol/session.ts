@@ -8,6 +8,8 @@ export {
   turnFrameSchema,
   turnRequestSchema,
   turnResponseSchema,
+  engagementRequestSchema,
+  engagementResponseSchema,
   sessionContextSchema,
   sessionIdSchema,
 } from './schemas/session.schema';
@@ -16,6 +18,8 @@ export type {
   TurnFrame,
   TurnRequest,
   TurnResponse,
+  EngagementRequest,
+  EngagementResponse,
   SessionContext,
   SessionId,
 } from './schemas/session.schema';

@@ -202,7 +202,7 @@ function studentRoutes(
   return {
     authorize,
     arrival: echo,
-    sessions: { create: echo, current: echo, end: endSession, turn: echo },
+    sessions: { create: echo, current: echo, end: endSession, turn: echo, engagement: echo },
   };
 }
 

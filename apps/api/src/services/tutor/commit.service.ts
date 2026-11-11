@@ -10,6 +10,7 @@ import {
   type SkillStateRepository,
 } from '@/repositories/skill-state.repository';
 import { recordAttempt } from '@/services/scheduler/record-attempt';
+import { ENGAGEMENT_EVENT_KIND } from '@/services/tutor/engagement-context';
 import type { NewSessionEvent, SessionEndReason } from '@/types/session';
 
 import type { Pool } from 'pg';
@@ -45,6 +46,8 @@ async function commit(
     await events.append(moveRecord(turn, move, sessionId, deps.clock));
     await deps.outbox?.withDb(tx).enqueueIfOpen(sessionId, move);
   }
+  const engagement = engagementRecord(turn, sessionId, deps.clock);
+  if (engagement !== null) await events.append(engagement);
   const practised = practisedSkill(turn);
   await recordGraded(deps, tx, turn, sessionId);
   // A SWITCH names where the lesson goes next. Writing it on the session is what makes the
@@ -146,6 +149,35 @@ function moveRecord(
       spans: turn.spans,
     },
     payload: move,
+    at: clock.now(),
+  };
+}
+
+/**
+ * P3-05: one row per engagement inference — the signals, the confidence and what was done —
+ * so a false one can be counted later ("I'm fine" after a tired check-in is a false positive).
+ * Written only when the policy says the state or the response changed.
+ */
+function engagementRecord(
+  turn: CommittedTurn,
+  sessionId: string,
+  clock: Clock,
+): NewSessionEvent | null {
+  const evidence = turn.plan.evidence ?? {};
+  if (evidence.engagementChanged !== true) return null;
+  const fields = Object.fromEntries(
+    Object.entries(evidence).filter(([key]) => key.startsWith('engagement')),
+  );
+  return {
+    sessionId,
+    actor: 'system',
+    kind: ENGAGEMENT_EVENT_KIND,
+    text: null,
+    skillCode: practisedSkill(turn),
+    correct: null,
+    latencyMs: null,
+    evidence: { ...fields, trigger: turn.event.kind },
+    payload: {},
     at: clock.now(),
   };
 }

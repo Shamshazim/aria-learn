@@ -1,5 +1,6 @@
 import type { Band, Grade, MoveKind, TutorInputEvent, TutorMove } from '@aria/shared';
 
+import type { EngagementContext } from './engagement/types';
 import type { MisconceptionHistory } from './scheduler/misconception';
 
 export type SessionSnapshot = Readonly<{
@@ -41,6 +42,11 @@ export type SessionSnapshot = Readonly<{
   misconceptionHistory?: Readonly<Record<string, MisconceptionHistory>>;
   /** P3-04: a due skill in another strand of the subject, for when there is nothing to step back to. */
   alternateStrandSkill?: string | null;
+  /**
+   * P3-05: the session's engagement evidence and what has been done about it. Absent means the
+   * caller derives none, and only what this event itself says is considered.
+   */
+  engagement?: EngagementContext;
 }>;
 
 export type LoadedTurnContext<TModelContext> = Readonly<{

@@ -25,7 +25,16 @@ export {
   pauseEventSchema,
   resumeEventSchema,
   leaveEventSchema,
+  engagementSignalEventSchema,
+  ENGAGEMENT_STATES,
+  ENGAGEMENT_SIGNAL_KINDS,
   EVENT_KINDS,
 } from './schemas/events.schema';
 
-export type { TutorInputEvent, EventKind, SkipReason } from './schemas/events.schema';
+export type {
+  TutorInputEvent,
+  EventKind,
+  SkipReason,
+  EngagementStateKind,
+  EngagementSignalKind,
+} from './schemas/events.schema';

@@ -21,6 +21,8 @@ const BY_EVENT: Readonly<Record<TutorInputEvent['kind'], readonly MoveKind[]>> =
   PAUSE: ['BREAK'],
   RESUME: ['SAY', 'ASK'],
   LEAVE: ['END'],
+  // P3-05: a tab hidden or a child gone idle earns a check-in, an adaptation, or nothing.
+  ENGAGEMENT_SIGNAL: ['CHECK_IN', 'ASK', 'SWITCH', 'RETEACH', 'BREAK'],
 };
 
 export function allowedMovesFor(event: TutorInputEvent): readonly MoveKind[] {

@@ -23,6 +23,12 @@ export const DECISIVE_REASONS = [
   'skip_too_easy',
   'stuck_move_on',
   'mastered_topic',
+  // P3-05: a check-in is reviewed fixed text, an adaptation is the policy's own response to a
+  // confident inference, and a reply to a check-in was the child's decision.
+  'engagement_check_in',
+  'engagement_adapt',
+  'engagement_reply',
+  'engagement_noted',
 ] as const;
 
 export type DecisiveReason = (typeof DECISIVE_REASONS)[number];

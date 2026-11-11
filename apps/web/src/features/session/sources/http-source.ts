@@ -29,6 +29,10 @@ export function createHttpTutorSource(
   return {
     send: async function* (event, signal) {
       if (isClosed() || isAborted(signal) || event.kind === 'ARRIVED') return;
+      if (event.kind === 'ENGAGEMENT_SIGNAL') {
+        yield* await engagementMoves(input.api, sessionId, event, signal);
+        return;
+      }
       if (event.kind !== 'SUBJECT_CHOSEN') {
         yield* streamed(sendTurn(input.api, requireSessionId(sessionId), event, signal), signal, {
           isClosed,
@@ -142,6 +146,29 @@ async function* sendTurn(
     yield* frame.turn.moves;
   }
   if (!closed) throw new ContentUnavailableError();
+}
+
+/**
+ * P3-05: what an engagement signal changed. A signal that does not arrive is not an outage a
+ * child should be told about — the session goes on exactly as it was — so a failure here is
+ * swallowed rather than turned into a "can't reach Aria" notice.
+ */
+async function engagementMoves(
+  api: SessionApi,
+  sessionId: MoveBatch['sessionId'] | null,
+  event: Extract<TutorInputEvent, { kind: 'ENGAGEMENT_SIGNAL' }>,
+  signal?: AbortSignal,
+): Promise<readonly TutorMove[]> {
+  if (sessionId === null) return [];
+  try {
+    const response = await api.engagement(
+      { protocolVersion: PROTOCOL_VERSION, sessionId, event: { ...event, sessionId } },
+      signal,
+    );
+    return response.moves;
+  } catch {
+    return [];
+  }
 }
 
 function sourceError(error: unknown): Error {

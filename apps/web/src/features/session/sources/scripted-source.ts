@@ -75,6 +75,8 @@ function movesFor(
           expects: 'number',
         }),
       ];
+    // P3-05: the scripted source has no engagement model; a hidden tab changes nothing here.
+    case 'ENGAGEMENT_SIGNAL':
     case 'SPEECH_PARTIAL':
     case 'BACKCHANNEL':
     case 'SPEECH_STARTED':

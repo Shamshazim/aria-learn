@@ -9,6 +9,41 @@
 | **Parallel-safe with** | P3-01, P3-02, P3-03, P3-04 |
 | **Size** | M |
 
+## Status
+
+**Code complete 2026-11-10** on `feat/P3-05-engagement-state`, pending review. Stacked on
+P3-04 (#34), which is stacked on P3-01 (#33): it touches the same policy and context files.
+
+- **Protocol 1.2.0.** `ENGAGEMENT_SIGNAL` carries only what a browser or the voice worker can
+  see: `tab_hidden`, `idle`, `vocal_cue`. Everything else is derived from the session log, so a
+  client cannot claim a child is tired. The one-version window now keeps 1.1.0, not 1.0.0.
+- **Its own endpoint: `POST /student/session/engagement`.** A turn's response must carry at
+  least one move, and a signal usually changes nothing a child should see; rather than loosen
+  that rule, an engagement signal has an exchange whose answer may be empty, and
+  `/session/turn` refuses the event. A failed report is swallowed in the browser — a lost "the
+  tab was hidden" is not an outage notice.
+- **Single passive signals weigh 0.3, below the 0.4 at which Aria asks** (`idle` is 0.4).
+  Otherwise one slow answer, or the third wrong answer, would interrupt the hint → reteach →
+  step-back ladder with a check-in. Two that agree are 0.6, three 0.8, a statement 0.9.
+- **What acting means:** tired → `BREAK` (any `BREAK` ends the session as a break, so an
+  offered break is a stop for today); frustrated and uncertain → an easier question;
+  disengaged → `SWITCH` to another strand or the next topic, else a visual reteach. The
+  stuck-twice invariant still runs after it.
+- **A check-in reply is never graded.** Tapped (`choiceId`), its id typed, or spoken; "stop"
+  and "I'm fine / keep going" are honoured from any check-in. A denial is written as
+  `engagementDenied` + `engagementFalsePositive`, and that state is not inferred again.
+- **Statements are first-person patterns**, not a model: "I'm so tired", "this is boring";
+  "the tired dog" is not one, and "I'm not tired" is a denial.
+- **`vocal_cue` needs a granted voice consent naming the `vocal_cues` category.** The parent
+  consent screens cannot grant it yet (P2-14), so every vocal cue is dropped and logged today.
+- **Consolidation refuses `engagement` and the state kinds outright, and a `teaching_response`
+  needs three observations** (one per consolidated session), whatever
+  `MEMORY_REPETITIONS_FOR_DURABLE_FACT` says. P3-02's `sensitivity.ts` does not exist yet, so
+  the guard is in `decide/thresholds.ts`.
+- **Not done:** the "tired child" golden scenario still passes its machine invariants, but
+  the human rubric round is a person's job. Nothing here proposes a `teaching_response`; the
+  guard only makes sure one cannot be kept early.
+
 ## Why
 
 `master-plan.md` §4.3: each session has a temporary engagement state (`ready`, `uncertain`,
@@ -88,19 +123,20 @@ Rules:
 
 ## Acceptance criteria
 
-- [ ] Estimator tests: every state reachable from documented signals; single signal never
+- [x] Estimator tests: every state reachable from documented signals; single signal never
       exceeds 0.4; explicit statement reaches 0.9.
-- [ ] With confidence < 0.7 the policy emits CHECK_IN with reviewed wording and never a SAY
+- [x] With confidence < 0.7 the policy emits CHECK_IN with reviewed wording and never a SAY
       that asserts the state — proven by a test that greps generated moves for state words
       ("tired", "frustrated", "bored") outside a question.
-- [ ] With confidence ≥ 0.7 the documented adaptation is applied once; a second high-
+- [x] With confidence ≥ 0.7 the documented adaptation is applied once; a second high-
       confidence hit escalates to a break offer.
-- [ ] Every inference writes a `session_event` with signals and decision.
-- [ ] `vocal_cue` without consent is dropped (test with a fake consent repository).
-- [ ] Consolidation never promotes engagement kinds; `teaching_response` needs 3 sessions.
-- [ ] Frontend: hiding the tab ≥30 s emits `idle`; CheckInChoices renders two tappable
+- [x] Every inference writes a `session_event` with signals and decision.
+- [x] `vocal_cue` without consent is dropped (test with a fake consent repository).
+- [x] Consolidation never promotes engagement kinds; `teaching_response` needs 3 sessions.
+- [x] Frontend: hiding the tab ≥30 s emits `idle`; CheckInChoices renders two tappable
       answers in the early band and accepts a spoken reply in voice sessions.
-- [ ] The tutoring golden set "tired child" scenario passes the human rubric.
+- [ ] The tutoring golden set "tired child" scenario passes the human rubric. *(Machine
+      invariants pass; the rubric round needs a reviewer.)*
 
 ## Verification
 

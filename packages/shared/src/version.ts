@@ -9,9 +9,10 @@
  * Each bump keeps exactly one prior version readable while the new fields stay optional
  * (the P0-27 window), so a scripted source written against the previous version still parses.
  */
-export const PROTOCOL_VERSION = '1.1.0';
+export const PROTOCOL_VERSION = '1.2.0';
 
-const PREVIOUS_PROTOCOL_VERSION = '1.0.0';
+/** 1.2.0 added P3-05's `ENGAGEMENT_SIGNAL` event; a 1.1.0 client simply never sends one. */
+const PREVIOUS_PROTOCOL_VERSION = '1.1.0';
 
 /** P0-27 keeps one prior wire version readable while its fields remain optional. */
 export const SUPPORTED_PROTOCOL_VERSIONS = [PREVIOUS_PROTOCOL_VERSION, PROTOCOL_VERSION] as const;

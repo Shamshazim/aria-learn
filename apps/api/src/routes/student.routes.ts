@@ -8,6 +8,7 @@ import { arrivalRequestSchema } from '@/schemas/arrival.schema';
 import {
   createSessionRequestSchema,
   endSessionRequestSchema,
+  sessionEngagementRequestSchema,
   sessionTurnRequestSchema,
 } from '@/schemas/session.schema';
 import type { RateLimiter } from '@/types/rate-limit';
@@ -59,6 +60,14 @@ export function createStudentRouter(deps: {
     deps.replay,
     validate(sessionTurnRequestSchema, 'body'),
     asyncHandler(deps.sessions.turn),
+  );
+  // P3-05: a hidden tab or an idle child. Usually answered with nothing; never a model call.
+  router.post(
+    '/student/session/engagement',
+    deps.limit('session'),
+    deps.replay,
+    validate(sessionEngagementRequestSchema, 'body'),
+    asyncHandler(deps.sessions.engagement),
   );
   return router;
 }

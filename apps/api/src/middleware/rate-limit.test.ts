@@ -231,5 +231,6 @@ function sessionControllerStub(onCreate?: () => unknown): SessionControllers {
     },
     end: unused,
     turn: unused,
+    engagement: unused,
   };
 }

@@ -79,6 +79,20 @@ export function movesSince(
     });
 }
 
+/**
+ * P3-05: the answer is to a check-in, not a question — the latest thing Aria said was
+ * "an easy one, or stop for today?" and this is the tap. It is not stale, and it is not graded.
+ */
+export function isCheckInReply(
+  records: readonly SessionEventRecord[],
+  respondsTo: string,
+): boolean {
+  const latest = [...records].reverse().find((record) => record.actor === 'aria');
+  if (latest === undefined) return false;
+  const parsed = tutorMoveSchema.safeParse(latest.payload);
+  return parsed.success && parsed.data.kind === 'CHECK_IN' && parsed.data.id === respondsTo;
+}
+
 export type AnswerResync = (
   input: Readonly<{ sessionId: string; respondsTo: string }>,
 ) => Promise<readonly TutorMove[] | null>;
@@ -90,6 +104,7 @@ export function createAnswerResync(
 ): AnswerResync {
   return async ({ sessionId, respondsTo }) => {
     const records = await events.list(sessionId);
+    if (isCheckInReply(records, respondsTo)) return null;
     const target = resolveAnswerTarget(records, respondsTo);
     if (target.kind !== 'stale' || target.latest === null) return null;
     logger.info(

@@ -16,6 +16,7 @@ import { createTurnContentObserver } from '@/observability/content-metrics';
 import { createIntentFallbackObserver } from '@/observability/intent-metrics';
 import { createTurnObserver } from '@/observability/turn-metrics';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
+import { createVoiceConsentRepository } from '@/repositories/voice-consent.repository';
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
 import { classesFor } from '@/services/arrival/classes.service';
@@ -35,6 +36,7 @@ import { createTutorContextLoader } from '@/services/tutor/context.loader';
 import { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
 import { createPlannerObserver } from '@/services/tutor/planner-evidence';
 import { createTutorService } from '@/services/tutor/tutor.service';
+import { createVocalCueConsent } from '@/services/tutor/vocal-cue-consent';
 
 import { buildContentServices, type ContentServices } from './content.runtime';
 import { buildPhase1Controllers } from './controllers.runtime';
@@ -124,6 +126,7 @@ function buildTutor(
     latestMoveId: (sessionId) => latestMoveId(repositories, sessionId),
     resyncAnswer: createAnswerResync(repositories.events, deps.logger),
     logger: deps.logger,
+    vocalCuesAllowed: createVocalCueConsent(createVoiceConsentRepository(deps.pool)),
     intent: createIntentClassifier({
       ai: deps.ai,
       onFallback: createIntentFallbackObserver({ metrics: deps.metrics }),

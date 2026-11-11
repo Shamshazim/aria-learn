@@ -1,5 +1,6 @@
 import type { TutorInputEvent } from '@aria/shared';
 
+import { utteranceStatement } from '../engagement/event-signals';
 import {
   forbiddenAfterStuck,
   neverStuckTwice,
@@ -9,7 +10,9 @@ import {
 
 import { allowedSet } from './allowed-set';
 import { answerOutcome } from './answer-policy';
+import { checkInReplyOutcome } from './check-in-reply';
 import { isDecisive } from './decisive';
+import { statementOutcome, withEngagement } from './engagement-policy';
 import { intentOutcome } from './intent-policy';
 import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
 import { silenceRung } from './silence-ladder';
@@ -34,7 +37,21 @@ export function createTeachingPolicy<TModelContext>(input: {
   sessionLimitMs(band: LoadedTurnContext<TModelContext>['session']['band']): number;
   now(): Date;
 }): (context: LoadedTurnContext<TModelContext>, event: TutorInputEvent) => PolicyDecision {
-  return (context, event) => toDecision(context, event, decide(input, context, event));
+  return (context, event) => toDecision(context, event, engaged(input, context, event));
+}
+
+/**
+ * P3-05: the turn's own decision, then the child's reply to an open check-in, then the
+ * engagement state's say. Anything terminal — the time limit, a stop — stands as it is.
+ */
+function engaged<TModelContext>(
+  input: Parameters<typeof createTeachingPolicy<TModelContext>>[0],
+  context: LoadedTurnContext<TModelContext>,
+  event: TutorInputEvent,
+): PolicyOutcome {
+  const base = decide(input, context, event);
+  if (base.terminal) return base;
+  return checkInReplyOutcome(context, event) ?? withEngagement(context, event, base, input.now());
 }
 
 /**
@@ -158,6 +175,7 @@ function utteranceOutcome<TModelContext>(
   }
   const detour = intentOutcome(input.classifyIntent?.(event) ?? 'ANSWER', context);
   if (detour !== null) return detour;
+  if (utteranceStatement(event) !== null) return statementOutcome(context);
   const graded = input.gradeAnswer(event, context.session.skillCode);
   if (graded === null) {
     return outcome(
