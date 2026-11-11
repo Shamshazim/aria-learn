@@ -138,7 +138,7 @@ exactly what is left.
 | P3-01 | Backend      | P1-02          | [Episodes, briefs and corrections, migration 030](P3-01-episode-brief-correction-tables.md) |
 | P3-02 | Backend      | 01, P1-09      | [Consolidation v2](P3-02-consolidation-v2.md)                                               |
 | P3-03 | Backend      | 01, 02         | [The learner brief](P3-03-learner-brief.md)                                                 |
-| P3-04 | Backend      | P1-03, P0-17   | [Full skill graph and scheduler](P3-04-skill-graph-and-scheduler.md)                        |
+| P3-04 | Backend      | P1-03, P0-17   | [Full skill graph and scheduler, migration 031](P3-04-skill-graph-and-scheduler.md)         |
 | P3-05 | FE + BE      | P1-06, P2H-05  | [Engagement state and check-ins](P3-05-engagement-state.md)                                 |
 | P3-06 | Backend      | 01             | [The correction path](P3-06-memory-correction-path.md)                                      |
 | P3-07 | BE + Content | P2H-10, 04     | [Curriculum expansion, TK–8 arithmetic](P3-07-curriculum-expansion-arithmetic.md)           |

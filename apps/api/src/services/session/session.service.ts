@@ -7,6 +7,7 @@ import {
   type TutorInputEvent,
   type TutorMove,
 } from '@aria/shared';
+import { buildSessionPlan, dueSkills, type SkillGraph } from '@aria/tutor';
 
 import { ForbiddenError, ValidationError } from '@/errors';
 import type { Clock } from '@/lib/clock';
@@ -15,9 +16,10 @@ import type { ArrivalEventRepository } from '@/repositories/arrival-event.reposi
 import type { SessionRepository } from '@/repositories/session.repository';
 import type { SkillStateRepository } from '@/repositories/skill-state.repository';
 import type { StudentRepository } from '@/repositories/student.repository';
+import { progressMap } from '@/services/scheduler/scheduler-state';
+import { planFields } from '@/services/scheduler/session-plan';
 import type { ResumedSession } from '@/services/session/resume.service';
 import type { TutorSessionRecord } from '@/types/session';
-import type { RuntimeSkill } from '@/types/skill-state';
 
 export type SessionStart = Readonly<{
   session: TutorSessionRecord;
@@ -42,7 +44,9 @@ export type SessionService = Readonly<{
 export function createSessionService(deps: {
   students: Pick<StudentRepository, 'requireById'>;
   sessions: Pick<SessionRepository, 'create' | 'findOpen' | 'end'>;
-  skills: Pick<SkillStateRepository, 'findDue' | 'findPractice'>;
+  skills: Pick<SkillStateRepository, 'listForStudent' | 'findPractice'>;
+  /** P3-04: the prerequisite graph the session plan is built over. */
+  graph: SkillGraph;
   arrivals: Pick<ArrivalEventRepository, 'findById' | 'setAccepted'>;
   clock: Clock;
   ids: IdGenerator;
@@ -94,14 +98,14 @@ async function createOrResume(
   }
   const student = learnerFor(deps, await deps.students.requireById(input.studentId), input.grade);
   const recommendationAccepted = await recommendationAcceptance(deps, input);
-  const skill = await skillToPractise(deps, input.studentId, input.subject, student);
-  if (skill === null) throw new ValidationError('subject is not available for this grade band');
+  const planned = await planSession(deps, input.studentId, input.subject, student);
+  if (planned === null) throw new ValidationError('subject is not available for this grade band');
   const session = await createSessionOrResumeWinner(deps, {
     studentId: input.studentId,
     subject: input.subject,
     grade: student.grade,
     band: student.band,
-    plan: { skillCode: skill.code, checkIn: input.checkIn ?? null },
+    plan: { ...planned, checkIn: input.checkIn ?? null },
   });
   if ('moves' in session) return session;
   const event = {
@@ -137,26 +141,37 @@ function learnerFor(
 }
 
 /**
- * What this class practises: a due skill in the child's band first, and otherwise whatever
- * comes next. A class with nothing due is still a class, and the child is never told the
- * subject does not exist today.
+ * What this class works on (P3-04): the scheduler's plan over what is due in the subject —
+ * a warm-up, the due skills in rank order, and for the early band something out loud to
+ * finish — starting on its first step. When nothing in the subject is due or open, the class's
+ * next topic in teaching order: a class with nothing due is still a class, and the child is
+ * never told the subject does not exist today.
+ *
+ * Built once, here. A resumed session keeps the plan it was created with.
  */
-async function skillToPractise(
+async function planSession(
   deps: Parameters<typeof createSessionService>[0],
   studentId: string,
   subject: string,
   student: Readonly<{ band: Band; grade: Grade }>,
-): Promise<RuntimeSkill | null> {
-  const due = await deps.skills.findDue(studentId, deps.clock.now());
-  return (
-    due.find(
-      (candidate) => candidate.band === student.band && subjectMatches(subject, candidate.subject),
-    ) ??
-    (await deps.skills.findPractice(studentId, authoredSubject(subject), {
-      band: student.band,
-      grade: student.grade,
-    }))
-  );
+): Promise<Readonly<Record<string, unknown>> | null> {
+  const progress = progressMap(await deps.skills.listForStudent(studentId));
+  const due = dueSkills({
+    graph: deps.graph,
+    progress,
+    now: deps.clock.now(),
+    // P6-04 supplies a parent's goals; until then there are none to rank first.
+    goals: [],
+    scope: { subject: authoredSubject(subject), band: student.band, grade: student.grade },
+  });
+  const plan = buildSessionPlan({ band: student.band, due, graph: deps.graph, progress });
+  const first = plan.steps[0];
+  if (first !== undefined) return { skillCode: first.skillCode, ...planFields(plan) };
+  const practice = await deps.skills.findPractice(studentId, authoredSubject(subject), {
+    band: student.band,
+    grade: student.grade,
+  });
+  return practice === null ? null : { skillCode: practice.code };
 }
 
 async function createSessionOrResumeWinner(
@@ -206,10 +221,6 @@ function isResumable(
   now: Date,
 ): boolean {
   return open.subject === subject && now.getTime() - lastActivityAt.getTime() < RESUME_WINDOW_MS;
-}
-
-function subjectMatches(requested: string, authored: string): boolean {
-  return authoredSubject(requested) === authored;
 }
 
 /** The picker says "math"; the inventory says "arithmetic". */

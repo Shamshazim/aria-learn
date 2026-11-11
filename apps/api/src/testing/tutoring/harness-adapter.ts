@@ -1,6 +1,7 @@
 import { bandForGrade, sessionIdSchema } from '@aria/shared';
 import {
   createTutorHarness,
+  stepBack,
   type CommittedTurn,
   type MovePlan,
   type TutorPorts,
@@ -11,6 +12,7 @@ import { createInventoryService, type LessonNote } from '@/curriculum';
 import { fixedClock } from '@/lib/clock';
 import { scrubLearnerContext } from '@/privacy';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
+import { schedulerGraph } from '@/services/scheduler/scheduler-graph';
 import { createTutorService } from '@/services/tutor/tutor.service';
 import type { TutorImplementation } from '@/testing/tutoring/replay';
 import type { TutoringScenario } from '@/testing/tutoring/scenario';
@@ -65,15 +67,11 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
   let wrong = 0;
   let lastApproach: string | null = null;
   const sessionId = sessionIdSchema.parse('00000000-0000-4000-8000-000000000901');
-  // P2H-10: the golden scenarios run on the real note for the skill they name, so a rubric
-  // round is scoring the grounding the production path actually gets.
-  const lesson = createInventoryService().getLesson(GOLDEN_SKILL);
+  const fixed = { scenario, sessionId, outcomes, ...goldenCurriculum() };
   const service = createTutorService({
     ports: {
       loadContext: (event) =>
-        Promise.resolve(
-          productionContext({ scenario, event, sessionId, wrong, lastApproach, outcomes, lesson }),
-        ),
+        Promise.resolve(productionContext({ ...fixed, event, wrong, lastApproach })),
       resolveContent: ({ event }) => {
         const scripted = requireStep(steps, event.id).scripted;
         return Promise.resolve({ moves: scripted.moves, privateEvidence: scripted.evidence });
@@ -113,6 +111,19 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
   };
 }
 
+/**
+ * P2H-10: the golden scenarios run on the real note for the skill they name, so a rubric
+ * round is scoring the grounding the production path actually gets — and (P3-04) on the real
+ * graph, so a child with no history has the real step underneath.
+ */
+function goldenCurriculum(): Readonly<{ lesson: LessonNote | null; prerequisite: string | null }> {
+  const inventory = createInventoryService();
+  return {
+    lesson: inventory.getLesson(GOLDEN_SKILL),
+    prerequisite: stepBack(GOLDEN_SKILL, new Map(), schedulerGraph(inventory.listSkills())),
+  };
+}
+
 function productionContext(
   input: Readonly<{
     scenario: TutoringScenario;
@@ -122,6 +133,7 @@ function productionContext(
     lastApproach: string | null;
     outcomes: ReadonlyMap<string, 'correct' | 'wrong'>;
     lesson: LessonNote | null;
+    prerequisite: string | null;
   }>,
 ) {
   const { scenario, event, sessionId, wrong, lastApproach, outcomes } = input;
@@ -139,12 +151,15 @@ function productionContext(
       attempts: wrong,
       consecutiveWrong: wrong,
       consecutiveSilences: 0,
-      consecutiveStuck: 0,
+      // Every graded scenario answers one item, so each wrong answer is a stuck turn on it.
+      // Holding this at zero made every miss look like the first, and the reteach never came.
+      consecutiveStuck: wrong,
+      wrongOnSkill: wrong,
       correctStreak: 0,
       nextTopic: null,
       repeatedMisconception: null,
       lastApproach,
-      unmetPrerequisite: null,
+      unmetPrerequisite: input.prerequisite,
     },
     modelContext: {
       scrubbed: scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' }),

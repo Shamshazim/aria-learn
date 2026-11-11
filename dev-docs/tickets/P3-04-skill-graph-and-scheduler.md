@@ -9,6 +9,42 @@
 | **Parallel-safe with** | P3-01, P3-02, P3-03, P3-05 |
 | **Size** | L |
 
+## Status
+
+**Code complete 2026-11-10** on `feat/P3-04-skill-graph-and-scheduler`, pending review. Stacked
+on P3-01: merge that first.
+
+- **Migration is `031_skill_state_scheduler.sql`, not `012`**, for the reason P3-01's Status
+  gives: the runner refuses a number behind one already applied. It also adds
+  `student_misconception.correct_since_seen` (the "three right answers" that clear a
+  misconception span sessions, so they are counted, not derived) and a nullable
+  `student.timezone` — no table had one. A missing or unknown zone is read as UTC until X-02's
+  signup asks the parent. `session.plan` already existed (004); the steps go inside it.
+- **The third wrong answer in a row on a skill now steps back** to the weakest prerequisite
+  below 0.7, where before it took a fourth; with nothing weak underneath, the answer is shown
+  and a fresh question follows, as P2H's ladder had it. A shrug ("I don't know") still counts
+  towards moving on but not towards stepping back. Two wrong answers with *different*
+  misconceptions step back on the second; with no prerequisite, they switch strand.
+- **The stuck-twice invariant forbids `ASK`, and a second `HINT` on the same item**, after two
+  wrong answers on the skill. It rewrites the default plan *and* removes those kinds from the
+  planner's allowed set, logged as `policy.invariant.stuck-twice` once per committed turn. A
+  reveal is not forbidden: it is a change, and P2H's ladder depends on it.
+- **Slow facts answers are half-credit without growing the streak**, so a counted answer cannot
+  earn the 60-day intervals. "Facts skill" is a code containing `.FACT.`; the automatic bar is
+  §6's two seconds, the same for every band.
+- **One new skill per session**, the first session included: its plan is one entry skill
+  rather than every entry skill. Plans size to 8 / 14 / 20 items for the three bands. The early
+  band's closing step is `count-aloud` for a maths subject and `read-aloud` otherwise.
+  `maxItems` is recorded on each step but not yet enforced turn by turn: a step ends, as
+  before, when the topic is mastered or skipped, and goes to the next *planned* skill.
+- **Goals are always empty** until P6-04; no port exists yet to supply them.
+- **`repeated-confusion` was already failing on `main`** in `npm run golden:tutoring`: the
+  production-policy harness held `consecutiveStuck` at 0, so both wrong answers got the same
+  first hint. The harness now counts them, and the scenario has a third wrong answer that ends
+  in the step back; `scenario-files.test.ts` runs it through the production policy in CI.
+- Answers are now filed under the skill the child was practising, not the one a `SWITCH` plan
+  names, so a step back does not count the wrong answer against the prerequisite.
+
 ## Why
 
 `master-plan.md` §4.2 Layer 2 and §4.4: skill state "drives the scheduler. It is spaced
@@ -48,7 +84,7 @@ packages/tutor/src/policy/teaching-policy.ts    calls invariant + misconception 
 apps/api/src/services/session/session.service.ts  uses plan.ts at create/resume
 apps/api/src/services/arrival/recommend.service.ts uses select-due.ts (replace heuristic)
 apps/api/src/repositories/skill-state.repository.ts  add listForStudent, bulkUpsert
-apps/api/src/db/migrations/012_skill_state_scheduler.sql
+apps/api/src/db/migrations/031_skill_state_scheduler.sql   (reserved 012; see Status)
     ALTER TABLE skill_state ADD COLUMN interval_days NUMERIC(6,2) NOT NULL DEFAULT 0,
                              ADD COLUMN lapses INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE session ADD COLUMN plan JSONB;   -- if not already present per 004
@@ -102,21 +138,21 @@ policy and logged `policy.invariant.stuck-twice`.
 
 ## Acceptance criteria
 
-- [ ] Strength and interval updates are pure functions with table-driven tests covering
+- [x] Strength and interval updates are pure functions with table-driven tests covering
       every row of the interval table and the lapse reset.
-- [ ] A prerequisite cycle fixture fails curriculum validation with the cycle named.
-- [ ] Given a fixture of skill states, `dueSkills` returns the documented ranking; goals
+- [x] A prerequisite cycle fixture fails curriculum validation with the cycle named.
+- [x] Given a fixture of skill states, `dueSkills` returns the documented ranking; goals
       first, never two new skills.
-- [ ] After two wrong answers with different signatures, the policy chooses the weakest
+- [x] After two wrong answers with different signatures, the policy chooses the weakest
       prerequisite; with the same signature twice, it chooses RETEACH with the fix — both
       proven by tests on `teaching-policy.ts`.
-- [ ] The stuck-twice invariant is enforced: a fixture stream of two wrong ANSWERs can never
+- [x] The stuck-twice invariant is enforced: a fixture stream of two wrong ANSWERs can never
       yield ASK on the same form as the third move, over 1,000 randomised event streams.
-- [ ] Missing 7 days never shortens any interval (property test).
-- [ ] Early-band plans contain ≤3 skills and end with a read-aloud or count-aloud step.
-- [ ] Arrival recommendation names the top due skill's subject, and the tutoring golden set
+- [x] Missing 7 days never shortens any interval (property test).
+- [x] Early-band plans contain ≤3 skills and end with a read-aloud or count-aloud step.
+- [x] Arrival recommendation names the top due skill's subject, and the tutoring golden set
       scenario "repeated confusion" now ends with a backward move or SWITCH, not a third ASK.
-- [ ] `packages/tutor` still imports nothing from `apps/*`.
+- [x] `packages/tutor` still imports nothing from `apps/*`.
 
 ## Verification
 

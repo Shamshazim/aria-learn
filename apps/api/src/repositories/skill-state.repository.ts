@@ -1,49 +1,43 @@
 import { createHash } from 'node:crypto';
 
-import { z } from 'zod';
-
 import type { Misconception, Skill } from '@aria/shared';
 
 import { runQuery } from '@/db/run-query';
 import type { Queryable } from '@/db/types';
 import type { Clock } from '@/lib/clock';
+import { findPractice, type PracticeFit } from '@/repositories/skill-state.find';
 import {
-  findDue,
-  findPractice,
-  mapSkill,
-  type PracticeFit,
-  type SkillRow,
-} from '@/repositories/skill-state.find';
+  creditMisconceptions,
+  findProgressForUpdate,
+  listProgress,
+  mapState,
+  saveProgress,
+  STATE_COLUMNS,
+  timeZoneOf,
+  type StateRow,
+} from '@/repositories/skill-state.progress';
 import type { MisconceptionState, RuntimeSkill, SkillState } from '@/types/skill-state';
-
-const stateRowSchema = z.object({
-  student_id: z.string(),
-  skill_code: z.string(),
-  strength: z.coerce.number(),
-  attempts: z.number().int(),
-  correct_streak: z.number().int(),
-  last_seen_at: z.date().nullable(),
-  next_due_at: z.date().nullable(),
-});
-type StateRow = z.infer<typeof stateRowSchema>;
 
 export type SkillStateRepository = Readonly<{
   withDb(db: Queryable): SkillStateRepository;
   seed(skills: readonly Skill[], misconceptions: readonly Misconception[]): Promise<void>;
-  findDue(studentId: string, at: Date): Promise<readonly RuntimeSkill[]>;
   /**
    * The skill to practise when nothing in a subject is due: the soonest-due one, the child's
    * own band first. A class is never "unavailable" while it has a skill at all.
    */
-  findPractice(
-    studentId: string,
-    subject: string,
-    fit: PracticeFit,
-  ): Promise<RuntimeSkill | null>;
-  findUnmetPrerequisites(studentId: string, skillCode: string): Promise<readonly RuntimeSkill[]>;
-  recordAttempt(
-    input: Readonly<{ studentId: string; skillCode: string; correct: boolean }>,
-  ): Promise<SkillState>;
+  findPractice(studentId: string, subject: string, fit: PracticeFit): Promise<RuntimeSkill | null>;
+  /** P3-04: every skill this child has state for — what the scheduler ranks from. */
+  listForStudent(studentId: string): Promise<readonly SkillState[]>;
+  /** P3-04: one skill's state, locked for the rest of the transaction. */
+  findForUpdate(studentId: string, skillCode: string): Promise<SkillState | null>;
+  /** P3-04: writes states the scheduler computed, whole. */
+  bulkUpsert(states: readonly SkillState[]): Promise<void>;
+  /** The child's stored IANA timezone, or `null` where none was set. */
+  timeZoneOf(studentId: string): Promise<string | null>;
+  /** P3-04: a right answer counts towards clearing each live misconception on the skill. */
+  creditMisconceptions(
+    input: Readonly<{ studentId: string; skillCode: string; clearAfter: number }>,
+  ): Promise<void>;
   recordMisconception(studentId: string, misconceptionId: string): Promise<MisconceptionState>;
   findMisconceptionState(
     studentId: string,
@@ -59,11 +53,13 @@ export function createSkillStateRepository(deps: {
   return {
     withDb: (db) => createSkillStateRepository({ ...deps, db }),
     seed: (skills, misconceptions) => seed(deps.db, skills, misconceptions),
-    findDue: (studentId, at) => findDue(deps.db, studentId, at),
     findPractice: (studentId, subject, fit) => findPractice(deps.db, studentId, subject, fit),
-    findUnmetPrerequisites: (studentId, skillCode) =>
-      findUnmetPrerequisites(deps.db, studentId, skillCode),
-    recordAttempt: (input) => recordAttempt(deps, input),
+    listForStudent: (studentId) => listProgress(deps.db, studentId),
+    findForUpdate: (studentId, code) => findProgressForUpdate(deps.db, studentId, code),
+    bulkUpsert: (states) => saveProgress(deps.db, states),
+    timeZoneOf: (studentId) => timeZoneOf(deps.db, studentId),
+    creditMisconceptions: (input) =>
+      creditMisconceptions(deps.db, { ...input, at: deps.clock.now() }),
     recordMisconception: (studentId, id) => recordMisconception(deps, studentId, id),
     findMisconceptionState: (studentId, id) => findMisconceptionState(deps.db, studentId, id),
     findState: (studentId, code) => findState(deps.db, studentId, code),
@@ -122,64 +118,6 @@ async function seedMisconception(db: Queryable, input: Misconception): Promise<v
   });
 }
 
-async function findUnmetPrerequisites(
-  db: Queryable,
-  studentId: string,
-  skillCode: string,
-): Promise<readonly RuntimeSkill[]> {
-  const result = await runQuery<SkillRow & { depth: number }>({
-    db,
-    operation: 'skillState.findUnmetPrerequisites',
-    sql: `WITH RECURSIVE prereq(code, depth) AS (
-            SELECT unnest(prerequisites), 1 FROM skill WHERE code = $2
-            UNION ALL
-            SELECT unnest(s.prerequisites), p.depth + 1
-            FROM prereq p JOIN skill s ON s.code = p.code
-          )
-          SELECT s.code, s.subject, s.strand, s.name, s.band, s.prerequisites, p.depth
-          FROM prereq p JOIN skill s ON s.code = p.code
-          LEFT JOIN skill_state ss ON ss.student_id = $1 AND ss.skill_code = s.code
-          WHERE COALESCE(ss.strength, 0) < 0.7 ORDER BY p.depth DESC, s.code`,
-    params: [studentId, skillCode],
-  });
-  return result.rows.map(mapSkill);
-}
-
-async function recordAttempt(
-  deps: Parameters<typeof createSkillStateRepository>[0],
-  input: Readonly<{ studentId: string; skillCode: string; correct: boolean }>,
-): Promise<SkillState> {
-  const at = deps.clock.now();
-  // provisional — Phase 3 scheduler replaces this fixed strength-based interval.
-  const intervalHours = input.correct ? 72 : 24;
-  const due = new Date(at.getTime() + intervalHours * 3_600_000);
-  const result = await runQuery<StateRow>({
-    db: deps.db,
-    operation: 'skillState.recordAttempt',
-    sql: `INSERT INTO skill_state
-          (student_id, skill_code, strength, attempts, correct_streak, last_seen_at, next_due_at)
-          VALUES ($1, $2, LEAST(1::numeric, GREATEST(0::numeric, $3::numeric)), 1, $4, $5, $6)
-          ON CONFLICT (student_id, skill_code) DO UPDATE SET
-            strength = LEAST(1, GREATEST(0, skill_state.strength + $3)),
-            attempts = skill_state.attempts + 1,
-            correct_streak = CASE WHEN $4 = 1 THEN skill_state.correct_streak + 1 ELSE 0 END,
-            last_seen_at = $5, next_due_at = $6
-          RETURNING student_id, skill_code, strength, attempts, correct_streak,
-            last_seen_at, next_due_at`,
-    params: [
-      input.studentId,
-      input.skillCode,
-      input.correct ? 0.15 : -0.1,
-      input.correct ? 1 : 0,
-      at,
-      due,
-    ],
-  });
-  const row = result.rows[0];
-  if (row === undefined) throw new Error('skillState.recordAttempt returned no row');
-  return mapState(row);
-}
-
 async function recordMisconception(
   deps: Parameters<typeof createSkillStateRepository>[0],
   studentId: string,
@@ -193,7 +131,8 @@ async function recordMisconception(
           (student_id, misconception_id, seen_count, first_seen_at)
           VALUES ($1, $2, 1, $3)
           ON CONFLICT (student_id, misconception_id) DO UPDATE
-            SET seen_count = student_misconception.seen_count + 1, cleared_at = NULL
+            SET seen_count = student_misconception.seen_count + 1, cleared_at = NULL,
+                correct_since_seen = 0
           RETURNING seen_count, first_seen_at`,
     params: [studentId, misconceptionId, at],
   });
@@ -204,6 +143,7 @@ async function recordMisconception(
     seenCount: row.seen_count,
     firstSeenAt: row.first_seen_at,
     secondOrLater: row.seen_count >= 2,
+    cleared: false,
   };
 }
 
@@ -215,9 +155,7 @@ async function findState(
   const result = await runQuery<StateRow>({
     db,
     operation: 'skillState.findState',
-    sql: `SELECT student_id, skill_code, strength, attempts, correct_streak,
-            last_seen_at, next_due_at FROM skill_state
-          WHERE student_id = $1 AND skill_code = $2`,
+    sql: `SELECT ${STATE_COLUMNS} FROM skill_state WHERE student_id = $1 AND skill_code = $2`,
     params: [studentId, skillCode],
   });
   return result.rows[0] === undefined ? null : mapState(result.rows[0]);
@@ -228,10 +166,11 @@ async function findMisconceptionState(
   studentId: string,
   misconceptionId: string,
 ): Promise<MisconceptionState | null> {
-  const result = await runQuery<{ seen_count: number; first_seen_at: Date }>({
+  const result = await runQuery<{ seen_count: number; first_seen_at: Date; cleared: boolean }>({
     db,
     operation: 'studentMisconception.findState',
-    sql: `SELECT seen_count, first_seen_at FROM student_misconception
+    sql: `SELECT seen_count, first_seen_at, cleared_at IS NOT NULL AS cleared
+          FROM student_misconception
           WHERE student_id = $1 AND misconception_id = $2`,
     params: [studentId, misconceptionRuntimeId(misconceptionId)],
   });
@@ -243,20 +182,8 @@ async function findMisconceptionState(
         seenCount: row.seen_count,
         firstSeenAt: row.first_seen_at,
         secondOrLater: row.seen_count >= 2,
+        cleared: row.cleared,
       };
-}
-
-function mapState(input: StateRow): SkillState {
-  const row = stateRowSchema.parse(input);
-  return {
-    studentId: row.student_id,
-    skillCode: row.skill_code,
-    strength: row.strength,
-    attempts: row.attempts,
-    correctStreak: row.correct_streak,
-    lastSeenAt: row.last_seen_at,
-    nextDueAt: row.next_due_at,
-  };
 }
 
 /** Stable UUID-shaped runtime key while the authored inventory keeps readable ids. */

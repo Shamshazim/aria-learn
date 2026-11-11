@@ -1,5 +1,5 @@
 import { tutorMoveSchema, type TutorInputEvent, type VisualContent } from '@aria/shared';
-import type { LoadedTurnContext, PlannedTurn } from '@aria/tutor';
+import type { LoadedTurnContext, PlannedTurn, SkillGraph } from '@aria/tutor';
 
 import { createModelGrader } from '@/ai/grader/model-grader';
 import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
@@ -27,6 +27,7 @@ import {
 import type { StreamingDeps } from '@/services/content/turn-content.types';
 import { createMemoryRetrievalService } from '@/services/memory/retrieve.service';
 import { createMoveFactory } from '@/services/moves/move-factory';
+import { schedulerGraph } from '@/services/scheduler/scheduler-graph';
 import { buildRecap } from '@/services/session/recap';
 import { createAnswerResync } from '@/services/tutor/answer-target';
 import { createTurnCommitService } from '@/services/tutor/commit.service';
@@ -57,15 +58,18 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
 > {
   const repositories = buildRepositories(deps);
   const inventory = createInventoryService();
+  // P3-04: built once; a prerequisite cycle stops the server here rather than in a lesson.
+  const graph = schedulerGraph(inventory.listSkills());
   await seedInventory(repositories, inventory);
   const content = buildContentServices(deps, repositories, inventory);
-  const tutor = buildTutor(deps, repositories, inventory, content);
+  const tutor = buildTutor(deps, repositories, { inventory, graph }, content);
   const crisis = buildCrisis(deps, repositories, content);
   const controllers = buildPhase1Controllers({
     deps,
     repositories,
     tutor,
     crisis,
+    graph,
     gate: content.gate,
     skillName: (code) => inventory.getSkill(code)?.name ?? null,
     classes: (student) => classesFor(inventory, student),
@@ -89,27 +93,11 @@ async function seedInventory(
 function buildTutor(
   deps: Phase1RuntimeDeps,
   repositories: Phase1Repositories,
-  inventory: InventoryService,
+  curriculum: Readonly<{ inventory: InventoryService; graph: SkillGraph }>,
   content: ContentServices,
 ) {
-  const memory = createMemoryRetrievalService({
-    memory: repositories.memory,
-    clock: deps.clock,
-    maxTokens: 300,
-    recordSize: () => {
-      /* persisted with the move evidence */
-    },
-  });
-  const context = createTutorContextLoader({
-    sessions: repositories.sessions,
-    events: repositories.events,
-    skills: repositories.skills,
-    students: repositories.students,
-    retrieve: memory.retrieve,
-    misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
-    lesson: (skillCode) => inventory.getLesson(skillCode),
-    nextTopic: (skillCode) => inventory.nextTopic(skillCode),
-  });
+  const { inventory } = curriculum;
+  const context = buildTutorContext(deps, repositories, curriculum);
   const turnContent = buildTurnContent(deps, repositories, inventory, content);
   const commit = createTurnCommitService({
     pool: deps.pool,
@@ -117,6 +105,7 @@ function buildTutor(
     skills: repositories.skills,
     sessions: repositories.sessions,
     clock: deps.clock,
+    graph: curriculum.graph,
     outbox: repositories.outbox,
   });
   return createTutorService({
@@ -141,6 +130,34 @@ function buildTutor(
     }),
     judge: createModelGrader({ ai: deps.ai }),
     ...plannerPorts(deps),
+  });
+}
+
+function buildTutorContext(
+  deps: Phase1RuntimeDeps,
+  repositories: Phase1Repositories,
+  curriculum: Readonly<{ inventory: InventoryService; graph: SkillGraph }>,
+) {
+  const { inventory } = curriculum;
+  const memory = createMemoryRetrievalService({
+    memory: repositories.memory,
+    clock: deps.clock,
+    maxTokens: 300,
+    recordSize: () => {
+      /* persisted with the move evidence */
+    },
+  });
+  return createTutorContextLoader({
+    sessions: repositories.sessions,
+    events: repositories.events,
+    skills: repositories.skills,
+    students: repositories.students,
+    graph: curriculum.graph,
+    clock: deps.clock,
+    retrieve: memory.retrieve,
+    misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
+    lesson: (skillCode) => inventory.getLesson(skillCode),
+    nextTopic: (skillCode) => inventory.nextTopic(skillCode),
   });
 }
 

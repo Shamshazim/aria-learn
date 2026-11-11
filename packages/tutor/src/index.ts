@@ -25,3 +25,4 @@ export type {
   TutorHarness,
   TutorPorts,
 } from './types';
+export * from './scheduler';
