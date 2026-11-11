@@ -57,7 +57,7 @@ export type StudentRepository = {
  * has to check are a list rather than a hunt. Column lists are written out: `SELECT *` would
  * make a new column silently reach the mapper.
  */
-const COLUMNS = 'id, parent_id, display_name, grade, band, settings, created_at';
+const COLUMNS = 'id, parent_id, display_name, grade, band, settings, is_synthetic, created_at';
 
 const SQL = {
   insert: `INSERT INTO student (id, parent_id, display_name, grade, band, settings)

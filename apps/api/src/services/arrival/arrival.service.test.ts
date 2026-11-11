@@ -108,6 +108,7 @@ function context(overrides: Readonly<{ recent?: boolean; endedAt?: Date }> = {})
       grade: '4',
       band: 'middle',
       settings: DEFAULT_STUDENT_SETTINGS,
+      isSynthetic: false,
       createdAt: NOW,
     },
     lastSession: recent

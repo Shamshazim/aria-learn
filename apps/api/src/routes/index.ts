@@ -15,6 +15,7 @@ import { createHealthRouter } from './health.routes';
 import { createParentRouter } from './parent.routes';
 import { createStatusRouter } from './status.routes';
 import { createStudentRouter } from './student.routes';
+import { createTelemetryRouter } from './telemetry.routes';
 import {
   createVoiceAdminRouter,
   createVoiceStudentRouter,
@@ -71,6 +72,18 @@ export type RouterDeps = {
    */
   idempotency?: IdempotencyRepository;
   student?: WithoutLimit<Parameters<typeof createStudentRouter>[0]>;
+  /**
+   * X-04: where the browser files what it measured.
+   *
+   * Mounted beside `student` rather than inside it, even though it shares the child gate. The
+   * student router is the tutoring session; this is observability about it, and a deployment
+   * can reasonably have one without the other — a test app with no metrics store has no use
+   * for a route whose only effect is to write to one.
+   */
+  telemetry?: Readonly<{
+    authorize: RequestHandler;
+    controller: Parameters<typeof createTelemetryRouter>[0]['controller'];
+  }>;
   voice?: Readonly<{
     student: WithoutLimit<Parameters<typeof createVoiceStudentRouter>[0]>;
     worker: WithoutLimit<Parameters<typeof createVoiceWorkerRouter>[0]>;
@@ -83,6 +96,7 @@ export function createApiRouter({
   identity,
   status,
   student,
+  telemetry,
   voice,
   rateLimitStore,
   idempotency,
@@ -115,6 +129,7 @@ export function createApiRouter({
     router.use(createStatusRouter(status.controller, status.authorize, status.metrics));
   }
   if (student !== undefined) router.use(createStudentRouter({ ...student, limit, replay }));
+  if (telemetry !== undefined) router.use(createTelemetryRouter({ ...telemetry, limit }));
   if (voice !== undefined) {
     router.use(createVoiceStudentRouter({ ...voice.student, limit }));
     router.use(createVoiceWorkerRouter({ ...voice.worker, limit }));

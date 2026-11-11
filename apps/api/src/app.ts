@@ -51,22 +51,13 @@ export type AppDeps = {
   /** P2H-12: parent sign-in and the child picker. Absent where no project is configured. */
   identity?: RouterDeps['identity'];
   student?: RouterDeps['student'];
+  /** X-04: the client timing route, which needs the same child gate `student` is behind. */
+  telemetry?: RouterDeps['telemetry'];
   voice?: RouterDeps['voice'];
 };
 
-export function createApp({
-  config,
-  logger,
-  clock,
-  ids,
-  statusService,
-  metrics,
-  rateLimitStore,
-  idempotency,
-  identity,
-  student,
-  voice,
-}: AppDeps): Express {
+export function createApp(deps: AppDeps): Express {
+  const { config, logger, ids } = deps;
   const app = express();
 
   // Order matters. A request gets its id before anything can log it, and the error handler
@@ -87,26 +78,7 @@ export function createApp({
   app.use(requestId(ids));
   app.use(requestLogger(logger));
 
-  app.use(
-    API_PREFIX,
-    createApiRouter({
-      healthController: buildHealthController({ config, clock }),
-      ...(statusService === undefined || config.statusOperatorToken === undefined
-        ? {}
-        : {
-            status: {
-              controller: createStatusController(statusService),
-              authorize: operatorOnly(config.statusOperatorToken),
-              ...(metrics === undefined ? {} : { metrics: createMetricsController({ metrics }) }),
-            },
-          }),
-      ...(rateLimitStore === undefined ? {} : { rateLimitStore }),
-      ...(idempotency === undefined ? {} : { idempotency }),
-      ...(identity === undefined ? {} : { identity }),
-      ...(student === undefined ? {} : { student }),
-      ...(voice === undefined ? {} : { voice }),
-    }),
-  );
+  app.use(API_PREFIX, createApiRouter(routerDeps(deps)));
 
   app.use(notFound());
   app.use(errorHandler());
@@ -115,9 +87,35 @@ export function createApp({
 }
 
 /**
+ * Which routers this deployment gets, from what it was given.
+ *
  * Kept separate so `createApp` stays a list of middleware rather than a mix of wiring and
- * construction. Later tickets add their own builders beside this one.
+ * construction. Every entry is conditional because `exactOptionalPropertyTypes` makes an
+ * absent key and an explicit `undefined` different things, and "this deployment has no parent
+ * app" has to be the first of those.
  */
+function routerDeps(deps: AppDeps): RouterDeps {
+  const { config, statusService, metrics } = deps;
+  return {
+    healthController: buildHealthController(deps),
+    ...(statusService === undefined || config.statusOperatorToken === undefined
+      ? {}
+      : {
+          status: {
+            controller: createStatusController(statusService),
+            authorize: operatorOnly(config.statusOperatorToken),
+            ...(metrics === undefined ? {} : { metrics: createMetricsController({ metrics }) }),
+          },
+        }),
+    ...(deps.rateLimitStore === undefined ? {} : { rateLimitStore: deps.rateLimitStore }),
+    ...(deps.idempotency === undefined ? {} : { idempotency: deps.idempotency }),
+    ...(deps.identity === undefined ? {} : { identity: deps.identity }),
+    ...(deps.student === undefined ? {} : { student: deps.student }),
+    ...(deps.telemetry === undefined ? {} : { telemetry: deps.telemetry }),
+    ...(deps.voice === undefined ? {} : { voice: deps.voice }),
+  };
+}
+
 function buildHealthController({ config, clock }: Pick<AppDeps, 'config' | 'clock'>) {
   return createHealthController(
     createHealthService({ clock, startedAt: clock.now(), version: config.version }),

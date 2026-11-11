@@ -49,8 +49,10 @@ describe('infra/alerts/slo-rules.yaml', () => {
     const rendered = renderRuleFile();
 
     expect(rendered).toContain('bars are watched here');
-    expect(rendered).toContain('interrupt_silence:');
-    expect(rendered).toContain('audible_welcome:');
+    // The two client-measured bars were closed by X-04 part 2; `end_of_turn` is measured
+    // against a labelled set rather than live traffic, so it is the gap that stays one.
+    expect(rendered).toContain('end_of_turn:');
+    expect(rendered).toContain('approach_changes_after_wrong:');
   });
 
   it('groups the rules by severity', () => {

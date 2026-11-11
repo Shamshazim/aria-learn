@@ -14,11 +14,11 @@
 **Code complete 2026-10-12** on `feat/P3-01-episode-brief-correction-tables`, pending review.
 
 - **Migration is `030_learner_episode_brief.sql`, not `010`.** `010` was taken by identity work,
-  and the runner refuses any migration numbered behind one already applied: `028` (X-05) is on
-  `main` and `029` (X-04 part 2) is in review. The same applies to every number this backlog
+  and the runner refuses any migration numbered behind one already applied: `028` (X-05) and `029`
+  (X-04 part 2) are on `main`. The same applies to every number this backlog
   reserves in `011`–`027` (P3-02's `011`, P3-04's `012`, P4-01's `013` …): each must take the
-  next free number above the highest applied one when it is built. Merge X-04 part 2 (`029`)
-  before this, or a database that ran `030` will refuse `029`.
+  next free number above the highest applied one when it is built. X-04 part 2 (`029`) is now
+  on `main`, so `030` lands in order.
 - **`insertVersion` retires the previous current brief in the same statement**, so there is no
   separate `supersede` on the brief repository: two current briefs for one period can never
   exist, even after a crash between two calls. A lost version race returns no row (`ON CONFLICT

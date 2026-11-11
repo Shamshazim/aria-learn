@@ -24,6 +24,9 @@ const POLICIES: Readonly<Record<ActorClass, Readonly<Record<RouteClass, RateLimi
     read: { burst: 60, refillPerMinute: 120 },
     auth: { burst: 10, refillPerMinute: 10 },
     mutation: { burst: 30, refillPerMinute: 60 },
+    // X-04. Four kinds of measurement per session plus one per interrupt, batched by the
+    // browser — so a child cannot reach this by using the product, and a loop can.
+    telemetry: { burst: 60, refillPerMinute: 60 },
   },
   // A parent in the parent app: reads a digest, changes a setting, revokes a device.
   parent: {
@@ -32,6 +35,10 @@ const POLICIES: Readonly<Record<ActorClass, Readonly<Record<RouteClass, RateLimi
     read: { burst: 60, refillPerMinute: 120 },
     auth: { burst: 10, refillPerMinute: 10 },
     mutation: { burst: 30, refillPerMinute: 60 },
+    // The parent app reports no timings; §11 is about a child's session. Present because the
+    // table is exhaustive by type, and a value that means "nothing expected" is better than a
+    // gap somebody fills in a hurry later.
+    telemetry: { burst: 10, refillPerMinute: 10 },
   },
   // A trusted tablet acting for the children a parent named on it. Sized for a family
   // sharing one device, not for one child.
@@ -41,6 +48,7 @@ const POLICIES: Readonly<Record<ActorClass, Readonly<Record<RouteClass, RateLimi
     read: { burst: 120, refillPerMinute: 240 },
     auth: { burst: 20, refillPerMinute: 20 },
     mutation: { burst: 40, refillPerMinute: 60 },
+    telemetry: { burst: 120, refillPerMinute: 120 },
   },
   // Our own voice worker, holding a secret we issued. Limited only so a reconnect loop
   // cannot take the API down with it — never so a real session stalls.
@@ -50,6 +58,7 @@ const POLICIES: Readonly<Record<ActorClass, Readonly<Record<RouteClass, RateLimi
     read: { burst: 600, refillPerMinute: 600 },
     auth: { burst: 60, refillPerMinute: 60 },
     mutation: { burst: 240, refillPerMinute: 240 },
+    telemetry: { burst: 240, refillPerMinute: 240 },
   },
   // Nobody has proved anything yet, so the key is an address — and an address can be a whole
   // school behind one NAT. Loose enough for a class arriving together, tight enough that
@@ -60,6 +69,8 @@ const POLICIES: Readonly<Record<ActorClass, Readonly<Record<RouteClass, RateLimi
     read: { burst: 60, refillPerMinute: 60 },
     auth: { burst: 30, refillPerMinute: 15 },
     mutation: { burst: 10, refillPerMinute: 10 },
+    // The telemetry route sits behind the child gate, so nothing anonymous ever reaches it.
+    telemetry: { burst: 10, refillPerMinute: 10 },
   },
 };
 

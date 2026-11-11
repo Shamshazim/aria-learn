@@ -48,9 +48,11 @@ suite('runMigrations', () => {
       '009',
       '010',
       '011',
-      // X-05. Numbered by the ticket map, not by merge order (AGENT-INSTRUCTIONS §4), so it
-      // lands ahead of 012–027 and the ledger is not contiguous. That is expected.
+      // X-05 and X-04 part 2. Numbered by the ticket map, not by merge order
+      // (AGENT-INSTRUCTIONS §4), so they land ahead of 012–027 and the ledger is not
+      // contiguous. That is expected.
       '028',
+      '029',
       // P3-01. Its reserved 010 was taken, and the runner refuses anything numbered behind an
       // applied migration, so it takes the next free number after X-04's 029.
       '030',
@@ -65,7 +67,7 @@ suite('runMigrations', () => {
     const outcome = await runMigrations({ pool: database.pool, logger });
 
     expect(outcome.applied).toEqual([]);
-    expect(outcome.skipped).toBe(13);
+    expect(outcome.skipped).toBe(14);
   });
 
   it('stays a no-op when two runs race for the lock', async () => {

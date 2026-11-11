@@ -45,6 +45,8 @@ import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
   Readonly<{
     student: NonNullable<RouterDeps['student']>;
+    /** X-04: the client timing route, so `app.ts` can mount it beside the student routes. */
+    telemetry: NonNullable<RouterDeps['telemetry']>;
     turn: ReturnType<typeof buildPhase1Controllers>['turn'];
     /** P2H-12: the child gate, the idle sweep, and the routers a signed-in parent uses. */
     identity: ReturnType<typeof buildPhase1Controllers>['identity'];

@@ -79,7 +79,11 @@ describe('the coverage /status reports', () => {
     expect(coverage.total).toBe(SLOS.length);
     expect(coverage.instrumented).toBeGreaterThan(0);
     expect(coverage.instrumented).toBeLessThan(coverage.total);
-    expect(coverage.gaps.map((gap) => gap.id)).toContain('interrupt_silence');
+    // `end_of_turn` is measured against a labelled set rather than live traffic, so it is the
+    // gap that stays a gap: the two client-side bars were closed by X-04 part 2.
+    expect(coverage.gaps.map((gap) => gap.id)).toContain('end_of_turn');
+    expect(coverage.gaps.map((gap) => gap.id)).not.toContain('interrupt_silence');
+    expect(coverage.gaps.map((gap) => gap.id)).not.toContain('audible_welcome');
   });
 
   it('gives every gap a reason, so the route explains itself', () => {
