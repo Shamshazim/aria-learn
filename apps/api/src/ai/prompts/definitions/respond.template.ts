@@ -14,7 +14,7 @@ import type { RespondPromptInput } from '@/ai/prompts/types';
  */
 const SITUATION = `{{register}}
 
-{{dialogue}}
+{{brief}}{{dialogue}}
 
 {{lesson}}
 Situation:
@@ -33,6 +33,9 @@ Instruction: {{instruction}}
 export function renderRespondPrompt(input: RespondPromptInput, closing: string): string {
   return renderPrompt(SITUATION + closing, input.context, {
     register: REGISTERS[input.band],
+    // P3-03: this week's learner brief, so Aria opens knowing the child. Blank when there is
+    // none — never an empty heading a model might read as "nothing to know".
+    brief: renderBrief(input.context),
     dialogue: renderDialogue(input.context),
     subject: input.subject,
     // Blank rather than absent when there is no note, so the prompt has no dangling heading.
@@ -51,4 +54,9 @@ export function renderRespondPrompt(input: RespondPromptInput, closing: string):
     move: input.move,
     instruction: instructionFor(input.move, input.approach),
   });
+}
+
+function renderBrief(context: RespondPromptInput['context']): string {
+  const brief = context.value.learnerBrief;
+  return brief === undefined ? '' : `What you know about this child this week:\n${brief}\n\n`;
 }

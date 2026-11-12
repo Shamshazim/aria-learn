@@ -21,6 +21,7 @@ const factRowSchema = z.object({
   sensitivity: z.string(),
   model_shareable: z.boolean(),
   superseded_by: z.string().nullable(),
+  corrected: z.boolean().optional(),
 });
 
 type FactRow = z.infer<typeof factRowSchema>;
@@ -135,7 +136,9 @@ async function listCurrent(
     db,
     operation: 'learnerFact.listCurrent',
     sql: `SELECT id, student_id, kind, value, confidence, first_observed_at,
-            last_confirmed_at, expires_at, sensitivity, model_shareable, superseded_by
+            last_confirmed_at, expires_at, sensitivity, model_shareable, superseded_by,
+            EXISTS (SELECT 1 FROM learner_fact_evidence e
+                    WHERE e.fact_id = learner_fact.id AND e.source_kind IN ('correction', 'parent_correction')) AS corrected
           FROM learner_fact WHERE student_id = $1 AND superseded_by IS NULL
             AND (expires_at IS NULL OR expires_at > $2)
           ORDER BY confidence DESC, last_confirmed_at DESC, id`,
@@ -209,5 +212,6 @@ function mapFact(input: FactRow): LearnerFact {
     sensitivity: row.sensitivity,
     modelShareable: row.model_shareable,
     supersededBy: row.superseded_by,
+    ...(row.corrected === undefined ? {} : { corrected: row.corrected }),
   };
 }

@@ -9,6 +9,8 @@ import {
   misconceptionRuntimeId,
   type SkillStateRepository,
 } from '@/repositories/skill-state.repository';
+import { selfCorrectionFrom } from '@/services/memory/correct/from-child';
+import type { ChildCorrectionService } from '@/services/memory/correct.service';
 import { recordAttempt } from '@/services/scheduler/record-attempt';
 import { ENGAGEMENT_EVENT_KIND } from '@/services/tutor/engagement-context';
 import type { NewSessionEvent, SessionEndReason } from '@/types/session';
@@ -26,10 +28,15 @@ export function createTurnCommitService(deps: {
   /** P3-04: the skill graph, so an attempt knows whether its skill is a facts skill. */
   graph: SkillGraph;
   outbox?: MoveOutboxRepository;
+  /** P3-06: a child's self-correction, applied in this turn's transaction. */
+  corrections?: ChildCorrectionService;
 }): TurnCommitService {
   return {
-    commit: (turn: CommittedTurn) =>
-      withTransaction(deps.pool, async (tx) => commit(deps, tx, turn)),
+    commit: async (turn: CommittedTurn) => {
+      const after = await withTransaction(deps.pool, async (tx) => commit(deps, tx, turn));
+      // P3-06: what must wait for the commit — a brief rebuild after a self-correction.
+      await after?.();
+    },
   };
 }
 
@@ -37,7 +44,7 @@ async function commit(
   deps: Parameters<typeof createTurnCommitService>[0],
   tx: Parameters<Parameters<typeof withTransaction>[1]>[0],
   turn: CommittedTurn,
-): Promise<void> {
+): Promise<(() => Promise<void>) | null> {
   const sessionId = turn.event.sessionId;
   if (sessionId === undefined) throw new Error('Committed tutor turn has no session id');
   const events = deps.events.withDb(tx);
@@ -50,6 +57,7 @@ async function commit(
   if (engagement !== null) await events.append(engagement);
   const practised = practisedSkill(turn);
   await recordGraded(deps, tx, turn, sessionId);
+  const corrected = await recordSelfCorrection(deps, tx, turn, sessionId);
   // A SWITCH names where the lesson goes next. Writing it on the session is what makes the
   // next turn load the new skill; before this the tutor announced a change of step and then
   // kept asking about the old one.
@@ -63,6 +71,25 @@ async function commit(
   if (turn.decision.terminal) {
     await deps.sessions.withDb(tx).end(sessionId, endReason(turn), deps.clock.now());
   }
+  return corrected;
+}
+
+/**
+ * P3-06: "I don't like trucks anymore". The acknowledgement is already in the moves; the
+ * change goes in with them, so the next turn's memory read has it.
+ */
+async function recordSelfCorrection(
+  deps: Parameters<typeof createTurnCommitService>[0],
+  tx: Parameters<Parameters<typeof withTransaction>[1]>[0],
+  turn: CommittedTurn,
+  sessionId: string,
+): Promise<(() => Promise<void>) | null> {
+  const correction = selfCorrectionFrom(turn.plan.evidence ?? {});
+  const corrections = deps.corrections;
+  if (correction === null || corrections === undefined) return null;
+  const { studentId } = await requireSession(deps.sessions.withDb(tx), sessionId);
+  const result = await corrections.fromChild(tx, { studentId, correction });
+  return result === null ? null : () => corrections.afterCommit(studentId, result);
 }
 
 /** The graded answer, through the scheduler, and the misconception it showed, if any. */

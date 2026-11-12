@@ -21,7 +21,8 @@ const outputSchema: z.ZodType<RespondStreamPromptOutput> = z
 
 export const respondStreamPrompt: PromptDefinition<'respond-stream'> = {
   name: 'respond-stream',
-  version: '1.0.0',
+  // 1.1.0: P3-03 adds this week's learner brief to the situation.
+  version: '1.1.0',
   tier: 'TEACH',
   system: ARIA_PERSONA,
   inputSchema: respondInputSchema,

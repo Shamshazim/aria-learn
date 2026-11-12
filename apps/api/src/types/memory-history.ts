@@ -31,6 +31,8 @@ export type NewLearnerBrief = Readonly<{
 
 export type NewFactCorrection = CorrectionAuthor &
   Readonly<{
+    /** Chosen by the caller when a replacement's evidence must name the correction (P3-06). */
+    id?: string;
     studentId: string;
     targetKind: CorrectionTarget;
     targetId: string;

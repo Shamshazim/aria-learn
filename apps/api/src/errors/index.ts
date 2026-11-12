@@ -14,3 +14,5 @@ export {
   isAppError,
 } from './app-error';
 export { MovePlanValidationError, SpendCapExceededError, StreamGateError } from './ai-errors';
+export { RejectedValueError, StaleCorrectionTargetError } from './correction-errors';
+export type { RejectedValueRule } from './correction-errors';

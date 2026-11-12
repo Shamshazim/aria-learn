@@ -32,6 +32,11 @@ export const ERROR_CODES = {
    * fast is not told off, and never sees "429".
    */
   RATE_LIMITED: 'RATE_LIMITED',
+  /**
+   * P3-06: a well-formed value the product will not keep — a sensitive category, or a judgement
+   * about a child. Its own code because the parent app shows the rule and lets them rephrase.
+   */
+  VALUE_REJECTED: 'VALUE_REJECTED',
   INTERNAL: 'INTERNAL',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 } as const;

@@ -77,6 +77,7 @@ function contextCategories(value: ScrubbedLearnerContext): readonly ContextCateg
   if (value.skill !== undefined) categories.push('skill');
   if (value.gradeBand !== undefined) categories.push('grade_band');
   if (value.recentEvidence !== undefined) categories.push('recent_evidence');
+  if (value.learnerBrief !== undefined) categories.push('learner_brief');
   if (value.learnerMemory !== undefined) categories.push('learner_memory');
   if (value.pseudonymousFirstName !== undefined) categories.push('pseudonymous_first_name');
   if (value.recentDialogue !== undefined) categories.push('recent_dialogue');
@@ -96,6 +97,7 @@ export function scrubLearnerContext(
   const gradeBand = scrubOptional(raw.gradeBand, rules);
   const recentEvidence = scrubList(raw.recentEvidence, rules);
   const learnerMemory = scrubMemory(raw, rules);
+  const learnerBrief = scrubOptional(raw.learnerBrief, rules);
   const recentDialogue = scrubDialogue(raw, rules);
   const pseudonymousFirstName = scrubPseudonym(raw, options, rules);
   const value: ScrubbedLearnerContext = Object.freeze({
@@ -103,6 +105,7 @@ export function scrubLearnerContext(
     ...(gradeBand === undefined ? {} : { gradeBand }),
     ...(recentEvidence === undefined ? {} : { recentEvidence }),
     ...(learnerMemory === undefined ? {} : { learnerMemory }),
+    ...(learnerBrief === undefined ? {} : { learnerBrief }),
     ...(recentDialogue === undefined ? {} : { recentDialogue }),
     ...(pseudonymousFirstName === undefined ? {} : { pseudonymousFirstName }),
   });

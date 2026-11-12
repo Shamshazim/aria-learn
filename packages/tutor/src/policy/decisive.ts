@@ -29,6 +29,8 @@ export const DECISIVE_REASONS = [
   'engagement_adapt',
   'engagement_reply',
   'engagement_noted',
+  // P3-06: the child corrected their own memory; the acknowledgement is fixed text.
+  'self_correction',
 ] as const;
 
 export type DecisiveReason = (typeof DECISIVE_REASONS)[number];

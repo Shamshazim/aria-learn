@@ -11,17 +11,27 @@ export class AppError extends Error {
   readonly code: ErrorCode;
   readonly status: number;
   readonly safeMessage: string;
+  /**
+   * Identifiers a client needs to act on the error, and that are safe for this caller to see
+   * — the current row a stale correction should retarget, say. Never a value, never a reason.
+   */
+  readonly details: Readonly<Record<string, string>> | undefined;
 
   constructor(
     code: ErrorCode,
     status: number,
     safeMessage: string,
-    options?: { cause?: unknown; logMessage?: string },
+    options?: {
+      cause?: unknown;
+      logMessage?: string;
+      details?: Readonly<Record<string, string>>;
+    },
   ) {
     super(options?.logMessage ?? safeMessage, { cause: options?.cause });
     this.name = new.target.name;
     this.code = code;
     this.status = status;
+    this.details = options?.details;
     this.safeMessage = safeMessage;
     Error.captureStackTrace(this, new.target);
   }

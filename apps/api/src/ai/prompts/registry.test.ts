@@ -11,12 +11,15 @@ const EXPECTED_PROMPTS: Readonly<
   explain: { tier: 'TEACH' },
   'grade-short-answer': { tier: 'FAST', version: '1.1.0' },
   hint: { tier: 'FAST' },
+  // P3-03: a parent reads it once a week; it is written with the teaching model.
+  'learner-brief': { tier: 'TEACH', version: '1.0.0' },
   'memory-proposals': { tier: 'TEACH', version: '1.1.0' },
   'plan-move': { tier: 'TEACH' },
   'practice-item': { tier: 'TEACH', version: '1.2.0' },
-  respond: { tier: 'TEACH' },
+  // 1.1.0: P3-03 put this week's learner brief into the situation.
+  respond: { tier: 'TEACH', version: '1.1.0' },
   // P2H-07: the streamed twin returns prose, because JSON cannot be cut at a full stop.
-  'respond-stream': { tier: 'TEACH', jsonMode: false },
+  'respond-stream': { tier: 'TEACH', version: '1.1.0', jsonMode: false },
 };
 const PROMPT_NAMES = [
   'classify-intent',
@@ -24,6 +27,7 @@ const PROMPT_NAMES = [
   'explain',
   'grade-short-answer',
   'hint',
+  'learner-brief',
   'memory-proposals',
   'plan-move',
   'practice-item',

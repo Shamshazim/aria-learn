@@ -28,3 +28,5 @@ export type {
 export * from './scheduler';
 export * from './engagement';
 export { ENGAGEMENT_NOTED } from './policy/engagement-policy';
+export { selfCorrection } from './intent/self-correction';
+export type { SelfCorrection } from './intent/self-correction';

@@ -12,6 +12,7 @@ import {
 import { createDemoAuthControllers } from '@/auth/demo-session.controller';
 import { createAuthControllers } from '@/controllers/auth.controller';
 import { createDeviceControllers } from '@/controllers/device.controller';
+import { createMemoryCorrectionControllers } from '@/controllers/parent/memory-correction.controller';
 import { createParentAccessControllers } from '@/controllers/parent-access.controller';
 import { createParentControllers, type VoiceConsentGrant } from '@/controllers/parent.controller';
 import { randomTokens } from '@/lib/tokens';
@@ -29,6 +30,7 @@ import {
 
 import { buildAccessServices, type AccessServices } from './parent-access.runtime';
 
+import type { MemoryRuntime } from './memory.runtime';
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 import type { RequestHandler } from 'express';
 
@@ -63,6 +65,7 @@ export function createIdentityRuntime(input: {
   deps: Phase1RuntimeDeps;
   repositories: Phase1Repositories;
   end: EndSession;
+  memory: MemoryRuntime;
 }): IdentityRuntime {
   const { deps, repositories } = input;
   const childSessionRepo = createChildSessionRepository(deps.pool);
@@ -109,7 +112,7 @@ export function createIdentityRuntime(input: {
     expiry,
     routerDeps: (consent) =>
       buildRouterDeps(
-        { deps, children, login, sessions, access, students: repositories.students },
+        { deps, children, login, sessions, access, repositories, memory: input.memory },
         consent,
       ),
   };
@@ -121,7 +124,8 @@ type RouterParts = Readonly<{
   login: ReturnType<typeof createChildLoginService>;
   sessions: ReturnType<typeof createChildSessionService>;
   access: AccessServices;
-  students: Phase1Repositories['students'];
+  repositories: Phase1Repositories;
+  memory: MemoryRuntime;
 }>;
 
 function buildRouterDeps(
@@ -140,7 +144,7 @@ function buildRouterDeps(
       auth: {
         parentAuth: refuseParent,
         controller: createDemoAuthControllers({
-          students: parts.students,
+          students: parts.repositories.students,
           demoStudentId,
           clock: deps.clock,
         }),
@@ -170,6 +174,7 @@ function buildRouterDeps(
         sessions: parts.sessions,
         ...(consent === undefined ? {} : { consent }),
       }),
+      memory: memoryControllers(parts),
       access: createParentAccessControllers({
         consent: parts.access.consent,
         devices: parts.access.devices,
@@ -179,6 +184,15 @@ function buildRouterDeps(
     },
     device: deviceRouterDeps(parts),
   };
+}
+
+/** P3-06: a parent correcting what Aria remembers, checked against the family it belongs to. */
+function memoryControllers(parts: RouterParts) {
+  return createMemoryCorrectionControllers({
+    corrections: parts.memory.parentCorrections((parentId, childId) =>
+      parts.children.requireOwned(parentId, childId),
+    ),
+  });
 }
 
 /** P0-28: the tablet's own surface, gated by the grant it holds rather than a parent's token. */

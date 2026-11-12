@@ -102,6 +102,35 @@ export type ClassifySafetyPromptInput = ContextInput & Readonly<{ content: strin
 export type ClassifySafetyPromptOutput =
   Readonly<{ verdict: 'safe' }> | Readonly<{ verdict: 'unsafe'; category: SafetyCategory }>;
 
+/** P3-03: one piece of evidence the brief may rest on, named by a short reference. */
+export type BriefPromptItem = Readonly<{ ref: string; text: string }>;
+
+/**
+ * P3-03: the learner brief is written from evidence, never from the brief before it
+ * ("regenerated from current evidence, not recursively summarised"). There is deliberately no
+ * field here that could carry a previous body, and the schema is strict, so one cannot be
+ * smuggled in either.
+ */
+export type LearnerBriefPromptInput = ContextInput &
+  Readonly<{
+    period: 'week' | 'month' | 'year';
+    wordCap: number;
+    sessions: number;
+    facts: readonly BriefPromptItem[];
+    episodes: readonly BriefPromptItem[];
+    skills: readonly Readonly<{
+      ref: string;
+      name: string;
+      standing: 'new' | 'practising' | 'strong';
+    }>[];
+    /** What a first attempt broke, for the one regeneration the lint allows. */
+    avoid: readonly string[];
+  }>;
+/** Every sentence names the evidence it rests on, so it can be traced and, if stale, dropped. */
+export type LearnerBriefPromptOutput = Readonly<{
+  sentences: readonly Readonly<{ text: string; refs: readonly string[] }>[];
+}>;
+
 export type PromptContractMap = {
   'classify-intent': { input: ClassifyIntentPromptInput; output: ClassifyIntentPromptOutput };
   'classify-safety': {
@@ -114,6 +143,7 @@ export type PromptContractMap = {
     output: GradeShortAnswerPromptOutput;
   };
   hint: { input: HintPromptInput; output: HintPromptOutput };
+  'learner-brief': { input: LearnerBriefPromptInput; output: LearnerBriefPromptOutput };
   'memory-proposals': {
     input: MemoryProposalsPromptInput;
     output: MemoryProposalsPromptOutput;

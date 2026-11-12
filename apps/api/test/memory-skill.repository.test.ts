@@ -60,7 +60,8 @@ suite('Phase 1 memory and skill repositories', () => {
       ],
     };
     const replacement = await memory.supersede(first.id, correction);
-    expect(await memory.listCurrent(studentId, NOW)).toEqual([replacement]);
+    // P3-06: a fact backed by a correction is read back as corrected.
+    expect(await memory.listCurrent(studentId, NOW)).toEqual([{ ...replacement, corrected: true }]);
     const result = await database.pool.query<{ superseded_by: string | null }>(
       'SELECT superseded_by FROM learner_fact WHERE id = $1',
       [first.id],

@@ -1,10 +1,12 @@
 import { Router } from 'express';
 
+import type { MemoryCorrectionControllers } from '@/controllers/parent/memory-correction.controller';
 import type { ParentAccessControllers } from '@/controllers/parent-access.controller';
 import type { ParentControllers } from '@/controllers/parent.controller';
 import { asyncHandler } from '@/middleware/async-handler';
 import { validate } from '@/middleware/validate';
 import { noBodySchema } from '@/schemas/common.schema';
+import { memoryCorrectionRequestSchema } from '@/schemas/parent/memory-correction.schema';
 import {
   createDeviceSchema,
   deviceParamsSchema,
@@ -36,6 +38,8 @@ export function createParentRouter(
     controller: ParentControllers;
     /** P0-28: consent, devices, erasure and sign-out. Absent where they are not configured. */
     access?: ParentAccessControllers;
+    /** P3-06: correcting what Aria remembers about a child. */
+    memory?: MemoryCorrectionControllers;
   }>,
 ): Router {
   const router = Router();
@@ -73,6 +77,14 @@ export function createParentRouter(
     validate(parentVoiceConsentSchema, 'body'),
     asyncHandler(deps.controller.grantVoiceConsent),
   );
+  if (deps.memory !== undefined) {
+    router.post(
+      '/parent/children/:id/learner-memory/correct',
+      validate(childParamsSchema, 'params'),
+      validate(memoryCorrectionRequestSchema, 'body'),
+      asyncHandler(deps.memory.correct),
+    );
+  }
   if (deps.access !== undefined) mountAccess(router, deps.access);
   return router;
 }

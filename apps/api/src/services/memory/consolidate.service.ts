@@ -121,15 +121,14 @@ async function applyProposal(
     )
   )
     return;
-  await writer.fact({
-    studentId: input.studentId,
-    proposal: input.proposal,
-    at: now,
-    previous: conflictingFact(
-      input.current,
-      input.proposal.kind,
-      input.proposal.text,
-      input.proposal.skillCode,
-    ),
-  });
+  const previous = conflictingFact(
+    input.current,
+    input.proposal.kind,
+    input.proposal.text,
+    input.proposal.skillCode,
+  );
+  // P3-06 (P3-02 conflict rule 1): what a parent or the child said outranks what a session
+  // inferred. A corrected fact is never replaced by consolidation, whatever the evidence.
+  if (previous?.corrected === true) return;
+  await writer.fact({ studentId: input.studentId, proposal: input.proposal, at: now, previous });
 }

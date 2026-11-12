@@ -114,7 +114,7 @@ describe('fallback_used_total', () => {
     expect(resolved.privateEvidence).toMatchObject({
       responseSource: 'model',
       promptName: 'respond',
-      promptVersion: '1.0.0',
+      promptVersion: '1.1.0',
     });
   });
 });

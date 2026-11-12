@@ -40,7 +40,10 @@ export function errorHandler(): ErrorRequestHandler {
       res.setHeader('Retry-After', String(error.retryAfterSeconds));
     }
 
-    const body: ApiError = { error: { code, message, requestId: req.id } };
+    const details = known ? error.details : undefined;
+    const body: ApiError = {
+      error: { code, message, requestId: req.id, ...(details === undefined ? {} : { details }) },
+    };
     res.status(status).json(body);
   };
 }

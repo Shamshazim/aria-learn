@@ -12,6 +12,7 @@ import {
 import { createParentIdentityService } from '@/auth/parent-identity.service';
 import { loadConfig } from '@/config';
 import { createAuthControllers } from '@/controllers/auth.controller';
+import { createMemoryCorrectionControllers } from '@/controllers/parent/memory-correction.controller';
 import { createParentControllers } from '@/controllers/parent.controller';
 import { ForbiddenError, NotFoundError } from '@/errors';
 import { sequentialIds, uuidGenerator } from '@/lib/ids';
@@ -19,6 +20,10 @@ import { createLogger } from '@/lib/logger';
 import { randomTokens } from '@/lib/tokens';
 import { createChildCredentialRepository } from '@/repositories/child-credential.repository';
 import { createChildSessionRepository } from '@/repositories/child-session.repository';
+import { createCorrectionTargetRepository } from '@/repositories/correction-target.repository';
+import { createFactCorrectionRepository } from '@/repositories/fact-correction.repository';
+import { createLearnerEpisodeRepository } from '@/repositories/learner-episode.repository';
+import { createLearnerMemoryRepository } from '@/repositories/learner-memory.repository';
 import { createParentRepository } from '@/repositories/parent.repository';
 import { createSessionEventRepository } from '@/repositories/session-event.repository';
 import { createSessionRepository } from '@/repositories/session.repository';
@@ -26,6 +31,7 @@ import { createStudentRepository } from '@/repositories/student.repository';
 import type { RouterDeps } from '@/routes';
 import { endSessionRequestSchema } from '@/schemas/session.schema';
 import { createChildLoginService } from '@/services/auth/child-login.service';
+import { createParentCorrectionService } from '@/services/memory/correct.service';
 import { createParentChildrenService } from '@/services/parent/children.service';
 import { createIdleExpiryService } from '@/services/session/idle-expiry.service';
 import type { EndSession } from '@/services/session/idle-expiry.service';
@@ -163,9 +169,37 @@ function identityApp(
           secureCookies: false,
         }),
       },
-      parent: { parentAuth, controller: createParentControllers({ children, sessions }) },
+      parent: {
+        parentAuth,
+        controller: createParentControllers({ children, sessions }),
+        memory: memoryCorrections(parts.database, parts.ids, parts.clock, children),
+      },
     },
     student: studentRoutes(requireChildSession({ sessions, expiry: parts.expiry }), parts.end),
+  });
+}
+
+/** P3-06: the real correction path over the real tables, behind the real parent gate. */
+function memoryCorrections(
+  database: TestDatabase,
+  ids: typeof uuidGenerator,
+  clock: Readonly<{ now(): Date }>,
+  children: ReturnType<typeof createParentChildrenService>,
+) {
+  return createMemoryCorrectionControllers({
+    corrections: createParentCorrectionService({
+      pool: database.pool,
+      stores: {
+        facts: createLearnerMemoryRepository({ db: database.db, ids }),
+        episodes: createLearnerEpisodeRepository({ db: database.db, ids }),
+        corrections: createFactCorrectionRepository({ db: database.db, ids }),
+        targets: createCorrectionTargetRepository(database.db),
+      },
+      ids,
+      clock,
+      invalidateBrief: () => Promise.resolve(),
+      requireOwned: (parentId, childId) => children.requireOwned(parentId, childId),
+    }),
   });
 }
 
