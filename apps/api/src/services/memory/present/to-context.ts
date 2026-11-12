@@ -11,6 +11,8 @@ export function toScrubbedContext(
     recentDialogue?: readonly RawDialogueTurn[];
     /** P2H-04: share the child's first name (and only that) with the model. */
     shareFirstName?: boolean;
+    /** P3-03: this week's learner brief. */
+    brief?: string;
     identifiers: Readonly<{
       fullName?: string;
       parentEmail?: string;
@@ -36,6 +38,7 @@ export function toScrubbedContext(
       ...(input.recentEvidence === undefined ? {} : { recentEvidence: input.recentEvidence }),
       ...(input.recentDialogue === undefined ? {} : { recentDialogue: input.recentDialogue }),
       ...(firstName === undefined ? {} : { pseudonymousFirstName: firstName }),
+      ...(input.brief === undefined ? {} : { learnerBrief: input.brief }),
     },
     { pseudonym: firstName === undefined ? 'omit' : 'include' },
   );

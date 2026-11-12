@@ -37,6 +37,7 @@ import type { Student } from '@/types/student';
 
 import { createIdentityRuntime, type IdentityRuntime } from './identity.runtime';
 
+import type { MemoryRuntime } from './memory.runtime';
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
 type ControllerRuntime = Readonly<{
@@ -46,6 +47,8 @@ type ControllerRuntime = Readonly<{
   crisis: ReturnType<typeof createCrisisTurnService>;
   /** P3-04: the skill graph the session plan and the arrival recommendation rank from. */
   graph: SkillGraph;
+  /** P3-03, P3-06: the learner brief and the memory corrections. */
+  memory: MemoryRuntime;
   gate: QualityGate;
   /** P2H-11: the display name of a skill, for the summary written when a session ends. */
   skillName(skillCode: string): string | null;
@@ -68,6 +71,7 @@ export function buildPhase1Controllers(runtime: ControllerRuntime): Readonly<{
     deps: runtime.deps,
     repositories: runtime.repositories,
     end: lifecycle.end,
+    memory: runtime.memory,
   });
   const arrival = buildArrival(runtime, runtime.gate);
   const serialize = createSessionTurnQueue();

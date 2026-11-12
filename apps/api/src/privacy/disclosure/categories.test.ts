@@ -6,6 +6,7 @@ import type { ContextCategory } from '@/privacy/types';
 
 const ALL_CATEGORIES: readonly ContextCategory[] = [
   'grade_band',
+  'learner_brief',
   'learner_memory',
   'pseudonymous_first_name',
   'recent_dialogue',

@@ -38,11 +38,12 @@ touches the same policy files.
   anymore" retracts the matching preference; "my dog is called Rex now" replaces the matching
   relationship fact; "I'm in grade 3 now" is acknowledged and changes nothing (a grade is the
   parent's). A claim that matches nothing is logged as `memory.correction.child_unmatched`.
-- **Brief invalidation is a port** (`correct/invalidate.ts`) called after every applied
-  correction; until P3-03's generator exists it logs `memory.brief.invalidated`. Parent
-  corrections also count `memory_correction_parent_total`.
-- **Not met yet:** "a test asserts the new brief no longer contains the corrected value" needs
-  P3-03. The golden "changed preference" scenario is scripted and still passes; the
+- **Brief invalidation** (`correct/invalidate.ts`) runs after every applied correction and,
+  since P3-03, regenerates the current week brief in the background — for a child's
+  correction, only after the turn's transaction commits. Parent corrections also count
+  `memory_correction_parent_total`.
+- **Met with P3-03:** a test asserts the rebuilt brief no longer contains the corrected value
+  (`test/learner-brief.service.test.ts`). The golden "changed preference" scenario is scripted and still passes; the
   no-old-value guarantee is proved at the retrieval layer and end to end instead (the
   corrected fact is the only current one; retrieval ranks it first).
 
@@ -129,7 +130,7 @@ packages/tutor/src/policy/teaching-policy.ts      CHAT/QUESTION intents containi
       preference and produce a one-sentence acknowledgement, not a lecture.
 - [x] Cross-family target returns 404 identical to a random uuid.
 - [x] Sensitive or judging replacement values are rejected with 422 and no rows written.
-- [ ] Week brief is regenerated (or scheduled) after a parent correction; a test asserts the
+- [x] Week brief is regenerated (or scheduled) after a parent correction; a test asserts the
       new brief no longer contains the corrected value.
 - [x] Router/controller/service/schema/repository are separate files; no SQL outside repositories.
 

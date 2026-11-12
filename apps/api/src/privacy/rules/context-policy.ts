@@ -39,6 +39,7 @@ function assertContextTextBounds(raw: RawLearnerContext): void {
     raw.skill,
     raw.gradeBand,
     raw.pseudonymousFirstName,
+    raw.learnerBrief,
     ...(raw.recentEvidence ?? []),
     ...(raw.learnerMemory ?? []).map((fact) => fact.text),
     ...(raw.recentDialogue ?? []).map((turn) => turn.text),

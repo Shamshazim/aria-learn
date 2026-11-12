@@ -9,6 +9,40 @@
 | **Parallel-safe with** | P3-04, P3-05, P3-06 |
 | **Size** | M |
 
+## Status
+
+**Code complete 2026-11-12** on `feat/P3-03-learner-brief`, pending review. Stacked on P3-06
+(#36) ← P3-05 (#35) ← P3-04 (#34) ← P3-01 (#33). P3-02 is not built; nothing here needs it
+except its rebuild, which can compare against the `evidence_snapshot` every brief now stores.
+
+- **Every sentence cites its evidence.** The prompt gives each fact, episode and skill a short
+  reference (`F1`, `E1`, `S1`); the model returns sentences with the references they rest on,
+  and a sentence citing nothing, or a reference that was never offered, is dropped. That is
+  what makes the snapshot exactly the ids the body uses, and why removing a fact removes its
+  sentence.
+- **The prompt input has no field for a previous brief**, and its schema is strict; a test
+  proves both (a `@ts-expect-error` and a refused parse).
+- **The child is `[child]` to the model**; the first name goes back in afterwards, so it is in
+  the stored body and in no request (asserted with a provider that records every request).
+  `renderPrompt` scrubs again on the way out.
+- **Lint → regenerate once with the violations → template**, logged `brief.lint.failed`. The
+  same template is written when no model is configured, the model fails, or the safety check
+  refuses the paragraph (`generator = 'template'`). The lint shares P3-06's describe-never-judge
+  patterns and adds the ticket's labels, diagnoses, scores, grade letters and skill codes.
+  "Behind" counts only as a verdict ("is behind", "falling behind in maths"), and "add" is not
+  a label (it is arithmetic).
+- **Safety** is the P0-18 gate's safety check only, at the senior band: the gate's reading-level
+  and claims checks are about text a child reads.
+- **Retrieval:** `currentForTurn` is the newest current week brief from the last 14 days, or
+  `null`. It reaches the turn as a new scrubbed-context category, `learner_brief` (with a parent
+  disclosure entry), and the `respond` prompts now open with it — both bumped to 1.1.0. With no
+  brief there is no heading at all.
+- **P3-06's rebuild is real now:** a parent's correction, or a child's after their turn commits,
+  regenerates the current week brief in the background, and a test asserts the corrected value
+  is gone from it.
+- **Not done:** "no percentage, grade or label over the tutoring golden set" — the golden
+  scenarios are scripted and never call the brief; the lint enforces it on every write instead.
+
 ## Why
 
 `master-plan.md` §4.2 Layer 4: a short, parent-readable paragraph the tutor reads at the top
@@ -88,18 +122,18 @@ Rules:
 
 ## Acceptance criteria
 
-- [ ] `generate` for the golden student produces a week, month and year brief; each is
+- [x] `generate` for the golden student produces a week, month and year brief; each is
       ≤ the word cap and passes the lint and the safety check.
-- [ ] A test proves the prompt input type cannot carry a previous brief body.
-- [ ] A fixture containing every banned label fails the lint; a clean fixture passes.
-- [ ] Every sentence about a skill in the generated briefs is traceable to an id in
+- [x] A test proves the prompt input type cannot carry a previous brief body.
+- [x] A fixture containing every banned label fails the lint; a clean fixture passes.
+- [x] Every sentence about a skill in the generated briefs is traceable to an id in
       `evidence_snapshot` (checked by a test that removes one fact and regenerates: the
       corresponding sentence disappears).
-- [ ] The child's first name appears in the stored body and never in the model request,
+- [x] The child's first name appears in the stored body and never in the model request,
       asserted by a fake provider that records requests.
-- [ ] `currentForTurn` returns `null` for a child with no recent week brief and the turn
+- [x] `currentForTurn` returns `null` for a child with no recent week brief and the turn
       loop still runs.
-- [ ] Old versions remain readable via `history`; the newest is `current`.
+- [x] Old versions remain readable via `history`; the newest is `current`.
 - [ ] No mastery percentage, letter grade or label in any generated brief over the tutoring
       golden set.
 
