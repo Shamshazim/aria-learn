@@ -40,6 +40,11 @@ export type ChildCorrectionService = Readonly<{
     tx: Queryable,
     input: Readonly<{ studentId: string; correction: SelfCorrection }>,
   ): Promise<CorrectionResult | null>;
+  /**
+   * The week brief is stale once the change is committed — not before, or the rebuild would
+   * read the fact the child just corrected. The turn calls this after its transaction ends.
+   */
+  afterCommit(studentId: string, result: CorrectionResult): Promise<void>;
 }>;
 
 type CorrectionDeps = Readonly<{
@@ -91,9 +96,10 @@ export function createChildCorrectionService(
         return null;
       }
       const author = { correctedBy: 'child', correctedById: null } as const;
-      const result = await apply(deps, tx, { studentId, author, request });
+      return apply(deps, tx, { studentId, author, request });
+    },
+    afterCommit: async (studentId, result) => {
       if (result.correctionId !== null) await invalidate(deps, studentId, result.correctionId);
-      return result;
     },
   };
 }

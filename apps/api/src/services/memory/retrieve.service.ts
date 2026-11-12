@@ -31,6 +31,11 @@ export function createMemoryRetrievalService(deps: {
   clock: Clock;
   maxTokens: number;
   recordSize(input: Readonly<{ sessionId: string; tokens: number }>): void;
+  /**
+   * P3-03: this week's learner brief, or `null`. Absent or `null`, the context is facts only —
+   * never an empty string a prompt might quote.
+   */
+  brief?(studentId: string, now: Date): Promise<string | null>;
 }): MemoryRetrievalService {
   return {
     retrieve: (
@@ -60,7 +65,10 @@ async function retrieve(
   }>,
 ): Promise<MemoryRetrieval> {
   const now = deps.clock.now();
-  const facts = await deps.memory.listCurrent(input.studentId, now);
+  const [facts, brief] = await Promise.all([
+    deps.memory.listCurrent(input.studentId, now),
+    deps.brief?.(input.studentId, now) ?? Promise.resolve(null),
+  ]);
   const ranked = rankRelevantFacts(facts, { skillCode: input.skillCode, now });
   const evidenceTokens = (input.recentEvidence ?? []).reduce(
     (total, item) => total + estimateTokens(item),
@@ -78,6 +86,7 @@ async function retrieve(
       ...(input.recentEvidence === undefined ? {} : { recentEvidence: input.recentEvidence }),
       ...(input.recentDialogue === undefined ? {} : { recentDialogue: input.recentDialogue }),
       ...(input.shareFirstName === undefined ? {} : { shareFirstName: input.shareFirstName }),
+      ...(brief === null ? {} : { brief }),
     }),
     estimatedTokens,
     factIds: budgeted.facts.map((item) => item.fact.id),

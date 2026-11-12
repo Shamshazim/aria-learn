@@ -28,9 +28,9 @@ import {
   type IdleExpiryService,
 } from '@/services/session/idle-expiry.service';
 
-import { parentCorrections } from './memory.runtime';
 import { buildAccessServices, type AccessServices } from './parent-access.runtime';
 
+import type { MemoryRuntime } from './memory.runtime';
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 import type { RequestHandler } from 'express';
 
@@ -65,6 +65,7 @@ export function createIdentityRuntime(input: {
   deps: Phase1RuntimeDeps;
   repositories: Phase1Repositories;
   end: EndSession;
+  memory: MemoryRuntime;
 }): IdentityRuntime {
   const { deps, repositories } = input;
   const childSessionRepo = createChildSessionRepository(deps.pool);
@@ -110,7 +111,10 @@ export function createIdentityRuntime(input: {
     }),
     expiry,
     routerDeps: (consent) =>
-      buildRouterDeps({ deps, children, login, sessions, access, repositories }, consent),
+      buildRouterDeps(
+        { deps, children, login, sessions, access, repositories, memory: input.memory },
+        consent,
+      ),
   };
 }
 
@@ -121,6 +125,7 @@ type RouterParts = Readonly<{
   sessions: ReturnType<typeof createChildSessionService>;
   access: AccessServices;
   repositories: Phase1Repositories;
+  memory: MemoryRuntime;
 }>;
 
 function buildRouterDeps(
@@ -184,7 +189,7 @@ function buildRouterDeps(
 /** P3-06: a parent correcting what Aria remembers, checked against the family it belongs to. */
 function memoryControllers(parts: RouterParts) {
   return createMemoryCorrectionControllers({
-    corrections: parentCorrections(parts.deps, parts.repositories, (parentId, childId) =>
+    corrections: parts.memory.parentCorrections((parentId, childId) =>
       parts.children.requireOwned(parentId, childId),
     ),
   });

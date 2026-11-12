@@ -41,6 +41,13 @@ export const PARENT_DISCLOSURE: Readonly<Record<ContextCategory, ParentDisclosur
     description:
       'Facts you can see and delete in the memory list, such as "finds fractions hard". Anything you mark private is never sent.',
   },
+  learner_brief: {
+    key: 'learner_brief',
+    category: 'learner_brief',
+    label: 'This week, in a paragraph',
+    description:
+      'A short summary of the week, built from the same memory list and session history you can see. Names, addresses and schools are removed first.',
+  },
   pseudonymous_first_name: {
     key: 'first_name',
     category: 'pseudonymous_first_name',
@@ -72,5 +79,6 @@ const ORDER: readonly ContextCategory[] = [
   'skill',
   'recent_dialogue',
   'recent_evidence',
+  'learner_brief',
   'learner_memory',
 ];

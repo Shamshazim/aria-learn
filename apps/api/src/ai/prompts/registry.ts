@@ -4,6 +4,7 @@ import { classifySafetyPrompt } from '@/ai/prompts/definitions/classify-safety.p
 import { explainPrompt } from '@/ai/prompts/definitions/explain.prompt';
 import { gradeShortAnswerPrompt } from '@/ai/prompts/definitions/grade-short-answer.prompt';
 import { hintPrompt } from '@/ai/prompts/definitions/hint.prompt';
+import { learnerBriefPrompt } from '@/ai/prompts/definitions/learner-brief.prompt';
 import { memoryProposalsPrompt } from '@/ai/prompts/definitions/memory-proposals.prompt';
 import { practiceItemPrompt } from '@/ai/prompts/definitions/practice-item.prompt';
 import { respondStreamPrompt } from '@/ai/prompts/definitions/respond-stream.prompt';
@@ -20,6 +21,7 @@ export const promptRegistry: PromptRegistry = {
   explain: explainPrompt,
   'grade-short-answer': gradeShortAnswerPrompt,
   hint: hintPrompt,
+  'learner-brief': learnerBriefPrompt,
   'memory-proposals': memoryProposalsPrompt,
   'plan-move': planMovePrompt,
   'practice-item': practiceItemPrompt,

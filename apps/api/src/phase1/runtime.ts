@@ -20,19 +20,18 @@ import { createVoiceConsentRepository } from '@/repositories/voice-consent.repos
 import type { RouterDeps } from '@/routes';
 import { createWebhookEscalationPort } from '@/safety/crisis/escalation.runtime';
 import { classesFor } from '@/services/arrival/classes.service';
+import { briefIsSafe } from '@/services/brief/safety';
 import {
   createTurnContentService,
   type ApiModelContext,
   type TurnContentService,
 } from '@/services/content/turn-content.service';
 import type { StreamingDeps } from '@/services/content/turn-content.types';
-import { createMemoryRetrievalService } from '@/services/memory/retrieve.service';
 import { createMoveFactory } from '@/services/moves/move-factory';
 import { schedulerGraph } from '@/services/scheduler/scheduler-graph';
 import { buildRecap } from '@/services/session/recap';
 import { createAnswerResync } from '@/services/tutor/answer-target';
 import { createTurnCommitService } from '@/services/tutor/commit.service';
-import { createTutorContextLoader } from '@/services/tutor/context.loader';
 import { createCrisisTurnService } from '@/services/tutor/crisis-turn.service';
 import { createPlannerObserver } from '@/services/tutor/planner-evidence';
 import { createTutorService } from '@/services/tutor/tutor.service';
@@ -40,9 +39,10 @@ import { createVocalCueConsent } from '@/services/tutor/vocal-cue-consent';
 
 import { buildContentServices, type ContentServices } from './content.runtime';
 import { buildPhase1Controllers } from './controllers.runtime';
-import { childCorrections } from './memory.runtime';
+import { buildMemoryRuntime, type MemoryRuntime } from './memory.runtime';
 import { buildRepositories } from './repositories.runtime';
 import { buildTalkPorts, type TalkPorts } from './talk.runtime';
+import { buildTutorContext } from './tutor-context.runtime';
 
 import type { Phase1Repositories, Phase1RuntimeDeps } from './runtime.types';
 
@@ -65,7 +65,11 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
   const graph = schedulerGraph(inventory.listSkills());
   await seedInventory(repositories, inventory);
   const content = buildContentServices(deps, repositories, inventory);
-  const tutor = buildTutor(deps, repositories, { inventory, graph }, content);
+  const memory = buildMemoryRuntime(deps, repositories, {
+    skillName: (code) => inventory.getSkill(code)?.name ?? null,
+    safe: (text) => briefIsSafe(content.gate, text),
+  });
+  const tutor = buildTutor(deps, repositories, { inventory, graph, memory }, content);
   const crisis = buildCrisis(deps, repositories, content);
   const controllers = buildPhase1Controllers({
     deps,
@@ -73,6 +77,7 @@ export async function createPhase1Runtime(deps: Phase1RuntimeDeps): Promise<
     tutor,
     crisis,
     graph,
+    memory,
     gate: content.gate,
     skillName: (code) => inventory.getSkill(code)?.name ?? null,
     classes: (student) => classesFor(inventory, student),
@@ -96,7 +101,7 @@ async function seedInventory(
 function buildTutor(
   deps: Phase1RuntimeDeps,
   repositories: Phase1Repositories,
-  curriculum: Readonly<{ inventory: InventoryService; graph: SkillGraph }>,
+  curriculum: Readonly<{ inventory: InventoryService; graph: SkillGraph; memory: MemoryRuntime }>,
   content: ContentServices,
 ) {
   const { inventory } = curriculum;
@@ -110,7 +115,7 @@ function buildTutor(
     clock: deps.clock,
     graph: curriculum.graph,
     outbox: repositories.outbox,
-    corrections: childCorrections(deps, repositories),
+    corrections: curriculum.memory.childCorrections,
   });
   return createTutorService({
     ports: {
@@ -135,34 +140,6 @@ function buildTutor(
     }),
     judge: createModelGrader({ ai: deps.ai }),
     ...plannerPorts(deps),
-  });
-}
-
-function buildTutorContext(
-  deps: Phase1RuntimeDeps,
-  repositories: Phase1Repositories,
-  curriculum: Readonly<{ inventory: InventoryService; graph: SkillGraph }>,
-) {
-  const { inventory } = curriculum;
-  const memory = createMemoryRetrievalService({
-    memory: repositories.memory,
-    clock: deps.clock,
-    maxTokens: 300,
-    recordSize: () => {
-      /* persisted with the move evidence */
-    },
-  });
-  return createTutorContextLoader({
-    sessions: repositories.sessions,
-    events: repositories.events,
-    skills: repositories.skills,
-    students: repositories.students,
-    graph: curriculum.graph,
-    clock: deps.clock,
-    retrieve: memory.retrieve,
-    misconceptionIds: (skillCode) => inventory.listMisconceptions(skillCode).map((item) => item.id),
-    lesson: (skillCode) => inventory.getLesson(skillCode),
-    nextTopic: (skillCode) => inventory.nextTopic(skillCode),
   });
 }
 

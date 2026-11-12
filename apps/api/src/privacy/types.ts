@@ -2,6 +2,7 @@ declare const scrubbedContextBrand: unique symbol;
 
 export type ContextCategory =
   | 'grade_band'
+  | 'learner_brief'
   | 'learner_memory'
   | 'pseudonymous_first_name'
   | 'recent_dialogue'
@@ -36,6 +37,8 @@ export type RawLearnerMemory = {
 export type RawLearnerContext = {
   gradeBand?: string;
   identifiers: RawIdentifiers;
+  /** P3-03: this week's learner brief, the paragraph Aria opens a session knowing. */
+  learnerBrief?: string;
   learnerMemory?: readonly RawLearnerMemory[];
   pseudonymousFirstName?: string;
   /** The last few turns of this session, oldest first (P2H-04). */
@@ -51,6 +54,7 @@ export type ScrubbedLearnerMemory = Readonly<{
 
 export type ScrubbedLearnerContext = Readonly<{
   gradeBand?: string;
+  learnerBrief?: string;
   learnerMemory?: readonly ScrubbedLearnerMemory[];
   pseudonymousFirstName?: string;
   recentDialogue?: readonly ScrubbedDialogueTurn[];
