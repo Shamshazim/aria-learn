@@ -1,6 +1,7 @@
 import type { MoveKind, SkipReason } from '@aria/shared';
 
 import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
+import { nextStepOutcome, procedureSkipOutcome, stepsRemaining } from './procedure-policy';
 
 import type { LoadedTurnContext } from '../types';
 
@@ -34,6 +35,9 @@ export function stuckOutcome<TModelContext>(
   reasons: readonly string[],
 ): PolicyOutcome {
   const stuck = context.session.consecutiveStuck;
+  if (stepsRemaining(context.session)) {
+    return nextStepOutcome(context, reasons, { base: STUCK_BASE });
+  }
   if (stuck >= 2) {
     return moveOnOutcome(context, [...reasons, 'stuck_move_on']);
   }
@@ -60,6 +64,7 @@ export function skipOutcome<TModelContext>(
       'skip_too_easy',
     ]);
   }
+  if (stepsRemaining(context.session)) return procedureSkipOutcome(context, [`skip_${reason}`]);
   return moveOnOutcome(context, [`skip_${reason}`]);
 }
 

@@ -42,8 +42,8 @@ function service(target: ContentBank) {
 
 describe('pre-warming the content bank', () => {
   it('covers every arithmetic skill in every band a session can be in', () => {
-    // Fourteen arithmetic skills (P3-07 has added eight so far) in each of three bands.
-    expect(prewarmTargets()).toHaveLength(42);
+    // Eighteen arithmetic skills (P3-07 has added twelve so far) in each of three bands.
+    expect(prewarmTargets()).toHaveLength(54);
   });
 
   it('fills to the target and inserts nothing on a second run', async () => {

@@ -11,6 +11,10 @@ export type ArithmeticSkillCode =
   | 'ADD.3D'
   | 'SUB.FACT.10'
   | 'SUB.REGROUP.2D'
+  | 'MUL.FACT.10'
+  | 'MUL.2D1D'
+  | 'DIV.FACT.10'
+  | 'DIV.LONG'
   | 'FRAC.EQUAL'
   | 'FRAC.COMPARE';
 
@@ -30,6 +34,17 @@ export type AdditionProblem = SkillProblem<
 
 /** P3-07: "What is 52 take away 17?" Always `left >= right`: no negatives before grade 6. */
 export type SubtractionProblem = SkillProblem<'SUB.FACT.10' | 'SUB.REGROUP.2D', 'subtraction'> &
+  Readonly<{ left: string; right: string }>;
+
+/** P3-07: "What is 6 times 7?" */
+export type MultiplicationProblem = SkillProblem<'MUL.FACT.10' | 'MUL.2D1D', 'multiplication'> &
+  Readonly<{ left: string; right: string }>;
+
+/**
+ * P3-07: "What is 157 divided by 4?" Whole-number division: the answer is a quotient, and a
+ * remainder where there is one ("39 r 1"). A fraction or decimal is a different skill.
+ */
+export type DivisionProblem = SkillProblem<'DIV.FACT.10' | 'DIV.LONG', 'division'> &
   Readonly<{ left: string; right: string }>;
 
 export type FractionEqualityProblem = SkillProblem<'FRAC.EQUAL', 'fraction-equality'> &
@@ -54,6 +69,8 @@ export type ArithmeticProblem =
   | SequenceProblem
   | AdditionProblem
   | SubtractionProblem
+  | MultiplicationProblem
+  | DivisionProblem
   | FractionEqualityProblem
   | FractionComparisonProblem
   | DigitPlaceProblem

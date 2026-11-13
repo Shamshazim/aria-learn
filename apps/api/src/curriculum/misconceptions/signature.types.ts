@@ -70,7 +70,17 @@ export type ArithmeticRule =
   | 'answered-the-part'
   | 'smaller-from-larger'
   | 'borrowed-without-reducing-tens'
-  | 'zero-when-smaller';
+  | 'zero-when-smaller'
+  // P3-07: multiplication and division.
+  | 'one-group-short'
+  | 'one-group-extra'
+  | 'column-products-concatenated'
+  | 'dropped-product-carry'
+  | 'tens-digit-as-ones'
+  | 'multiplied-instead'
+  | 'remainder-dropped'
+  | 'remainder-as-decimal'
+  | 'missing-zero-in-quotient';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

@@ -1,0 +1,842 @@
+[
+  {
+    "id": "arith-gen-mul-fact-10-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "2",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 2 times 2?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-middle-9",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 9,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "3",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3 times 2?\" with key 6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-middle-18",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 18,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "4",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 4 times 2?\" with key 8. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-middle-24",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 24,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "4",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 4 times 8?\" with key 32. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-middle-33",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 33,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "5",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 5 times 8?\" with key 40. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-senior-42",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "6",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 × 8 = ?\" with key 48. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-senior-48",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 48,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "7",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"7 × 5 = ?\" with key 35. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-senior-57",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 57,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "8",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"8 × 5 = ?\" with key 40. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-senior-66",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 66,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "9",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"9 × 5 = ?\" with key 45. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-fact-10-senior-72",
+    "subject": "arithmetic",
+    "skillCode": "MUL.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 72,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.FACT.10",
+        "kind": "multiplication",
+        "left": "10",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"10 × 2 = ?\" with key 20. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "4",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 4 divided by 2?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-middle-9",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 9,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "6",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 6 divided by 2?\" with key 3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-middle-18",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 18,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "8",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8 divided by 2?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-middle-24",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 24,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "32",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 32 divided by 8?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-middle-33",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 33,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "40",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 40 divided by 8?\" with key 5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-senior-42",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "48",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"48 ÷ 8 = ?\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-senior-48",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 48,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "35",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"35 ÷ 5 = ?\" with key 7. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-senior-57",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 57,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "40",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"40 ÷ 5 = ?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-senior-66",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 66,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "45",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"45 ÷ 5 = ?\" with key 9. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-fact-10-senior-72",
+    "subject": "arithmetic",
+    "skillCode": "DIV.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 72,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.FACT.10",
+        "kind": "division",
+        "left": "20",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"20 ÷ 2 = ?\" with key 10. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "12",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 12 times 5?\" with key 60. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-middle-48",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 48,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "19",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 19 times 5?\" with key 95. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-middle-97",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 97,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "28",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 28 times 8?\" with key 224. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-middle-143",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 143,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "37",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 37 times 8?\" with key 296. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-middle-191",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 191,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "47",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 47 times 3?\" with key 141. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-senior-240",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 240,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "56",
+        "right": "6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"56 × 6 = ?\" with key 336. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-senior-286",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 286,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "65",
+        "right": "6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"65 × 6 = ?\" with key 390. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-senior-334",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 334,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "74",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"74 × 8 = ?\" with key 592. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-senior-383",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 383,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "84",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"84 × 4 = ?\" with key 336. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-mul-2d1d-senior-429",
+    "subject": "arithmetic",
+    "skillCode": "MUL.2D1D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 429,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MUL.2D1D",
+        "kind": "multiplication",
+        "left": "93",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"93 × 4 = ?\" with key 372. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "100",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 100 divided by 3? Write what is left over after an r.\" with key 33 r 1. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-middle-71",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 71,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "927",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 927 divided by 4? Write what is left over after an r.\" with key 231 r 3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-middle-142",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 142,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "854",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 854 divided by 5? Write what is left over after an r.\" with key 170 r 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-middle-210",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 210,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "670",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 670 divided by 3? Write what is left over after an r.\" with key 223 r 1. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-middle-281",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 281,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "597",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 597 divided by 4? Write what is left over after an r.\" with key 149 r 1. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-senior-352",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 352,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "524",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"524 ÷ 5 = ? Write what is left over after an r.\" with key 104 r 4. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-senior-420",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 420,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "340",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"340 ÷ 3 = ? Write what is left over after an r.\" with key 113 r 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-senior-491",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 491,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "267",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"267 ÷ 4 = ? Write what is left over after an r.\" with key 66 r 3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-senior-562",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 562,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "194",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"194 ÷ 5 = ? Write what is left over after an r.\" with key 38 r 4. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-div-long-senior-630",
+    "subject": "arithmetic",
+    "skillCode": "DIV.LONG",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 630,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "910",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"910 ÷ 3 = ? Write what is left over after an r.\" with key 303 r 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  }
+]

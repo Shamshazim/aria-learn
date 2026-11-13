@@ -60,7 +60,23 @@ function moveRules(
 ): readonly Omit<GateFailureReason, 'check'>[] {
   if (claims.move === 'praise') return emptyPraise(text);
   if (claims.move === 'end') return endRules(text, band);
-  return revealRules(text, claims);
+  if (claims.move === 'hint') return leaked(text, claims);
+  return [...revealRules(text, claims), ...leaked(text, claims)];
+}
+
+/** P3-07: every forbidden thing the text says anyway. */
+function leaked(text: string, claims: MoveClaims): readonly Omit<GateFailureReason, 'check'>[] {
+  return (claims.mustNotMention ?? [])
+    .filter((rule) => rule.any.some((option) => mentions(text, option)))
+    .map((rule) => ({ code: rule.code, message: rule.message }));
+}
+
+/** As a whole token, so forbidding "3" does not forbid "37" or "3rd". */
+function mentions(text: string, option: string): boolean {
+  const escaped = option.toLowerCase().replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, 'u').test(
+    text.toLowerCase(),
+  );
 }
 
 function emptyPraise(text: string): readonly Omit<GateFailureReason, 'check'>[] {

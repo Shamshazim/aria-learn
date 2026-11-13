@@ -1,6 +1,7 @@
 import type { MoveKind, TutorInputEvent } from '@aria/shared';
 
 import { allowedMovesFor } from './allowed-moves';
+import { stepsRemaining } from './procedure-policy';
 
 import type { MovePlan, PolicyDecision, SessionSnapshot } from '../types';
 
@@ -44,10 +45,12 @@ const LIMITS: Readonly<Partial<Record<MoveKind, Limit>>> = {
   RETEACH: stillWorking,
   SHOW: stillWorking,
   // Two turns that went nowhere is where productive struggle ends; before that, revealing is
-  // giving up for the child. A skip is the child giving up out loud, and is honoured.
+  // giving up for the child. A skip is the child giving up out loud, and is honoured. P3-07:
+  // a procedure keeps its answer until every step has had a turn, whatever else is true.
   REVEAL: (input) =>
-    input.event.kind === 'SKIP' ||
-    (input.graded?.correct !== true && input.session.consecutiveStuck >= 2),
+    !stepsRemaining(input.session) &&
+    (input.event.kind === 'SKIP' ||
+      (input.graded?.correct !== true && input.session.consecutiveStuck >= 2)),
   SWITCH: (input) => input.session.unmetPrerequisite !== null,
   // Stopping is the policy's call, never the planner's.
   BREAK: (input) => input.defaultPlan.kind === 'BREAK',

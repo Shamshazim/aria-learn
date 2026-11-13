@@ -22,6 +22,18 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     right: z.string(),
   }),
   z.object({
+    skillCode: z.enum(['MUL.FACT.10', 'MUL.2D1D']),
+    kind: z.literal('multiplication'),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
+    skillCode: z.enum(['DIV.FACT.10', 'DIV.LONG']),
+    kind: z.literal('division'),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
     skillCode: z.literal('FRAC.EQUAL'),
     kind: z.literal('fraction-equality'),
     left: z.string(),

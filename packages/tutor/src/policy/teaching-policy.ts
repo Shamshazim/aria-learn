@@ -16,6 +16,7 @@ import { isDecisive } from './decisive';
 import { statementOutcome, withEngagement } from './engagement-policy';
 import { intentOutcome } from './intent-policy';
 import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
+import { stepsRemaining } from './procedure-policy';
 import { selfCorrectionOutcome } from './self-correction-policy';
 import { silenceRung } from './silence-ladder';
 import { skipOutcome, stuckOutcome } from './stuck-policy';
@@ -106,6 +107,7 @@ function stuckInput<TModelContext>(
   return {
     wrongOnSkill: correct === true ? 0 : before + (correct === false ? 1 : 0),
     stuckOnItem: context.session.consecutiveStuck,
+    newProcedureStep: decided.plan.approach === 'point-to-step' && stepsRemaining(context.session),
   };
 }
 

@@ -29,6 +29,9 @@ function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Param
   if (problem === null) return null;
   if (problem.kind === 'addition') return fromAddition(kind, problem.left, problem.right);
   if (problem.kind === 'subtraction') return fromSubtraction(kind, problem.left, problem.right);
+  if (problem.kind === 'multiplication' || problem.kind === 'division') {
+    return fromGroups(kind, problem.kind, problem.left, problem.right);
+  }
   if (problem.kind === 'sequence') return fromSequence(kind, problem.values, problem.step);
   if (problem.kind === 'place-value' || problem.kind === 'rounding') {
     return fromWhole(kind, problem.number);
@@ -84,6 +87,36 @@ function fromSubtraction(kind: VisualKind, leftText: string, rightText: string):
     default:
       return null;
   }
+}
+
+/** Rows past this make an array too small to count on a tablet; the blocks are used instead. */
+const MAX_ARRAY_SIDE = 12n;
+
+/**
+ * P3-07: equal groups. An array of rows and columns while it is small enough to count, else the
+ * number in blocks with how many groups it is made into (or shared between).
+ */
+function fromGroups(
+  kind: VisualKind,
+  operation: 'multiplication' | 'division',
+  leftText: string,
+  rightText: string,
+): Params | null {
+  const left = parseInteger(leftText);
+  const right = parseInteger(rightText);
+  if (left === null || right === null || right <= 0n) return null;
+  const columns = operation === 'multiplication' ? left : left / right;
+  if (kind === 'array') {
+    return columns > MAX_ARRAY_SIDE || right > MAX_ARRAY_SIDE
+      ? null
+      : { rows: Number(right), columns: Number(columns) };
+  }
+  if (kind === 'place-value-blocks') {
+    return operation === 'multiplication'
+      ? { groups: [blocks(left)], times: Number(right) }
+      : { groups: [blocks(left)], sharedBetween: Number(right) };
+  }
+  return null;
 }
 
 /** Tens and ones, and hundreds only once there are any, so two-digit blocks look as before. */

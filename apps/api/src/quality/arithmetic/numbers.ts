@@ -14,6 +14,8 @@ export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
       return [problem.number];
     case 'addition':
     case 'subtraction':
+    case 'multiplication':
+    case 'division':
     case 'fraction-equality':
     case 'fraction-comparison':
     case 'whole-comparison':

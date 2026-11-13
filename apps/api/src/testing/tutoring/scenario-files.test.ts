@@ -28,6 +28,7 @@ describe('checked-in tutoring scenarios', () => {
       'arrival-after-absence',
       'changed-preference',
       'interruption',
+      'long-division',
       'question-mid-lesson',
       'recalled-breakthrough',
       'repeated-confusion',

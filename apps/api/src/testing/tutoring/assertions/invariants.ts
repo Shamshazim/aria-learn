@@ -3,6 +3,7 @@ import type {
   InvariantFinding,
   InvariantReport,
 } from '@/testing/tutoring/assertions/invariant.types';
+import { checkProcedureReveals } from '@/testing/tutoring/assertions/procedure';
 import { checkRepeatedSentences } from '@/testing/tutoring/assertions/repetition';
 import type { TutoringTranscript } from '@/testing/tutoring/transcript';
 
@@ -18,6 +19,10 @@ export const INVARIANT_RULES: readonly Readonly<{ code: InvariantCode; descripti
   },
   { code: 'INTERRUPTION_NOT_STOPPED', description: 'An interruption stops the current move.' },
   { code: 'SENTENCE_REPEATED', description: 'Aria never repeats her previous sentence.' },
+  {
+    code: 'REVEAL_BEFORE_STEPS',
+    description: 'A procedure is never revealed before every step has had a turn.',
+  },
 ];
 
 function checkApproachChanges(transcript: TutoringTranscript): readonly InvariantFinding[] {
@@ -209,6 +214,7 @@ export function checkTutoringInvariants(transcript: TutoringTranscript): Invaria
     ...checkSafetyRouting(transcript),
     ...checkInterruptions(transcript),
     ...checkRepeatedSentences(transcript),
+    ...checkProcedureReveals(transcript),
   ];
   return { passed: findings.length === 0, findings };
 }

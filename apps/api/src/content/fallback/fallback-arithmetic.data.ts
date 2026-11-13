@@ -77,6 +77,39 @@ export const ARITHMETIC_STRAND_FALLBACKS: readonly FallbackDefinition[] = [
     answer: '425',
     problem: { skillCode: 'ADD.3D', kind: 'addition', left: '158', right: '267' },
   }),
+  // P3-07, strand 3: multiplication and division.
+  item({
+    skillCode: 'MUL.FACT.10',
+    band: 'middle',
+    prompt: 'What is 7 times 6?',
+    choices: ['13', '42', '36'],
+    answer: '42',
+    problem: { skillCode: 'MUL.FACT.10', kind: 'multiplication', left: '7', right: '6' },
+  }),
+  item({
+    skillCode: 'DIV.FACT.10',
+    band: 'middle',
+    prompt: 'What is 24 divided by 6?',
+    choices: ['4', '18', '3'],
+    answer: '4',
+    problem: { skillCode: 'DIV.FACT.10', kind: 'division', left: '24', right: '6' },
+  }),
+  item({
+    skillCode: 'MUL.2D1D',
+    band: 'middle',
+    prompt: 'What is 47 times 6?',
+    choices: ['242', '66', '282'],
+    answer: '282',
+    problem: { skillCode: 'MUL.2D1D', kind: 'multiplication', left: '47', right: '6' },
+  }),
+  item({
+    skillCode: 'DIV.LONG',
+    band: 'middle',
+    prompt: 'What is 157 divided by 4? Write what is left over after an r.',
+    choices: ['39', '39 r 1', '39.1'],
+    answer: '39 r 1',
+    problem: { skillCode: 'DIV.LONG', kind: 'division', left: '157', right: '4' },
+  }),
 ];
 
 type Authored = Readonly<{
