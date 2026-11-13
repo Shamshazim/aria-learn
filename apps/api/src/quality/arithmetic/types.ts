@@ -1,5 +1,14 @@
 export type ArithmeticSkillCode =
-  'NUM.CNT.20' | 'NUM.CNT.SKIP5' | 'ADD.FACT.10' | 'ADD.REGROUP.2D' | 'FRAC.EQUAL' | 'FRAC.COMPARE';
+  | 'NUM.CNT.20'
+  | 'NUM.CNT.SKIP5'
+  | 'NUM.PV.TENS'
+  | 'NUM.PV.HUNDREDS'
+  | 'NUM.CMP.100'
+  | 'NUM.RND.10'
+  | 'ADD.FACT.10'
+  | 'ADD.REGROUP.2D'
+  | 'FRAC.EQUAL'
+  | 'FRAC.COMPARE';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -18,8 +27,26 @@ export type FractionEqualityProblem = SkillProblem<'FRAC.EQUAL', 'fraction-equal
 export type FractionComparisonProblem = SkillProblem<'FRAC.COMPARE', 'fraction-comparison'> &
   Readonly<{ left: string; right: string }>;
 
+/** P3-07: "In 47, which digit is in the tens place?" */
+export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
+  Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
+
+/** P3-07: "Compare 47 and 52." The answer is `<`, `=` or `>`. */
+export type WholeComparisonProblem = SkillProblem<'NUM.CMP.100', 'whole-comparison'> &
+  Readonly<{ left: string; right: string }>;
+
+/** P3-07: "Round 47 to the nearest ten." Halves round up, as the standard teaches it. */
+export type RoundingProblem = SkillProblem<'NUM.RND.10', 'rounding'> &
+  Readonly<{ number: string; to: '10' }>;
+
 export type ArithmeticProblem =
-  SequenceProblem | AdditionProblem | FractionEqualityProblem | FractionComparisonProblem;
+  | SequenceProblem
+  | AdditionProblem
+  | FractionEqualityProblem
+  | FractionComparisonProblem
+  | DigitPlaceProblem
+  | WholeComparisonProblem
+  | RoundingProblem;
 
 export type CheckResult =
   | Readonly<{ verdict: 'correct'; expected: string; reason: string }>

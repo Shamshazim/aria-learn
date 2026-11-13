@@ -27,4 +27,22 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     left: z.string(),
     right: z.string(),
   }),
+  z.object({
+    skillCode: z.enum(['NUM.PV.TENS', 'NUM.PV.HUNDREDS']),
+    kind: z.literal('place-value'),
+    number: z.string(),
+    place: z.enum(['ones', 'tens', 'hundreds', 'thousands']),
+  }),
+  z.object({
+    skillCode: z.literal('NUM.CMP.100'),
+    kind: z.literal('whole-comparison'),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
+    skillCode: z.literal('NUM.RND.10'),
+    kind: z.literal('rounding'),
+    number: z.string(),
+    to: z.literal('10'),
+  }),
 ]);

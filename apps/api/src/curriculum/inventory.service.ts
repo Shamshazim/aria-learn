@@ -1,12 +1,13 @@
 import type { Grade, Misconception, Skill } from '@aria/shared';
 
 import { loadCatalogue, type Catalogue, type CatalogueSubject } from '@/curriculum/catalogue';
-import { ARITHMETIC_SKILLS } from '@/curriculum/inventory/arithmetic.skills';
+import { ARITHMETIC_ENTRY_SKILLS, ARITHMETIC_SKILLS } from '@/curriculum/inventory/arithmetic';
 import { READING_SKILLS } from '@/curriculum/inventory/reading.skills';
 import { WRITING_SKILLS } from '@/curriculum/inventory/writing.skills';
 import { loadLessonNotes, type LessonNote } from '@/curriculum/lessons';
 import { AUTHORED_MISCONCEPTIONS, toMisconception } from '@/curriculum/misconceptions';
 import { authored, validateInventory } from '@/curriculum/validate';
+import { CHECKED_SKILL_CODES } from '@/quality/arithmetic';
 
 export type LessonReviewReport = Readonly<{
   total: number;
@@ -55,7 +56,10 @@ export function createInventoryService(
     ...catalogue.skills,
   ]);
   const misconceptions = freezeMisconceptions(AUTHORED_MISCONCEPTIONS.map(toMisconception));
-  validateInventory(skills, misconceptions, lessons);
+  validateInventory(skills, misconceptions, lessons, {
+    checked: CHECKED_SKILL_CODES,
+    entries: ARITHMETIC_ENTRY_SKILLS,
+  });
   const skillsByCode = new Map(skills.map((skill) => [skill.code, skill]));
   const misconceptionsById = new Map(misconceptions.map((item) => [item.id, item]));
 

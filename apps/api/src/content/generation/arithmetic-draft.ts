@@ -65,19 +65,17 @@ export function toGeneratedContent(item: GeneratedItem, kind: ContentKind): Gene
  * fails the compiler when the union grows, where a round trip would fail a child instead.
  */
 function problemJson(problem: ArithmeticProblem): JsonValue {
-  return problem.kind === 'sequence'
-    ? {
-        skillCode: problem.skillCode,
-        kind: problem.kind,
-        values: [...problem.values],
-        step: problem.step,
-      }
-    : {
-        skillCode: problem.skillCode,
-        kind: problem.kind,
-        left: problem.left,
-        right: problem.right,
-      };
+  const base = { skillCode: problem.skillCode, kind: problem.kind };
+  switch (problem.kind) {
+    case 'sequence':
+      return { ...base, values: [...problem.values], step: problem.step };
+    case 'place-value':
+      return { ...base, number: problem.number, place: problem.place };
+    case 'rounding':
+      return { ...base, number: problem.number, to: problem.to };
+    default:
+      return { ...base, left: problem.left, right: problem.right };
+  }
 }
 
 /**

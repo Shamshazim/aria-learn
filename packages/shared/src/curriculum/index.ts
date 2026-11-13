@@ -1,5 +1,6 @@
 /** Shared curriculum vocabulary; authored inventory data remains API-owned. */
 export type { Misconception, RemediationApproach } from './misconception';
-export type { Skill, SkillSubject } from './skill';
+export { SKILL_MODES } from './skill';
+export type { Skill, SkillMode, SkillSubject } from './skill';
 export { VISUAL_KINDS } from './visual';
 export type { VisualKind } from './visual';

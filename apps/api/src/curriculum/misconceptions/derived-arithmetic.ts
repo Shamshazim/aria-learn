@@ -1,3 +1,8 @@
+import {
+  placeValueError,
+  roundingError,
+  wholeComparisonError,
+} from '@/curriculum/misconceptions/derived-number-sense';
 import type { ArithmeticRule } from '@/curriculum/misconceptions/signature.types';
 import { compareRationals, parseInteger, parseRational } from '@/quality/arithmetic/normalise';
 import type {
@@ -22,6 +27,9 @@ export function predictArithmeticError(
   if (problem === null) return [];
   if (problem.kind === 'addition') return additionError(rule, problem);
   if (problem.kind === 'sequence') return sequenceError(rule, problem);
+  if (problem.kind === 'place-value') return placeValueError(rule, problem);
+  if (problem.kind === 'whole-comparison') return wholeComparisonError(rule, problem);
+  if (problem.kind === 'rounding') return roundingError(rule, problem);
   return fractionError(rule, problem.kind, problem.left, problem.right);
 }
 

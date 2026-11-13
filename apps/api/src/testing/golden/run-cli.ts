@@ -2,11 +2,13 @@ import { fileURLToPath } from 'node:url';
 
 import { promptRegistry } from '@/ai/prompts/registry';
 import { loadAiConfig } from '@/ai/provider';
+import { ARITHMETIC_SKILL_CODES } from '@/content/generation/arithmetic';
 import { formatGoldenReport } from '@/testing/golden/format';
 import { createGeneratorGoldenSource } from '@/testing/golden/generator-source';
 import { createLiveGoldenSource } from '@/testing/golden/live-source';
 import { loadGoldenItems } from '@/testing/golden/load';
 import { runGoldenSet } from '@/testing/golden/runner';
+import { MIN_CASES_PER_SKILL, skillsBelowMinimum } from '@/testing/golden/skill-coverage';
 import type { GoldenItem, GoldenSource } from '@/testing/golden/types';
 
 const ITEMS_DIRECTORY = fileURLToPath(
@@ -41,7 +43,14 @@ async function main(): Promise<void> {
       ? `${JSON.stringify(report, null, 2)}\n`
       : formatGoldenReport(report),
   );
-  if (!report.passed) process.exitCode = 1;
+  // P3-07: a skill without five golden cases cannot ship, whatever the cases that exist say.
+  const short = skillsBelowMinimum(all, ARITHMETIC_SKILL_CODES);
+  for (const shortfall of short) {
+    process.stdout.write(
+      `Skill ${shortfall.skillCode} has ${String(shortfall.cases)} golden cases; ${String(MIN_CASES_PER_SKILL)} are required.\n`,
+    );
+  }
+  if (!report.passed || short.length > 0) process.exitCode = 1;
 }
 
 /** Configuration is read only when a model case will actually be run. */

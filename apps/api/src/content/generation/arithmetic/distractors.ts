@@ -53,7 +53,9 @@ function fromMisconceptions(problem: ArithmeticProblem, answer: string): readonl
  * Relation answers get the rest of their alphabet, which is the whole space there is.
  */
 function nearMisses(problem: ArithmeticProblem, answer: string): readonly string[] {
-  if (problem.kind === 'fraction-comparison') return ['<', '=', '>'];
+  if (problem.kind === 'fraction-comparison' || problem.kind === 'whole-comparison') {
+    return ['<', '=', '>'];
+  }
   if (problem.kind === 'fraction-equality') return ['equal', 'not equal'];
   const key = Number.parseInt(answer, 10);
   if (Number.isNaN(key)) return [];

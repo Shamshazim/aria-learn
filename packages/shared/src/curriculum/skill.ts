@@ -51,4 +51,13 @@ export type Skill = Readonly<{
   objectives?: readonly string[];
   /** Catalogue topics only: teaching order within the subject and grade. */
   ordering?: number;
+  /**
+   * P3-07, authored arithmetic only: how the skill is taught. A `fact` is retrieved against the
+   * clock until it is automatic; `number_sense` is reasoned about and never drilled; a
+   * `procedure` is worked one step at a time.
+   */
+  mode?: SkillMode;
 }>;
+
+export const SKILL_MODES = ['number_sense', 'fact', 'procedure'] as const;
+export type SkillMode = (typeof SKILL_MODES)[number];

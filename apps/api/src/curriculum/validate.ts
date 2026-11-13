@@ -32,15 +32,46 @@ export function authored(skills: readonly Skill[]): readonly Skill[] {
 /** P2H-10: a skill with fewer than this cannot tell a wrong tap from a wrong idea. */
 const MIN_MISCONCEPTIONS_PER_SKILL = 3;
 
+/** What the arithmetic rules check an authored arithmetic skill against (P3-07). */
+export type ArithmeticRegistry = Readonly<{
+  /** The skills a deterministic checker is registered for. */
+  checked: ReadonlySet<string>;
+  /** Where arithmetic starts: the only skills allowed to have no prerequisites. */
+  entries: readonly string[];
+}>;
+
 /** Validates the graph, the misconceptions and the lesson notes as one inventory. */
 export function validateInventory(
   skills: readonly Skill[],
   misconceptions: readonly Misconception[],
   lessons: ReadonlyMap<string, LessonNote>,
+  arithmetic?: ArithmeticRegistry,
 ): void {
   validateSkillGraph(skills);
   assertMisconceptionCoverage(skills, misconceptions);
   assertLessonCoverage(skills, lessons);
+  if (arithmetic !== undefined) assertArithmeticRules(skills, arithmetic);
+}
+
+/**
+ * P3-07, `master-plan.md` §13: "Adding a later arithmetic skill requires its checker and golden
+ * cases before release." A skill without a checker stops the boot, named, as does one without a
+ * teaching mode or one that claims to need nothing without being a listed entry skill.
+ */
+function assertArithmeticRules(skills: readonly Skill[], registry: ArithmeticRegistry): void {
+  for (const skill of authored(skills).filter((item) => item.subject === 'arithmetic')) {
+    if (!registry.checked.has(skill.code)) {
+      throw new CurriculumValidationError(`Arithmetic skill ${skill.code} has no checker`);
+    }
+    if (skill.mode === undefined) {
+      throw new CurriculumValidationError(`Arithmetic skill ${skill.code} has no teaching mode`);
+    }
+    if (skill.prerequisites.length === 0 && !registry.entries.includes(skill.code)) {
+      throw new CurriculumValidationError(
+        `Arithmetic skill ${skill.code} has no prerequisites and is not a listed entry skill`,
+      );
+    }
+  }
 }
 
 function assertMisconceptionCoverage(

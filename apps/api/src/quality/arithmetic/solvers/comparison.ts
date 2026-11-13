@@ -3,6 +3,7 @@ import type {
   CheckResult,
   FractionComparisonProblem,
   SequenceProblem,
+  WholeComparisonProblem,
 } from '@/quality/arithmetic/types';
 
 export function solveFractionComparison(
@@ -21,6 +22,23 @@ export function solveFractionComparison(
   return answer === expected
     ? { verdict: 'correct', expected, reason: 'Exact cross-products prove the comparison.' }
     : { verdict: 'incorrect', expected, reason: 'Exact cross-products disprove the comparison.' };
+}
+
+/** P3-07: two whole numbers, compared exactly as integers. */
+export function solveWholeComparison(
+  problem: WholeComparisonProblem,
+  candidate: string,
+): CheckResult {
+  const left = parseInteger(problem.left);
+  const right = parseInteger(problem.right);
+  const answer = normaliseComparison(candidate);
+  if (left === null || right === null || answer === null) {
+    return { verdict: 'undecidable', reason: 'Whole-number comparison requires two integers.' };
+  }
+  const expected = left < right ? '<' : left > right ? '>' : '=';
+  return answer === expected
+    ? { verdict: 'correct', expected, reason: 'Exact integer comparison matches.' }
+    : { verdict: 'incorrect', expected, reason: 'Exact integer comparison differs.' };
 }
 
 export function solveSequence(problem: SequenceProblem, candidate: string): CheckResult {
@@ -51,8 +69,8 @@ export function solveSequence(problem: SequenceProblem, candidate: string): Chec
   return sequenceVerdict(last + step, answer);
 }
 
-function normaliseComparison(candidate: string): '<' | '=' | '>' | null {
-  const value = candidate.trim().toLowerCase();
+export function normaliseComparison(candidate: string): '<' | '=' | '>' | null {
+  const value = candidate.trim().toLowerCase().replace(/\s+/gu, ' ');
   if (['<', 'less', 'less than'].includes(value)) return '<';
   if (['=', 'equal', 'equal to'].includes(value)) return '=';
   if (['>', 'greater', 'greater than'].includes(value)) return '>';

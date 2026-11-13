@@ -27,11 +27,12 @@ export {
 } from './identity/pictures';
 export type { ChildPicture } from './identity/pictures';
 
-export { VISUAL_KINDS } from './curriculum';
+export { SKILL_MODES, VISUAL_KINDS } from './curriculum';
 export type {
   Misconception,
   RemediationApproach,
   Skill,
+  SkillMode,
   SkillSubject,
   VisualKind,
 } from './curriculum';

@@ -29,7 +29,25 @@ function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Param
   if (problem === null) return null;
   if (problem.kind === 'addition') return fromAddition(kind, problem.left, problem.right);
   if (problem.kind === 'sequence') return fromSequence(kind, problem.values, problem.step);
+  if (problem.kind === 'place-value' || problem.kind === 'rounding') {
+    return fromWhole(kind, problem.number);
+  }
+  if (problem.kind === 'whole-comparison') return fromAddition(kind, problem.left, problem.right);
   return fromFractions(kind, problem.left, problem.right);
+}
+
+/** P3-07: one whole number, as tens and ones, or on a number line around it. */
+function fromWhole(kind: VisualKind, text: string): Params | null {
+  const value = parseInteger(text);
+  if (value === null || value < 0n) return null;
+  if (kind === 'place-value-blocks') {
+    return { groups: [{ tens: Number(value / 10n), ones: Number(value % 10n) }] };
+  }
+  if (kind === 'number-line') {
+    const from = Number((value / 10n) * 10n);
+    return { from, to: from + 10, step: 1, marks: [Number(value)] };
+  }
+  return null;
 }
 
 function fromAddition(kind: VisualKind, leftText: string, rightText: string): Params | null {

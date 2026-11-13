@@ -36,6 +36,16 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
       return band === 'early'
         ? `Which is more, ${problem.left} or ${problem.right}?`
         : `Compare ${problem.left} and ${problem.right}.`;
+    case 'place-value':
+      return band === 'early'
+        ? `Look at ${problem.number}. Which digit is in the ${problem.place} place?`
+        : `In ${problem.number}, which digit is in the ${problem.place} place?`;
+    case 'whole-comparison':
+      return band === 'early'
+        ? `Is ${problem.left} more than, less than, or the same as ${problem.right}?`
+        : `Compare ${problem.left} and ${problem.right}. Use <, > or =.`;
+    case 'rounding':
+      return `Round ${problem.number} to the nearest ten.`;
   }
 }
 

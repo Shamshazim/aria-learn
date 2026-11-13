@@ -11,6 +11,12 @@
 export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'NUM.CNT.20': ['counted-on'],
   'NUM.CNT.SKIP5': ['skip-counted'],
+  // P3-07: a right digit, sign or rounded number can be reached by reading off a model,
+  // picturing a number line or simply knowing, so none of them proves one strategy.
+  'NUM.PV.TENS': [],
+  'NUM.PV.HUNDREDS': [],
+  'NUM.CMP.100': [],
+  'NUM.RND.10': [],
   'ADD.FACT.10': [],
   'ADD.REGROUP.2D': ['regrouped', 'lined-up-place-value'],
   'FRAC.EQUAL': ['same-size-pieces'],
