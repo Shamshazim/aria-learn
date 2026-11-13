@@ -7,6 +7,8 @@ import { fixedClock } from '@/lib/clock';
 import { sequentialUuids } from '@/lib/ids';
 import { createQualityGate } from '@/quality';
 import { createArrivalEventRepository } from '@/repositories/arrival-event.repository';
+import { createConsolidationHistoryRepository } from '@/repositories/consolidation-history.repository';
+import { createLearnerEpisodeRepository } from '@/repositories/learner-episode.repository';
 import { createLearnerMemoryRepository } from '@/repositories/learner-memory.repository';
 import { createSessionEventRepository } from '@/repositories/session-event.repository';
 import { createSessionRepository } from '@/repositories/session.repository';
@@ -61,7 +63,9 @@ suite('Phase 1 memory and skill repositories', () => {
     };
     const replacement = await memory.supersede(first.id, correction);
     // P3-06: a fact backed by a correction is read back as corrected.
-    expect(await memory.listCurrent(studentId, NOW)).toEqual([{ ...replacement, corrected: true }]);
+    expect(await memory.listCurrent(studentId, NOW)).toEqual([
+      { ...replacement, corrected: true, evidenceCount: 1 },
+    ]);
     const result = await database.pool.query<{ superseded_by: string | null }>(
       'SELECT superseded_by FROM learner_fact WHERE id = $1',
       [first.id],
@@ -190,7 +194,8 @@ suite('Phase 1 memory and skill repositories', () => {
       memory,
       clock: fixedClock(NOW),
       repetitionsForDurableFact: 1,
-      countPriorSignal: (id, kind) => memory.countObservations(id, kind),
+      episodes: createLearnerEpisodeRepository({ db: database.pool, ids: sequentialUuids() }),
+      history: createConsolidationHistoryRepository(database.pool),
     });
 
     await consolidation.consolidate(session.id, studentId);

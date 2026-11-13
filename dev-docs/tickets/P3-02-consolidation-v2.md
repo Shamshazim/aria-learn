@@ -9,6 +9,40 @@
 | **Parallel-safe with** | P3-04, P3-05, P3-07 |
 | **Size** | L |
 
+## Status
+
+**Code complete 2026-11-12** on `feat/P3-02-consolidation-v2`, pending review. Stacked on P3-03
+(#37) ← P3-06 (#36) ← P3-05 (#35) ← P3-04 (#34) ← P3-01 (#33).
+
+- **Migration is `032_memory_rebuild_shadow.sql`, not `011`**, for the reason P3-01's Status
+  gives. Shadow rows carry what the comparison needs, with no foreign keys to `skill` or
+  `session`, and every table cascades from `student`.
+- **One core, two stores.** `consolidate/core.ts` applies a session's proposals and episodes to
+  a `MemoryStore`: the live store is the real tables in one transaction; the rebuild store is
+  in memory and becomes the shadow tables. The rebuild is therefore the same rules run again,
+  which is what makes its drift mean something. `consolidate.service.ts` is orchestration only
+  (138 lines, no constants); `write.service.ts` is gone, replaced by the live store.
+- **Strength is replayed, not trusted.** The breakthrough and goal detectors rebuild each
+  skill's strength at every session boundary from the graded answers, with the scheduler's own
+  `updateStrength` (P3-04), so a rebuild sees exactly what live consolidation saw.
+- **Struggle** counts three `RETEACH`es on a skill, or a `SWITCH` whose approach is
+  `prerequisite-step` (a step back), not a `next-topic` switch (mastery).
+- **Conflict rule 3 needs evidence counts**, so `listCurrent` now returns `evidenceCount`;
+  re-observing a fact (`confirm`) adds evidence and moves both `last_confirmed_at` and
+  `expires_at`.
+- **Flagged events** are `safety_flag.event_id` rows plus events the crisis path stamped
+  `evidence.safety`; neither ever becomes a fact, an observation or an episode, and their words
+  are left out of what the model proposer sees.
+- **The rebuild does not replay the model proposer**: it is not deterministic, and a rebuild
+  that disagreed with itself would measure nothing. A fact only the model proposed therefore
+  shows as drift. Corrections are re-applied at the time they were made (matched by what they
+  said, since shadow ids differ), so a rebuild never un-corrects. Events are held one session at
+  a time rather than in batches of 500; memory is bounded by the largest session.
+- **Not built:** `episodes.model.ts`, the optional model phrasing of an episode summary — the
+  deterministic template summaries are what is written. Promoting a shadow set stays manual and
+  is not built, as the ticket says. Goals are empty until P6-04, so `goal_reached` is tested
+  with fixture goals only.
+
 ## Why
 
 Phase 1 consolidation (`services/memory/consolidate.service.ts`) proposes facts from one
@@ -113,19 +147,19 @@ The job never writes to live tables; promoting a shadow set is a manual, logged 
 
 ## Acceptance criteria
 
-- [ ] Each episode detector fires on a fixture session and not on a near-miss fixture.
-- [ ] Every episode row has ≥1 evidence row; asserted by a test over all fixtures.
-- [ ] Re-running consolidation for the same session produces zero new rows.
-- [ ] A fact past `expires_at` is excluded from retrieval and from `ScrubbedContext`.
-- [ ] A corrected fact is never superseded by a later consolidation run, proven by a test
+- [x] Each episode detector fires on a fixture session and not on a near-miss fixture.
+- [x] Every episode row has ≥1 evidence row; asserted by a test over all fixtures.
+- [x] Re-running consolidation for the same session produces zero new rows.
+- [x] A fact past `expires_at` is excluded from retrieval and from `ScrubbedContext`.
+- [x] A corrected fact is never superseded by a later consolidation run, proven by a test
       that consolidates contradicting evidence after a correction.
-- [ ] A proposal sourced from a flagged event never becomes a fact or episode; a proposal
+- [x] A proposal sourced from a flagged event never becomes a fact or episode; a proposal
       matching a sensitive category never does either.
-- [ ] `memory:rebuild` on the Phase 1 golden student yields drift score 0 against a fresh
+- [x] `memory:rebuild` on the Phase 1 golden student yields drift score 0 against a fresh
       consolidation, and a deliberately hand-edited fact yields drift > 0 and appears in the
       report.
-- [ ] Rebuild writes nothing to live tables, asserted by row counts before/after.
-- [ ] `consolidate.service.ts` contains no threshold, expiry or conflict constants.
+- [x] Rebuild writes nothing to live tables, asserted by row counts before/after.
+- [x] `consolidate.service.ts` contains no threshold, expiry or conflict constants.
 
 ## Verification
 
