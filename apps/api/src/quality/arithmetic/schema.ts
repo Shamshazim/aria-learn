@@ -46,6 +46,19 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     right: z.string(),
   }),
   z.object({
+    skillCode: z.literal('FRAC.EQUIV'),
+    kind: z.literal('fraction-missing'),
+    left: z.string(),
+    denominator: z.string(),
+  }),
+  z.object({
+    skillCode: z.enum(['FRAC.ADD.LIKE', 'FRAC.ADD.UNLIKE', 'FRAC.MUL.WHOLE']),
+    kind: z.literal('fraction-operation'),
+    operation: z.enum(['add', 'subtract', 'multiply']),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
     skillCode: z.enum(['NUM.PV.TENS', 'NUM.PV.HUNDREDS']),
     kind: z.literal('place-value'),
     number: z.string(),

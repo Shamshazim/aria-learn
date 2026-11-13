@@ -16,7 +16,11 @@ export type ArithmeticSkillCode =
   | 'DIV.FACT.10'
   | 'DIV.LONG'
   | 'FRAC.EQUAL'
-  | 'FRAC.COMPARE';
+  | 'FRAC.COMPARE'
+  | 'FRAC.EQUIV'
+  | 'FRAC.ADD.LIKE'
+  | 'FRAC.ADD.UNLIKE'
+  | 'FRAC.MUL.WHOLE';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -53,6 +57,22 @@ export type FractionEqualityProblem = SkillProblem<'FRAC.EQUAL', 'fraction-equal
 export type FractionComparisonProblem = SkillProblem<'FRAC.COMPARE', 'fraction-comparison'> &
   Readonly<{ left: string; right: string }>;
 
+/** P3-07: "2/3 = ?/12". The answer is the missing numerator. */
+export type FractionMissingProblem = SkillProblem<'FRAC.EQUIV', 'fraction-missing'> &
+  Readonly<{ left: string; denominator: string }>;
+
+/**
+ * P3-07: "What is 3/8 add 2/8?", "What is 3 times 2/5?". Exact on rationals; a whole number is
+ * a fraction over one. Subtraction never goes below zero.
+ */
+export type FractionOperationProblem = SkillProblem<
+  'FRAC.ADD.LIKE' | 'FRAC.ADD.UNLIKE' | 'FRAC.MUL.WHOLE',
+  'fraction-operation'
+> &
+  Readonly<{ operation: FractionOperation; left: string; right: string }>;
+
+export type FractionOperation = 'add' | 'subtract' | 'multiply';
+
 /** P3-07: "In 47, which digit is in the tens place?" */
 export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
   Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
@@ -73,6 +93,8 @@ export type ArithmeticProblem =
   | DivisionProblem
   | FractionEqualityProblem
   | FractionComparisonProblem
+  | FractionMissingProblem
+  | FractionOperationProblem
   | DigitPlaceProblem
   | WholeComparisonProblem
   | RoundingProblem;

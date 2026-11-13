@@ -4,6 +4,10 @@ import {
   solveSequence,
   solveWholeComparison,
 } from '@/quality/arithmetic/solvers/comparison';
+import {
+  solveFractionMissing,
+  solveFractionOperation,
+} from '@/quality/arithmetic/solvers/fraction-operations';
 import { solveFractionEquality } from '@/quality/arithmetic/solvers/fractions';
 import { solveMultiplication } from '@/quality/arithmetic/solvers/multiplication';
 import { solvePlaceValue } from '@/quality/arithmetic/solvers/place-value';
@@ -37,6 +41,10 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'DIV.LONG': divisionSolver,
   'FRAC.EQUAL': fractionEqualitySolver,
   'FRAC.COMPARE': fractionComparisonSolver,
+  'FRAC.EQUIV': fractionMissingSolver,
+  'FRAC.ADD.LIKE': fractionOperationSolver,
+  'FRAC.ADD.UNLIKE': fractionOperationSolver,
+  'FRAC.MUL.WHOLE': fractionOperationSolver,
 };
 
 /** P3-07: the skills a checker exists for — what the inventory is cross-checked against at boot. */
@@ -77,6 +85,18 @@ function fractionEqualitySolver(problem: ArithmeticProblem, candidate: string): 
 function fractionComparisonSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'fraction-comparison'
     ? solveFractionComparison(problem, candidate)
+    : mismatch(problem);
+}
+
+function fractionMissingSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'fraction-missing'
+    ? solveFractionMissing(problem, candidate)
+    : mismatch(problem);
+}
+
+function fractionOperationSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'fraction-operation'
+    ? solveFractionOperation(problem, candidate)
     : mismatch(problem);
 }
 

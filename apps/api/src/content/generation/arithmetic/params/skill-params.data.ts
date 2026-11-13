@@ -4,8 +4,12 @@ import { ADD_FACT_20_PARAMS } from '@/content/generation/arithmetic/params/add-f
 import { ADD_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/add-regroup-2d';
 import { DIV_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/div-fact-10';
 import { DIV_LONG_PARAMS } from '@/content/generation/arithmetic/params/div-long';
+import { FRAC_ADD_LIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-like';
+import { FRAC_ADD_UNLIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-unlike';
 import { FRAC_COMPARE_PARAMS } from '@/content/generation/arithmetic/params/frac-compare';
 import { FRAC_EQUAL_PARAMS } from '@/content/generation/arithmetic/params/frac-equal';
+import { FRAC_EQUIV_PARAMS } from '@/content/generation/arithmetic/params/frac-equiv';
+import { FRAC_MUL_WHOLE_PARAMS } from '@/content/generation/arithmetic/params/frac-mul-whole';
 import { MUL_2D1D_PARAMS } from '@/content/generation/arithmetic/params/mul-2d1d';
 import { MUL_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/mul-fact-10';
 import { NUM_CMP_100_PARAMS } from '@/content/generation/arithmetic/params/num-cmp-100';
@@ -45,6 +49,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'DIV.LONG': DIV_LONG_PARAMS,
   'FRAC.EQUAL': FRAC_EQUAL_PARAMS,
   'FRAC.COMPARE': FRAC_COMPARE_PARAMS,
+  'FRAC.EQUIV': FRAC_EQUIV_PARAMS,
+  'FRAC.ADD.LIKE': FRAC_ADD_LIKE_PARAMS,
+  'FRAC.ADD.UNLIKE': FRAC_ADD_UNLIKE_PARAMS,
+  'FRAC.MUL.WHOLE': FRAC_MUL_WHOLE_PARAMS,
 };
 
 /** Written out rather than derived from the record, so no assertion is needed to name them. */
@@ -67,4 +75,8 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'DIV.LONG',
   'FRAC.EQUAL',
   'FRAC.COMPARE',
+  'FRAC.EQUIV',
+  'FRAC.ADD.LIKE',
+  'FRAC.ADD.UNLIKE',
+  'FRAC.MUL.WHOLE',
 ];

@@ -25,25 +25,35 @@ const WORDS: readonly string[] = [
  * story for the older bands, and `word-problem.ts` is what proves the story kept the numbers.
  */
 export function phraseItem(problem: ArithmeticProblem, band: Band): string {
-  switch (problem.kind) {
-    case 'sequence':
-      return sequencePrompt(problem.values, band);
-    case 'addition':
-    case 'subtraction':
-    case 'multiplication':
-    case 'division':
-      return operationPrompt(problem, band);
-    case 'fraction-equality':
-      return `Are ${problem.left} and ${problem.right} equal?`;
-    case 'fraction-comparison':
-      return band === 'early'
-        ? `Which is more, ${problem.left} or ${problem.right}?`
-        : `Compare ${problem.left} and ${problem.right}.`;
-    case 'place-value':
-    case 'whole-comparison':
-    case 'rounding':
-      return numberSensePrompt(problem, band);
-  }
+  if (problem.kind === 'sequence') return sequencePrompt(problem.values, band);
+  if (isOperation(problem)) return operationPrompt(problem, band);
+  if (isFraction(problem)) return fractionPrompt(problem, band);
+  // Only the number-sense kinds are left; a new kind that is none of these fails to compile.
+  return numberSensePrompt(problem, band);
+}
+
+type OperationProblem = Extract<
+  ArithmeticProblem,
+  { kind: 'addition' | 'subtraction' | 'multiplication' | 'division' }
+>;
+type FractionProblem = Extract<
+  ArithmeticProblem,
+  { kind: 'fraction-equality' | 'fraction-comparison' | 'fraction-missing' | 'fraction-operation' }
+>;
+
+const OPERATION_KINDS: ReadonlySet<string> = new Set([
+  'addition',
+  'subtraction',
+  'multiplication',
+  'division',
+]);
+
+function isOperation(problem: ArithmeticProblem): problem is OperationProblem {
+  return OPERATION_KINDS.has(problem.kind);
+}
+
+function isFraction(problem: ArithmeticProblem): problem is FractionProblem {
+  return problem.kind.startsWith('fraction-');
 }
 
 /** P3-07: place value, comparing and rounding whole numbers. */
@@ -64,6 +74,36 @@ function numberSensePrompt(
       return `Round ${problem.number} to the nearest ten.`;
   }
 }
+
+/** Fractions: equal, compared, equivalent, and the operations in words below the senior band. */
+function fractionPrompt(
+  problem: Extract<
+    ArithmeticProblem,
+    {
+      kind: 'fraction-equality' | 'fraction-comparison' | 'fraction-missing' | 'fraction-operation';
+    }
+  >,
+  band: Band,
+): string {
+  if (problem.kind === 'fraction-equality')
+    return `Are ${problem.left} and ${problem.right} equal?`;
+  if (problem.kind === 'fraction-comparison') {
+    return band === 'early'
+      ? `Which is more, ${problem.left} or ${problem.right}?`
+      : `Compare ${problem.left} and ${problem.right}.`;
+  }
+  if (problem.kind === 'fraction-missing') {
+    return band === 'senior'
+      ? `${problem.left} = ?/${problem.denominator}`
+      : `${problem.left} = ?/${problem.denominator}. What is the missing number?`;
+  }
+  const { left, right } = problem;
+  if (band === 'senior') return `${left} ${FRACTION_SIGNS[problem.operation]} ${right} = ?`;
+  return `What is ${left} ${FRACTION_WORDS[problem.operation]} ${right}?`;
+}
+
+const FRACTION_SIGNS = { add: '+', subtract: '-', multiply: '×' } as const;
+const FRACTION_WORDS = { add: 'add', subtract: 'take away', multiply: 'times' } as const;
 
 /** The four operations, each in the words its band is taught. */
 function operationPrompt(

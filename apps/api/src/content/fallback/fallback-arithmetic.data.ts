@@ -110,6 +110,57 @@ export const ARITHMETIC_STRAND_FALLBACKS: readonly FallbackDefinition[] = [
     answer: '39 r 1',
     problem: { skillCode: 'DIV.LONG', kind: 'division', left: '157', right: '4' },
   }),
+  // P3-07, strand 4: fractions.
+  item({
+    skillCode: 'FRAC.EQUIV',
+    band: 'middle',
+    prompt: '2/3 = ?/12. What is the missing number?',
+    choices: ['11', '8', '4'],
+    answer: '8',
+    problem: { skillCode: 'FRAC.EQUIV', kind: 'fraction-missing', left: '2/3', denominator: '12' },
+  }),
+  item({
+    skillCode: 'FRAC.ADD.LIKE',
+    band: 'middle',
+    prompt: 'What is 3/8 add 2/8?',
+    choices: ['5/16', '5/8', '1/8'],
+    answer: '5/8',
+    problem: {
+      skillCode: 'FRAC.ADD.LIKE',
+      kind: 'fraction-operation',
+      operation: 'add',
+      left: '3/8',
+      right: '2/8',
+    },
+  }),
+  item({
+    skillCode: 'FRAC.ADD.UNLIKE',
+    band: 'middle',
+    prompt: 'What is 1/2 add 1/3?',
+    choices: ['2/5', '5/6', '2/3'],
+    answer: '5/6',
+    problem: {
+      skillCode: 'FRAC.ADD.UNLIKE',
+      kind: 'fraction-operation',
+      operation: 'add',
+      left: '1/2',
+      right: '1/3',
+    },
+  }),
+  item({
+    skillCode: 'FRAC.MUL.WHOLE',
+    band: 'middle',
+    prompt: 'What is 3 times 2/5?',
+    choices: ['6/15', '3 2/5', '1 1/5'],
+    answer: '1 1/5',
+    problem: {
+      skillCode: 'FRAC.MUL.WHOLE',
+      kind: 'fraction-operation',
+      operation: 'multiply',
+      left: '3',
+      right: '2/5',
+    },
+  }),
 ];
 
 type Authored = Readonly<{

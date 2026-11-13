@@ -80,7 +80,19 @@ export type ArithmeticRule =
   | 'multiplied-instead'
   | 'remainder-dropped'
   | 'remainder-as-decimal'
-  | 'missing-zero-in-quotient';
+  | 'missing-zero-in-quotient'
+  // P3-07: fractions.
+  | 'additive-equivalence'
+  | 'kept-numerator'
+  | 'answered-the-factor'
+  | 'combined-denominators'
+  | 'numerator-only'
+  | 'flipped-operation'
+  | 'kept-one-denominator'
+  | 'renamed-denominators-only'
+  | 'multiplied-both'
+  | 'added-whole'
+  | 'multiplied-denominator';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

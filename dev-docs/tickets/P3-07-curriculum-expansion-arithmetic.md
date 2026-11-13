@@ -49,6 +49,29 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 4 of 9: fractions
+
+**Code complete 2026-11-12** on `feat/P3-07-arithmetic-fractions`, pending review, stacked on
+strand 3 (#41).
+
+- **Four skills.** `FRAC.EQUIV` (4.NF.A.1), `FRAC.ADD.LIKE` (4.NF.B.3.a), `FRAC.MUL.WHOLE`
+  (4.NF.B.4.b), all `number_sense`; `FRAC.ADD.UNLIKE` (5.NF.A.1), `procedure`. New
+  `fraction-missing` ("2/3 = ?/12") and `fraction-operation` (add, take away, times) kinds.
+- **Exact rationals.** Any equal answer is right: "10/12" for 5/6; "1 1/5", "6/5", "1.2" or
+  "12/10" for six fifths; and every form of a half the edge-case list names ("1/2", "0.5",
+  "one half", "a half", "½", " 1 / 2 "). Keys are written in lowest terms, mixed above one.
+- **Wrong ideas read the fraction as written.** `readWrittenFraction` keeps 2/8 as two eighths,
+  because adding the tops of 3/8 and 2/8 is 5, not 3 + 1. Predictions are offered as written
+  and reduced; anything the checker would call right is dropped (swept over every item).
+- **Steps for unlike denominators:** the common denominator, each fraction that needs renaming
+  (one already in it is not renamed), then the new tops added or taken away. A test now
+  derives the `procedure` skills from the inventory and requires steps for every item.
+- **Deferred.** Dividing fractions (6.NS.A.1) is a grade 6 skill and goes with the ratio
+  strand, where unit fractions of a quantity are taught alongside it.
+- **Verification.** Typecheck and lint clean. Full suite: 2748 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 232 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
 ### Strand 3 of 9: multiplication and division, and the procedure rule
 
 **Code complete 2026-11-12** on `feat/P3-07-arithmetic-mul-div`, pending review, stacked on

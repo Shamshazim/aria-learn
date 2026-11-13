@@ -18,6 +18,7 @@ export type {
   ArithmeticProblem,
   ArithmeticSkillCode,
   CheckResult,
+  FractionOperation,
 } from '@/quality/arithmetic/types';
 export { problemNumbers } from '@/quality/arithmetic/numbers';
 export { procedureSteps, type ProcedureStep } from '@/quality/arithmetic/steps';

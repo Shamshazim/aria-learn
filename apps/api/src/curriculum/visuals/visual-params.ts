@@ -1,5 +1,6 @@
 import type { VisualKind } from '@aria/shared';
 
+import { fractionOperationParams } from '@/curriculum/visuals/fraction-visuals';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import { parseInteger, parseRational } from '@/quality/arithmetic/normalise';
 
@@ -37,6 +38,9 @@ function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Param
     return fromWhole(kind, problem.number);
   }
   if (problem.kind === 'whole-comparison') return fromAddition(kind, problem.left, problem.right);
+  if (problem.kind === 'fraction-missing' || problem.kind === 'fraction-operation') {
+    return fractionOperationParams(kind, problem);
+  }
   return fromFractions(kind, problem.left, problem.right);
 }
 
