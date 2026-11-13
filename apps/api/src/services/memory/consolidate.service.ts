@@ -1,14 +1,18 @@
 import { withTransaction } from '@/db';
 import { runQuery } from '@/db/run-query';
+import type { Queryable } from '@/db/types';
 import type { Clock } from '@/lib/clock';
 import { scrubLearnerContext, type RawIdentifiers } from '@/privacy';
+import type { ConsolidationHistoryRepository } from '@/repositories/consolidation-history.repository';
+import type { LearnerEpisodeRepository } from '@/repositories/learner-episode.repository';
 import type { LearnerMemoryRepository } from '@/repositories/learner-memory.repository';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
-import { conflictingFact } from '@/services/memory/decide/conflict';
-import { decideProposal } from '@/services/memory/decide/thresholds';
+import { consolidateSession } from '@/services/memory/consolidate/core';
+import { createLiveStore } from '@/services/memory/consolidate/live-store';
+import { detectEpisodes, type EpisodeProposal } from '@/services/memory/propose/episodes';
 import { proposeFromEvents, type MemoryProposal } from '@/services/memory/propose/from-events';
 import { proposeFromModel, type ModelFactProposer } from '@/services/memory/propose/from-model';
-import { createMemoryWriteService } from '@/services/memory/write.service';
+import type { SessionEventRecord } from '@/types/session';
 
 import type { Pool } from 'pg';
 
@@ -16,21 +20,33 @@ export type ConsolidationService = Readonly<{
   consolidate(sessionId: string, studentId: string): Promise<void>;
 }>;
 
-export function createConsolidationService(deps: {
+export type ConsolidationDeps = Readonly<{
   events: SessionEventRepository;
   memory: LearnerMemoryRepository;
+  episodes: LearnerEpisodeRepository;
+  history: ConsolidationHistoryRepository;
   pool: Pool;
   clock: Clock;
   repetitionsForDurableFact: number;
-  countPriorSignal(studentId: string, kind: string): Promise<number>;
   modelProposer?: ModelFactProposer;
   loadIdentifiers?(studentId: string): Promise<RawIdentifiers>;
-}): ConsolidationService {
+  /** The inventory's name for a skill; `null` for one it no longer has, which is skipped. */
+  skillName?(code: string): string | null;
+  /** P6-04 supplies a parent's goals; until then there are none to reach. */
+  goals?(studentId: string): Promise<readonly Readonly<{ skillCode: string }>[]>;
+}>;
+
+/**
+ * Post-session consolidation (P1-09, P3-02): orchestration only. It takes the session's lock,
+ * gathers what the proposers need, and hands it to the core; every threshold, expiry and
+ * conflict rule lives in `decide/`, every detector in `propose/`.
+ */
+export function createConsolidationService(deps: ConsolidationDeps): ConsolidationService {
   return { consolidate: (sessionId, studentId) => consolidate(deps, sessionId, studentId) };
 }
 
 async function consolidate(
-  deps: Parameters<typeof createConsolidationService>[0],
+  deps: ConsolidationDeps,
   sessionId: string,
   studentId: string,
 ): Promise<void> {
@@ -42,25 +58,27 @@ async function consolidate(
       params: [sessionId],
     });
     const events = await deps.events.withDb(tx).list(sessionId);
-    const memory = deps.memory.withDb(tx);
-    const current = await memory.listCurrent(studentId, deps.clock.now());
-    const proposals = await proposalsForSession(deps, studentId, events);
-    for (const proposal of uniqueByKind(proposals)) {
-      if (await memory.hasEvidence('session_event', proposal.sourceEventId)) continue;
-      await applyProposal(deps, createMemoryWriteService(memory), {
-        current,
-        studentId,
-        proposal,
-        countPriorSignal: (kind) => memory.countObservations(studentId, kind),
-      });
-    }
+    const history = deps.history.withDb(tx);
+    const [proposals, episodes, flaggedEventIds] = await Promise.all([
+      proposalsForSession(deps, studentId, events),
+      episodesForSession(deps, tx, { studentId, sessionId, events }),
+      history.flaggedEventIds(sessionId),
+    ]);
+    await consolidateSession(createLiveStore(deps, tx, studentId), {
+      sessionId,
+      proposals,
+      episodes,
+      flaggedEventIds: withEvidenceFlags(flaggedEventIds, events),
+      repetitionsForDurableFact: deps.repetitionsForDurableFact,
+      now: deps.clock.now(),
+    });
   });
 }
 
 async function proposalsForSession(
-  deps: Parameters<typeof createConsolidationService>[0],
+  deps: ConsolidationDeps,
   studentId: string,
-  events: Awaited<ReturnType<SessionEventRepository['list']>>,
+  events: readonly SessionEventRecord[],
 ): Promise<readonly MemoryProposal[]> {
   const deterministic = proposeFromEvents(events);
   if (deps.modelProposer === undefined || events.length === 0) return deterministic;
@@ -69,7 +87,7 @@ async function proposalsForSession(
     {
       identifiers,
       recentEvidence: events
-        .flatMap((event) => (event.text === null ? [] : [event.text]))
+        .flatMap((event) => (event.text === null || flagged(event) ? [] : [event.text]))
         .slice(-32),
     },
     { pseudonym: 'omit' },
@@ -81,54 +99,46 @@ async function proposalsForSession(
   return [...deterministic, ...model];
 }
 
-function uniqueByKind(proposals: readonly MemoryProposal[]): readonly MemoryProposal[] {
-  const latest = new Map<string, MemoryProposal>();
-  for (const proposal of proposals) latest.set(proposal.kind, proposal);
-  return [...latest.values()];
+async function episodesForSession(
+  deps: ConsolidationDeps,
+  tx: Queryable,
+  input: Readonly<{ studentId: string; sessionId: string; events: readonly SessionEventRecord[] }>,
+): Promise<readonly EpisodeProposal[]> {
+  const history = deps.history.withDb(tx);
+  const [sessions, attempts, goals] = await Promise.all([
+    history.sessionsForStudent(input.studentId),
+    history.gradedAttempts(input.studentId),
+    deps.goals?.(input.studentId) ?? Promise.resolve([]),
+  ]);
+  const at = sessions.findIndex((session) => session.id === input.sessionId);
+  const session = sessions[at];
+  if (session === undefined) return [];
+  return detectEpisodes({
+    session,
+    events: input.events,
+    previousSession: sessions[at - 1] ?? null,
+    attempts: attempts.filter(
+      (attempt) => attempt.at.getTime() <= lastAt(input.events, session.startedAt),
+    ),
+    goals,
+    skillName: deps.skillName ?? (() => null),
+    isFacts: (code) => code.includes('.FACT.'),
+  });
 }
 
-async function applyProposal(
-  deps: Parameters<typeof createConsolidationService>[0],
-  writer: ReturnType<typeof createMemoryWriteService>,
-  input: Readonly<{
-    current: Awaited<ReturnType<LearnerMemoryRepository['listCurrent']>>;
-    studentId: string;
-    proposal: MemoryProposal;
-    countPriorSignal(kind: string): Promise<number>;
-  }>,
-): Promise<void> {
-  const now = deps.clock.now();
-  const prior = await input.countPriorSignal(input.proposal.kind);
-  const decision = decideProposal({
-    proposal: input.proposal,
-    repeatedCount: prior + 1,
-    repetitionsForDurableFact: deps.repetitionsForDurableFact,
-    now,
-  });
-  if (decision.kind === 'reject') return;
-  if (decision.kind === 'observation') {
-    await writer.observation({
-      studentId: input.studentId,
-      proposal: input.proposal,
-      at: now,
-      expiresAt: decision.expiresAt,
-    });
-    return;
-  }
-  if (
-    input.current.some(
-      (fact) => fact.kind === input.proposal.kind && fact.value.text === input.proposal.text,
-    )
-  )
-    return;
-  const previous = conflictingFact(
-    input.current,
-    input.proposal.kind,
-    input.proposal.text,
-    input.proposal.skillCode,
-  );
-  // P3-06 (P3-02 conflict rule 1): what a parent or the child said outranks what a session
-  // inferred. A corrected fact is never replaced by consolidation, whatever the evidence.
-  if (previous?.corrected === true) return;
-  await writer.fact({ studentId: input.studentId, proposal: input.proposal, at: now, previous });
+/** Up to this session's last event, so a re-run sees the history it saw the first time. */
+function lastAt(events: readonly SessionEventRecord[], fallback: Date): number {
+  return (events.at(-1)?.at ?? fallback).getTime();
+}
+
+/** The crisis path marks its turns in their evidence as well as in `safety_flag`. */
+function withEvidenceFlags(
+  flaggedEventIds: ReadonlySet<string>,
+  events: readonly SessionEventRecord[],
+): ReadonlySet<string> {
+  return new Set([...flaggedEventIds, ...events.filter(flagged).map((event) => event.id)]);
+}
+
+function flagged(event: SessionEventRecord): boolean {
+  return event.evidence.safety !== undefined;
 }

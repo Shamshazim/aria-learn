@@ -39,3 +39,19 @@ export function sensitiveCategory(text: string): SensitiveCategory | null {
   const folded = foldForMatching(text).toLowerCase();
   return CATEGORIES.find(([, pattern]) => pattern.test(folded))?.[0] ?? null;
 }
+
+/**
+ * P3-02: whether a proposal may become memory at all. Not if the model flagged it sensitive,
+ * not if the event it came from was flagged by the safety layer (P1-13), and not if its words
+ * fall in a sensitive category. Checked before any threshold, so nothing below can override it.
+ */
+export function isPromotable(
+  proposal: Readonly<{ text: string; sensitive: boolean; sourceEventId: string }>,
+  flaggedEventIds: ReadonlySet<string>,
+): boolean {
+  return (
+    !proposal.sensitive &&
+    !flaggedEventIds.has(proposal.sourceEventId) &&
+    sensitiveCategory(proposal.text) === null
+  );
+}

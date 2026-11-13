@@ -23,8 +23,6 @@ import type { RouterDeps } from '@/routes';
 import { createArrivalService } from '@/services/arrival/arrival.service';
 import type { ClassOption } from '@/services/arrival/classes.service';
 import { createArrivalContextLoader } from '@/services/arrival/context.loader';
-import { createConsolidationService } from '@/services/memory/consolidate.service';
-import { createModelFactProposer } from '@/services/memory/propose/from-model';
 import { createMoveFactory } from '@/services/moves/move-factory';
 import { createEndService } from '@/services/session/end.service';
 import { createResumeService } from '@/services/session/resume.service';
@@ -142,19 +140,7 @@ function createSessionTurnQueue() {
 
 function buildLifecycle(runtime: ControllerRuntime) {
   const { deps, repositories } = runtime;
-  const consolidation = createConsolidationService({
-    events: repositories.events,
-    memory: repositories.memory,
-    pool: deps.pool,
-    clock: deps.clock,
-    repetitionsForDurableFact: deps.config.memoryRepetitionsForDurableFact,
-    countPriorSignal: (studentId, kind) => repositories.memory.countObservations(studentId, kind),
-    modelProposer: createModelFactProposer(deps.ai),
-    loadIdentifiers: async (studentId) => {
-      const student = await repositories.students.requireById(studentId);
-      return { fullName: student.displayName };
-    },
-  });
+  const consolidation = runtime.memory.consolidation;
   const resume = createResumeService(repositories.events);
   const sessions = createSessionService({
     students: repositories.students,

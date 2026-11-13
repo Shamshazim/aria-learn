@@ -22,6 +22,7 @@ const factRowSchema = z.object({
   model_shareable: z.boolean(),
   superseded_by: z.string().nullable(),
   corrected: z.boolean().optional(),
+  evidence_count: z.number().int().optional(),
 });
 
 type FactRow = z.infer<typeof factRowSchema>;
@@ -34,6 +35,16 @@ export type LearnerMemoryRepository = Readonly<{
   insertObservation(input: Omit<Observation, 'id'>): Promise<Observation>;
   hasEvidence(sourceKind: FactEvidence['sourceKind'], sourceId: string): Promise<boolean>;
   countObservations(studentId: string, kind: string): Promise<number>;
+  /**
+   * P3-02: the same fact observed again. Its confirmation date moves, its expiry moves with it,
+   * and the new evidence is added — re-observing is what keeps a preference from lapsing.
+   */
+  confirm(
+    id: string,
+    input: Readonly<{ at: Date; expiresAt: Date | null; evidence: FactEvidence }>,
+  ): Promise<void>;
+  /** P3-02: a lone contradiction against well-supported memory lowers confidence, no more. */
+  weaken(id: string, by: number): Promise<void>;
 }>;
 
 export function createLearnerMemoryRepository(deps: {
@@ -48,7 +59,37 @@ export function createLearnerMemoryRepository(deps: {
     insertObservation: (input) => insertObservation(deps, input),
     hasEvidence: (kind, id) => hasEvidence(deps.db, kind, id),
     countObservations: (studentId, kind) => countObservations(deps.db, studentId, kind),
+    confirm: (id, input) => confirm(deps.db, id, input),
+    weaken: (id, by) => weaken(deps.db, id, by),
   };
+}
+
+async function confirm(
+  db: Queryable,
+  id: string,
+  input: Readonly<{ at: Date; expiresAt: Date | null; evidence: FactEvidence }>,
+): Promise<void> {
+  await runQuery({
+    db,
+    operation: 'learnerFact.confirm',
+    sql: `WITH fact AS (
+            UPDATE learner_fact SET last_confirmed_at = $2, expires_at = $3
+            WHERE id = $1 AND superseded_by IS NULL RETURNING id
+          )
+          INSERT INTO learner_fact_evidence (fact_id, source_kind, source_id)
+          SELECT fact.id, $4, $5 FROM fact ON CONFLICT DO NOTHING`,
+    params: [id, input.at, input.expiresAt, input.evidence.sourceKind, input.evidence.sourceId],
+  });
+}
+
+async function weaken(db: Queryable, id: string, by: number): Promise<void> {
+  await runQuery({
+    db,
+    operation: 'learnerFact.weaken',
+    sql: `UPDATE learner_fact SET confidence = GREATEST(0, confidence - $2)
+          WHERE id = $1 AND superseded_by IS NULL`,
+    params: [id, by],
+  });
 }
 
 async function countObservations(db: Queryable, studentId: string, kind: string): Promise<number> {
@@ -138,7 +179,8 @@ async function listCurrent(
     sql: `SELECT id, student_id, kind, value, confidence, first_observed_at,
             last_confirmed_at, expires_at, sensitivity, model_shareable, superseded_by,
             EXISTS (SELECT 1 FROM learner_fact_evidence e
-                    WHERE e.fact_id = learner_fact.id AND e.source_kind IN ('correction', 'parent_correction')) AS corrected
+                    WHERE e.fact_id = learner_fact.id AND e.source_kind IN ('correction', 'parent_correction')) AS corrected,
+            (SELECT COUNT(*)::int FROM learner_fact_evidence e WHERE e.fact_id = learner_fact.id) AS evidence_count
           FROM learner_fact WHERE student_id = $1 AND superseded_by IS NULL
             AND (expires_at IS NULL OR expires_at > $2)
           ORDER BY confidence DESC, last_confirmed_at DESC, id`,
@@ -213,5 +255,6 @@ function mapFact(input: FactRow): LearnerFact {
     modelShareable: row.model_shareable,
     supersededBy: row.superseded_by,
     ...(row.corrected === undefined ? {} : { corrected: row.corrected }),
+    ...(row.evidence_count === undefined ? {} : { evidenceCount: row.evidence_count }),
   };
 }

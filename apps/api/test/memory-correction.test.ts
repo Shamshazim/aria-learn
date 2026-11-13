@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi, type Mock } 
 import { NotFoundError, RejectedValueError, StaleCorrectionTargetError } from '@/errors';
 import { fixedClock } from '@/lib/clock';
 import { sequentialUuids } from '@/lib/ids';
+import { createConsolidationHistoryRepository } from '@/repositories/consolidation-history.repository';
 import { createCorrectionTargetRepository } from '@/repositories/correction-target.repository';
 import { createFactCorrectionRepository } from '@/repositories/fact-correction.repository';
 import { createLearnerEpisodeRepository } from '@/repositories/learner-episode.repository';
@@ -273,7 +274,8 @@ suite('P3-06 the memory correction path', () => {
       pool: database.pool,
       clock: fixedClock(NOW),
       repetitionsForDurableFact: 1,
-      countPriorSignal: (studentId, kind) => memory.countObservations(studentId, kind),
+      episodes: createLearnerEpisodeRepository({ db: database.pool, ids: sequentialUuids() }),
+      history: createConsolidationHistoryRepository(database.pool),
       modelProposer: {
         propose: () =>
           Promise.resolve([

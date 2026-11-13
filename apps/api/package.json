@@ -14,6 +14,7 @@
     "golden:content": "tsx src/testing/golden/run-cli.ts",
     "golden:tutoring": "tsx src/testing/tutoring/run-cli.ts",
     "identity:replay-deletions": "tsx src/scripts/replay-deletions.ts",
+    "memory:rebuild": "tsx src/services/memory/rebuild/rebuild.cli.ts",
     "prewarm:content": "tsx src/scripts/prewarm-content.ts",
     "report:phase1": "tsx src/scripts/phase1-report.ts",
     "slo:rules": "tsx src/scripts/slo-rules.ts",

@@ -21,9 +21,14 @@ export type LearnerFact = Readonly<{
    * it — what a parent said outranks what a session inferred. Absent where it was not read.
    */
   corrected?: boolean;
+  /** P3-02: how many evidence rows support it. Absent where it was not read. */
+  evidenceCount?: number;
 }>;
 
-export type NewLearnerFact = Omit<LearnerFact, 'id' | 'supersededBy' | 'corrected'> &
+export type NewLearnerFact = Omit<
+  LearnerFact,
+  'id' | 'supersededBy' | 'corrected' | 'evidenceCount'
+> &
   Readonly<{ evidence: readonly [FactEvidence, ...FactEvidence[]] }>;
 
 export type Observation = Readonly<{
