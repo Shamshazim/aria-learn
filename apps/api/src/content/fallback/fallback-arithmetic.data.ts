@@ -2,11 +2,11 @@ import type { FallbackDefinition } from '@/content/fallback/fallback.data';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
 /**
- * Reviewed last-resort items for the number-sense strand (P3-07), one per skill, each proven by
+ * Reviewed last-resort items for the P3-07 strands, one per skill, each proven by
  * the checker at boot like the rest of the bank. Kept beside the main bank rather than in it so
  * a strand's items are reviewed together and the bank file stays readable.
  */
-export const NUMBER_SENSE_FALLBACKS: readonly FallbackDefinition[] = [
+export const ARITHMETIC_STRAND_FALLBACKS: readonly FallbackDefinition[] = [
   item({
     skillCode: 'NUM.PV.TENS',
     band: 'early',
@@ -43,6 +43,39 @@ export const NUMBER_SENSE_FALLBACKS: readonly FallbackDefinition[] = [
     choices: ['40', '50', '100'],
     answer: '50',
     problem: { skillCode: 'NUM.RND.10', kind: 'rounding', number: '47', to: '10' },
+  }),
+  // P3-07, strand 2: addition and subtraction.
+  item({
+    skillCode: 'ADD.FACT.20',
+    band: 'early',
+    prompt: 'What is 8 add 5?',
+    choices: ['10', '13', '3'],
+    answer: '13',
+    problem: { skillCode: 'ADD.FACT.20', kind: 'addition', left: '8', right: '5' },
+  }),
+  item({
+    skillCode: 'SUB.FACT.10',
+    band: 'early',
+    prompt: 'What is seven take away three?',
+    choices: ['10', '3', '4'],
+    answer: '4',
+    problem: { skillCode: 'SUB.FACT.10', kind: 'subtraction', left: '7', right: '3' },
+  }),
+  item({
+    skillCode: 'SUB.REGROUP.2D',
+    band: 'middle',
+    prompt: 'What is 52 take away 18?',
+    choices: ['34', '46', '44'],
+    answer: '34',
+    problem: { skillCode: 'SUB.REGROUP.2D', kind: 'subtraction', left: '52', right: '18' },
+  }),
+  item({
+    skillCode: 'ADD.3D',
+    band: 'middle',
+    prompt: 'What is 158 add 267?',
+    choices: ['315', '425', '325'],
+    answer: '425',
+    problem: { skillCode: 'ADD.3D', kind: 'addition', left: '158', right: '267' },
   }),
 ];
 

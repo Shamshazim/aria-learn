@@ -13,6 +13,7 @@ export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
     case 'rounding':
       return [problem.number];
     case 'addition':
+    case 'subtraction':
     case 'fraction-equality':
     case 'fraction-comparison':
     case 'whole-comparison':

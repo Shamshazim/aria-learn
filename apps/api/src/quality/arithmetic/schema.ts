@@ -10,8 +10,14 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     step: z.string(),
   }),
   z.object({
-    skillCode: z.enum(['ADD.FACT.10', 'ADD.REGROUP.2D']),
+    skillCode: z.enum(['ADD.FACT.10', 'ADD.FACT.20', 'ADD.REGROUP.2D', 'ADD.3D']),
     kind: z.literal('addition'),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
+    skillCode: z.enum(['SUB.FACT.10', 'SUB.REGROUP.2D']),
+    kind: z.literal('subtraction'),
     left: z.string(),
     right: z.string(),
   }),

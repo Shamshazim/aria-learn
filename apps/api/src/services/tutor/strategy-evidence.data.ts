@@ -18,7 +18,13 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'NUM.CMP.100': [],
   'NUM.RND.10': [],
   'ADD.FACT.10': [],
+  'ADD.FACT.20': [],
   'ADD.REGROUP.2D': ['regrouped', 'lined-up-place-value'],
+  // P3-07: a right column answer proves the columns were kept. Not `regrouped`: that claim
+  // says "when the ones went past nine", which a tens-only trade or a subtraction is not.
+  'ADD.3D': ['lined-up-place-value'],
+  'SUB.FACT.10': [],
+  'SUB.REGROUP.2D': ['lined-up-place-value'],
   'FRAC.EQUAL': ['same-size-pieces'],
   'FRAC.COMPARE': ['same-size-pieces'],
   'PA.RHYME': [],

@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { createInventoryService } from '@/curriculum';
 
 const EXPECTED_CODES = [
+  'ADD.3D',
   'ADD.FACT.10',
+  'ADD.FACT.20',
   'ADD.REGROUP.2D',
   'CMP.RETELL',
   'FL.WCPM.60',
@@ -19,6 +21,8 @@ const EXPECTED_CODES = [
   'PA.RHYME',
   'PH.CVC',
   'PH.SILENT_E',
+  'SUB.FACT.10',
+  'SUB.REGROUP.2D',
   'WR.PARAGRAPH',
   'WR.SENTENCE',
   'WR.SHORT_PIECE',

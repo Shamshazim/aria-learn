@@ -28,6 +28,7 @@ export function visualParams(kind: VisualKind, problem: ArithmeticProblem | null
 function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Params | null {
   if (problem === null) return null;
   if (problem.kind === 'addition') return fromAddition(kind, problem.left, problem.right);
+  if (problem.kind === 'subtraction') return fromSubtraction(kind, problem.left, problem.right);
   if (problem.kind === 'sequence') return fromSequence(kind, problem.values, problem.step);
   if (problem.kind === 'place-value' || problem.kind === 'rounding') {
     return fromWhole(kind, problem.number);
@@ -41,7 +42,7 @@ function fromWhole(kind: VisualKind, text: string): Params | null {
   const value = parseInteger(text);
   if (value === null || value < 0n) return null;
   if (kind === 'place-value-blocks') {
-    return { groups: [{ tens: Number(value / 10n), ones: Number(value % 10n) }] };
+    return { groups: [blocks(value)] };
   }
   if (kind === 'number-line') {
     const from = Number((value / 10n) * 10n);
@@ -61,14 +62,36 @@ function fromAddition(kind: VisualKind, leftText: string, rightText: string): Pa
       return { from: 0, to: Number(left + right) + 2, step: 1, marks: [Number(left)] };
     case 'place-value-blocks':
       return {
-        groups: [
-          { tens: Number(left / 10n), ones: Number(left % 10n) },
-          { tens: Number(right / 10n), ones: Number(right % 10n) },
-        ],
+        groups: [blocks(left), blocks(right)],
       };
     default:
       return null;
   }
+}
+
+/** P3-07: the whole you start from, and how much of it goes. Nothing is drawn for the answer. */
+function fromSubtraction(kind: VisualKind, leftText: string, rightText: string): Params | null {
+  const left = parseInteger(leftText);
+  const right = parseInteger(rightText);
+  if (left === null || right === null) return null;
+  switch (kind) {
+    case 'ten-frame':
+      return { total: 10, filled: Number(left), removing: Number(right) };
+    case 'number-line':
+      return { from: 0, to: Number(left) + 2, step: 1, marks: [Number(left)] };
+    case 'place-value-blocks':
+      return { groups: [blocks(left)], removing: Number(right) };
+    default:
+      return null;
+  }
+}
+
+/** Tens and ones, and hundreds only once there are any, so two-digit blocks look as before. */
+function blocks(value: bigint): Params {
+  const tensAndOnes = { tens: Number((value / 10n) % 10n), ones: Number(value % 10n) };
+  return value >= 100n
+    ? { hundreds: Number(value / 100n), ...tensAndOnes }
+    : { tens: Number(value / 10n), ones: Number(value % 10n) };
 }
 
 function fromSequence(

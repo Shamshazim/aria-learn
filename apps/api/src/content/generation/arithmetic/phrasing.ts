@@ -30,6 +30,8 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
       return sequencePrompt(problem.values, band);
     case 'addition':
       return additionPrompt(problem.left, problem.right, band);
+    case 'subtraction':
+      return subtractionPrompt(problem.left, problem.right, band);
     case 'fraction-equality':
       return `Are ${problem.left} and ${problem.right} equal?`;
     case 'fraction-comparison':
@@ -63,6 +65,16 @@ function additionPrompt(left: string, right: string, band: Band): string {
   return first === null || second === null
     ? `What is ${left} add ${right}?`
     : `What is ${first} add ${second}?`;
+}
+
+/** P3-07: "take away" is the words the early bands are taught; older children read the sign. */
+function subtractionPrompt(left: string, right: string, band: Band): string {
+  if (band === 'senior') return `${left} - ${right} = ?`;
+  const first = band === 'early' ? word(left) : null;
+  const second = band === 'early' ? word(right) : null;
+  return first === null || second === null
+    ? `What is ${left} take away ${right}?`
+    : `What is ${first} take away ${second}?`;
 }
 
 /** `null` above ten: spelling out forty-eight makes the sentence harder, not easier. */

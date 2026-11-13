@@ -11,8 +11,9 @@ const ITEMS = fileURLToPath(
 
 /** 500 model cases from P0-21, plus P2H-10's 72 generator cases: twelve per generator. */
 const MODEL_CASES = 500;
-// 72 from P2H-10's six skills, and 40 from P3-07's number-sense strand (ten per skill).
-const GENERATOR_CASES = 112;
+// 72 from P2H-10's six skills, then ten per skill from each P3-07 strand: number sense (40)
+// and addition and subtraction (40).
+const GENERATOR_CASES = 152;
 
 describe('content golden files', () => {
   it('loads every unique valid item with the required subject weighting', async () => {
