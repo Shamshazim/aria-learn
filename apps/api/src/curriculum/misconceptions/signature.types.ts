@@ -50,7 +50,16 @@ export type ArithmeticRule =
   | 'reversed-comparison'
   | 'says-unequal-for-equivalent'
   | 'says-equal-for-same-numerator'
-  | 'says-equal-for-same-denominator';
+  | 'says-equal-for-same-denominator'
+  // P3-07: number sense.
+  | 'other-place-digit'
+  | 'place-amount'
+  | 'whole-number'
+  | 'ones-digit-comparison'
+  | 'same-tens-equal'
+  | 'rounded-down'
+  | 'rounded-up'
+  | 'rounded-to-hundred';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

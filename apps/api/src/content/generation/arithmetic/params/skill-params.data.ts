@@ -2,8 +2,12 @@ import { ADD_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/add-f
 import { ADD_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/add-regroup-2d';
 import { FRAC_COMPARE_PARAMS } from '@/content/generation/arithmetic/params/frac-compare';
 import { FRAC_EQUAL_PARAMS } from '@/content/generation/arithmetic/params/frac-equal';
+import { NUM_CMP_100_PARAMS } from '@/content/generation/arithmetic/params/num-cmp-100';
 import { NUM_CNT_20_PARAMS } from '@/content/generation/arithmetic/params/num-cnt-20';
 import { NUM_CNT_SKIP5_PARAMS } from '@/content/generation/arithmetic/params/num-cnt-skip5';
+import { NUM_PV_HUNDREDS_PARAMS } from '@/content/generation/arithmetic/params/num-pv-hundreds';
+import { NUM_PV_TENS_PARAMS } from '@/content/generation/arithmetic/params/num-pv-tens';
+import { NUM_RND_10_PARAMS } from '@/content/generation/arithmetic/params/num-rnd-10';
 import type { GeneratorParams } from '@/content/generation/arithmetic/types';
 import type { ArithmeticSkillCode } from '@/quality/arithmetic';
 
@@ -17,6 +21,10 @@ import type { ArithmeticSkillCode } from '@/quality/arithmetic';
 export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>> = {
   'NUM.CNT.20': NUM_CNT_20_PARAMS,
   'NUM.CNT.SKIP5': NUM_CNT_SKIP5_PARAMS,
+  'NUM.PV.TENS': NUM_PV_TENS_PARAMS,
+  'NUM.PV.HUNDREDS': NUM_PV_HUNDREDS_PARAMS,
+  'NUM.CMP.100': NUM_CMP_100_PARAMS,
+  'NUM.RND.10': NUM_RND_10_PARAMS,
   'ADD.FACT.10': ADD_FACT_10_PARAMS,
   'ADD.REGROUP.2D': ADD_REGROUP_2D_PARAMS,
   'FRAC.EQUAL': FRAC_EQUAL_PARAMS,
@@ -27,6 +35,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
 export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'NUM.CNT.20',
   'NUM.CNT.SKIP5',
+  'NUM.PV.TENS',
+  'NUM.PV.HUNDREDS',
+  'NUM.CMP.100',
+  'NUM.RND.10',
   'ADD.FACT.10',
   'ADD.REGROUP.2D',
   'FRAC.EQUAL',

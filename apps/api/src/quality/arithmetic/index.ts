@@ -12,9 +12,11 @@ export function isArithmeticPass(result: CheckResult): boolean {
 }
 
 export { arithmeticProblemSchema } from '@/quality/arithmetic/schema';
+export { CHECKED_SKILL_CODES } from '@/quality/arithmetic/registry';
 
 export type {
   ArithmeticProblem,
   ArithmeticSkillCode,
   CheckResult,
 } from '@/quality/arithmetic/types';
+export { problemNumbers } from '@/quality/arithmetic/numbers';

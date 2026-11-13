@@ -1,0 +1,842 @@
+[
+  {
+    "id": "arith-gen-num-pv-tens-early-0",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "10",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 10. Which digit is in the tens place?\" with key 1. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-early-3",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 3,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "12",
+        "place": "ones"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 12. Which digit is in the ones place?\" with key 2. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-early-7",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 7,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "14",
+        "place": "ones"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 14. Which digit is in the ones place?\" with key 4. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-early-12",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "17",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 17. Which digit is in the tens place?\" with key 1. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-early-19",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "20",
+        "place": "ones"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 20. Which digit is in the ones place?\" with key 0. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-middle-26",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 26,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "25",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 25, which digit is in the tens place?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-middle-31",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "27",
+        "place": "ones"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 27, which digit is in the ones place?\" with key 7. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-middle-38",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 38,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "31",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 31, which digit is in the tens place?\" with key 3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-senior-44",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "35",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 35, which digit is in the tens place?\" with key 3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-tens-senior-52",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.TENS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 52,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.TENS",
+        "kind": "place-value",
+        "number": "39",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 39, which digit is in the tens place?\" with key 3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-early-0",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "101",
+        "place": "hundreds"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 101. Which digit is in the hundreds place?\" with key 1. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-early-3",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 3,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "108",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 108. Which digit is in the tens place?\" with key 0. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-early-7",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 7,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "136",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 136. Which digit is in the tens place?\" with key 3. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-early-12",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "157",
+        "place": "hundreds"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 157. Which digit is in the hundreds place?\" with key 1. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-early-19",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "178",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Look at 178. Which digit is in the tens place?\" with key 7. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-middle-26",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 26,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "213",
+        "place": "hundreds"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 213, which digit is in the hundreds place?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-middle-31",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "241",
+        "place": "tens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 241, which digit is in the tens place?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-middle-38",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 38,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "276",
+        "place": "hundreds"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 276, which digit is in the hundreds place?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-senior-44",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "297",
+        "place": "hundreds"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 297, which digit is in the hundreds place?\" with key 2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-pv-hundreds-senior-52",
+    "subject": "arithmetic",
+    "skillCode": "NUM.PV.HUNDREDS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 52,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.PV.HUNDREDS",
+        "kind": "place-value",
+        "number": "346",
+        "place": "hundreds"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 346, which digit is in the hundreds place?\" with key 3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-early-0",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "12",
+        "right": "17"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 12 more than, less than, or the same as 17?\" with key <. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-early-3",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 3,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "21",
+        "right": "19"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 21 more than, less than, or the same as 19?\" with key >. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-early-7",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 7,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "22",
+        "right": "27"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 22 more than, less than, or the same as 27?\" with key <. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-early-12",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "47",
+        "right": "74"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 47 more than, less than, or the same as 74?\" with key <. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-early-19",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "84",
+        "right": "37"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 84 more than, less than, or the same as 37?\" with key >. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-middle-26",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 26,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "31",
+        "right": "90"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 31 and 90. Use <, > or =.\" with key <. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-middle-31",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "61",
+        "right": "59"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 61 and 59. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-middle-38",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 38,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "71",
+        "right": "69"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 71 and 69. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-senior-44",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "81",
+        "right": "79"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 81 and 79. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-cmp-100-senior-52",
+    "subject": "arithmetic",
+    "skillCode": "NUM.CMP.100",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 52,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.CMP.100",
+        "kind": "whole-comparison",
+        "left": "32",
+        "right": "89"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 32 and 89. Use <, > or =.\" with key <. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "11",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 11 to the nearest ten.\" with key 10. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-middle-3",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 3,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "302",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 302 to the nearest ten.\" with key 300. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-middle-7",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 7,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "787",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 787 to the nearest ten.\" with key 790. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-middle-12",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "283",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 283 to the nearest ten.\" with key 280. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-middle-19",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "167",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 167 to the nearest ten.\" with key 170. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-senior-26",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 26,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "846",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 846 to the nearest ten.\" with key 850. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-senior-31",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "342",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 342 to the nearest ten.\" with key 340. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-senior-38",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 38,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "129",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 129 to the nearest ten.\" with key 130. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-senior-44",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "808",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 808 to the nearest ten.\" with key 810. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-num-rnd-10-senior-52",
+    "subject": "arithmetic",
+    "skillCode": "NUM.RND.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 52,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "NUM.RND.10",
+        "kind": "rounding",
+        "number": "692",
+        "to": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Round 692 to the nearest ten.\" with key 690. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  }
+]

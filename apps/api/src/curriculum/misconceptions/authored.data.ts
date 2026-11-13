@@ -4,8 +4,12 @@ import { CMP_RETELL_MISCONCEPTIONS } from '@/curriculum/misconceptions/cmp-retel
 import { FL_WCPM_60_MISCONCEPTIONS } from '@/curriculum/misconceptions/fl-wcpm-60.data';
 import { FRAC_COMPARE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-compare.data';
 import { FRAC_EQUAL_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equal.data';
+import { NUM_CMP_100_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cmp-100.data';
 import { NUM_CNT_20_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cnt-20.data';
 import { NUM_CNT_SKIP5_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cnt-skip5.data';
+import { NUM_PV_HUNDREDS_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-pv-hundreds.data';
+import { NUM_PV_TENS_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-pv-tens.data';
+import { NUM_RND_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-rnd-10.data';
 import { PA_BLEND_MISCONCEPTIONS } from '@/curriculum/misconceptions/pa-blend.data';
 import { PA_RHYME_MISCONCEPTIONS } from '@/curriculum/misconceptions/pa-rhyme.data';
 import { PH_CVC_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-cvc.data';
@@ -26,6 +30,10 @@ import { WR_WORD_MISCONCEPTIONS } from '@/curriculum/misconceptions/wr-word.data
 export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...NUM_CNT_20_MISCONCEPTIONS,
   ...NUM_CNT_SKIP5_MISCONCEPTIONS,
+  ...NUM_PV_TENS_MISCONCEPTIONS,
+  ...NUM_PV_HUNDREDS_MISCONCEPTIONS,
+  ...NUM_CMP_100_MISCONCEPTIONS,
+  ...NUM_RND_10_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

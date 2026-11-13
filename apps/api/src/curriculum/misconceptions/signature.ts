@@ -22,6 +22,14 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'says-unequal-for-equivalent': true,
   'says-equal-for-same-numerator': true,
   'says-equal-for-same-denominator': true,
+  'other-place-digit': true,
+  'place-amount': true,
+  'whole-number': true,
+  'ones-digit-comparison': true,
+  'same-tens-equal': true,
+  'rounded-down': true,
+  'rounded-up': true,
+  'rounded-to-hundred': true,
 };
 
 /** Whether this answer carries this wrong idea. */

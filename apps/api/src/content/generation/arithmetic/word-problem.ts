@@ -1,7 +1,7 @@
 import type { Band } from '@aria/shared';
 
 import type { QualityGate } from '@/quality';
-import type { ArithmeticProblem } from '@/quality/arithmetic';
+import { problemNumbers, type ArithmeticProblem } from '@/quality/arithmetic';
 
 export type WordProblemVerdict =
   | Readonly<{ accepted: true; prompt: string }>
@@ -72,14 +72,7 @@ function numbersPinned(problem: ArithmeticProblem, text: string): WordProblemVer
 
 /** Every number the problem is made of, as written. */
 function problemText(problem: ArithmeticProblem): string {
-  switch (problem.kind) {
-    case 'sequence':
-      return [...problem.values, problem.step].join(' ');
-    case 'addition':
-    case 'fraction-equality':
-    case 'fraction-comparison':
-      return `${problem.left} ${problem.right}`;
-  }
+  return problemNumbers(problem).join(' ');
 }
 
 /**

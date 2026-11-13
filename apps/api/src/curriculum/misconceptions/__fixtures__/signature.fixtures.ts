@@ -1,6 +1,8 @@
 import type { MisconceptionInput } from '@/curriculum/misconceptions';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
+import { NUMBER_SENSE_SIGNATURE_CASES } from './signature-number-sense.fixtures';
+
 /**
  * One true positive and one true negative for every authored misconception (P2H-10).
  *
@@ -114,6 +116,7 @@ const paragraph = on('WR.PARAGRAPH', 'Write one paragraph about pets.', PARAGRAP
 const piece = on('WR.SHORT_PIECE', 'Write a short piece about a box.', PIECE, null);
 
 export const SIGNATURE_CASES: readonly SignatureCase[] = [
+  ...NUMBER_SENSE_SIGNATURE_CASES,
   { id: 'misconception-num-cnt-20-restart', positive: count20('17'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-repeats-last', positive: count20('19'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-skips-a-teen', positive: count20('21'), negative: count20('20') },

@@ -9,6 +9,46 @@
 | **Parallel-safe with** | P3-01, P3-02, P3-03, P3-05, P3-06 |
 | **Size** | L |
 
+## Status
+
+**Strand 1 of 9 (number sense) and the shared infrastructure: code complete 2026-11-12** on
+`feat/P3-07-arithmetic-number-sense`, pending review. Stacked on P3-02 (#38) ← P3-03 (#37) ←
+P3-06 (#36) ← P3-05 (#35) ← P3-04 (#34) ← P3-01 (#33). The other eight strands are each their
+own PR against this ticket, as Scope asks.
+
+- **Infrastructure, for every later strand.** The inventory is split into
+  `inventory/arithmetic/{num-sense,add-sub,fractions}.skills.ts` with `index.ts` assembling,
+  each citing its Common Core codes. `Skill.mode` (`number_sense | fact | procedure`) is set
+  on every arithmetic skill, and the P3-04 scheduler graph now reads `facts` from it (the
+  `.FACT.` code pattern remains only for skills with no mode). `validate.ts` fails the boot,
+  naming the skill, when an arithmetic skill has no checker, no mode, or no prerequisites
+  while not a listed entry skill (`ARITHMETIC_ENTRY_SKILLS` = `NUM.CNT.20`). `golden:content`
+  exits non-zero for any arithmetic skill with fewer than 5 golden cases, and a unit test
+  holds the checked-in set to the same rule so CI catches it with no model configured.
+- **Number sense: four new skills.** `NUM.PV.TENS` (1.NBT.B.2), `NUM.PV.HUNDREDS`
+  (2.NBT.A.1), `NUM.CMP.100` (1.NBT.B.3), `NUM.RND.10` (3.NBT.A.1). Each has a checker
+  (place value reuses P0-16's; whole comparison and rounding are new and exact on `bigint`),
+  a parameter space, band-varied phrasing, 3 misconceptions with derived signatures, a lesson
+  note (`review: pending`), a reviewed fallback item and 10 generator-origin golden cases
+  (`generated-number-sense.json`, `humanReview: pending`). All four are `number_sense`.
+- **Normaliser.** Number words below a thousand ("eleven", "twenty-one", "three hundred and
+  five"), spaced fractions (" 1 / 2 ") and fraction words ("a half", "one half", "three
+  quarters"). Leading zeros, `-0` and trailing decimal zeros were already equal; tests now
+  cover them. Remainder and money formats belong to the mul-div and measurement strands.
+- **Property tests.** 10,000 seeded items per new family against references that do not
+  share the solver's code: string indexing for place value, `bigint` comparison, and
+  `(n + 5) / 10 * 10` for rounding.
+- **Not in this PR.** The `long-division` procedure scenario and the `steps[]` answer key
+  arrive with the mul-div strand, the first one with a `procedure` skill that has more than
+  one step to withhold. Estimation's `defer` with an authored range arrives with the
+  estimation skill. Strategy evidence for the four new skills is empty on purpose: a right
+  digit, sign or rounded number does not prove how the child got there.
+- **Verification.** Typecheck and lint clean. Full suite: 2604 pass; the 12 failures are the
+  catalogue ones already failing on `main` (`catalogue/data/` was never committed).
+  `golden:content --generator-only`: 112 cases, arithmetic correctness 100%, reading level
+  100%; the release result stays FAIL only because no case has had human review, as on
+  `main`. `golden:tutoring`: 9 scenarios pass.
+
 ## Why
 
 P0-17 defined a bounded inventory (18 skills) so the golden sets had something to measure.

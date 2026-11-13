@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { ARITHMETIC_SKILL_CODES } from '@/content/generation/arithmetic';
 import { loadGoldenItems } from '@/testing/golden/load';
 
 const ITEMS = fileURLToPath(
@@ -10,7 +11,8 @@ const ITEMS = fileURLToPath(
 
 /** 500 model cases from P0-21, plus P2H-10's 72 generator cases: twelve per generator. */
 const MODEL_CASES = 500;
-const GENERATOR_CASES = 72;
+// 72 from P2H-10's six skills, and 40 from P3-07's number-sense strand (ten per skill).
+const GENERATOR_CASES = 112;
 
 describe('content golden files', () => {
   it('loads every unique valid item with the required subject weighting', async () => {
@@ -30,7 +32,7 @@ describe('content golden files', () => {
     for (const item of items.filter((entry) => entry.origin === 'generator')) {
       bySkill.set(item.skillCode, (bySkill.get(item.skillCode) ?? 0) + 1);
     }
-    expect(bySkill.size).toBe(6);
+    expect(bySkill.size).toBe(ARITHMETIC_SKILL_CODES.length);
     for (const [skillCode, count] of bySkill) expect(count, skillCode).toBeGreaterThanOrEqual(10);
   });
 

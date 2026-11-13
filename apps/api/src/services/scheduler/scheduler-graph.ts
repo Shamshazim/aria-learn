@@ -18,7 +18,8 @@ function toSchedulerSkill(skill: Skill): SchedulerSkill {
     prerequisites: skill.prerequisites,
     ...(skill.grade === undefined ? {} : { grade: skill.grade }),
     ...(skill.ordering === undefined ? {} : { ordering: skill.ordering }),
-    // `ADD.FACT.10`: a skill whose point is recall without counting (`master-plan.md` §6).
-    facts: skill.code.includes('.FACT.'),
+    // P3-07: the authored teaching mode decides; a skill without one (a catalogue topic) falls
+    // back to the code, `ADD.FACT.10` being recall without counting (`master-plan.md` §6).
+    facts: skill.mode === undefined ? skill.code.includes('.FACT.') : skill.mode === 'fact',
   };
 }

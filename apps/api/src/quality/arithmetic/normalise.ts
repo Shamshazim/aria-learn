@@ -1,3 +1,4 @@
+import { wordsToFraction, wordsToInteger } from '@/quality/arithmetic/number-words';
 import type { Rational } from '@/quality/arithmetic/types';
 
 const UNICODE_FRACTIONS: Readonly<Record<string, string>> = {
@@ -17,13 +18,21 @@ const UNICODE_FRACTIONS: Readonly<Record<string, string>> = {
 };
 
 export function normaliseAnswer(value: string): string {
-  const trimmed = value.trim().replaceAll('−', '-').replace(/[.]$/u, '').trim();
-  return UNICODE_FRACTIONS[trimmed] ?? trimmed;
+  const trimmed = value
+    .trim()
+    .replaceAll('−', '-')
+    .replace(/[.]$/u, '')
+    .trim()
+    // " 1 / 2 " is how a child types a half on a tablet keyboard.
+    .replace(/\s*\/\s*/gu, '/');
+  return UNICODE_FRACTIONS[trimmed] ?? wordsToFraction(trimmed) ?? trimmed;
 }
 
+/** A whole number, as digits ("007", "1,200", "-0") or as words ("twenty one"). */
 export function parseInteger(value: string): bigint | null {
   const normalised = normaliseAnswer(value).replaceAll(',', '');
-  return /^-?\d+$/u.test(normalised) ? BigInt(normalised) : null;
+  if (/^-?\d+$/u.test(normalised)) return BigInt(normalised);
+  return wordsToInteger(normalised);
 }
 
 export function parseRational(value: string, allowDecimal: boolean): Rational | null {

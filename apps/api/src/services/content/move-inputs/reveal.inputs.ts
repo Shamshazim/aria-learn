@@ -1,6 +1,7 @@
 import type { PlannedTurn } from '@aria/tutor';
 
 import type { MustMention } from '@/quality';
+import { problemNumbers } from '@/quality/arithmetic';
 import type { MoveInputs } from '@/services/content/move-inputs/move-inputs.types';
 import type { ApiModelContext } from '@/services/content/turn-content.types';
 
@@ -71,7 +72,7 @@ function workingLine(turn: PlannedTurn<ApiModelContext>): readonly string[] {
   if (problem.kind === 'sequence') {
     return [`The working: the run is ${problem.values.join(', ')}, going up in ${problem.step}s.`];
   }
-  return [`The working: it comes from ${problem.left} and ${problem.right}.`];
+  return [`The working: it comes from ${problemNumbers(problem).join(' and ')}.`];
 }
 
 /** What the child put, so the reveal answers their answer rather than a generic wrong one. */
