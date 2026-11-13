@@ -2,6 +2,9 @@ import { ADD_3D_PARAMS } from '@/content/generation/arithmetic/params/add-3d';
 import { ADD_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/add-fact-10';
 import { ADD_FACT_20_PARAMS } from '@/content/generation/arithmetic/params/add-fact-20';
 import { ADD_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/add-regroup-2d';
+import { DEC_ADD_PARAMS } from '@/content/generation/arithmetic/params/dec-add';
+import { DEC_CMP_PARAMS } from '@/content/generation/arithmetic/params/dec-cmp';
+import { DEC_PV_PARAMS } from '@/content/generation/arithmetic/params/dec-pv';
 import { DIV_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/div-fact-10';
 import { DIV_LONG_PARAMS } from '@/content/generation/arithmetic/params/div-long';
 import { FRAC_ADD_LIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-like';
@@ -18,6 +21,7 @@ import { NUM_CNT_SKIP5_PARAMS } from '@/content/generation/arithmetic/params/num
 import { NUM_PV_HUNDREDS_PARAMS } from '@/content/generation/arithmetic/params/num-pv-hundreds';
 import { NUM_PV_TENS_PARAMS } from '@/content/generation/arithmetic/params/num-pv-tens';
 import { NUM_RND_10_PARAMS } from '@/content/generation/arithmetic/params/num-rnd-10';
+import { PCT_OF_PARAMS } from '@/content/generation/arithmetic/params/pct-of';
 import { SUB_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/sub-fact-10';
 import { SUB_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/sub-regroup-2d';
 import type { GeneratorParams } from '@/content/generation/arithmetic/types';
@@ -53,6 +57,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'FRAC.ADD.LIKE': FRAC_ADD_LIKE_PARAMS,
   'FRAC.ADD.UNLIKE': FRAC_ADD_UNLIKE_PARAMS,
   'FRAC.MUL.WHOLE': FRAC_MUL_WHOLE_PARAMS,
+  'DEC.PV': DEC_PV_PARAMS,
+  'DEC.CMP': DEC_CMP_PARAMS,
+  'DEC.ADD': DEC_ADD_PARAMS,
+  'PCT.OF': PCT_OF_PARAMS,
 };
 
 /** Written out rather than derived from the record, so no assertion is needed to name them. */
@@ -79,4 +87,8 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'FRAC.ADD.LIKE',
   'FRAC.ADD.UNLIKE',
   'FRAC.MUL.WHOLE',
+  'DEC.PV',
+  'DEC.CMP',
+  'DEC.ADD',
+  'PCT.OF',
 ];

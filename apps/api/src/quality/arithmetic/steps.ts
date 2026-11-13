@@ -1,9 +1,10 @@
+import { columnAdditionSteps, type ProcedureStep } from '@/quality/arithmetic/column-steps';
+import { decimalSteps } from '@/quality/arithmetic/decimal-steps';
 import { gcd, readWrittenFraction } from '@/quality/arithmetic/fraction-format';
 import { parseInteger } from '@/quality/arithmetic/normalise';
 import type { ArithmeticProblem, FractionOperation } from '@/quality/arithmetic/types';
 
-/** One step of a written method: what to work out, and what it comes to. */
-export type ProcedureStep = Readonly<{ prompt: string; answer: string }>;
+export type { ProcedureStep } from '@/quality/arithmetic/column-steps';
 
 /**
  * The steps of a `procedure` skill's written method, in order (P3-07, the `steps[]` answer
@@ -28,6 +29,8 @@ export function procedureSteps(problem: ArithmeticProblem): readonly ProcedureSt
       return longDivisionSteps(problem.left, problem.right);
     case 'FRAC.ADD.UNLIKE':
       return unlikeFractionSteps(problem);
+    case 'DEC.ADD':
+      return decimalSteps(problem);
     default:
       return [];
   }
@@ -39,21 +42,7 @@ const PLACES = ['ones', 'tens', 'hundreds', 'thousands'] as const;
 function additionSteps(leftText: string, rightText: string): readonly ProcedureStep[] {
   const left = parseInteger(leftText);
   const right = parseInteger(rightText);
-  if (left === null || right === null) return [];
-  const steps: ProcedureStep[] = [];
-  let carry = 0n;
-  for (let place = 0, top = left, bottom = right; top > 0n || bottom > 0n; place += 1) {
-    const sum = (top % 10n) + (bottom % 10n) + carry;
-    const carried = carry > 0n ? ` and the carried ${carry.toString()}` : '';
-    steps.push({
-      prompt: `Add the ${PLACES[place] ?? 'next'} column: ${(top % 10n).toString()} and ${(bottom % 10n).toString()}${carried}.`,
-      answer: sum.toString(),
-    });
-    carry = sum / 10n;
-    top /= 10n;
-    bottom /= 10n;
-  }
-  return steps;
+  return left === null || right === null ? [] : columnAdditionSteps(left, right, PLACES);
 }
 
 /** Two-digit subtraction with one trade: break a ten, take the ones, then the tens. */

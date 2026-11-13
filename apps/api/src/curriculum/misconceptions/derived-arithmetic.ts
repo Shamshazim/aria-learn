@@ -1,5 +1,11 @@
 import { additionColumnError, subtractionError } from '@/curriculum/misconceptions/derived-add-sub';
 import {
+  decimalComparisonError,
+  decimalOperationError,
+  decimalPlaceError,
+  percentOfError,
+} from '@/curriculum/misconceptions/derived-decimals';
+import {
   fractionMissingError,
   fractionOperationError,
 } from '@/curriculum/misconceptions/derived-fractions';
@@ -10,6 +16,11 @@ import {
   wholeComparisonError,
 } from '@/curriculum/misconceptions/derived-number-sense';
 import type { ArithmeticRule } from '@/curriculum/misconceptions/signature.types';
+import {
+  isRationalProblem,
+  type RationalProblem,
+  type WholeNumberProblem,
+} from '@/quality/arithmetic/kinds';
 import { compareRationals, parseInteger, parseRational } from '@/quality/arithmetic/normalise';
 import type {
   AdditionProblem,
@@ -31,17 +42,48 @@ export function predictArithmeticError(
   problem: ArithmeticProblem | null,
 ): readonly string[] {
   if (problem === null) return [];
-  if (problem.kind === 'addition') return additionError(rule, problem);
-  if (problem.kind === 'subtraction') return subtractionError(rule, problem);
-  if (problem.kind === 'multiplication') return multiplicationError(rule, problem);
-  if (problem.kind === 'division') return divisionError(rule, problem);
-  if (problem.kind === 'fraction-missing') return fractionMissingError(rule, problem);
-  if (problem.kind === 'fraction-operation') return fractionOperationError(rule, problem);
-  if (problem.kind === 'sequence') return sequenceError(rule, problem);
-  if (problem.kind === 'place-value') return placeValueError(rule, problem);
-  if (problem.kind === 'whole-comparison') return wholeComparisonError(rule, problem);
-  if (problem.kind === 'rounding') return roundingError(rule, problem);
-  return fractionError(rule, problem.kind, problem.left, problem.right);
+  return isRationalProblem(problem) ? rationalError(rule, problem) : wholeError(rule, problem);
+}
+
+function wholeError(rule: ArithmeticRule, problem: WholeNumberProblem): readonly string[] {
+  switch (problem.kind) {
+    case 'addition':
+      return additionError(rule, problem);
+    case 'subtraction':
+      return subtractionError(rule, problem);
+    case 'multiplication':
+      return multiplicationError(rule, problem);
+    case 'division':
+      return divisionError(rule, problem);
+    case 'sequence':
+      return sequenceError(rule, problem);
+    case 'place-value':
+      return placeValueError(rule, problem);
+    case 'whole-comparison':
+      return wholeComparisonError(rule, problem);
+    case 'rounding':
+      return roundingError(rule, problem);
+  }
+}
+
+function rationalError(rule: ArithmeticRule, problem: RationalProblem): readonly string[] {
+  switch (problem.kind) {
+    case 'fraction-missing':
+      return fractionMissingError(rule, problem);
+    case 'fraction-operation':
+      return fractionOperationError(rule, problem);
+    case 'decimal-place':
+      return decimalPlaceError(rule, problem);
+    case 'decimal-comparison':
+      return decimalComparisonError(rule, problem);
+    case 'decimal-operation':
+      return decimalOperationError(rule, problem);
+    case 'percent-of':
+      return percentOfError(rule, problem);
+    case 'fraction-equality':
+    case 'fraction-comparison':
+      return fractionError(rule, problem.kind, problem.left, problem.right);
+  }
 }
 
 function additionError(rule: ArithmeticRule, problem: AdditionProblem): readonly string[] {

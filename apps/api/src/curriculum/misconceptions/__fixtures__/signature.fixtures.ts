@@ -2,6 +2,7 @@ import type { MisconceptionInput } from '@/curriculum/misconceptions';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
 import { ADD_SUB_SIGNATURE_CASES } from './signature-add-sub.fixtures';
+import { DECIMAL_SIGNATURE_CASES } from './signature-decimals.fixtures';
 import { FRACTION_SIGNATURE_CASES } from './signature-fractions.fixtures';
 import { MUL_DIV_SIGNATURE_CASES } from './signature-mul-div.fixtures';
 import { NUMBER_SENSE_SIGNATURE_CASES } from './signature-number-sense.fixtures';
@@ -123,6 +124,7 @@ export const SIGNATURE_CASES: readonly SignatureCase[] = [
   ...ADD_SUB_SIGNATURE_CASES,
   ...MUL_DIV_SIGNATURE_CASES,
   ...FRACTION_SIGNATURE_CASES,
+  ...DECIMAL_SIGNATURE_CASES,
   { id: 'misconception-num-cnt-20-restart', positive: count20('17'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-repeats-last', positive: count20('19'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-skips-a-teen', positive: count20('21'), negative: count20('20') },

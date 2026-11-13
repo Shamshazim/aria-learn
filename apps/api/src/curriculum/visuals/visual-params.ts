@@ -1,7 +1,13 @@
 import type { VisualKind } from '@aria/shared';
 
+import { decimalParams } from '@/curriculum/visuals/decimal-visuals';
 import { fractionOperationParams } from '@/curriculum/visuals/fraction-visuals';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
+import {
+  isRationalProblem,
+  type RationalProblem,
+  type WholeNumberProblem,
+} from '@/quality/arithmetic/kinds';
 import { parseInteger, parseRational } from '@/quality/arithmetic/normalise';
 
 type Params = Readonly<Record<string, unknown>>;
@@ -28,20 +34,41 @@ export function visualParams(kind: VisualKind, problem: ArithmeticProblem | null
 
 function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Params | null {
   if (problem === null) return null;
-  if (problem.kind === 'addition') return fromAddition(kind, problem.left, problem.right);
-  if (problem.kind === 'subtraction') return fromSubtraction(kind, problem.left, problem.right);
-  if (problem.kind === 'multiplication' || problem.kind === 'division') {
-    return fromGroups(kind, problem.kind, problem.left, problem.right);
+  return isRationalProblem(problem) ? fromRational(kind, problem) : fromWholeNumbers(kind, problem);
+}
+
+function fromWholeNumbers(kind: VisualKind, problem: WholeNumberProblem): Params | null {
+  switch (problem.kind) {
+    case 'addition':
+    case 'whole-comparison':
+      return fromAddition(kind, problem.left, problem.right);
+    case 'subtraction':
+      return fromSubtraction(kind, problem.left, problem.right);
+    case 'multiplication':
+    case 'division':
+      return fromGroups(kind, problem.kind, problem.left, problem.right);
+    case 'sequence':
+      return fromSequence(kind, problem.values, problem.step);
+    case 'place-value':
+    case 'rounding':
+      return fromWhole(kind, problem.number);
   }
-  if (problem.kind === 'sequence') return fromSequence(kind, problem.values, problem.step);
-  if (problem.kind === 'place-value' || problem.kind === 'rounding') {
-    return fromWhole(kind, problem.number);
+}
+
+function fromRational(kind: VisualKind, problem: RationalProblem): Params | null {
+  switch (problem.kind) {
+    case 'fraction-missing':
+    case 'fraction-operation':
+      return fractionOperationParams(kind, problem);
+    case 'decimal-place':
+    case 'decimal-comparison':
+    case 'decimal-operation':
+    case 'percent-of':
+      return decimalParams(kind, problem);
+    case 'fraction-equality':
+    case 'fraction-comparison':
+      return fromFractions(kind, problem.left, problem.right);
   }
-  if (problem.kind === 'whole-comparison') return fromAddition(kind, problem.left, problem.right);
-  if (problem.kind === 'fraction-missing' || problem.kind === 'fraction-operation') {
-    return fractionOperationParams(kind, problem);
-  }
-  return fromFractions(kind, problem.left, problem.right);
 }
 
 /** P3-07: one whole number, as tens and ones, or on a number line around it. */

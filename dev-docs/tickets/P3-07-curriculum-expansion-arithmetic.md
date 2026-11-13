@@ -49,6 +49,29 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 5 of 9: decimals and percent
+
+**Code complete 2026-11-12** on `feat/P3-07-arithmetic-decimals`, pending review, stacked on
+strand 4 (#42).
+
+- **Four skills.** `DEC.PV` (5.NBT.A.3), `DEC.CMP` (4.NF.C.7), `PCT.OF` (6.RP.A.3.c, senior),
+  all `number_sense`; `DEC.ADD` (5.NBT.B.7), `procedure`. Kinds `decimal-place`,
+  `decimal-comparison`, `decimal-operation` and `percent-of`, all exact on rationals: 0.1 +
+  0.2 is 0.3 and the float `0.30000000000000004` is wrong. "4.6", "4.60", "4 3/5" and ".5"
+  read as the numbers they are (the leading-point form is new in the normaliser).
+- **Comparison space built for the classic wrong idea.** One place against two, so 0.3 vs
+  0.25 (shorter is bigger), 0.4 vs 0.75 (shorter is smaller) and 0.5 vs 0.50 (equal) all occur;
+  a test proves "longer is larger" fires on every pair where the shorter decimal is bigger.
+- **Steps for decimal sums:** line up the points (the tenths number gets its zero), then the
+  hundredths, tenths and ones columns; taking away breaks one from the next place. The column
+  method moved to `column-steps.ts` so decimals reuse it without an import cycle.
+- **Dispatchers split.** `predictArithmeticError` and `visualParams` now branch once on
+  `isRationalProblem` (`quality/arithmetic/kinds.ts`) and switch exhaustively within each half,
+  which keeps both under the complexity bar as strands add kinds.
+- **Verification.** Typecheck and lint clean. Full suite: 2786 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 272 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
 ### Strand 4 of 9: fractions
 
 **Code complete 2026-11-12** on `feat/P3-07-arithmetic-fractions`, pending review, stacked on

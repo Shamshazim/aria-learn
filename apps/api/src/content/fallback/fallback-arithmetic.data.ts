@@ -161,11 +161,50 @@ export const ARITHMETIC_STRAND_FALLBACKS: readonly FallbackDefinition[] = [
       right: '2/5',
     },
   }),
+  // P3-07, strand 5: decimals and percent.
+  item({
+    skillCode: 'DEC.PV',
+    band: 'middle',
+    prompt: 'In 3.47, which digit is in the tenths place?',
+    choices: ['7', '4', '3'],
+    answer: '4',
+    problem: { skillCode: 'DEC.PV', kind: 'decimal-place', number: '3.47', place: 'tenths' },
+  }),
+  item({
+    skillCode: 'DEC.CMP',
+    band: 'middle',
+    prompt: 'Is 0.3 more than, less than, or the same as 0.25?',
+    choices: ['>', '<', '='],
+    answer: '>',
+    problem: { skillCode: 'DEC.CMP', kind: 'decimal-comparison', left: '0.3', right: '0.25' },
+  }),
+  item({
+    skillCode: 'DEC.ADD',
+    band: 'middle',
+    prompt: 'What is 3.4 add 1.25?',
+    choices: ['1.59', '4.65', '4.29'],
+    answer: '4.65',
+    problem: {
+      skillCode: 'DEC.ADD',
+      kind: 'decimal-operation',
+      operation: 'add',
+      left: '3.4',
+      right: '1.25',
+    },
+  }),
+  item({
+    skillCode: 'PCT.OF',
+    band: 'senior',
+    prompt: 'What is 25% of 80?',
+    choices: ['20', '55', '2000'],
+    answer: '20',
+    problem: { skillCode: 'PCT.OF', kind: 'percent-of', percent: '25', whole: '80' },
+  }),
 ];
 
 type Authored = Readonly<{
   skillCode: string;
-  band: 'early' | 'middle';
+  band: 'early' | 'middle' | 'senior';
   prompt: string;
   choices: readonly [string, string, string];
   answer: string;

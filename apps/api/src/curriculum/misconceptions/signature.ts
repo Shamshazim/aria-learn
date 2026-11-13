@@ -60,6 +60,17 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'multiplied-both': true,
   'added-whole': true,
   'multiplied-denominator': true,
+  'decimal-neighbour-digit': true,
+  'decimal-place-amount': true,
+  'decimal-ones-digit': true,
+  'longer-is-larger': true,
+  'shorter-is-larger': true,
+  'right-aligned-digits': true,
+  'dropped-decimal-point': true,
+  'decimal-parts-as-wholes': true,
+  'percent-without-hundred': true,
+  'divided-by-percent': true,
+  'subtracted-percent': true,
 };
 
 /** Whether this answer carries this wrong idea. */

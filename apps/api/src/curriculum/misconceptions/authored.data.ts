@@ -3,6 +3,9 @@ import { ADD_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact
 import { ADD_FACT_20_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact-20.data';
 import { ADD_REGROUP_2D_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-regroup-2d.data';
 import { CMP_RETELL_MISCONCEPTIONS } from '@/curriculum/misconceptions/cmp-retell.data';
+import { DEC_ADD_MISCONCEPTIONS } from '@/curriculum/misconceptions/dec-add.data';
+import { DEC_CMP_MISCONCEPTIONS } from '@/curriculum/misconceptions/dec-cmp.data';
+import { DEC_PV_MISCONCEPTIONS } from '@/curriculum/misconceptions/dec-pv.data';
 import { DIV_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/div-fact-10.data';
 import { DIV_LONG_MISCONCEPTIONS } from '@/curriculum/misconceptions/div-long.data';
 import { FL_WCPM_60_MISCONCEPTIONS } from '@/curriculum/misconceptions/fl-wcpm-60.data';
@@ -22,6 +25,7 @@ import { NUM_PV_TENS_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-pv-t
 import { NUM_RND_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-rnd-10.data';
 import { PA_BLEND_MISCONCEPTIONS } from '@/curriculum/misconceptions/pa-blend.data';
 import { PA_RHYME_MISCONCEPTIONS } from '@/curriculum/misconceptions/pa-rhyme.data';
+import { PCT_OF_MISCONCEPTIONS } from '@/curriculum/misconceptions/pct-of.data';
 import { PH_CVC_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-cvc.data';
 import { PH_SILENT_E_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-silent-e.data';
 import type { AuthoredMisconception } from '@/curriculum/misconceptions/signature.types';
@@ -58,6 +62,10 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...FRAC_ADD_LIKE_MISCONCEPTIONS,
   ...FRAC_ADD_UNLIKE_MISCONCEPTIONS,
   ...FRAC_MUL_WHOLE_MISCONCEPTIONS,
+  ...DEC_PV_MISCONCEPTIONS,
+  ...DEC_CMP_MISCONCEPTIONS,
+  ...DEC_ADD_MISCONCEPTIONS,
+  ...PCT_OF_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

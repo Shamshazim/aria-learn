@@ -24,7 +24,9 @@ export function normaliseAnswer(value: string): string {
     .replace(/[.]$/u, '')
     .trim()
     // " 1 / 2 " is how a child types a half on a tablet keyboard.
-    .replace(/\s*\/\s*/gu, '/');
+    .replace(/\s*\/\s*/gu, '/')
+    // P3-07: ".5" is how many children write a half as a decimal.
+    .replace(/^(-?)\.(\d)/u, (_whole, sign: string, digit: string) => `${sign}0.${digit}`);
   return UNICODE_FRACTIONS[trimmed] ?? wordsToFraction(trimmed) ?? trimmed;
 }
 

@@ -59,6 +59,31 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     right: z.string(),
   }),
   z.object({
+    skillCode: z.literal('DEC.PV'),
+    kind: z.literal('decimal-place'),
+    number: z.string(),
+    place: z.enum(['tenths', 'hundredths']),
+  }),
+  z.object({
+    skillCode: z.literal('DEC.CMP'),
+    kind: z.literal('decimal-comparison'),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
+    skillCode: z.literal('DEC.ADD'),
+    kind: z.literal('decimal-operation'),
+    operation: z.enum(['add', 'subtract']),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
+    skillCode: z.literal('PCT.OF'),
+    kind: z.literal('percent-of'),
+    percent: z.string(),
+    whole: z.string(),
+  }),
+  z.object({
     skillCode: z.enum(['NUM.PV.TENS', 'NUM.PV.HUNDREDS']),
     kind: z.literal('place-value'),
     number: z.string(),

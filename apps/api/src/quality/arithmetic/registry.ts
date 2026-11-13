@@ -5,6 +5,12 @@ import {
   solveWholeComparison,
 } from '@/quality/arithmetic/solvers/comparison';
 import {
+  solveDecimalComparison,
+  solveDecimalOperation,
+  solveDecimalPlace,
+  solvePercentOf,
+} from '@/quality/arithmetic/solvers/decimals';
+import {
   solveFractionMissing,
   solveFractionOperation,
 } from '@/quality/arithmetic/solvers/fraction-operations';
@@ -45,6 +51,10 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'FRAC.ADD.LIKE': fractionOperationSolver,
   'FRAC.ADD.UNLIKE': fractionOperationSolver,
   'FRAC.MUL.WHOLE': fractionOperationSolver,
+  'DEC.PV': decimalPlaceSolver,
+  'DEC.CMP': decimalComparisonSolver,
+  'DEC.ADD': decimalOperationSolver,
+  'PCT.OF': percentOfSolver,
 };
 
 /** P3-07: the skills a checker exists for — what the inventory is cross-checked against at boot. */
@@ -112,6 +122,28 @@ function wholeComparisonSolver(problem: ArithmeticProblem, candidate: string): C
 
 function roundingSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'rounding' ? solveRounding(problem, candidate) : mismatch(problem);
+}
+
+function decimalPlaceSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'decimal-place'
+    ? solveDecimalPlace(problem, candidate)
+    : mismatch(problem);
+}
+
+function decimalComparisonSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'decimal-comparison'
+    ? solveDecimalComparison(problem, candidate)
+    : mismatch(problem);
+}
+
+function decimalOperationSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'decimal-operation'
+    ? solveDecimalOperation(problem, candidate)
+    : mismatch(problem);
+}
+
+function percentOfSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'percent-of' ? solvePercentOf(problem, candidate) : mismatch(problem);
 }
 
 function mismatch(problem: ArithmeticProblem): CheckResult {
