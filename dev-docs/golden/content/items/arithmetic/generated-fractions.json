@@ -1,0 +1,872 @@
+[
+  {
+    "id": "arith-gen-frac-equiv-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "1/2",
+        "denominator": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/2 = ?/4. What is the missing number?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-middle-7",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 7,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "1/3",
+        "denominator": "15"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/3 = ?/15. What is the missing number?\" with key 5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-middle-14",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 14,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "1/4",
+        "denominator": "16"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/4 = ?/16. What is the missing number?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-middle-18",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 18,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "3/4",
+        "denominator": "16"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3/4 = ?/16. What is the missing number?\" with key 12. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-middle-25",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 25,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "2/5",
+        "denominator": "15"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2/5 = ?/15. What is the missing number?\" with key 6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-senior-32",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 32,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "4/5",
+        "denominator": "10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"4/5 = ?/10\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-senior-36",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 36,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "1/6",
+        "denominator": "12"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/6 = ?/12\" with key 2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-senior-43",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 43,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "5/6",
+        "denominator": "30"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5/6 = ?/30\" with key 25. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-senior-50",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 50,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "7/8",
+        "denominator": "16"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"7/8 = ?/16\" with key 14. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-equiv-senior-54",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 54,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.EQUIV",
+        "kind": "fraction-missing",
+        "left": "3/10",
+        "denominator": "20"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3/10 = ?/20\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "1/3",
+        "right": "1/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/3 add 1/3?\" with key 2/3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-middle-51",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 51,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "4/7",
+        "right": "3/7"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 4/7 take away 3/7?\" with key 1/7. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-middle-103",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 103,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "7/8",
+        "right": "2/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 7/8 take away 2/8?\" with key 5/8. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-middle-151",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 151,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "7/9",
+        "right": "5/9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 7/9 take away 5/9?\" with key 2/9. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-middle-203",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 203,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "7/10",
+        "right": "3/10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 7/10 take away 3/10?\" with key 2/5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-senior-254",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 254,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "1/10",
+        "right": "9/10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/10 + 9/10 = ?\" with key 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-senior-303",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 303,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "9/11",
+        "right": "4/11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"9/11 - 4/11 = ?\" with key 5/11. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-senior-354",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 354,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "2/11",
+        "right": "4/11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2/11 + 4/11 = ?\" with key 6/11. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-senior-406",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 406,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "5/11",
+        "right": "6/11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5/11 + 6/11 = ?\" with key 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-like-senior-454",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.LIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 454,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.LIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "2/12",
+        "right": "5/12"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2/12 + 5/12 = ?\" with key 7/12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "1/2",
+        "right": "1/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/2 add 1/3?\" with key 5/6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-middle-42",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "1/3",
+        "right": "1/5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/3 add 1/5?\" with key 8/15. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-middle-84",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 84,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "1/4",
+        "right": "1/2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/4 add 1/2?\" with key 3/4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-middle-124",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 124,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "1/4",
+        "right": "1/10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/4 take away 1/10?\" with key 3/20. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-middle-166",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 166,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "1/5",
+        "right": "3/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/5 add 3/4?\" with key 19/20. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-senior-209",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 209,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "5/6",
+        "right": "2/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5/6 - 2/3 = ?\" with key 1/6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-senior-248",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 248,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "3/8",
+        "right": "1/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3/8 + 1/3 = ?\" with key 17/24. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-senior-290",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 290,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "3/8",
+        "right": "7/12"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3/8 + 7/12 = ?\" with key 23/24. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-senior-333",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 333,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "add",
+        "left": "7/10",
+        "right": "1/5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"7/10 + 1/5 = ?\" with key 9/10. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-add-unlike-senior-372",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.ADD.UNLIKE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 372,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.ADD.UNLIKE",
+        "kind": "fraction-operation",
+        "operation": "subtract",
+        "left": "7/12",
+        "right": "1/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"7/12 - 1/4 = ?\" with key 1/3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "2",
+        "right": "1/2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 2 times 1/2?\" with key 1. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-middle-10",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 10,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "2",
+        "right": "5/6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 2 times 5/6?\" with key 1 2/3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-middle-21",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 21,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "3",
+        "right": "2/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3 times 2/3?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-middle-28",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 28,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "3",
+        "right": "1/6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3 times 1/6?\" with key 1/2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-middle-39",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 39,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "4",
+        "right": "1/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 4 times 1/3?\" with key 1 1/3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-senior-49",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 49,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "4",
+        "right": "1/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"4 × 1/8 = ?\" with key 1/2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-senior-57",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 57,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "5",
+        "right": "1/2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5 × 1/2 = ?\" with key 2 1/2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-senior-67",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 67,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "5",
+        "right": "5/6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5 × 5/6 = ?\" with key 4 1/6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-senior-78",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 78,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "6",
+        "right": "2/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 × 2/3 = ?\" with key 4. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-mul-whole-senior-85",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.MUL.WHOLE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 85,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.MUL.WHOLE",
+        "kind": "fraction-operation",
+        "operation": "multiply",
+        "left": "6",
+        "right": "1/6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 × 1/6 = ?\" with key 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  }
+]

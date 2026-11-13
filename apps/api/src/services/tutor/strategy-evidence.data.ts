@@ -33,6 +33,12 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'DIV.LONG': [],
   'FRAC.EQUAL': ['same-size-pieces'],
   'FRAC.COMPARE': ['same-size-pieces'],
+  // P3-07: a right unlike-denominator answer cannot be reached without making the pieces the
+  // same size; the others can be answered by rule, so they prove nothing about the pieces.
+  'FRAC.EQUIV': [],
+  'FRAC.ADD.LIKE': [],
+  'FRAC.ADD.UNLIKE': ['same-size-pieces'],
+  'FRAC.MUL.WHOLE': [],
   'PA.RHYME': [],
   'PA.BLEND': ['blended-the-sounds'],
   'PH.CVC': ['sounded-it-out'],

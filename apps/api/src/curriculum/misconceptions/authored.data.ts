@@ -6,8 +6,12 @@ import { CMP_RETELL_MISCONCEPTIONS } from '@/curriculum/misconceptions/cmp-retel
 import { DIV_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/div-fact-10.data';
 import { DIV_LONG_MISCONCEPTIONS } from '@/curriculum/misconceptions/div-long.data';
 import { FL_WCPM_60_MISCONCEPTIONS } from '@/curriculum/misconceptions/fl-wcpm-60.data';
+import { FRAC_ADD_LIKE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-add-like.data';
+import { FRAC_ADD_UNLIKE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-add-unlike.data';
 import { FRAC_COMPARE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-compare.data';
 import { FRAC_EQUAL_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equal.data';
+import { FRAC_EQUIV_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equiv.data';
+import { FRAC_MUL_WHOLE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-mul-whole.data';
 import { MUL_2D1D_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-2d1d.data';
 import { MUL_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-fact-10.data';
 import { NUM_CMP_100_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cmp-100.data';
@@ -50,6 +54,10 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...DIV_FACT_10_MISCONCEPTIONS,
   ...MUL_2D1D_MISCONCEPTIONS,
   ...DIV_LONG_MISCONCEPTIONS,
+  ...FRAC_EQUIV_MISCONCEPTIONS,
+  ...FRAC_ADD_LIKE_MISCONCEPTIONS,
+  ...FRAC_ADD_UNLIKE_MISCONCEPTIONS,
+  ...FRAC_MUL_WHOLE_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

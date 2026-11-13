@@ -6,19 +6,9 @@ import type { ArithmeticProblem } from '@/quality/arithmetic/types';
  * disagree — and a new problem kind is a compile error here rather than a silent gap there.
  */
 export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
-  switch (problem.kind) {
-    case 'sequence':
-      return [...problem.values, problem.step];
-    case 'place-value':
-    case 'rounding':
-      return [problem.number];
-    case 'addition':
-    case 'subtraction':
-    case 'multiplication':
-    case 'division':
-    case 'fraction-equality':
-    case 'fraction-comparison':
-    case 'whole-comparison':
-      return [problem.left, problem.right];
-  }
+  if (problem.kind === 'sequence') return [...problem.values, problem.step];
+  if (problem.kind === 'place-value' || problem.kind === 'rounding') return [problem.number];
+  if (problem.kind === 'fraction-missing') return [problem.left, problem.denominator];
+  // Every kind left has two operands; one that does not fails to compile here.
+  return [problem.left, problem.right];
 }

@@ -49,6 +49,17 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'remainder-dropped': true,
   'remainder-as-decimal': true,
   'missing-zero-in-quotient': true,
+  'additive-equivalence': true,
+  'kept-numerator': true,
+  'answered-the-factor': true,
+  'combined-denominators': true,
+  'numerator-only': true,
+  'flipped-operation': true,
+  'kept-one-denominator': true,
+  'renamed-denominators-only': true,
+  'multiplied-both': true,
+  'added-whole': true,
+  'multiplied-denominator': true,
 };
 
 /** Whether this answer carries this wrong idea. */

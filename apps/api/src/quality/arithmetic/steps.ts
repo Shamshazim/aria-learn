@@ -1,5 +1,6 @@
+import { gcd, readWrittenFraction } from '@/quality/arithmetic/fraction-format';
 import { parseInteger } from '@/quality/arithmetic/normalise';
-import type { ArithmeticProblem } from '@/quality/arithmetic/types';
+import type { ArithmeticProblem, FractionOperation } from '@/quality/arithmetic/types';
 
 /** One step of a written method: what to work out, and what it comes to. */
 export type ProcedureStep = Readonly<{ prompt: string; answer: string }>;
@@ -25,6 +26,8 @@ export function procedureSteps(problem: ArithmeticProblem): readonly ProcedureSt
       return multiplicationSteps(problem.left, problem.right);
     case 'DIV.LONG':
       return longDivisionSteps(problem.left, problem.right);
+    case 'FRAC.ADD.UNLIKE':
+      return unlikeFractionSteps(problem);
     default:
       return [];
   }
@@ -140,4 +143,42 @@ function longDivisionSteps(leftText: string, rightText: string): readonly Proced
     current -= groups * divisor;
   }
   return steps;
+}
+
+/**
+ * Unlike denominators: find a denominator both go into, rename each fraction that is not
+ * already in it, then add or take away the tops. The answer may be left unreduced; the checker accepts any equal fraction.
+ */
+function unlikeFractionSteps(
+  problem: Readonly<{ operation: FractionOperation; left: string; right: string }>,
+): readonly ProcedureStep[] {
+  if (problem.operation === 'multiply') return [];
+  const left = readWrittenFraction(problem.left);
+  const right = readWrittenFraction(problem.right);
+  if (left === null || right === null) return [];
+  const common = (left.denominator * right.denominator) / gcd(left.denominator, right.denominator);
+  const leftTop = (left.numerator * common) / left.denominator;
+  const rightTop = (right.numerator * common) / right.denominator;
+  const name = common.toString();
+  const verb = problem.operation === 'add' ? 'Add' : 'Take away';
+  return [
+    {
+      prompt: `What is the smallest number both ${left.denominator.toString()} and ${right.denominator.toString()} go into?`,
+      answer: name,
+    },
+    // A fraction already in the common denominator has nothing to rename.
+    ...(left.denominator === common ? [] : [rename(problem.left, name, leftTop)]),
+    ...(right.denominator === common ? [] : [rename(problem.right, name, rightTop)]),
+    {
+      prompt: `${verb} the new tops: ${leftTop.toString()} and ${rightTop.toString()}.`,
+      answer: (problem.operation === 'add' ? leftTop + rightTop : leftTop - rightTop).toString(),
+    },
+  ];
+}
+
+function rename(fraction: string, bottom: string, top: bigint): ProcedureStep {
+  return {
+    prompt: `Rename ${fraction} with ${bottom} as the bottom. What is the new top?`,
+    answer: top.toString(),
+  };
 }
