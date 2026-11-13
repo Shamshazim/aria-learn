@@ -92,7 +92,19 @@ export type ArithmeticRule =
   | 'renamed-denominators-only'
   | 'multiplied-both'
   | 'added-whole'
-  | 'multiplied-denominator';
+  | 'multiplied-denominator'
+  // P3-07: decimals and percent.
+  | 'decimal-neighbour-digit'
+  | 'decimal-place-amount'
+  | 'decimal-ones-digit'
+  | 'longer-is-larger'
+  | 'shorter-is-larger'
+  | 'right-aligned-digits'
+  | 'dropped-decimal-point'
+  | 'decimal-parts-as-wholes'
+  | 'percent-without-hundred'
+  | 'divided-by-percent'
+  | 'subtracted-percent';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

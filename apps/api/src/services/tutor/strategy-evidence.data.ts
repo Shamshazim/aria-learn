@@ -39,6 +39,12 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'FRAC.ADD.LIKE': [],
   'FRAC.ADD.UNLIKE': ['same-size-pieces'],
   'FRAC.MUL.WHOLE': [],
+  // P3-07: a right decimal sum proves the columns were kept; the rest can be answered by
+  // rule or by sight and prove no particular strategy.
+  'DEC.PV': [],
+  'DEC.CMP': [],
+  'DEC.ADD': ['lined-up-place-value'],
+  'PCT.OF': [],
   'PA.RHYME': [],
   'PA.BLEND': ['blended-the-sounds'],
   'PH.CVC': ['sounded-it-out'],

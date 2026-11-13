@@ -76,7 +76,12 @@ function problemJson(problem: ArithmeticProblem): JsonValue {
     case 'fraction-missing':
       return { ...base, left: problem.left, denominator: problem.denominator };
     case 'fraction-operation':
+    case 'decimal-operation':
       return { ...base, operation: problem.operation, left: problem.left, right: problem.right };
+    case 'decimal-place':
+      return { ...base, number: problem.number, place: problem.place };
+    case 'percent-of':
+      return { ...base, percent: problem.percent, whole: problem.whole };
     default:
       return { ...base, left: problem.left, right: problem.right };
   }

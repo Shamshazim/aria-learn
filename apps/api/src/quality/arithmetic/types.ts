@@ -20,7 +20,11 @@ export type ArithmeticSkillCode =
   | 'FRAC.EQUIV'
   | 'FRAC.ADD.LIKE'
   | 'FRAC.ADD.UNLIKE'
-  | 'FRAC.MUL.WHOLE';
+  | 'FRAC.MUL.WHOLE'
+  | 'DEC.PV'
+  | 'DEC.CMP'
+  | 'DEC.ADD'
+  | 'PCT.OF';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -73,6 +77,22 @@ export type FractionOperationProblem = SkillProblem<
 
 export type FractionOperation = 'add' | 'subtract' | 'multiply';
 
+/** P3-07: "In 3.47, which digit is in the tenths place?" */
+export type DecimalPlaceProblem = SkillProblem<'DEC.PV', 'decimal-place'> &
+  Readonly<{ number: string; place: 'tenths' | 'hundredths' }>;
+
+/** P3-07: "Compare 0.3 and 0.25." The answer is `<`, `=` or `>`. */
+export type DecimalComparisonProblem = SkillProblem<'DEC.CMP', 'decimal-comparison'> &
+  Readonly<{ left: string; right: string }>;
+
+/** P3-07: "What is 3.4 add 1.25?" Exact on rationals; taking away never goes below zero. */
+export type DecimalOperationProblem = SkillProblem<'DEC.ADD', 'decimal-operation'> &
+  Readonly<{ operation: 'add' | 'subtract'; left: string; right: string }>;
+
+/** P3-07: "What is 25% of 80?" */
+export type PercentOfProblem = SkillProblem<'PCT.OF', 'percent-of'> &
+  Readonly<{ percent: string; whole: string }>;
+
 /** P3-07: "In 47, which digit is in the tens place?" */
 export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
   Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
@@ -95,6 +115,10 @@ export type ArithmeticProblem =
   | FractionComparisonProblem
   | FractionMissingProblem
   | FractionOperationProblem
+  | DecimalPlaceProblem
+  | DecimalComparisonProblem
+  | DecimalOperationProblem
+  | PercentOfProblem
   | DigitPlaceProblem
   | WholeComparisonProblem
   | RoundingProblem;

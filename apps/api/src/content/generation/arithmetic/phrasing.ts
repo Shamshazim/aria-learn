@@ -28,6 +28,7 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
   if (problem.kind === 'sequence') return sequencePrompt(problem.values, band);
   if (isOperation(problem)) return operationPrompt(problem, band);
   if (isFraction(problem)) return fractionPrompt(problem, band);
+  if (isDecimal(problem)) return decimalPrompt(problem, band);
   // Only the number-sense kinds are left; a new kind that is none of these fails to compile.
   return numberSensePrompt(problem, band);
 }
@@ -54,6 +55,33 @@ function isOperation(problem: ArithmeticProblem): problem is OperationProblem {
 
 function isFraction(problem: ArithmeticProblem): problem is FractionProblem {
   return problem.kind.startsWith('fraction-');
+}
+
+type DecimalProblem = Extract<
+  ArithmeticProblem,
+  { kind: 'decimal-place' | 'decimal-comparison' | 'decimal-operation' | 'percent-of' }
+>;
+
+function isDecimal(problem: ArithmeticProblem): problem is DecimalProblem {
+  return problem.kind.startsWith('decimal-') || problem.kind === 'percent-of';
+}
+
+/** P3-07: decimals and percent. */
+function decimalPrompt(problem: DecimalProblem, band: Band): string {
+  switch (problem.kind) {
+    case 'decimal-place':
+      return `In ${problem.number}, which digit is in the ${problem.place} place?`;
+    case 'decimal-comparison':
+      return band === 'senior'
+        ? `Compare ${problem.left} and ${problem.right}. Use <, > or =.`
+        : `Is ${problem.left} more than, less than, or the same as ${problem.right}?`;
+    case 'decimal-operation':
+      return band === 'senior'
+        ? `${problem.left} ${problem.operation === 'add' ? '+' : '-'} ${problem.right} = ?`
+        : `What is ${problem.left} ${problem.operation === 'add' ? 'add' : 'take away'} ${problem.right}?`;
+    case 'percent-of':
+      return `What is ${problem.percent}% of ${problem.whole}?`;
+  }
 }
 
 /** P3-07: place value, comparing and rounding whole numbers. */

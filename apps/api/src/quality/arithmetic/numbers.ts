@@ -8,6 +8,8 @@ import type { ArithmeticProblem } from '@/quality/arithmetic/types';
 export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
   if (problem.kind === 'sequence') return [...problem.values, problem.step];
   if (problem.kind === 'place-value' || problem.kind === 'rounding') return [problem.number];
+  if (problem.kind === 'decimal-place') return [problem.number];
+  if (problem.kind === 'percent-of') return [problem.percent, problem.whole];
   if (problem.kind === 'fraction-missing') return [problem.left, problem.denominator];
   // Every kind left has two operands; one that does not fails to compile here.
   return [problem.left, problem.right];

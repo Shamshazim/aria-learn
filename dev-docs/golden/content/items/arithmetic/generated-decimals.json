@@ -1,0 +1,852 @@
+[
+  {
+    "id": "arith-gen-dec-pv-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "0.12",
+        "place": "tenths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 0.12, which digit is in the tenths place?\" with key 1. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-middle-19",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "0.89",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 0.89, which digit is in the hundredths place?\" with key 9. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-middle-39",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 39,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "1.96",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 1.96, which digit is in the hundredths place?\" with key 6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-middle-55",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 55,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "2.85",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 2.85, which digit is in the hundredths place?\" with key 5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-middle-75",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 75,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "3.94",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 3.94, which digit is in the hundredths place?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-senior-95",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 95,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "5.02",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 5.02, which digit is in the hundredths place?\" with key 2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-senior-111",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 111,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "5.91",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 5.91, which digit is in the hundredths place?\" with key 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-senior-131",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 131,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "6.98",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 6.98, which digit is in the hundredths place?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-senior-150",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 150,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "8.06",
+        "place": "tenths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 8.06, which digit is in the tenths place?\" with key 0. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-pv-senior-167",
+    "subject": "arithmetic",
+    "skillCode": "DEC.PV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 167,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.PV",
+        "kind": "decimal-place",
+        "number": "8.95",
+        "place": "hundredths"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"In 8.95, which digit is in the hundredths place?\" with key 5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "0.1",
+        "right": "0.11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 0.1 more than, less than, or the same as 0.11?\" with key <. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-middle-14",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 14,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "2.6",
+        "right": "2.84"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 2.6 more than, less than, or the same as 2.84?\" with key <. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-middle-29",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 29,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "1.91",
+        "right": "1.5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 1.91 more than, less than, or the same as 1.5?\" with key >. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-middle-41",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 41,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "0.74",
+        "right": "0.1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 0.74 more than, less than, or the same as 0.1?\" with key >. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-middle-55",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 55,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "2.9",
+        "right": "2.81"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 2.9 more than, less than, or the same as 2.81?\" with key >. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-senior-70",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 70,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "2.9",
+        "right": "2.34"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 2.9 and 2.34. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-senior-82",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 82,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "1.5",
+        "right": "1.18"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 1.5 and 1.18. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-senior-96",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 96,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "0.24",
+        "right": "0.4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 0.24 and 0.4. Use <, > or =.\" with key <. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-senior-111",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 111,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "0.67",
+        "right": "0.4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 0.67 and 0.4. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-cmp-senior-123",
+    "subject": "arithmetic",
+    "skillCode": "DEC.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 123,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.CMP",
+        "kind": "decimal-comparison",
+        "left": "0.1",
+        "right": "0.88"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 0.1 and 0.88. Use <, > or =.\" with key <. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "1.1",
+        "right": "1.01"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1.1 add 1.01?\" with key 2.11. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-middle-41",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 41,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "3.1",
+        "right": "4.78"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3.1 add 4.78?\" with key 7.88. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-middle-82",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 82,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "8.55",
+        "right": "5.1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8.55 add 5.1?\" with key 13.65. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-middle-120",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 120,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "5.1",
+        "right": "1.75"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 5.1 add 1.75?\" with key 6.85. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-middle-161",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 161,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "subtract",
+        "left": "7.1",
+        "right": "5.52"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 7.1 take away 5.52?\" with key 1.58. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-senior-202",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 202,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "9.29",
+        "right": "9.1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"9.29 + 9.1 = ?\" with key 18.39. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-senior-240",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 240,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "8.9",
+        "right": "2.49"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"8.9 + 2.49 = ?\" with key 11.39. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-senior-281",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 281,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "2.1",
+        "right": "6.26"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2.1 + 6.26 = ?\" with key 8.36. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-senior-322",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 322,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "1.05",
+        "right": "4.1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1.05 + 4.1 = ?\" with key 5.15. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-dec-add-senior-360",
+    "subject": "arithmetic",
+    "skillCode": "DEC.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 360,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DEC.ADD",
+        "kind": "decimal-operation",
+        "operation": "add",
+        "left": "3.9",
+        "right": "3.23"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3.9 + 3.23 = ?\" with key 7.13. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "10",
+        "whole": "20"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 10% of 20?\" with key 2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-15",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 15,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "20",
+        "whole": "80"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 20% of 80?\" with key 16. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-30",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 30,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "25",
+        "whole": "160"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 25% of 160?\" with key 40. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-43",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 43,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "50",
+        "whole": "200"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 50% of 200?\" with key 100. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-58",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 58,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "75",
+        "whole": "400"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 75% of 400?\" with key 300. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-74",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 74,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "40",
+        "whole": "60"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 40% of 60?\" with key 24. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-86",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 86,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "60",
+        "whole": "60"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 60% of 60?\" with key 36. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-101",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 101,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "30",
+        "whole": "120"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 30% of 120?\" with key 36. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-117",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 117,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "80",
+        "whole": "300"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 80% of 300?\" with key 240. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-pct-of-senior-129",
+    "subject": "arithmetic",
+    "skillCode": "PCT.OF",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 129,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "PCT.OF",
+        "kind": "percent-of",
+        "percent": "90",
+        "whole": "300"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 90% of 300?\" with key 270. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  }
+]
