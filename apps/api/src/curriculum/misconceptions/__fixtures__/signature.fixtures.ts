@@ -1,6 +1,7 @@
 import type { MisconceptionInput } from '@/curriculum/misconceptions';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
+import { ADD_SUB_SIGNATURE_CASES } from './signature-add-sub.fixtures';
 import { NUMBER_SENSE_SIGNATURE_CASES } from './signature-number-sense.fixtures';
 
 /**
@@ -117,6 +118,7 @@ const piece = on('WR.SHORT_PIECE', 'Write a short piece about a box.', PIECE, nu
 
 export const SIGNATURE_CASES: readonly SignatureCase[] = [
   ...NUMBER_SENSE_SIGNATURE_CASES,
+  ...ADD_SUB_SIGNATURE_CASES,
   { id: 'misconception-num-cnt-20-restart', positive: count20('17'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-repeats-last', positive: count20('19'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-skips-a-teen', positive: count20('21'), negative: count20('20') },

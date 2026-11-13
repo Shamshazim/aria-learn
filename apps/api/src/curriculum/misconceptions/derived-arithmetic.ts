@@ -1,3 +1,4 @@
+import { additionColumnError, subtractionError } from '@/curriculum/misconceptions/derived-add-sub';
 import {
   placeValueError,
   roundingError,
@@ -26,6 +27,7 @@ export function predictArithmeticError(
 ): readonly string[] {
   if (problem === null) return [];
   if (problem.kind === 'addition') return additionError(rule, problem);
+  if (problem.kind === 'subtraction') return subtractionError(rule, problem);
   if (problem.kind === 'sequence') return sequenceError(rule, problem);
   if (problem.kind === 'place-value') return placeValueError(rule, problem);
   if (problem.kind === 'whole-comparison') return wholeComparisonError(rule, problem);
@@ -51,7 +53,7 @@ function additionError(rule: ArithmeticRule, problem: AdditionProblem): readonly
     case 'subtracted-instead':
       return [(left > right ? left - right : right - left).toString()];
     default:
-      return [];
+      return additionColumnError(rule, problem);
   }
 }
 

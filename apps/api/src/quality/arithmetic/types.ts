@@ -6,7 +6,11 @@ export type ArithmeticSkillCode =
   | 'NUM.CMP.100'
   | 'NUM.RND.10'
   | 'ADD.FACT.10'
+  | 'ADD.FACT.20'
   | 'ADD.REGROUP.2D'
+  | 'ADD.3D'
+  | 'SUB.FACT.10'
+  | 'SUB.REGROUP.2D'
   | 'FRAC.EQUAL'
   | 'FRAC.COMPARE';
 
@@ -18,7 +22,14 @@ type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Rea
 export type SequenceProblem = SkillProblem<'NUM.CNT.20' | 'NUM.CNT.SKIP5', 'sequence'> &
   Readonly<{ values: readonly string[]; step: string }>;
 
-export type AdditionProblem = SkillProblem<'ADD.FACT.10' | 'ADD.REGROUP.2D', 'addition'> &
+export type AdditionProblem = SkillProblem<
+  'ADD.FACT.10' | 'ADD.FACT.20' | 'ADD.REGROUP.2D' | 'ADD.3D',
+  'addition'
+> &
+  Readonly<{ left: string; right: string }>;
+
+/** P3-07: "What is 52 take away 17?" Always `left >= right`: no negatives before grade 6. */
+export type SubtractionProblem = SkillProblem<'SUB.FACT.10' | 'SUB.REGROUP.2D', 'subtraction'> &
   Readonly<{ left: string; right: string }>;
 
 export type FractionEqualityProblem = SkillProblem<'FRAC.EQUAL', 'fraction-equality'> &
@@ -42,6 +53,7 @@ export type RoundingProblem = SkillProblem<'NUM.RND.10', 'rounding'> &
 export type ArithmeticProblem =
   | SequenceProblem
   | AdditionProblem
+  | SubtractionProblem
   | FractionEqualityProblem
   | FractionComparisonProblem
   | DigitPlaceProblem

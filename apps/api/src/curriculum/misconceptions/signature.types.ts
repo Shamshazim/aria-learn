@@ -59,7 +59,18 @@ export type ArithmeticRule =
   | 'same-tens-equal'
   | 'rounded-down'
   | 'rounded-up'
-  | 'rounded-to-hundred';
+  | 'rounded-to-hundred'
+  // P3-07: addition and subtraction.
+  | 'column-sums-concatenated'
+  | 'dropped-every-carry'
+  | 'dropped-hundreds-carry'
+  | 'stopped-at-ten'
+  | 'added-instead'
+  | 'counted-back-including-start'
+  | 'answered-the-part'
+  | 'smaller-from-larger'
+  | 'borrowed-without-reducing-tens'
+  | 'zero-when-smaller';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

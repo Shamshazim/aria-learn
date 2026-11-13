@@ -1,4 +1,6 @@
+import { ADD_3D_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-3d.data';
 import { ADD_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact-10.data';
+import { ADD_FACT_20_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact-20.data';
 import { ADD_REGROUP_2D_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-regroup-2d.data';
 import { CMP_RETELL_MISCONCEPTIONS } from '@/curriculum/misconceptions/cmp-retell.data';
 import { FL_WCPM_60_MISCONCEPTIONS } from '@/curriculum/misconceptions/fl-wcpm-60.data';
@@ -15,6 +17,8 @@ import { PA_RHYME_MISCONCEPTIONS } from '@/curriculum/misconceptions/pa-rhyme.da
 import { PH_CVC_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-cvc.data';
 import { PH_SILENT_E_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-silent-e.data';
 import type { AuthoredMisconception } from '@/curriculum/misconceptions/signature.types';
+import { SUB_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/sub-fact-10.data';
+import { SUB_REGROUP_2D_MISCONCEPTIONS } from '@/curriculum/misconceptions/sub-regroup-2d.data';
 import { WR_PARAGRAPH_MISCONCEPTIONS } from '@/curriculum/misconceptions/wr-paragraph.data';
 import { WR_SENTENCE_MISCONCEPTIONS } from '@/curriculum/misconceptions/wr-sentence.data';
 import { WR_SHORT_PIECE_MISCONCEPTIONS } from '@/curriculum/misconceptions/wr-short-piece.data';
@@ -34,6 +38,10 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...NUM_PV_HUNDREDS_MISCONCEPTIONS,
   ...NUM_CMP_100_MISCONCEPTIONS,
   ...NUM_RND_10_MISCONCEPTIONS,
+  ...ADD_FACT_20_MISCONCEPTIONS,
+  ...SUB_FACT_10_MISCONCEPTIONS,
+  ...SUB_REGROUP_2D_MISCONCEPTIONS,
+  ...ADD_3D_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

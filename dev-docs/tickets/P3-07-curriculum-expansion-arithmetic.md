@@ -49,6 +49,32 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 2 of 9: addition and subtraction
+
+**Code complete 2026-11-12** on `feat/P3-07-arithmetic-add-sub`, pending review, stacked on
+strand 1 (#39).
+
+- **Four skills.** `ADD.FACT.20` (2.OA.B.2, `fact`), `SUB.FACT.10` (1.OA.C.6, `fact`),
+  `SUB.REGROUP.2D` (2.NBT.B.5, `procedure`), `ADD.3D` (3.NBT.A.2, `procedure`). A new
+  `subtraction` problem kind (always `left >= right`; negatives are the integers strand's);
+  three-digit sums reuse `addition`. Every parameter space is filtered to the skill: facts that
+  cross ten, subtractions that need a broken ten, three-digit sums with at least one trade.
+- **Wrong ideas, column by column** (`derived-add-sub.ts`), so one rule holds at two digits
+  and three: column totals written whole, every carry dropped, the hundreds carry dropped,
+  stopping at ten, adding instead, counting the start, naming the part taken, smaller digit
+  from bigger, a borrowed ten never taken from the tens, a zero where the top digit is smaller.
+  A sweep of every item in the four spaces proves no prediction is ever the right answer.
+- **Visuals.** Subtraction shows the whole and how much goes; place-value blocks carry a
+  `hundreds` count only from 100 up, so two-digit blocks are unchanged.
+- **Strategy evidence.** `ADD.3D` and `SUB.REGROUP.2D` claim `lined-up-place-value` only:
+  the `regrouped` claim says "when the ones went past nine", which a tens-only trade or a
+  subtraction is not. The two fact skills claim nothing, like `ADD.FACT.10`.
+- **Still to come.** `procedure` items do not yet carry `steps[]`; the step-by-step reveal
+  guard and its `long-division` scenario arrive with the mul-div strand, as strand 1 noted.
+- **Verification.** Typecheck and lint clean. Full suite: 2639 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 152 cases, arithmetic correctness,
+  option count and reading level all 100%. `golden:tutoring`: 9 scenarios pass.
+
 ## Why
 
 P0-17 defined a bounded inventory (18 skills) so the golden sets had something to measure.

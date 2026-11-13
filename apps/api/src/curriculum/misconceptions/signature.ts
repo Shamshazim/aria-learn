@@ -30,6 +30,16 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'rounded-down': true,
   'rounded-up': true,
   'rounded-to-hundred': true,
+  'column-sums-concatenated': true,
+  'dropped-every-carry': true,
+  'dropped-hundreds-carry': true,
+  'stopped-at-ten': true,
+  'added-instead': true,
+  'counted-back-including-start': true,
+  'answered-the-part': true,
+  'smaller-from-larger': true,
+  'borrowed-without-reducing-tens': true,
+  'zero-when-smaller': true,
 };
 
 /** Whether this answer carries this wrong idea. */

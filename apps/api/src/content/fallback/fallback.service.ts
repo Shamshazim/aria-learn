@@ -1,6 +1,6 @@
 import type { Skill } from '@aria/shared';
 
-import { NUMBER_SENSE_FALLBACKS } from '@/content/fallback/fallback-number-sense.data';
+import { ARITHMETIC_STRAND_FALLBACKS } from '@/content/fallback/fallback-arithmetic.data';
 import { FALLBACK_CONTENT, type FallbackDefinition } from '@/content/fallback/fallback.data';
 import { topicFallbacks } from '@/content/fallback/topic-fallback';
 import type { InventoryService } from '@/curriculum';
@@ -27,7 +27,7 @@ export function createFallbackService(dependencies: {
   gate: QualityGate;
 }): FallbackService {
   const verified = new Map<string, VerifiedFallback>();
-  for (const definition of [...FALLBACK_CONTENT, ...NUMBER_SENSE_FALLBACKS]) {
+  for (const definition of [...FALLBACK_CONTENT, ...ARITHMETIC_STRAND_FALLBACKS]) {
     const verdict = dependencies.gate(definition.gateInput);
     if (verdict.verdict === 'fail') {
       throw new Error(

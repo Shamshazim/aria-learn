@@ -7,6 +7,7 @@ import {
 import { solveFractionEquality } from '@/quality/arithmetic/solvers/fractions';
 import { solvePlaceValue } from '@/quality/arithmetic/solvers/place-value';
 import { solveRounding } from '@/quality/arithmetic/solvers/rounding';
+import { solveSubtraction } from '@/quality/arithmetic/solvers/subtraction';
 import type {
   ArithmeticProblem,
   ArithmeticSkillCode,
@@ -23,7 +24,11 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'NUM.CMP.100': wholeComparisonSolver,
   'NUM.RND.10': roundingSolver,
   'ADD.FACT.10': additionSolver,
+  'ADD.FACT.20': additionSolver,
   'ADD.REGROUP.2D': additionSolver,
+  'ADD.3D': additionSolver,
+  'SUB.FACT.10': subtractionSolver,
+  'SUB.REGROUP.2D': subtractionSolver,
   'FRAC.EQUAL': fractionEqualitySolver,
   'FRAC.COMPARE': fractionComparisonSolver,
 };
@@ -41,6 +46,10 @@ function sequenceSolver(problem: ArithmeticProblem, candidate: string): CheckRes
 
 function additionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'addition' ? solveAddition(problem, candidate) : mismatch(problem);
+}
+
+function subtractionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'subtraction' ? solveSubtraction(problem, candidate) : mismatch(problem);
 }
 
 function fractionEqualitySolver(problem: ArithmeticProblem, candidate: string): CheckResult {

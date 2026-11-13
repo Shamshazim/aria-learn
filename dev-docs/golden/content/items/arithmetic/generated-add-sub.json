@@ -1,0 +1,842 @@
+[
+  {
+    "id": "arith-gen-add-fact-20-early-0",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "2",
+        "right": "9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is two add nine?\" with key 11. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-early-6",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 6,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "4",
+        "right": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is four add eight?\" with key 12. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-early-12",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "5",
+        "right": "9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is five add nine?\" with key 14. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-early-15",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 15,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "6",
+        "right": "6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is six add six?\" with key 12. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-early-22",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 22,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "7",
+        "right": "6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is seven add six?\" with key 13. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-middle-28",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 28,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "8",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8 add 4?\" with key 12. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-middle-31",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "8",
+        "right": "7"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8 add 7?\" with key 15. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-middle-38",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 38,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "9",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 9 add 5?\" with key 14. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-senior-44",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "10",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"10 + 2 = ?\" with key 12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-fact-20-senior-47",
+    "subject": "arithmetic",
+    "skillCode": "ADD.FACT.20",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 47,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "10",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"10 + 5 = ?\" with key 15. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-early-0",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "2",
+        "right": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is two take away one?\" with key 1. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-early-5",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 5,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "4",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is four take away three?\" with key 1. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-early-11",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 11,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "6",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is six take away two?\" with key 4. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-early-13",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 13,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "6",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is six take away four?\" with key 2. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-early-19",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "early",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "7",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is seven take away five?\" with key 2. A curriculum reviewer must confirm the wording suits the early band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-middle-24",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 24,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "8",
+        "right": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8 take away 4?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-middle-27",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 27,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "8",
+        "right": "7"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8 take away 7?\" with key 1. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-middle-32",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 32,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "9",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 9 take away 5?\" with key 4. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-senior-38",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 38,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "10",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"10 - 3 = ?\" with key 7. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-fact-10-senior-40",
+    "subject": "arithmetic",
+    "skillCode": "SUB.FACT.10",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 40,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.FACT.10",
+        "kind": "subtraction",
+        "left": "10",
+        "right": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"10 - 5 = ?\" with key 5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "30",
+        "right": "11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 30 take away 11?\" with key 19. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-middle-127",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 127,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "46",
+        "right": "28"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 46 take away 28?\" with key 18. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-middle-254",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 254,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "56",
+        "right": "19"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 56 take away 19?\" with key 37. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-middle-378",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 378,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "63",
+        "right": "34"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 63 take away 34?\" with key 29. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-middle-505",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 505,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "71",
+        "right": "24"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 71 take away 24?\" with key 47. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-senior-632",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 632,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "75",
+        "right": "29"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"75 - 29 = ?\" with key 46. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-senior-756",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 756,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "81",
+        "right": "45"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"81 - 45 = ?\" with key 36. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-senior-883",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 883,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "84",
+        "right": "68"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"84 - 68 = ?\" with key 16. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-senior-1010",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 1010,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "91",
+        "right": "14"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"91 - 14 = ?\" with key 77. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-sub-regroup-2d-senior-1134",
+    "subject": "arithmetic",
+    "skillCode": "SUB.REGROUP.2D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 1134,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "SUB.REGROUP.2D",
+        "kind": "subtraction",
+        "left": "93",
+        "right": "47"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"93 - 47 = ?\" with key 46. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "101",
+        "right": "179"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 101 add 179?\" with key 280. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-middle-263",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 263,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "143",
+        "right": "795"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 143 add 795?\" with key 938. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-middle-527",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 527,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "185",
+        "right": "344"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 185 add 344?\" with key 529. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-middle-788",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 788,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "227",
+        "right": "553"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 227 add 553?\" with key 780. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-middle-1052",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 1052,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "276",
+        "right": "388"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 276 add 388?\" with key 664. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-senior-1316",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 1316,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "325",
+        "right": "377"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"325 + 377 = ?\" with key 702. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-senior-1576",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 1576,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "381",
+        "right": "454"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"381 + 454 = ?\" with key 835. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-senior-1840",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 1840,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "451",
+        "right": "498"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"451 + 498 = ?\" with key 949. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-senior-2104",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 2104,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "535",
+        "right": "168"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"535 + 168 = ?\" with key 703. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-add-3d-senior-2365",
+    "subject": "arithmetic",
+    "skillCode": "ADD.3D",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 2365,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "ADD.3D",
+        "kind": "addition",
+        "left": "626",
+        "right": "366"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"626 + 366 = ?\" with key 992. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  }
+]
