@@ -25,6 +25,12 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'ADD.3D': ['lined-up-place-value'],
   'SUB.FACT.10': [],
   'SUB.REGROUP.2D': ['lined-up-place-value'],
+  // P3-07: a fact can be recalled or counted, so it proves nothing; a right written answer
+  // proves the columns were kept, as for the addition methods.
+  'MUL.FACT.10': [],
+  'DIV.FACT.10': [],
+  'MUL.2D1D': ['lined-up-place-value'],
+  'DIV.LONG': [],
   'FRAC.EQUAL': ['same-size-pieces'],
   'FRAC.COMPARE': ['same-size-pieces'],
   'PA.RHYME': [],

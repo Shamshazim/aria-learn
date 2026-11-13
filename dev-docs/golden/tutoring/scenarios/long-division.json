@@ -1,0 +1,199 @@
+{
+  "id": "long-division",
+  "title": "Long division",
+  "grade": "4",
+  "description": "157 divided by 4 has four steps. Each wrong answer gets a hint at the next step, never the answer to it, and the answer is not revealed until every step has had a turn. After the last step Aria changes ground to the facts underneath (P3-07).",
+  "context": {
+    "answerOutcomes": [
+      {
+        "eventId": "evt_long_division_1",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_long_division_2",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_long_division_3",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_long_division_4",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_long_division_5",
+        "outcome": "wrong"
+      }
+    ],
+    "learnerFacts": [],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": [],
+    "item": {
+      "skillCode": "DIV.LONG",
+      "arithmeticProblem": {
+        "skillCode": "DIV.LONG",
+        "kind": "division",
+        "left": "157",
+        "right": "4"
+      }
+    }
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_long_division_1",
+        "at": "2026-11-12T15:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_long_division_ask_1",
+        "text": "39"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_long_division_1",
+            "at": "2026-11-12T15:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "HINT",
+            "speech": {
+              "text": "Start with the first two digits. How many fours fit into fifteen?"
+            },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.long_division",
+            "attempt": 1
+          }
+        ],
+        "evidence": {
+          "approachId": "point-to-step:1",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_long_division_2",
+        "at": "2026-11-12T15:00:10Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_long_division_ask_2",
+        "text": "40"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_long_division_2",
+            "at": "2026-11-12T15:00:10Z",
+            "protocolVersion": "1.1.0",
+            "kind": "HINT",
+            "speech": {
+              "text": "Four threes use up twelve. What is left when twelve comes out of fifteen?"
+            },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.long_division",
+            "attempt": 2
+          }
+        ],
+        "evidence": {
+          "approachId": "point-to-step:2",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_long_division_3",
+        "at": "2026-11-12T15:00:20Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_long_division_ask_3",
+        "text": "38 r 3"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_long_division_3",
+            "at": "2026-11-12T15:00:20Z",
+            "protocolVersion": "1.1.0",
+            "kind": "HINT",
+            "speech": {
+              "text": "Bring the seven down beside the three. How many fours fit into thirty-seven?"
+            },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.long_division",
+            "attempt": 3
+          }
+        ],
+        "evidence": {
+          "approachId": "point-to-step:3",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_long_division_4",
+        "at": "2026-11-12T15:00:30Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_long_division_ask_4",
+        "text": "39 r 2"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_long_division_4",
+            "at": "2026-11-12T15:00:30Z",
+            "protocolVersion": "1.1.0",
+            "kind": "HINT",
+            "speech": {
+              "text": "Nine fours make thirty-six. What is left over from thirty-seven?"
+            },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.long_division",
+            "attempt": 4
+          }
+        ],
+        "evidence": {
+          "approachId": "point-to-step:4",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_long_division_5",
+        "at": "2026-11-12T15:00:40Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_long_division_ask_5",
+        "text": "39.1"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_long_division_5",
+            "at": "2026-11-12T15:00:40Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SWITCH",
+            "speech": {
+              "text": "Let's practise the division facts underneath this one, then come back to it."
+            },
+            "display": [],
+            "expects": "none",
+            "fromSkillId": "math.long_division",
+            "reason": "The current skill is stuck; return to its weakest prerequisite."
+          }
+        ],
+        "evidence": {
+          "approachId": "prerequisite-step",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

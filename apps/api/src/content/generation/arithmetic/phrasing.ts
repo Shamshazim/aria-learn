@@ -29,15 +29,29 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
     case 'sequence':
       return sequencePrompt(problem.values, band);
     case 'addition':
-      return additionPrompt(problem.left, problem.right, band);
     case 'subtraction':
-      return subtractionPrompt(problem.left, problem.right, band);
+    case 'multiplication':
+    case 'division':
+      return operationPrompt(problem, band);
     case 'fraction-equality':
       return `Are ${problem.left} and ${problem.right} equal?`;
     case 'fraction-comparison':
       return band === 'early'
         ? `Which is more, ${problem.left} or ${problem.right}?`
         : `Compare ${problem.left} and ${problem.right}.`;
+    case 'place-value':
+    case 'whole-comparison':
+    case 'rounding':
+      return numberSensePrompt(problem, band);
+  }
+}
+
+/** P3-07: place value, comparing and rounding whole numbers. */
+function numberSensePrompt(
+  problem: Extract<ArithmeticProblem, { kind: 'place-value' | 'whole-comparison' | 'rounding' }>,
+  band: Band,
+): string {
+  switch (problem.kind) {
     case 'place-value':
       return band === 'early'
         ? `Look at ${problem.number}. Which digit is in the ${problem.place} place?`
@@ -48,6 +62,28 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
         : `Compare ${problem.left} and ${problem.right}. Use <, > or =.`;
     case 'rounding':
       return `Round ${problem.number} to the nearest ten.`;
+  }
+}
+
+/** The four operations, each in the words its band is taught. */
+function operationPrompt(
+  problem: Extract<
+    ArithmeticProblem,
+    { kind: 'addition' | 'subtraction' | 'multiplication' | 'division' }
+  >,
+  band: Band,
+): string {
+  switch (problem.kind) {
+    case 'addition':
+      return additionPrompt(problem.left, problem.right, band);
+    case 'subtraction':
+      return subtractionPrompt(problem.left, problem.right, band);
+    case 'multiplication':
+      return band === 'senior'
+        ? `${problem.left} × ${problem.right} = ?`
+        : `What is ${problem.left} times ${problem.right}?`;
+    case 'division':
+      return divisionPrompt(problem.skillCode, problem.left, problem.right, band);
   }
 }
 
@@ -75,6 +111,13 @@ function subtractionPrompt(left: string, right: string, band: Band): string {
   return first === null || second === null
     ? `What is ${left} take away ${right}?`
     : `What is ${first} take away ${second}?`;
+}
+
+/** P3-07: long division says how to write what is left over (the word "remainder" reads above middle). */
+function divisionPrompt(skillCode: string, left: string, right: string, band: Band): string {
+  const asked =
+    band === 'senior' ? `${left} ÷ ${right} = ?` : `What is ${left} divided by ${right}?`;
+  return skillCode === 'DIV.LONG' ? `${asked} Write what is left over after an r.` : asked;
 }
 
 /** `null` above ten: spelling out forty-eight makes the sentence harder, not easier. */

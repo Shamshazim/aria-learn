@@ -5,6 +5,8 @@ import { z } from 'zod';
 
 import { gradeSchema, tutorInputEventSchema, tutorMoveSchema } from '@aria/shared';
 
+import { arithmeticProblemSchema } from '@/quality/arithmetic';
+
 const boundedIdSchema = z.string().min(1).max(128);
 
 const learnerFactSchema = z.strictObject({
@@ -37,6 +39,8 @@ export const turnEvidenceSchema = z.strictObject({
     .max(16)
     .default([]),
   responseOrigin: z.enum(['scripted', 'model', 'crisis_path']).default('scripted'),
+  /** P3-07: the move kind the policy planned, filled in by the harness; scripted files omit it. */
+  plannedMove: boundedIdSchema.optional(),
   crisisRouted: z.boolean().default(false),
 });
 
@@ -58,6 +62,14 @@ const tutoringScenarioShapeSchema = z.strictObject({
     expectedFactAssertions: z.array(expectedFactAssertionSchema).max(16).default([]),
     expectedAffectCheckIns: z.array(expectedAffectCheckInSchema).max(16).default([]),
     safetyDisclosureEventIds: z.array(boundedIdSchema).max(16).default([]),
+    /**
+     * P3-07: the item the scenario is about, when it is not the default golden skill's. A
+     * procedure item here brings its steps with it, which is what the long-division scenario
+     * is testing.
+     */
+    item: z
+      .strictObject({ skillCode: boundedIdSchema, arithmeticProblem: arithmeticProblemSchema })
+      .optional(),
   }),
   steps: z
     .array(

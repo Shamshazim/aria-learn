@@ -2,8 +2,12 @@ import { ADD_3D_PARAMS } from '@/content/generation/arithmetic/params/add-3d';
 import { ADD_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/add-fact-10';
 import { ADD_FACT_20_PARAMS } from '@/content/generation/arithmetic/params/add-fact-20';
 import { ADD_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/add-regroup-2d';
+import { DIV_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/div-fact-10';
+import { DIV_LONG_PARAMS } from '@/content/generation/arithmetic/params/div-long';
 import { FRAC_COMPARE_PARAMS } from '@/content/generation/arithmetic/params/frac-compare';
 import { FRAC_EQUAL_PARAMS } from '@/content/generation/arithmetic/params/frac-equal';
+import { MUL_2D1D_PARAMS } from '@/content/generation/arithmetic/params/mul-2d1d';
+import { MUL_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/mul-fact-10';
 import { NUM_CMP_100_PARAMS } from '@/content/generation/arithmetic/params/num-cmp-100';
 import { NUM_CNT_20_PARAMS } from '@/content/generation/arithmetic/params/num-cnt-20';
 import { NUM_CNT_SKIP5_PARAMS } from '@/content/generation/arithmetic/params/num-cnt-skip5';
@@ -35,6 +39,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'ADD.3D': ADD_3D_PARAMS,
   'SUB.FACT.10': SUB_FACT_10_PARAMS,
   'SUB.REGROUP.2D': SUB_REGROUP_2D_PARAMS,
+  'MUL.FACT.10': MUL_FACT_10_PARAMS,
+  'MUL.2D1D': MUL_2D1D_PARAMS,
+  'DIV.FACT.10': DIV_FACT_10_PARAMS,
+  'DIV.LONG': DIV_LONG_PARAMS,
   'FRAC.EQUAL': FRAC_EQUAL_PARAMS,
   'FRAC.COMPARE': FRAC_COMPARE_PARAMS,
 };
@@ -53,6 +61,10 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'ADD.3D',
   'SUB.FACT.10',
   'SUB.REGROUP.2D',
+  'MUL.FACT.10',
+  'MUL.2D1D',
+  'DIV.FACT.10',
+  'DIV.LONG',
   'FRAC.EQUAL',
   'FRAC.COMPARE',
 ];

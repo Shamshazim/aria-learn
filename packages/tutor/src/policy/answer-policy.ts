@@ -1,6 +1,7 @@
 import { shouldReteachWithFix, sighted } from '../scheduler/misconception';
 
 import { nextApproach, outcome, plan, type PolicyOutcome } from './outcome';
+import { nextStepOutcome, stepsRemaining } from './procedure-policy';
 import { MASTERED_TOPIC_REASON, MASTERY_STREAK, nextTopicOutcome } from './stuck-policy';
 
 import type { LoadedTurnContext, PolicyDecision } from '../types';
@@ -59,6 +60,7 @@ function wrongAnswerOutcome<TModelContext>(
   graded: Graded,
 ): PolicyOutcome {
   const { consecutiveStuck, unmetPrerequisite } = context.session;
+  if (stepsRemaining(context.session)) return procedureWrongOutcome(context, graded);
   if (consecutiveStuck >= 2) {
     if (unmetPrerequisite !== null && wrongInARow(context) >= STEP_BACK_WRONG) {
       return stepBackOutcome(context, graded, ['stuck_on_skill']);
@@ -95,6 +97,30 @@ function wrongAnswerOutcome<TModelContext>(
     ['first_wrong_attempt'],
     { graded },
   );
+}
+
+/**
+ * P3-07: a wrong answer on a procedure with steps still to try. A wrong idea seen before still
+ * gets its recorded fix; otherwise the next step is pointed at. No step back yet: walking the
+ * steps is how a child shows which one they cannot do, and stepping back first would skip it.
+ */
+function procedureWrongOutcome<TModelContext>(
+  context: LoadedTurnContext<TModelContext>,
+  graded: Graded,
+): PolicyOutcome {
+  if (isRepeatedMisconception(context, graded)) {
+    return outcome(
+      plan(
+        'RETEACH',
+        'misconception-fix',
+        'This misconception was seen before; use its recorded fix.',
+        context,
+      ),
+      ['repeated_misconception'],
+      { graded },
+    );
+  }
+  return nextStepOutcome(context, ['wrong_attempt'], { graded });
 }
 
 function wrongInARow<TModelContext>(context: LoadedTurnContext<TModelContext>): number {

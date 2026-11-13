@@ -1,4 +1,5 @@
 import { additionColumnError, subtractionError } from '@/curriculum/misconceptions/derived-add-sub';
+import { divisionError, multiplicationError } from '@/curriculum/misconceptions/derived-mul-div';
 import {
   placeValueError,
   roundingError,
@@ -28,6 +29,8 @@ export function predictArithmeticError(
   if (problem === null) return [];
   if (problem.kind === 'addition') return additionError(rule, problem);
   if (problem.kind === 'subtraction') return subtractionError(rule, problem);
+  if (problem.kind === 'multiplication') return multiplicationError(rule, problem);
+  if (problem.kind === 'division') return divisionError(rule, problem);
   if (problem.kind === 'sequence') return sequenceError(rule, problem);
   if (problem.kind === 'place-value') return placeValueError(rule, problem);
   if (problem.kind === 'whole-comparison') return wholeComparisonError(rule, problem);

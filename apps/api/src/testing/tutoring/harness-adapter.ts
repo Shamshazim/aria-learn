@@ -11,6 +11,7 @@ import { createIntentClassifier } from '@/ai/intent/model-intent.classifier';
 import { createInventoryService, type LessonNote } from '@/curriculum';
 import { fixedClock } from '@/lib/clock';
 import { scrubLearnerContext } from '@/privacy';
+import { procedureSteps } from '@/quality/arithmetic';
 import type { ApiModelContext } from '@/services/content/turn-content.service';
 import { schedulerGraph } from '@/services/scheduler/scheduler-graph';
 import { createTutorService } from '@/services/tutor/tutor.service';
@@ -67,7 +68,7 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
   let wrong = 0;
   let lastApproach: string | null = null;
   const sessionId = sessionIdSchema.parse('00000000-0000-4000-8000-000000000901');
-  const fixed = { scenario, sessionId, outcomes, ...goldenCurriculum() };
+  const fixed = { scenario, sessionId, outcomes, ...goldenCurriculum(skillOf(scenario)) };
   const service = createTutorService({
     ports: {
       loadContext: (event) =>
@@ -104,7 +105,9 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
         moves,
         evidence: {
           ...step.scripted.evidence,
-          ...(committed === null ? {} : { approachId: committed.plan.approach }),
+          ...(committed === null
+            ? {}
+            : { approachId: approachIdOf(committed.plan), plannedMove: committed.plan.kind }),
         },
       };
     },
@@ -116,12 +119,25 @@ function createProductionPolicyTutor(scenario: TutoringScenario): TutorImplement
  * round is scoring the grounding the production path actually gets — and (P3-04) on the real
  * graph, so a child with no history has the real step underneath.
  */
-function goldenCurriculum(): Readonly<{ lesson: LessonNote | null; prerequisite: string | null }> {
+function goldenCurriculum(
+  skill: string,
+): Readonly<{ lesson: LessonNote | null; prerequisite: string | null }> {
   const inventory = createInventoryService();
   return {
-    lesson: inventory.getLesson(GOLDEN_SKILL),
-    prerequisite: stepBack(GOLDEN_SKILL, new Map(), schedulerGraph(inventory.listSkills())),
+    lesson: inventory.getLesson(skill),
+    prerequisite: stepBack(skill, new Map(), schedulerGraph(inventory.listSkills())),
   };
+}
+
+/** P3-07: a scenario may name its own item; the rest run on the default golden skill. */
+function skillOf(scenario: TutoringScenario): string {
+  return scenario.context.item?.skillCode ?? GOLDEN_SKILL;
+}
+
+/** A hint at step 3 is different teaching from a hint at step 2, and the record says so. */
+function approachIdOf(plan: MovePlan): string {
+  const step = plan.evidence?.procedureStep;
+  return typeof step === 'number' ? `${plan.approach}:${String(step)}` : plan.approach;
 }
 
 function productionContext(
@@ -137,6 +153,7 @@ function productionContext(
   }>,
 ) {
   const { scenario, event, sessionId, wrong, lastApproach, outcomes } = input;
+  const problem = scenario.context.item?.arithmeticProblem ?? null;
   const answer = event.kind === 'ANSWER' ? (event.text ?? event.choiceId ?? '') : '';
   const answerKey = outcomes.get(event.id) === 'correct' ? answer : '__recorded-correct-answer__';
   return {
@@ -146,7 +163,7 @@ function productionContext(
       subject: 'golden',
       grade: scenario.grade,
       band: bandForGrade(scenario.grade),
-      skillCode: GOLDEN_SKILL,
+      skillCode: skillOf(scenario),
       startedAt: new Date('2026-08-24T19:55:00.000Z'),
       attempts: wrong,
       consecutiveWrong: wrong,
@@ -160,6 +177,7 @@ function productionContext(
       repeatedMisconception: null,
       lastApproach,
       unmetPrerequisite: input.prerequisite,
+      procedureSteps: problem === null ? 0 : procedureSteps(problem).length,
     },
     modelContext: {
       scrubbed: scrubLearnerContext({ identifiers: {} }, { pseudonym: 'omit' }),
@@ -169,7 +187,7 @@ function productionContext(
       retrievedFactIds: [],
       recentContentItemIds: [],
       recentIntents: [],
-      arithmeticProblem: null,
+      arithmeticProblem: problem,
       lesson: input.lesson,
       completionOnly: false,
       latestAsk: null,

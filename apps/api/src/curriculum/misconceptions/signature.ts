@@ -40,6 +40,15 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'smaller-from-larger': true,
   'borrowed-without-reducing-tens': true,
   'zero-when-smaller': true,
+  'one-group-short': true,
+  'one-group-extra': true,
+  'column-products-concatenated': true,
+  'dropped-product-carry': true,
+  'tens-digit-as-ones': true,
+  'multiplied-instead': true,
+  'remainder-dropped': true,
+  'remainder-as-decimal': true,
+  'missing-zero-in-quotient': true,
 };
 
 /** Whether this answer carries this wrong idea. */

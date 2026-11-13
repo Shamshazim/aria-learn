@@ -19,11 +19,16 @@ export type GateOption = Readonly<{
  */
 export type MoveClaims = Readonly<{
   /** Which move's own rules apply on top of the grounding check. */
-  move: 'praise' | 'reveal' | 'end';
+  move: 'praise' | 'reveal' | 'end' | 'hint';
   /** Ids from `STRATEGY_CLAIMS` this turn actually saw the child do. Checked for praise only. */
   allowed: readonly string[];
   /** Things the move must get said, each with the failure it reports when it does not. */
   mustMention?: readonly MustMention[];
+  /**
+   * P3-07: things the move must not say, matched as whole words or numbers, each with the
+   * failure it reports. A step hint must not give away its step's answer or the whole one.
+   */
+  mustNotMention?: readonly MustMention[];
 }>;
 
 export type MustMention = Readonly<{

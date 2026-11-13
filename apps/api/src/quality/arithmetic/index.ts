@@ -20,3 +20,4 @@ export type {
   CheckResult,
 } from '@/quality/arithmetic/types';
 export { problemNumbers } from '@/quality/arithmetic/numbers';
+export { procedureSteps, type ProcedureStep } from '@/quality/arithmetic/steps';

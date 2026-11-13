@@ -3,9 +3,13 @@ import { ADD_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact
 import { ADD_FACT_20_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact-20.data';
 import { ADD_REGROUP_2D_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-regroup-2d.data';
 import { CMP_RETELL_MISCONCEPTIONS } from '@/curriculum/misconceptions/cmp-retell.data';
+import { DIV_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/div-fact-10.data';
+import { DIV_LONG_MISCONCEPTIONS } from '@/curriculum/misconceptions/div-long.data';
 import { FL_WCPM_60_MISCONCEPTIONS } from '@/curriculum/misconceptions/fl-wcpm-60.data';
 import { FRAC_COMPARE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-compare.data';
 import { FRAC_EQUAL_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equal.data';
+import { MUL_2D1D_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-2d1d.data';
+import { MUL_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-fact-10.data';
 import { NUM_CMP_100_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cmp-100.data';
 import { NUM_CNT_20_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cnt-20.data';
 import { NUM_CNT_SKIP5_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cnt-skip5.data';
@@ -42,6 +46,10 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...SUB_FACT_10_MISCONCEPTIONS,
   ...SUB_REGROUP_2D_MISCONCEPTIONS,
   ...ADD_3D_MISCONCEPTIONS,
+  ...MUL_FACT_10_MISCONCEPTIONS,
+  ...DIV_FACT_10_MISCONCEPTIONS,
+  ...MUL_2D1D_MISCONCEPTIONS,
+  ...DIV_LONG_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

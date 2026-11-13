@@ -12,6 +12,11 @@ export type StuckTwiceInput = Readonly<{
    * turn is the hint, so a count above zero means this item has had its hint.
    */
   stuckOnItem: number;
+  /**
+   * P3-07: this hint points at a step of a written method the child has not had yet. That is
+   * different work each time, so it is a change and the once-per-item limit does not apply.
+   */
+  newProcedureStep?: boolean;
   kind: MoveKind;
 }>;
 
@@ -19,12 +24,13 @@ export type StuckTwiceInput = Readonly<{
  * The moves that may not follow two wrong answers on one skill (§5: "two wrong answers must
  * never happen twice in a row without Aria changing what she is doing").
  *
- * Asking again is the thing she must not do. A hint is allowed once per item and no more. A
+ * Asking again is the thing she must not do. A hint is allowed once per item and no more —
+ * except a hint at the next step of a written method, which points at new work (P3-07). A
  * reteach, a step back, a switch, a break, showing the answer — each of those is a change.
  */
 export function forbiddenAfterStuck(input: Omit<StuckTwiceInput, 'kind'>): readonly MoveKind[] {
   if (input.wrongOnSkill < 2) return [];
-  return input.stuckOnItem > 0 ? ['ASK', 'HINT'] : ['ASK'];
+  return input.stuckOnItem > 0 && input.newProcedureStep !== true ? ['ASK', 'HINT'] : ['ASK'];
 }
 
 /**

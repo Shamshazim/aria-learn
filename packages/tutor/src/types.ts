@@ -47,6 +47,11 @@ export type SessionSnapshot = Readonly<{
    * caller derives none, and only what this event itself says is considered.
    */
   engagement?: EngagementContext;
+  /**
+   * P3-07: how many steps the current item's written method has. Absent or zero for an item
+   * with no method to walk (a fact, a number-sense question): the policy is then unchanged.
+   */
+  procedureSteps?: number;
 }>;
 
 export type LoadedTurnContext<TModelContext> = Readonly<{

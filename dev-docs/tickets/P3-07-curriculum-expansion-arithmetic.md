@@ -49,6 +49,36 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 3 of 9: multiplication and division, and the procedure rule
+
+**Code complete 2026-11-12** on `feat/P3-07-arithmetic-mul-div`, pending review, stacked on
+strand 2 (#40).
+
+- **Four skills.** `MUL.FACT.10` and `DIV.FACT.10` (3.OA.C.7, `fact`), `MUL.2D1D`
+  (4.NBT.B.5, `procedure`), `DIV.LONG` (4.NBT.B.6, `procedure`). New `multiplication` and
+  `division` kinds; whole-number division is exact on `bigint` and answers "39 r 1".
+  Remainder formats read: "39 r 1", "39 R1", "39r1", "39 rem 1", "39 remainder 1", and words.
+- **`steps[]` answer key.** `procedureSteps(problem)` derives a written method's steps for
+  every `procedure` skill (column addition, subtraction with a trade, two-digit times
+  one-digit, long division). Derived, never stored, so the generator, the policy and the hint
+  cannot disagree. No step prompt contains the final answer, proven over every item.
+- **The procedure rule.** The tutor snapshot gains `procedureSteps`. While the item's stuck
+  turns are fewer than its steps, `REVEAL` is out of the allowed set (skips included); a wrong
+  answer or "I don't know" gets `HINT/point-to-step` at the next step; a skip gets a fresh
+  easier item without the answer. A repeated misconception still gets its fix. The P3-04
+  stuck-twice invariant treats a hint at a *new* step as a change; asking again is still
+  forbidden. The step hint's text is gated: it fails if it says the step's answer or the
+  whole answer (`mustNotMention`, whole-token matched).
+- **`long-division` tutoring scenario.** Runs the real policy on 157 ÷ 4: four wrong answers
+  get hints at steps 1–4, the fifth steps back to `DIV.FACT.10`; never a reveal. A new
+  machine invariant, `REVEAL_BEFORE_STEPS`, checks the planned move and the emitted moves.
+- **Not yet.** The child still answers the whole item; a step's own answer is not collected
+  and graded on its own. That needs the item to stay open across a right step answer, which
+  is a session-flow change rather than a curriculum one; it is noted for P3-08.
+- **Verification.** Typecheck and lint clean. Full suite: 2697 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 192 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
 ### Strand 2 of 9: addition and subtraction
 
 **Code complete 2026-11-12** on `feat/P3-07-arithmetic-add-sub`, pending review, stacked on

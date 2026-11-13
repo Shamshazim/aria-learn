@@ -5,9 +5,11 @@ import {
   solveWholeComparison,
 } from '@/quality/arithmetic/solvers/comparison';
 import { solveFractionEquality } from '@/quality/arithmetic/solvers/fractions';
+import { solveMultiplication } from '@/quality/arithmetic/solvers/multiplication';
 import { solvePlaceValue } from '@/quality/arithmetic/solvers/place-value';
 import { solveRounding } from '@/quality/arithmetic/solvers/rounding';
 import { solveSubtraction } from '@/quality/arithmetic/solvers/subtraction';
+import { solveWholeDivision } from '@/quality/arithmetic/solvers/whole-division';
 import type {
   ArithmeticProblem,
   ArithmeticSkillCode,
@@ -29,6 +31,10 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'ADD.3D': additionSolver,
   'SUB.FACT.10': subtractionSolver,
   'SUB.REGROUP.2D': subtractionSolver,
+  'MUL.FACT.10': multiplicationSolver,
+  'MUL.2D1D': multiplicationSolver,
+  'DIV.FACT.10': divisionSolver,
+  'DIV.LONG': divisionSolver,
   'FRAC.EQUAL': fractionEqualitySolver,
   'FRAC.COMPARE': fractionComparisonSolver,
 };
@@ -50,6 +56,16 @@ function additionSolver(problem: ArithmeticProblem, candidate: string): CheckRes
 
 function subtractionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'subtraction' ? solveSubtraction(problem, candidate) : mismatch(problem);
+}
+
+function multiplicationSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'multiplication'
+    ? solveMultiplication(problem, candidate)
+    : mismatch(problem);
+}
+
+function divisionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'division' ? solveWholeDivision(problem, candidate) : mismatch(problem);
 }
 
 function fractionEqualitySolver(problem: ArithmeticProblem, candidate: string): CheckResult {

@@ -11,7 +11,7 @@ import type { LessonNote } from '@/curriculum';
 import { NotFoundError, ValidationError } from '@/errors';
 import type { Clock } from '@/lib/clock';
 import type { RawDialogueTurn } from '@/privacy';
-import { arithmeticProblemSchema } from '@/quality/arithmetic';
+import { arithmeticProblemSchema, procedureSteps } from '@/quality/arithmetic';
 import type { SessionEventRepository } from '@/repositories/session-event.repository';
 import type { SessionRepository } from '@/repositories/session.repository';
 import type { SkillStateRepository } from '@/repositories/skill-state.repository';
@@ -105,10 +105,16 @@ async function load(
     session: {
       ...sessionContext(session, records, skillCode, skillContext),
       engagement: engagementContext(records, event, session.band),
+      // P3-07: a written method's steps, so the policy never reveals before they are tried.
+      procedureSteps: stepCount(askArithmeticProblem(askEvidence)),
     },
     modelContext: modelContext(deps, { records, memory, ask, askEvidence, skillCode }),
     recentKinds: records.map((record) => record.kind),
   };
+}
+
+function stepCount(problem: ReturnType<typeof askArithmeticProblem>): number {
+  return problem === null ? 0 : procedureSteps(problem).length;
 }
 
 type SessionRecord = NonNullable<Awaited<ReturnType<SessionRepository['findById']>>>;
