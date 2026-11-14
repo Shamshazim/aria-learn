@@ -1,4 +1,5 @@
 import { additionColumnError, subtractionError } from '@/curriculum/misconceptions/derived-add-sub';
+import { algebraError } from '@/curriculum/misconceptions/derived-algebra';
 import {
   decimalComparisonError,
   decimalOperationError,
@@ -19,6 +20,7 @@ import {
 import { ratioError } from '@/curriculum/misconceptions/derived-ratios';
 import type { ArithmeticRule } from '@/curriculum/misconceptions/signature.types';
 import {
+  isAlgebraProblem,
   isRationalProblem,
   isSignedOrRatioProblem,
   type RationalProblem,
@@ -48,6 +50,7 @@ export function predictArithmeticError(
   if (problem === null) return [];
   if (isRationalProblem(problem)) return rationalError(rule, problem);
   if (isSignedOrRatioProblem(problem)) return signedOrRatioError(rule, problem);
+  if (isAlgebraProblem(problem)) return algebraError(rule, problem);
   return wholeError(rule, problem);
 }
 

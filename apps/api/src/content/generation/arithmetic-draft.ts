@@ -8,8 +8,10 @@ import type { GeneratedItem } from '@/content/generation/arithmetic';
 import type { ContentKind, ContentLookup, JsonValue } from '@/content/types';
 import type { ArithmeticProblem, ArithmeticSkillCode } from '@/quality/arithmetic';
 import {
+  isAlgebraProblem,
   isRationalProblem,
   isSignedOrRatioProblem,
+  type AlgebraProblem,
   type RationalProblem,
   type SignedOrRatioProblem,
   type WholeNumberProblem,
@@ -75,6 +77,7 @@ function problemJson(problem: ArithmeticProblem): JsonValue {
   const base = { skillCode: problem.skillCode, kind: problem.kind };
   if (isRationalProblem(problem)) return { ...base, ...rationalFields(problem) };
   if (isSignedOrRatioProblem(problem)) return { ...base, ...signedOrRatioFields(problem) };
+  if (isAlgebraProblem(problem)) return { ...base, ...algebraFields(problem) };
   return { ...base, ...wholeFields(problem) };
 }
 
@@ -112,6 +115,17 @@ function rationalFields(problem: RationalProblem): Fields {
     case 'fraction-comparison':
     case 'decimal-comparison':
       return { left: problem.left, right: problem.right };
+  }
+}
+
+function algebraFields(problem: AlgebraProblem): Fields {
+  switch (problem.kind) {
+    case 'expression':
+      return { expression: problem.expression };
+    case 'expression-value':
+      return { expression: problem.expression, variable: problem.variable, value: problem.value };
+    case 'equation':
+      return { left: problem.left, right: problem.right, variable: problem.variable };
   }
 }
 

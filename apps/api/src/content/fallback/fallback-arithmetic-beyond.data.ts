@@ -201,4 +201,43 @@ export const ARITHMETIC_BEYOND_FALLBACKS: readonly FallbackDefinition[] = [
       right: '1/8',
     },
   }),
+  // P3-07, strand 8: expressions and equations.
+  item({
+    skillCode: 'EXP.ORDER',
+    band: 'middle',
+    prompt: 'What is 3 + 4 × 2?',
+    choices: ['14', '11', '10'],
+    answer: '11',
+    problem: { skillCode: 'EXP.ORDER', kind: 'expression', expression: '3 + 4 × 2' },
+  }),
+  item({
+    skillCode: 'EXP.EVAL',
+    band: 'senior',
+    prompt: 'What is 3n + 4 when n = 5?',
+    choices: ['39', '19', '12'],
+    answer: '19',
+    problem: {
+      skillCode: 'EXP.EVAL',
+      kind: 'expression-value',
+      expression: '3n + 4',
+      variable: 'n',
+      value: '5',
+    },
+  }),
+  item({
+    skillCode: 'EQN.ONE',
+    band: 'senior',
+    prompt: 'Solve x + 7 = 15. What is x?',
+    choices: ['22', '8', '15'],
+    answer: '8',
+    problem: { skillCode: 'EQN.ONE', kind: 'equation', left: 'x + 7', right: '15', variable: 'x' },
+  }),
+  item({
+    skillCode: 'EQN.TWO',
+    band: 'senior',
+    prompt: 'Solve 3x + 4 = 19. What is x?',
+    choices: ['15', '5', '69'],
+    answer: '5',
+    problem: { skillCode: 'EQN.TWO', kind: 'equation', left: '3x + 4', right: '19', variable: 'x' },
+  }),
 ];

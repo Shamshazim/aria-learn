@@ -55,6 +55,12 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'RAT.UNIT': [],
   'RAT.PROP': [],
   'FRAC.DIV': [],
+  // P3-07: an expression or equation can be answered by working, by guessing and checking or
+  // by sight; a right answer proves no one strategy.
+  'EXP.ORDER': [],
+  'EXP.EVAL': [],
+  'EQN.ONE': [],
+  'EQN.TWO': [],
   'PA.RHYME': [],
   'PA.BLEND': ['blended-the-sounds'],
   'PH.CVC': ['sounded-it-out'],

@@ -32,7 +32,11 @@ export type ArithmeticSkillCode =
   | 'RAT.EQUIV'
   | 'RAT.UNIT'
   | 'RAT.PROP'
-  | 'FRAC.DIV';
+  | 'FRAC.DIV'
+  | 'EXP.ORDER'
+  | 'EXP.EVAL'
+  | 'EQN.ONE'
+  | 'EQN.TWO';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -130,6 +134,18 @@ export type UnitRateProblem = SkillProblem<'RAT.UNIT', 'unit-rate'> &
 export type ProportionProblem = SkillProblem<'RAT.PROP', 'proportion'> &
   Readonly<{ count: string; total: string; asked: string; thing: string }>;
 
+/** P3-07: "What is 3 + 4 × 2?" Whole numbers, + − × ÷ and brackets; never an ambiguous ÷ chain. */
+export type ExpressionProblem = SkillProblem<'EXP.ORDER', 'expression'> &
+  Readonly<{ expression: string }>;
+
+/** P3-07: "What is 3n + 4 when n = 5?" */
+export type ExpressionValueProblem = SkillProblem<'EXP.EVAL', 'expression-value'> &
+  Readonly<{ expression: string; variable: string; value: string }>;
+
+/** P3-07: "Solve x + 7 = 15." Checked by putting the answer back in, not by solving. */
+export type EquationProblem = SkillProblem<'EQN.ONE' | 'EQN.TWO', 'equation'> &
+  Readonly<{ left: string; right: string; variable: string }>;
+
 /** P3-07: "In 47, which digit is in the tens place?" */
 export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
   Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
@@ -162,6 +178,9 @@ export type ArithmeticProblem =
   | RatioMissingProblem
   | UnitRateProblem
   | ProportionProblem
+  | ExpressionProblem
+  | ExpressionValueProblem
+  | EquationProblem
   | DigitPlaceProblem
   | WholeComparisonProblem
   | RoundingProblem;

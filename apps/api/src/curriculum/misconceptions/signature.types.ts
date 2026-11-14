@@ -122,7 +122,19 @@ export type ArithmeticRule =
   | 'kept-total'
   | 'multiplied-total'
   | 'flipped-dividend'
-  | 'flipped-both';
+  | 'flipped-both'
+  // P3-07: expressions and equations.
+  | 'left-to-right'
+  | 'ignored-brackets'
+  | 'addition-first'
+  | 'concatenated-coefficient'
+  | 'added-coefficient'
+  | 'ignored-coefficient'
+  | 'wrong-inverse'
+  | 'kept-right-side'
+  | 'answered-the-operand'
+  | 'stopped-after-one-step'
+  | 'divided-first';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

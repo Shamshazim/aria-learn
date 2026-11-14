@@ -6,6 +6,7 @@ import { integerParams } from '@/curriculum/visuals/integer-visuals';
 import { ratioParams } from '@/curriculum/visuals/ratio-visuals';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import {
+  isAlgebraProblem,
   isRationalProblem,
   isSignedOrRatioProblem,
   type RationalProblem,
@@ -40,6 +41,8 @@ function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Param
   if (problem === null) return null;
   if (isRationalProblem(problem)) return fromRational(kind, problem);
   if (isSignedOrRatioProblem(problem)) return fromSignedOrRatio(kind, problem);
+  // P3-07: expressions and equations have no picture of their own; the defaults stand.
+  if (isAlgebraProblem(problem)) return null;
   return fromWholeNumbers(kind, problem);
 }
 

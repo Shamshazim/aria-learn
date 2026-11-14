@@ -125,6 +125,25 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     thing: z.string(),
   }),
   z.object({
+    skillCode: z.literal('EXP.ORDER'),
+    kind: z.literal('expression'),
+    expression: z.string(),
+  }),
+  z.object({
+    skillCode: z.literal('EXP.EVAL'),
+    kind: z.literal('expression-value'),
+    expression: z.string(),
+    variable: z.string().regex(/^[a-z]$/u),
+    value: z.string(),
+  }),
+  z.object({
+    skillCode: z.enum(['EQN.ONE', 'EQN.TWO']),
+    kind: z.literal('equation'),
+    left: z.string(),
+    right: z.string(),
+    variable: z.string().regex(/^[a-z]$/u),
+  }),
+  z.object({
     skillCode: z.enum(['NUM.PV.TENS', 'NUM.PV.HUNDREDS']),
     kind: z.literal('place-value'),
     number: z.string(),

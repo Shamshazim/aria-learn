@@ -13,8 +13,9 @@ const ITEMS = fileURLToPath(
 const MODEL_CASES = 500;
 // 72 from P2H-10's six skills, then ten per skill from each P3-07 strand: number sense (40),
 // addition and subtraction (40), multiplication and division (40), fractions (40), and
-// decimals and percent (40), integers (40), and ratio with fraction division (40).
-const GENERATOR_CASES = 352;
+// decimals and percent (40), integers (40), ratio with fraction division (40), and
+// expressions and equations (40).
+const GENERATOR_CASES = 392;
 
 describe('content golden files', () => {
   it('loads every unique valid item with the required subject weighting', async () => {

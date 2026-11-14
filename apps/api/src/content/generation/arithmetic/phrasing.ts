@@ -1,6 +1,7 @@
 import type { Band } from '@aria/shared';
 
 import type { ArithmeticProblem } from '@/quality/arithmetic';
+import { isAlgebraProblem, type AlgebraProblem } from '@/quality/arithmetic/kinds';
 
 /** Number words up to ten; below that a digit on the page is harder than the word out loud. */
 const WORDS: readonly string[] = [
@@ -31,6 +32,7 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
   if (isDecimal(problem)) return decimalPrompt(problem, band);
   if (isInteger(problem)) return integerPrompt(problem, band);
   if (isRatio(problem)) return ratioPrompt(problem, band);
+  if (isAlgebraProblem(problem)) return algebraPrompt(problem, band);
   // Only the number-sense kinds are left; a new kind that is none of these fails to compile.
   return numberSensePrompt(problem, band);
 }
@@ -129,6 +131,18 @@ function ratioPrompt(problem: RatioProblem, band: Band): string {
       return `${problem.amount} ${problem.amountUnit} in ${problem.per} ${problem.perUnit}s. How many ${problem.amountUnit} in 1 ${problem.perUnit}?`;
     case 'proportion':
       return `${problem.count} ${problem.thing} cost $${problem.total}. How much do ${problem.asked} ${problem.thing} cost?`;
+  }
+}
+
+/** P3-07: expressions and equations. The expression is shown exactly as written. */
+function algebraPrompt(problem: AlgebraProblem, band: Band): string {
+  switch (problem.kind) {
+    case 'expression':
+      return band === 'senior' ? `${problem.expression} = ?` : `What is ${problem.expression}?`;
+    case 'expression-value':
+      return `What is ${problem.expression} when ${problem.variable} = ${problem.value}?`;
+    case 'equation':
+      return `Solve ${problem.left} = ${problem.right}. What is ${problem.variable}?`;
   }
 }
 
