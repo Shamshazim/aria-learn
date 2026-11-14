@@ -2,7 +2,8 @@ import type { FallbackDefinition } from '@/content/fallback/fallback.data';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 
 /**
- * Reviewed last-resort items for the P3-07 strands, one per skill, each proven by
+ * Reviewed last-resort items for the P3-07 whole-number strands (number sense, add-sub,
+ * mul-div), one per skill, each proven by
  * the checker at boot like the rest of the bank. Kept beside the main bank rather than in it so
  * a strand's items are reviewed together and the bank file stays readable.
  */
@@ -110,96 +111,6 @@ export const ARITHMETIC_STRAND_FALLBACKS: readonly FallbackDefinition[] = [
     answer: '39 r 1',
     problem: { skillCode: 'DIV.LONG', kind: 'division', left: '157', right: '4' },
   }),
-  // P3-07, strand 4: fractions.
-  item({
-    skillCode: 'FRAC.EQUIV',
-    band: 'middle',
-    prompt: '2/3 = ?/12. What is the missing number?',
-    choices: ['11', '8', '4'],
-    answer: '8',
-    problem: { skillCode: 'FRAC.EQUIV', kind: 'fraction-missing', left: '2/3', denominator: '12' },
-  }),
-  item({
-    skillCode: 'FRAC.ADD.LIKE',
-    band: 'middle',
-    prompt: 'What is 3/8 add 2/8?',
-    choices: ['5/16', '5/8', '1/8'],
-    answer: '5/8',
-    problem: {
-      skillCode: 'FRAC.ADD.LIKE',
-      kind: 'fraction-operation',
-      operation: 'add',
-      left: '3/8',
-      right: '2/8',
-    },
-  }),
-  item({
-    skillCode: 'FRAC.ADD.UNLIKE',
-    band: 'middle',
-    prompt: 'What is 1/2 add 1/3?',
-    choices: ['2/5', '5/6', '2/3'],
-    answer: '5/6',
-    problem: {
-      skillCode: 'FRAC.ADD.UNLIKE',
-      kind: 'fraction-operation',
-      operation: 'add',
-      left: '1/2',
-      right: '1/3',
-    },
-  }),
-  item({
-    skillCode: 'FRAC.MUL.WHOLE',
-    band: 'middle',
-    prompt: 'What is 3 times 2/5?',
-    choices: ['6/15', '3 2/5', '1 1/5'],
-    answer: '1 1/5',
-    problem: {
-      skillCode: 'FRAC.MUL.WHOLE',
-      kind: 'fraction-operation',
-      operation: 'multiply',
-      left: '3',
-      right: '2/5',
-    },
-  }),
-  // P3-07, strand 5: decimals and percent.
-  item({
-    skillCode: 'DEC.PV',
-    band: 'middle',
-    prompt: 'In 3.47, which digit is in the tenths place?',
-    choices: ['7', '4', '3'],
-    answer: '4',
-    problem: { skillCode: 'DEC.PV', kind: 'decimal-place', number: '3.47', place: 'tenths' },
-  }),
-  item({
-    skillCode: 'DEC.CMP',
-    band: 'middle',
-    prompt: 'Is 0.3 more than, less than, or the same as 0.25?',
-    choices: ['>', '<', '='],
-    answer: '>',
-    problem: { skillCode: 'DEC.CMP', kind: 'decimal-comparison', left: '0.3', right: '0.25' },
-  }),
-  item({
-    skillCode: 'DEC.ADD',
-    band: 'middle',
-    prompt: 'What is 3.4 add 1.25?',
-    choices: ['1.59', '4.65', '4.29'],
-    answer: '4.65',
-    problem: {
-      skillCode: 'DEC.ADD',
-      kind: 'decimal-operation',
-      operation: 'add',
-      left: '3.4',
-      right: '1.25',
-    },
-  }),
-  item({
-    skillCode: 'PCT.OF',
-    band: 'senior',
-    prompt: 'What is 25% of 80?',
-    choices: ['20', '55', '2000'],
-    answer: '20',
-    problem: { skillCode: 'PCT.OF', kind: 'percent-of', percent: '25', whole: '80' },
-  }),
 ];
 
 type Authored = Readonly<{
@@ -211,7 +122,7 @@ type Authored = Readonly<{
   problem: ArithmeticProblem;
 }>;
 
-function item(input: Authored): FallbackDefinition {
+export function item(input: Authored): FallbackDefinition {
   const ids = ['a', 'b', 'c'] as const;
   const answerIndex = input.choices.indexOf(input.answer);
   return {

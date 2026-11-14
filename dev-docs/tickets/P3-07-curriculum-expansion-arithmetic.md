@@ -49,6 +49,29 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 6 of 9: integers
+
+**Code complete 2026-11-14** on `feat/P3-07-arithmetic-integers`, pending review, stacked on
+strand 5 (#43).
+
+- **Four skills, all senior and `number_sense`** (taught on a number line that shows zero):
+  `INT.CMP` (6.NS.C.7.b), `INT.ABS` (6.NS.C.7.c), `INT.ADD` (7.NS.A.1), `INT.MUL` (7.NS.A.2).
+  Kinds `integer-comparison`, `absolute-value` and `integer-operation` (add, take away, times,
+  exact divide), exact on `bigint`.
+- **Spoken negatives.** "negative five", "minus 5" and "−5" read as -5; "negative minus five"
+  is refused rather than guessed. A negative second operand is phrased in brackets,
+  "5 take away (-3)", so two signs never touch.
+- **Wrong ideas:** size not sign (-7 > -3, proven to fire on every pair of different
+  negatives), zero is smallest, a reversed sign; kept sign, negated, zero counted as a step;
+  right size wrong sign, taking away a negative as taking away, sizes added across signs; the
+  first factor's sign. Near-miss distractors for integer answers now include the opposite
+  sign and values below zero.
+- **Housekeeping.** The strand fallbacks split into `fallback-arithmetic.data.ts` (whole
+  numbers) and `fallback-arithmetic-beyond.data.ts`, before either reached the 300-line limit.
+- **Verification.** Typecheck and lint clean. Full suite: 2828 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 312 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
 ### Strand 5 of 9: decimals and percent
 
 **Code complete 2026-11-12** on `feat/P3-07-arithmetic-decimals`, pending review, stacked on

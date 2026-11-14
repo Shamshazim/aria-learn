@@ -15,6 +15,10 @@ import { FRAC_COMPARE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-co
 import { FRAC_EQUAL_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equal.data';
 import { FRAC_EQUIV_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equiv.data';
 import { FRAC_MUL_WHOLE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-mul-whole.data';
+import { INT_ABS_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-abs.data';
+import { INT_ADD_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-add.data';
+import { INT_CMP_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-cmp.data';
+import { INT_MUL_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-mul.data';
 import { MUL_2D1D_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-2d1d.data';
 import { MUL_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-fact-10.data';
 import { NUM_CMP_100_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cmp-100.data';
@@ -66,6 +70,10 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...DEC_CMP_MISCONCEPTIONS,
   ...DEC_ADD_MISCONCEPTIONS,
   ...PCT_OF_MISCONCEPTIONS,
+  ...INT_CMP_MISCONCEPTIONS,
+  ...INT_ABS_MISCONCEPTIONS,
+  ...INT_ADD_MISCONCEPTIONS,
+  ...INT_MUL_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

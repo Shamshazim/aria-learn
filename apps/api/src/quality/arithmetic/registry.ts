@@ -15,6 +15,11 @@ import {
   solveFractionOperation,
 } from '@/quality/arithmetic/solvers/fraction-operations';
 import { solveFractionEquality } from '@/quality/arithmetic/solvers/fractions';
+import {
+  solveAbsoluteValue,
+  solveIntegerComparison,
+  solveIntegerOperation,
+} from '@/quality/arithmetic/solvers/integers';
 import { solveMultiplication } from '@/quality/arithmetic/solvers/multiplication';
 import { solvePlaceValue } from '@/quality/arithmetic/solvers/place-value';
 import { solveRounding } from '@/quality/arithmetic/solvers/rounding';
@@ -55,6 +60,10 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'DEC.CMP': decimalComparisonSolver,
   'DEC.ADD': decimalOperationSolver,
   'PCT.OF': percentOfSolver,
+  'INT.CMP': integerComparisonSolver,
+  'INT.ABS': absoluteValueSolver,
+  'INT.ADD': integerOperationSolver,
+  'INT.MUL': integerOperationSolver,
 };
 
 /** P3-07: the skills a checker exists for — what the inventory is cross-checked against at boot. */
@@ -144,6 +153,24 @@ function decimalOperationSolver(problem: ArithmeticProblem, candidate: string): 
 
 function percentOfSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'percent-of' ? solvePercentOf(problem, candidate) : mismatch(problem);
+}
+
+function integerComparisonSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'integer-comparison'
+    ? solveIntegerComparison(problem, candidate)
+    : mismatch(problem);
+}
+
+function absoluteValueSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'absolute-value'
+    ? solveAbsoluteValue(problem, candidate)
+    : mismatch(problem);
+}
+
+function integerOperationSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'integer-operation'
+    ? solveIntegerOperation(problem, candidate)
+    : mismatch(problem);
 }
 
 function mismatch(problem: ArithmeticProblem): CheckResult {

@@ -1,0 +1,852 @@
+[
+  {
+    "id": "arith-gen-int-cmp-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "-1",
+        "right": "-6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare -1 and -6. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-senior-5",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 5,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "15",
+        "right": "-6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 15 and -6. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-senior-11",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 11,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "0",
+        "right": "-12"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 0 and -12. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-senior-14",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 14,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "-19",
+        "right": "-8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare -19 and -8. Use <, > or =.\" with key <. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-senior-19",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "-10",
+        "right": "-16"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare -10 and -16. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-senior-25",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 25,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "7",
+        "right": "-1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare 7 and -1. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-senior-28",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 28,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "-5",
+        "right": "-14"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Compare -5 and -14. Use <, > or =.\" with key >. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-middle-33",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 33,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "-2",
+        "right": "20"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is -2 more than, less than, or the same as 20?\" with key <. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-middle-39",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 39,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "18",
+        "right": "-13"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is 18 more than, less than, or the same as -13?\" with key >. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-cmp-middle-42",
+    "subject": "arithmetic",
+    "skillCode": "INT.CMP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.CMP",
+        "kind": "integer-comparison",
+        "left": "-18",
+        "right": "-11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Is -18 more than, less than, or the same as -11?\" with key <. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-1| = ?\" with key 1. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-6",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 6,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-7"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-7| = ?\" with key 7. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-12",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-13"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-13| = ?\" with key 13. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-15",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 15,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-16"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-16| = ?\" with key 16. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-21",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 21,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-22"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-22| = ?\" with key 22. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-27",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 27,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-28"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-28| = ?\" with key 28. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-senior-30",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 30,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-31"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"|-31| = ?\" with key 31. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-middle-36",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 36,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "-37"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is the absolute value of -37?\" with key 37. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-middle-42",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is the absolute value of 5?\" with key 5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-abs-middle-45",
+    "subject": "arithmetic",
+    "skillCode": "INT.ABS",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 45,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ABS",
+        "kind": "absolute-value",
+        "number": "11"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is the absolute value of 11?\" with key 11. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "-10",
+        "right": "-10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-10 + (-10) = ?\" with key -20. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-31",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "subtract",
+        "left": "-9",
+        "right": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-9 - 2 = ?\" with key -11. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-62",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 62,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "-7",
+        "right": "-8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-7 + (-8) = ?\" with key -15. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-90",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 90,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "-6",
+        "right": "1"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-6 + 1 = ?\" with key -5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-121",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 121,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "subtract",
+        "left": "-4",
+        "right": "-9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-4 - (-9) = ?\" with key 5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-152",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 152,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "-3",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-3 + 3 = ?\" with key 0. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-senior-180",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 180,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "-1",
+        "right": "-10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-1 + (-10) = ?\" with key -11. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-middle-211",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 211,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "subtract",
+        "left": "2",
+        "right": "-9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 2 take away (-9)?\" with key 11. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-middle-242",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 242,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "5",
+        "right": "-8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 5 add (-8)?\" with key -3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-add-middle-270",
+    "subject": "arithmetic",
+    "skillCode": "INT.ADD",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 270,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.ADD",
+        "kind": "integer-operation",
+        "operation": "add",
+        "left": "8",
+        "right": "-10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8 add (-10)?\" with key -2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "multiply",
+        "left": "-9",
+        "right": "-9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-9 × (-9) = ?\" with key 81. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-39",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 39,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "divide",
+        "left": "48",
+        "right": "-6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"48 ÷ (-6) = ?\" with key -8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-78",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 78,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "multiply",
+        "left": "-7",
+        "right": "-2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-7 × (-2) = ?\" with key 14. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-115",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 115,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "divide",
+        "left": "-18",
+        "right": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-18 ÷ 3 = ?\" with key -6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-154",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 154,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "multiply",
+        "left": "-5",
+        "right": "7"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-5 × 7 = ?\" with key -35. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-194",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 194,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "multiply",
+        "left": "-3",
+        "right": "-8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-3 × (-8) = ?\" with key 24. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-senior-230",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 230,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "multiply",
+        "left": "-2",
+        "right": "-6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"-2 × (-6) = ?\" with key 12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-middle-269",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 269,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "divide",
+        "left": "-6",
+        "right": "-3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is -6 divided by (-3)?\" with key 2. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-middle-309",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 309,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "divide",
+        "left": "-35",
+        "right": "-7"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is -35 divided by (-7)?\" with key 5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-int-mul-middle-345",
+    "subject": "arithmetic",
+    "skillCode": "INT.MUL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 345,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "INT.MUL",
+        "kind": "integer-operation",
+        "operation": "divide",
+        "left": "-35",
+        "right": "-5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is -35 divided by (-5)?\" with key 7. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  }
+]

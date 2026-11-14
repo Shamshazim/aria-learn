@@ -53,14 +53,21 @@ function fromMisconceptions(problem: ArithmeticProblem, answer: string): readonl
  * Relation answers get the rest of their alphabet, which is the whole space there is.
  */
 function nearMisses(problem: ArithmeticProblem, answer: string): readonly string[] {
-  if (problem.kind === 'fraction-comparison' || problem.kind === 'whole-comparison') {
-    return ['<', '=', '>'];
-  }
+  if (RELATION_KINDS.has(problem.kind)) return ['<', '=', '>'];
   if (problem.kind === 'fraction-equality') return ['equal', 'not equal'];
   const key = Number.parseInt(answer, 10);
   if (Number.isNaN(key)) return [];
+  // P3-07: below zero is a real answer for an integer, and the opposite sign a real mistake.
+  if (problem.kind === 'integer-operation') return [-key, key + 1, key - 1, key + 10].map(String);
   return [key + 1, key - 1, key + 10, key - 10].filter((value) => value >= 0).map(String);
 }
+
+const RELATION_KINDS: ReadonlySet<string> = new Set([
+  'fraction-comparison',
+  'whole-comparison',
+  'decimal-comparison',
+  'integer-comparison',
+]);
 
 /** A "wrong" option the checker calls correct is not a distractor, it is a second answer. */
 function isCorrect(problem: ArithmeticProblem, candidate: string): boolean {

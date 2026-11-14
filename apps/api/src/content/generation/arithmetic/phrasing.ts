@@ -29,6 +29,7 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
   if (isOperation(problem)) return operationPrompt(problem, band);
   if (isFraction(problem)) return fractionPrompt(problem, band);
   if (isDecimal(problem)) return decimalPrompt(problem, band);
+  if (isInteger(problem)) return integerPrompt(problem, band);
   // Only the number-sense kinds are left; a new kind that is none of these fails to compile.
   return numberSensePrompt(problem, band);
 }
@@ -64,6 +65,43 @@ type DecimalProblem = Extract<
 
 function isDecimal(problem: ArithmeticProblem): problem is DecimalProblem {
   return problem.kind.startsWith('decimal-') || problem.kind === 'percent-of';
+}
+
+type IntegerProblem = Extract<
+  ArithmeticProblem,
+  { kind: 'integer-comparison' | 'absolute-value' | 'integer-operation' }
+>;
+
+function isInteger(problem: ArithmeticProblem): problem is IntegerProblem {
+  return problem.kind.startsWith('integer-') || problem.kind === 'absolute-value';
+}
+
+const INTEGER_SIGNS = { add: '+', subtract: '-', multiply: '×', divide: '÷' } as const;
+const INTEGER_WORDS = {
+  add: 'add',
+  subtract: 'take away',
+  multiply: 'times',
+  divide: 'divided by',
+} as const;
+
+/** P3-07: integers. A negative second number goes in brackets, so two signs never touch. */
+function integerPrompt(problem: IntegerProblem, band: Band): string {
+  switch (problem.kind) {
+    case 'integer-comparison':
+      return band === 'senior'
+        ? `Compare ${problem.left} and ${problem.right}. Use <, > or =.`
+        : `Is ${problem.left} more than, less than, or the same as ${problem.right}?`;
+    case 'absolute-value':
+      return band === 'senior'
+        ? `|${problem.number}| = ?`
+        : `What is the absolute value of ${problem.number}?`;
+    case 'integer-operation': {
+      const right = problem.right.trim().startsWith('-') ? `(${problem.right})` : problem.right;
+      return band === 'senior'
+        ? `${problem.left} ${INTEGER_SIGNS[problem.operation]} ${right} = ?`
+        : `What is ${problem.left} ${INTEGER_WORDS[problem.operation]} ${right}?`;
+    }
+  }
 }
 
 /** P3-07: decimals and percent. */
