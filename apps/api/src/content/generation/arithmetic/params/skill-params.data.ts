@@ -10,6 +10,7 @@ import { DIV_LONG_PARAMS } from '@/content/generation/arithmetic/params/div-long
 import { FRAC_ADD_LIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-like';
 import { FRAC_ADD_UNLIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-unlike';
 import { FRAC_COMPARE_PARAMS } from '@/content/generation/arithmetic/params/frac-compare';
+import { FRAC_DIV_PARAMS } from '@/content/generation/arithmetic/params/frac-div';
 import { FRAC_EQUAL_PARAMS } from '@/content/generation/arithmetic/params/frac-equal';
 import { FRAC_EQUIV_PARAMS } from '@/content/generation/arithmetic/params/frac-equiv';
 import { FRAC_MUL_WHOLE_PARAMS } from '@/content/generation/arithmetic/params/frac-mul-whole';
@@ -26,6 +27,9 @@ import { NUM_PV_HUNDREDS_PARAMS } from '@/content/generation/arithmetic/params/n
 import { NUM_PV_TENS_PARAMS } from '@/content/generation/arithmetic/params/num-pv-tens';
 import { NUM_RND_10_PARAMS } from '@/content/generation/arithmetic/params/num-rnd-10';
 import { PCT_OF_PARAMS } from '@/content/generation/arithmetic/params/pct-of';
+import { RAT_EQUIV_PARAMS } from '@/content/generation/arithmetic/params/rat-equiv';
+import { RAT_PROP_PARAMS } from '@/content/generation/arithmetic/params/rat-prop';
+import { RAT_UNIT_PARAMS } from '@/content/generation/arithmetic/params/rat-unit';
 import { SUB_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/sub-fact-10';
 import { SUB_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/sub-regroup-2d';
 import type { GeneratorParams } from '@/content/generation/arithmetic/types';
@@ -69,6 +73,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'INT.ABS': INT_ABS_PARAMS,
   'INT.ADD': INT_ADD_PARAMS,
   'INT.MUL': INT_MUL_PARAMS,
+  'RAT.EQUIV': RAT_EQUIV_PARAMS,
+  'RAT.UNIT': RAT_UNIT_PARAMS,
+  'RAT.PROP': RAT_PROP_PARAMS,
+  'FRAC.DIV': FRAC_DIV_PARAMS,
 };
 
 /** Written out rather than derived from the record, so no assertion is needed to name them. */
@@ -103,4 +111,8 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'INT.ABS',
   'INT.ADD',
   'INT.MUL',
+  'RAT.EQUIV',
+  'RAT.UNIT',
+  'RAT.PROP',
+  'FRAC.DIV',
 ];

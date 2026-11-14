@@ -48,6 +48,13 @@ export function operate(operation: FractionOperation, left: Rational, right: Rat
         numerator: left.numerator * right.numerator,
         denominator: left.denominator * right.denominator,
       };
+    // Dividing is multiplying by the flipped divisor. A zero divisor never reaches here: the
+    // generator never asks one, and a problem that did would fail the checker's own parse.
+    case 'divide':
+      return {
+        numerator: left.numerator * right.denominator,
+        denominator: left.denominator * right.numerator,
+      };
   }
 }
 

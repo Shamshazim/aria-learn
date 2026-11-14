@@ -1,0 +1,902 @@
+[
+  {
+    "id": "arith-gen-rat-equiv-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "2",
+        "second": "3",
+        "scaledFirst": "4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2 : 3 = 4 : ?\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-senior-14",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 14,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "2",
+        "second": "11",
+        "scaledFirst": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2 : 11 = 8 : ?\" with key 44. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-senior-28",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 28,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "3",
+        "second": "9",
+        "scaledFirst": "18"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3 : 9 = 18 : ?\" with key 54. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-senior-40",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 40,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "4",
+        "second": "7",
+        "scaledFirst": "8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"4 : 7 = 8 : ?\" with key 14. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-senior-54",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 54,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "5",
+        "second": "4",
+        "scaledFirst": "20"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5 : 4 = 20 : ?\" with key 16. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-senior-69",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 69,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "6",
+        "second": "3",
+        "scaledFirst": "24"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 : 3 = 24 : ?\" with key 12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-senior-80",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 80,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "6",
+        "second": "11",
+        "scaledFirst": "12"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 : 11 = 12 : ?\" with key 22. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-middle-94",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 94,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "7",
+        "second": "9",
+        "scaledFirst": "28"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"7 : 9 is the same ratio as 28 : ?. What is the missing number?\" with key 36. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-middle-109",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 109,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "8",
+        "second": "7",
+        "scaledFirst": "32"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"8 : 7 is the same ratio as 32 : ?. What is the missing number?\" with key 28. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-equiv-middle-120",
+    "subject": "arithmetic",
+    "skillCode": "RAT.EQUIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 120,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.EQUIV",
+        "kind": "ratio-missing",
+        "first": "9",
+        "second": "4",
+        "scaledFirst": "18"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"9 : 4 is the same ratio as 18 : ?. What is the missing number?\" with key 8. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "6",
+        "per": "2",
+        "amountUnit": "points",
+        "perUnit": "game"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 points in 2 games. How many points in 1 game?\" with key 3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-9",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 9,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "12",
+        "per": "3",
+        "amountUnit": "km",
+        "perUnit": "hour"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"12 km in 3 hours. How many km in 1 hour?\" with key 4. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-18",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 18,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "20",
+        "per": "4",
+        "amountUnit": "words",
+        "perUnit": "minute"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"20 words in 4 minutes. How many words in 1 minute?\" with key 5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-24",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 24,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "12",
+        "per": "2",
+        "amountUnit": "pages",
+        "perUnit": "day"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"12 pages in 2 days. How many pages in 1 day?\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-33",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 33,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "21",
+        "per": "3",
+        "amountUnit": "points",
+        "perUnit": "game"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"21 points in 3 games. How many points in 1 game?\" with key 7. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-42",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "32",
+        "per": "4",
+        "amountUnit": "km",
+        "perUnit": "hour"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"32 km in 4 hours. How many km in 1 hour?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-senior-48",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 48,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "18",
+        "per": "2",
+        "amountUnit": "litres",
+        "perUnit": "minute"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"18 litres in 2 minutes. How many litres in 1 minute?\" with key 9. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-middle-57",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 57,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "30",
+        "per": "3",
+        "amountUnit": "pages",
+        "perUnit": "day"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"30 pages in 3 days. How many pages in 1 day?\" with key 10. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-middle-66",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 66,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "44",
+        "per": "4",
+        "amountUnit": "points",
+        "perUnit": "game"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"44 points in 4 games. How many points in 1 game?\" with key 11. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-unit-middle-72",
+    "subject": "arithmetic",
+    "skillCode": "RAT.UNIT",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 72,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.UNIT",
+        "kind": "unit-rate",
+        "amount": "24",
+        "per": "2",
+        "amountUnit": "words",
+        "perUnit": "minute"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"24 words in 2 minutes. How many words in 1 minute?\" with key 12. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "2",
+        "total": "4",
+        "asked": "4",
+        "thing": "tickets"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2 tickets cost $4. How much do 4 tickets cost?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-11",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 11,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "6",
+        "total": "12",
+        "asked": "4",
+        "thing": "apples"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 apples cost $12. How much do 4 apples cost?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-23",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 23,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "5",
+        "total": "15",
+        "asked": "8",
+        "thing": "books"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5 books cost $15. How much do 8 books cost?\" with key 24. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-32",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 32,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "3",
+        "total": "12",
+        "asked": "10",
+        "thing": "apples"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3 apples cost $12. How much do 10 apples cost?\" with key 40. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-44",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "3",
+        "total": "15",
+        "asked": "5",
+        "thing": "tickets"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3 tickets cost $15. How much do 5 tickets cost?\" with key 25. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-56",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 56,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "2",
+        "total": "12",
+        "asked": "10",
+        "thing": "tickets"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2 tickets cost $12. How much do 10 tickets cost?\" with key 60. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-senior-64",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 64,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "5",
+        "total": "30",
+        "asked": "10",
+        "thing": "books"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5 books cost $30. How much do 10 books cost?\" with key 60. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-middle-76",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 76,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "5",
+        "total": "35",
+        "asked": "4",
+        "thing": "books"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"5 books cost $35. How much do 4 books cost?\" with key 28. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-middle-88",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 88,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "4",
+        "total": "32",
+        "asked": "8",
+        "thing": "pens"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"4 pens cost $32. How much do 8 pens cost?\" with key 64. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-rat-prop-middle-97",
+    "subject": "arithmetic",
+    "skillCode": "RAT.PROP",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 97,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "RAT.PROP",
+        "kind": "proportion",
+        "count": "3",
+        "total": "27",
+        "asked": "2",
+        "thing": "cards"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3 cards cost $27. How much do 2 cards cost?\" with key 18. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "1/2",
+        "right": "1/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/2 ÷ 1/3 = ?\" with key 1 1/2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-8",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 8,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "2/3",
+        "right": "3/10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2/3 ÷ 3/10 = ?\" with key 2 2/9. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-16",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 16,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "1/5",
+        "right": "3/5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/5 ÷ 3/5 = ?\" with key 1/3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-21",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 21,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "3/5",
+        "right": "1/2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3/5 ÷ 1/2 = ?\" with key 1 1/5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-29",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 29,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "1/6",
+        "right": "3/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"1/6 ÷ 3/8 = ?\" with key 4/9. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-37",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 37,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "3/8",
+        "right": "1/5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"3/8 ÷ 1/5 = ?\" with key 1 7/8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-senior-42",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "7/8",
+        "right": "1/3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"7/8 ÷ 1/3 = ?\" with key 2 5/8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-middle-50",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 50,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "3/10",
+        "right": "1/8"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3/10 divided by 1/8?\" with key 2 2/5. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-middle-58",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 58,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "1/12",
+        "right": "1/4"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 1/12 divided by 1/4?\" with key 1/3. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-frac-div-middle-63",
+    "subject": "arithmetic",
+    "skillCode": "FRAC.DIV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 63,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "FRAC.DIV",
+        "kind": "fraction-operation",
+        "operation": "divide",
+        "left": "5/12",
+        "right": "7/10"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 5/12 divided by 7/10?\" with key 25/42. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  }
+]

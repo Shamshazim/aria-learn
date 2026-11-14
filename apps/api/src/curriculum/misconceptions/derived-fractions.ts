@@ -64,9 +64,15 @@ function candidates(
   left: Rational,
   right: Rational,
 ): Rational[] {
-  return problem.operation === 'multiply'
-    ? multiplyCandidates(rule, left, right)
-    : sumCandidates(rule, problem.operation, left, right);
+  switch (problem.operation) {
+    case 'multiply':
+      return multiplyCandidates(rule, left, right);
+    case 'divide':
+      return divideCandidates(rule, left, right);
+    case 'add':
+    case 'subtract':
+      return sumCandidates(rule, problem.operation, left, right);
+  }
 }
 
 function sumCandidates(
@@ -116,6 +122,33 @@ function multiplyCandidates(rule: ArithmeticRule, whole: Rational, fraction: Rat
       return [
         { numerator: fraction.numerator, denominator: whole.numerator * fraction.denominator },
       ];
+    default:
+      return [];
+  }
+}
+
+/** P3-07: dividing fractions, where the flip is the whole idea and the place it goes wrong. */
+function divideCandidates(rule: ArithmeticRule, left: Rational, right: Rational): Rational[] {
+  switch (rule) {
+    // 3/4 ÷ 1/8 = 3/32: multiplied straight across, with no flip.
+    case 'multiplied-instead':
+      return [operate('multiply', left, right)];
+    // 3/4 ÷ 1/8 = 1/6: the first fraction flipped instead of the second.
+    case 'flipped-dividend':
+      return left.numerator === 0n
+        ? []
+        : [
+            operate(
+              'multiply',
+              { numerator: left.denominator, denominator: left.numerator },
+              right,
+            ),
+          ];
+    // 3/4 ÷ 1/8 = 32/3: both fractions flipped.
+    case 'flipped-both':
+      return left.numerator === 0n
+        ? []
+        : [operate('divide', { numerator: left.denominator, denominator: left.numerator }, right)];
     default:
       return [];
   }

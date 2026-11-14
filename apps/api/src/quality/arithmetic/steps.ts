@@ -31,6 +31,8 @@ export function procedureSteps(problem: ArithmeticProblem): readonly ProcedureSt
       return unlikeFractionSteps(problem);
     case 'DEC.ADD':
       return decimalSteps(problem);
+    case 'FRAC.DIV':
+      return fractionDivisionSteps(problem.left, problem.right);
     default:
       return [];
   }
@@ -141,7 +143,7 @@ function longDivisionSteps(leftText: string, rightText: string): readonly Proced
 function unlikeFractionSteps(
   problem: Readonly<{ operation: FractionOperation; left: string; right: string }>,
 ): readonly ProcedureStep[] {
-  if (problem.operation === 'multiply') return [];
+  if (problem.operation !== 'add' && problem.operation !== 'subtract') return [];
   const left = readWrittenFraction(problem.left);
   const right = readWrittenFraction(problem.right);
   if (left === null || right === null) return [];
@@ -170,4 +172,29 @@ function rename(fraction: string, bottom: string, top: bigint): ProcedureStep {
     prompt: `Rename ${fraction} with ${bottom} as the bottom. What is the new top?`,
     answer: top.toString(),
   };
+}
+
+/**
+ * P3-07: dividing fractions — keep the first, flip the second, then multiply across. The
+ * answer may be left unreduced; the checker accepts any equal fraction.
+ */
+function fractionDivisionSteps(leftText: string, rightText: string): readonly ProcedureStep[] {
+  const left = readWrittenFraction(leftText);
+  const right = readWrittenFraction(rightText);
+  if (left === null || right === null || right.numerator === 0n) return [];
+  const flipped = `${right.denominator.toString()}/${right.numerator.toString()}`;
+  return [
+    {
+      prompt: `Keep ${leftText}, and flip ${rightText} over. What fraction do you get?`,
+      answer: flipped,
+    },
+    {
+      prompt: `Multiply the tops: ${left.numerator.toString()} and ${right.denominator.toString()}.`,
+      answer: (left.numerator * right.denominator).toString(),
+    },
+    {
+      prompt: `Multiply the bottoms: ${left.denominator.toString()} and ${right.numerator.toString()}.`,
+      answer: (left.denominator * right.numerator).toString(),
+    },
+  ];
 }

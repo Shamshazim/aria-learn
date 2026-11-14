@@ -16,10 +16,13 @@ import {
   roundingError,
   wholeComparisonError,
 } from '@/curriculum/misconceptions/derived-number-sense';
+import { ratioError } from '@/curriculum/misconceptions/derived-ratios';
 import type { ArithmeticRule } from '@/curriculum/misconceptions/signature.types';
 import {
   isRationalProblem,
+  isSignedOrRatioProblem,
   type RationalProblem,
+  type SignedOrRatioProblem,
   type WholeNumberProblem,
 } from '@/quality/arithmetic/kinds';
 import { compareRationals, parseInteger, parseRational } from '@/quality/arithmetic/normalise';
@@ -43,7 +46,9 @@ export function predictArithmeticError(
   problem: ArithmeticProblem | null,
 ): readonly string[] {
   if (problem === null) return [];
-  return isRationalProblem(problem) ? rationalError(rule, problem) : wholeError(rule, problem);
+  if (isRationalProblem(problem)) return rationalError(rule, problem);
+  if (isSignedOrRatioProblem(problem)) return signedOrRatioError(rule, problem);
+  return wholeError(rule, problem);
 }
 
 function wholeError(rule: ArithmeticRule, problem: WholeNumberProblem): readonly string[] {
@@ -64,10 +69,22 @@ function wholeError(rule: ArithmeticRule, problem: WholeNumberProblem): readonly
       return wholeComparisonError(rule, problem);
     case 'rounding':
       return roundingError(rule, problem);
+  }
+}
+
+function signedOrRatioError(
+  rule: ArithmeticRule,
+  problem: SignedOrRatioProblem,
+): readonly string[] {
+  switch (problem.kind) {
     case 'integer-comparison':
     case 'absolute-value':
     case 'integer-operation':
       return integerError(rule, problem);
+    case 'ratio-missing':
+    case 'unit-rate':
+    case 'proportion':
+      return ratioError(rule, problem);
   }
 }
 

@@ -4,6 +4,7 @@ import { FRACTION_SKILLS } from './fractions.skills';
 import { INTEGER_SKILLS } from './integers.skills';
 import { MUL_DIV_SKILLS } from './mul-div.skills';
 import { NUM_SENSE_SKILLS } from './num-sense.skills';
+import { RATIO_PROPORTION_SKILLS } from './ratio-prop.skills';
 
 /**
  * The authored arithmetic inventory, one file per strand (P3-07). Each strand ships as its
@@ -16,6 +17,7 @@ export const ARITHMETIC_SKILLS = [
   ...FRACTION_SKILLS,
   ...DECIMALS_PERCENT_SKILLS,
   ...INTEGER_SKILLS,
+  ...RATIO_PROPORTION_SKILLS,
 ];
 
 /**

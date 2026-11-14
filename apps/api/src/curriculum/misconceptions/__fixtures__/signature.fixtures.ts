@@ -7,6 +7,7 @@ import { FRACTION_SIGNATURE_CASES } from './signature-fractions.fixtures';
 import { INTEGER_SIGNATURE_CASES } from './signature-integers.fixtures';
 import { MUL_DIV_SIGNATURE_CASES } from './signature-mul-div.fixtures';
 import { NUMBER_SENSE_SIGNATURE_CASES } from './signature-number-sense.fixtures';
+import { RATIO_SIGNATURE_CASES } from './signature-ratios.fixtures';
 
 /**
  * One true positive and one true negative for every authored misconception (P2H-10).
@@ -127,6 +128,7 @@ export const SIGNATURE_CASES: readonly SignatureCase[] = [
   ...FRACTION_SIGNATURE_CASES,
   ...DECIMAL_SIGNATURE_CASES,
   ...INTEGER_SIGNATURE_CASES,
+  ...RATIO_SIGNATURE_CASES,
   { id: 'misconception-num-cnt-20-restart', positive: count20('17'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-repeats-last', positive: count20('19'), negative: count20('20') },
   { id: 'misconception-num-cnt-20-skips-a-teen', positive: count20('21'), negative: count20('20') },

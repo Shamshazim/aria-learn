@@ -49,6 +49,28 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 7 of 9: ratio and proportion, and dividing fractions
+
+**Code complete 2026-11-14** on `feat/P3-07-arithmetic-ratio`, pending review, stacked on
+strand 6 (#44).
+
+- **Four skills, all senior.** `RAT.EQUIV` (6.RP.A.3.a), `RAT.UNIT` (6.RP.A.2), `RAT.PROP`
+  (7.RP.A.2), `number_sense`; and `FRAC.DIV` (6.NS.A.1), deferred here from strand 4, a
+  `procedure` filed in the fractions strand file. Kinds `ratio-missing`, `unit-rate` and
+  `proportion`; fraction division is `fraction-operation` with a new `divide` operation.
+- **Multiplicative, not additive.** The spaces are built so adding instead of scaling always
+  gives a different number, and a test proves `additive-ratio` fires on every RAT.EQUIV and
+  RAT.PROP item. Answers with units or a dollar sign ("12 km", "$20", "20 dollars") are read.
+- **Fraction division steps:** keep the first, flip the second, multiply the tops, multiply the
+  bottoms. An item whose steps would show the answer before the child reaches it is filtered
+  out of the space rather than asked.
+- **Dispatch now splits three ways** (`kinds.ts`: fractions and decimals, signs and ratios,
+  whole numbers) for misconceptions, visuals and the draft serialiser, which keeps each under
+  the complexity bar and keeps the serialiser exhaustive by type.
+- **Verification.** Typecheck and lint clean. Full suite: 2873 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 352 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
 ### Strand 6 of 9: integers
 
 **Code complete 2026-11-14** on `feat/P3-07-arithmetic-integers`, pending review, stacked on

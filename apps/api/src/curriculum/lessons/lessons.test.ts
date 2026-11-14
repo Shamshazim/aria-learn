@@ -82,9 +82,9 @@ describe('lesson notes', () => {
   it('reports the review backlog rather than hiding it', () => {
     const review = createInventoryService().lessonReview();
 
-    expect(review.total).toBe(40);
+    expect(review.total).toBe(44);
     // Release-blocking and honest: no teacher has read these yet, and the report says so.
     expect(review.approved).toBe(0);
-    expect(review.pending).toHaveLength(40);
+    expect(review.pending).toHaveLength(44);
   });
 });

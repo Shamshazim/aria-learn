@@ -25,7 +25,7 @@ export function fractionOperationParams(
   }
   const right = written(problem.right);
   if (right === null) return null;
-  if (problem.operation === 'multiply') {
+  if (problem.operation === 'multiply' && /^\s*\d+\s*$/u.test(problem.left)) {
     const times = Number.parseInt(problem.left, 10);
     if (Number.isNaN(times)) return null;
     return times > MAX_BARS

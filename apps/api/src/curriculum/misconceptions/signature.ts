@@ -80,6 +80,13 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'minus-negative-as-minus': true,
   'magnitudes-added': true,
   'sign-of-first-factor': true,
+  'additive-ratio': true,
+  'kept-second-term': true,
+  'answered-the-scale': true,
+  'kept-total': true,
+  'multiplied-total': true,
+  'flipped-dividend': true,
+  'flipped-both': true,
 };
 
 /** Whether this answer carries this wrong idea. */

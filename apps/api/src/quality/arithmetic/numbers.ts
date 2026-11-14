@@ -11,6 +11,9 @@ export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
   if (problem.kind === 'decimal-place' || problem.kind === 'absolute-value')
     return [problem.number];
   if (problem.kind === 'percent-of') return [problem.percent, problem.whole];
+  if (problem.kind === 'ratio-missing') return [problem.first, problem.second, problem.scaledFirst];
+  if (problem.kind === 'unit-rate') return [problem.amount, problem.per];
+  if (problem.kind === 'proportion') return [problem.count, problem.total, problem.asked];
   if (problem.kind === 'fraction-missing') return [problem.left, problem.denominator];
   // Every kind left has two operands; one that does not fails to compile here.
   return [problem.left, problem.right];
