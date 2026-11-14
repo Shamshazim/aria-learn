@@ -1,7 +1,9 @@
 import {
   isAlgebraProblem,
+  isMeasureProblem,
   isSignedOrRatioProblem,
   type AlgebraProblem,
+  type MeasureProblem,
   type SignedOrRatioProblem,
 } from '@/quality/arithmetic/kinds';
 import type { ArithmeticProblem } from '@/quality/arithmetic/types';
@@ -15,11 +17,27 @@ export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
   if (problem.kind === 'sequence') return [...problem.values, problem.step];
   if (isAlgebraProblem(problem)) return algebraNumbers(problem);
   if (isSignedOrRatioProblem(problem)) return signedOrRatioNumbers(problem);
+  if (isMeasureProblem(problem)) return measureNumbers(problem);
   if ('number' in problem) return [problem.number];
   if (problem.kind === 'fraction-missing') return [problem.left, problem.denominator];
   if (problem.kind === 'percent-of') return [problem.percent, problem.whole];
   // Every kind left has two operands; one that does not fails to compile here.
   return [problem.left, problem.right];
+}
+
+function measureNumbers(problem: MeasureProblem): readonly string[] {
+  switch (problem.kind) {
+    case 'elapsed-time':
+      return [...numbersIn(problem.start), problem.minutes];
+    case 'money-change':
+      return [problem.paid, problem.cost];
+    case 'rectangle':
+      return [problem.width, problem.height];
+    case 'unit-conversion':
+      return [problem.amount];
+    case 'statistic':
+      return problem.values;
+  }
 }
 
 function algebraNumbers(problem: AlgebraProblem): readonly string[] {

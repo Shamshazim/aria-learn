@@ -3,10 +3,12 @@ import type { VisualKind } from '@aria/shared';
 import { decimalParams } from '@/curriculum/visuals/decimal-visuals';
 import { fractionOperationParams } from '@/curriculum/visuals/fraction-visuals';
 import { integerParams } from '@/curriculum/visuals/integer-visuals';
+import { measureParams } from '@/curriculum/visuals/measure-visuals';
 import { ratioParams } from '@/curriculum/visuals/ratio-visuals';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import {
   isAlgebraProblem,
+  isMeasureProblem,
   isRationalProblem,
   isSignedOrRatioProblem,
   type RationalProblem,
@@ -43,6 +45,7 @@ function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Param
   if (isSignedOrRatioProblem(problem)) return fromSignedOrRatio(kind, problem);
   // P3-07: expressions and equations have no picture of their own; the defaults stand.
   if (isAlgebraProblem(problem)) return null;
+  if (isMeasureProblem(problem)) return measureParams(kind, problem);
   return fromWholeNumbers(kind, problem);
 }
 

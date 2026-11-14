@@ -2,6 +2,7 @@ import { ADD_3D_PARAMS } from '@/content/generation/arithmetic/params/add-3d';
 import { ADD_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/add-fact-10';
 import { ADD_FACT_20_PARAMS } from '@/content/generation/arithmetic/params/add-fact-20';
 import { ADD_REGROUP_2D_PARAMS } from '@/content/generation/arithmetic/params/add-regroup-2d';
+import { DATA_MEAN_PARAMS } from '@/content/generation/arithmetic/params/data-mean';
 import { DEC_ADD_PARAMS } from '@/content/generation/arithmetic/params/dec-add';
 import { DEC_CMP_PARAMS } from '@/content/generation/arithmetic/params/dec-cmp';
 import { DEC_PV_PARAMS } from '@/content/generation/arithmetic/params/dec-pv';
@@ -22,6 +23,10 @@ import { INT_ABS_PARAMS } from '@/content/generation/arithmetic/params/int-abs';
 import { INT_ADD_PARAMS } from '@/content/generation/arithmetic/params/int-add';
 import { INT_CMP_PARAMS } from '@/content/generation/arithmetic/params/int-cmp';
 import { INT_MUL_PARAMS } from '@/content/generation/arithmetic/params/int-mul';
+import { MEAS_AREA_PARAMS } from '@/content/generation/arithmetic/params/meas-area';
+import { MEAS_CONV_PARAMS } from '@/content/generation/arithmetic/params/meas-conv';
+import { MEAS_MONEY_PARAMS } from '@/content/generation/arithmetic/params/meas-money';
+import { MEAS_TIME_PARAMS } from '@/content/generation/arithmetic/params/meas-time';
 import { MUL_2D1D_PARAMS } from '@/content/generation/arithmetic/params/mul-2d1d';
 import { MUL_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/mul-fact-10';
 import { NUM_CMP_100_PARAMS } from '@/content/generation/arithmetic/params/num-cmp-100';
@@ -85,6 +90,11 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'EXP.EVAL': EXP_EVAL_PARAMS,
   'EQN.ONE': EQN_ONE_PARAMS,
   'EQN.TWO': EQN_TWO_PARAMS,
+  'MEAS.TIME': MEAS_TIME_PARAMS,
+  'MEAS.MONEY': MEAS_MONEY_PARAMS,
+  'MEAS.AREA': MEAS_AREA_PARAMS,
+  'MEAS.CONV': MEAS_CONV_PARAMS,
+  'DATA.MEAN': DATA_MEAN_PARAMS,
 };
 
 /** Written out rather than derived from the record, so no assertion is needed to name them. */
@@ -127,4 +137,9 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'EXP.EVAL',
   'EQN.ONE',
   'EQN.TWO',
+  'MEAS.TIME',
+  'MEAS.MONEY',
+  'MEAS.AREA',
+  'MEAS.CONV',
+  'DATA.MEAN',
 ];

@@ -1,0 +1,1082 @@
+[
+  {
+    "id": "arith-gen-meas-time-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "1:10",
+        "minutes": "50"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 1:10. What time will it be in 50 minutes?\" with key 2:00. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-middle-15",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 15,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "2:30",
+        "minutes": "35"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 2:30. What time will it be in 35 minutes?\" with key 3:05. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-middle-31",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "3:40",
+        "minutes": "45"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 3:40. What time will it be in 45 minutes?\" with key 4:25. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-middle-44",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 44,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "4:45",
+        "minutes": "20"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 4:45. What time will it be in 20 minutes?\" with key 5:05. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-middle-59",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 59,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "5:50",
+        "minutes": "35"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 5:50. What time will it be in 35 minutes?\" with key 6:25. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-middle-75",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 75,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "7:25",
+        "minutes": "35"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 7:25. What time will it be in 35 minutes?\" with key 8:00. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-senior-88",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 88,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "8:25",
+        "minutes": "50"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 8:25. What time will it be in 50 minutes?\" with key 9:15. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-senior-103",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 103,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "9:35",
+        "minutes": "50"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 9:35. What time will it be in 50 minutes?\" with key 10:25. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-senior-119",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 119,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "10:45",
+        "minutes": "50"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 10:45. What time will it be in 50 minutes?\" with key 11:35. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-time-senior-132",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.TIME",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 132,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.TIME",
+        "kind": "elapsed-time",
+        "start": "11:50",
+        "minutes": "25"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"It is 11:50. What time will it be in 25 minutes?\" with key 12:15. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "1.00",
+        "cost": "0.36"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $0.36. You pay $1.00. How much change do you get?\" with key $0.64. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-middle-21",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 21,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "1.00",
+        "cost": "0.63"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $0.63. You pay $1.00. How much change do you get?\" with key $0.37. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-middle-42",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 42,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "2.00",
+        "cost": "1.46"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $1.46. You pay $2.00. How much change do you get?\" with key $0.54. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-middle-60",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 60,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "2.00",
+        "cost": "0.77"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $0.77. You pay $2.00. How much change do you get?\" with key $1.23. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-middle-81",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 81,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "5.00",
+        "cost": "2.97"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $2.97. You pay $5.00. How much change do you get?\" with key $2.03. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-middle-102",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 102,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "5.00",
+        "cost": "2.04"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $2.04. You pay $5.00. How much change do you get?\" with key $2.96. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-senior-120",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 120,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "10.00",
+        "cost": "3.15"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $3.15. You pay $10.00. How much change do you get?\" with key $6.85. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-senior-141",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 141,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "10.00",
+        "cost": "2.07"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $2.07. You pay $10.00. How much change do you get?\" with key $7.93. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-senior-162",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 162,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "20.00",
+        "cost": "8.99"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $8.99. You pay $20.00. How much change do you get?\" with key $11.01. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-money-senior-180",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.MONEY",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 180,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.MONEY",
+        "kind": "money-change",
+        "paid": "20.00",
+        "cost": "13.70"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Something costs $13.70. You pay $20.00. How much change do you get?\" with key $6.30. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "3",
+        "height": "2",
+        "measure": "area",
+        "unit": "in"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A book is 3 in long and 2 in wide. What is its area?\" with key 6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-middle-12",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 12,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "6",
+        "height": "2",
+        "measure": "area",
+        "unit": "in"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A book is 6 in long and 2 in wide. What is its area?\" with key 12. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-middle-24",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 24,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "7",
+        "height": "4",
+        "measure": "area",
+        "unit": "in"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A book is 7 in long and 4 in wide. What is its area?\" with key 28. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-middle-33",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 33,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "8",
+        "height": "3",
+        "measure": "perimeter",
+        "unit": "cm"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A card is 8 cm long and 3 cm wide. What is its perimeter?\" with key 22. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-middle-45",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 45,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "9",
+        "height": "3",
+        "measure": "perimeter",
+        "unit": "cm"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A card is 9 cm long and 3 cm wide. What is its perimeter?\" with key 24. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-middle-57",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 57,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "10",
+        "height": "2",
+        "measure": "perimeter",
+        "unit": "in"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A book is 10 in long and 2 in wide. What is its perimeter?\" with key 24. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-senior-66",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 66,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "10",
+        "height": "7",
+        "measure": "area",
+        "unit": "in"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A book is 10 in long and 7 in wide. What is its area?\" with key 70. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-senior-78",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 78,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "11",
+        "height": "5",
+        "measure": "area",
+        "unit": "m"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A garden is 11 m long and 5 m wide. What is its area?\" with key 55. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-senior-90",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 90,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "12",
+        "height": "2",
+        "measure": "area",
+        "unit": "in"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A book is 12 in long and 2 in wide. What is its area?\" with key 24. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-area-senior-99",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.AREA",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 99,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.AREA",
+        "kind": "rectangle",
+        "width": "12",
+        "height": "6",
+        "measure": "perimeter",
+        "unit": "cm"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"A card is 12 cm long and 6 cm wide. What is its perimeter?\" with key 36. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-middle-0",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "2",
+        "from": "m",
+        "to": "cm"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many cm are in 2 m?\" with key 200. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-middle-8",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 8,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "3",
+        "from": "km",
+        "to": "m"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many m are in 3 km?\" with key 3000. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-middle-17",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 17,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "4",
+        "from": "kg",
+        "to": "g"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many g are in 4 kg?\" with key 4000. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-middle-23",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 23,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "5",
+        "from": "cm",
+        "to": "mm"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many mm are in 5 cm?\" with key 50. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-middle-31",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 31,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "6",
+        "from": "kg",
+        "to": "g"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many g are in 6 kg?\" with key 6000. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-middle-40",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 40,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "7",
+        "from": "h",
+        "to": "min"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many minutes are in 7 hours?\" with key 420. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-senior-46",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 46,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "8",
+        "from": "L",
+        "to": "mL"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many mL are in 8 L?\" with key 8000. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-senior-54",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 54,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "9",
+        "from": "h",
+        "to": "min"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many minutes are in 9 hours?\" with key 540. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-senior-63",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 63,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "11",
+        "from": "m",
+        "to": "cm"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many cm are in 11 m?\" with key 1100. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-meas-conv-senior-69",
+    "subject": "arithmetic",
+    "skillCode": "MEAS.CONV",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 69,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "MEAS.CONV",
+        "kind": "unit-conversion",
+        "amount": "11",
+        "from": "min",
+        "to": "s"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"How many seconds are in 11 minutes?\" with key 660. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["14", "14", "4", "18", "15"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 14, 14, 4, 18, 15.\" with key 14. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-16",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 16,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["1", "14", "3", "4", "20"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 1, 14, 3, 4, 20.\" with key 4. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-32",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 32,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["8", "14", "6", "15", "12", "19", "5"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 8, 14, 6, 15, 12, 19, 5.\" with key 12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-45",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 45,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["13", "14", "9", "9", "19", "13", "9"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 13, 14, 9, 9, 19, 13, 9.\" with key 13. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-61",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 61,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["13", "9", "12", "8", "3", "9"],
+        "measure": "mean"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the mean of 13, 9, 12, 8, 3, 9.\" with key 9. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-77",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 77,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["6", "20", "7", "1", "3"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 6, 20, 7, 1, 3.\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-senior-90",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 90,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["20", "2", "2", "18", "4"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 20, 2, 2, 18, 4.\" with key 4. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-middle-106",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 106,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["12", "11", "2", "16", "9"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 12, 11, 2, 16, 9.\" with key 11. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-middle-122",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 122,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["10", "4", "12", "1", "6", "6", "18"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 10, 4, 12, 1, 6, 6, 18.\" with key 6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-data-mean-middle-135",
+    "subject": "arithmetic",
+    "skillCode": "DATA.MEAN",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 135,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "DATA.MEAN",
+        "kind": "statistic",
+        "values": ["12", "10", "2", "3", "14", "12", "15"],
+        "measure": "median"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Find the median of 12, 10, 2, 3, 14, 12, 15.\" with key 12. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  }
+]

@@ -61,6 +61,13 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'EXP.EVAL': [],
   'EQN.ONE': [],
   'EQN.TWO': [],
+  // P3-07: a time, an amount of change, a measure or an average can each be reached more than
+  // one way; a right answer proves no one strategy.
+  'MEAS.TIME': [],
+  'MEAS.MONEY': [],
+  'MEAS.AREA': [],
+  'MEAS.CONV': [],
+  'DATA.MEAN': [],
   'PA.RHYME': [],
   'PA.BLEND': ['blended-the-sounds'],
   'PH.CVC': ['sounded-it-out'],

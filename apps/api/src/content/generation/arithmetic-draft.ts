@@ -9,9 +9,11 @@ import type { ContentKind, ContentLookup, JsonValue } from '@/content/types';
 import type { ArithmeticProblem, ArithmeticSkillCode } from '@/quality/arithmetic';
 import {
   isAlgebraProblem,
+  isMeasureProblem,
   isRationalProblem,
   isSignedOrRatioProblem,
   type AlgebraProblem,
+  type MeasureProblem,
   type RationalProblem,
   type SignedOrRatioProblem,
   type WholeNumberProblem,
@@ -78,6 +80,7 @@ function problemJson(problem: ArithmeticProblem): JsonValue {
   if (isRationalProblem(problem)) return { ...base, ...rationalFields(problem) };
   if (isSignedOrRatioProblem(problem)) return { ...base, ...signedOrRatioFields(problem) };
   if (isAlgebraProblem(problem)) return { ...base, ...algebraFields(problem) };
+  if (isMeasureProblem(problem)) return { ...base, ...measureFields(problem) };
   return { ...base, ...wholeFields(problem) };
 }
 
@@ -115,6 +118,26 @@ function rationalFields(problem: RationalProblem): Fields {
     case 'fraction-comparison':
     case 'decimal-comparison':
       return { left: problem.left, right: problem.right };
+  }
+}
+
+function measureFields(problem: MeasureProblem): Fields {
+  switch (problem.kind) {
+    case 'elapsed-time':
+      return { start: problem.start, minutes: problem.minutes };
+    case 'money-change':
+      return { paid: problem.paid, cost: problem.cost };
+    case 'rectangle':
+      return {
+        width: problem.width,
+        height: problem.height,
+        measure: problem.measure,
+        unit: problem.unit,
+      };
+    case 'unit-conversion':
+      return { amount: problem.amount, from: problem.from, to: problem.to };
+    case 'statistic':
+      return { values: [...problem.values], measure: problem.measure };
   }
 }
 

@@ -36,10 +36,28 @@ export type AlgebraProblem = Extract<
   { kind: 'expression' | 'expression-value' | 'equation' }
 >;
 
+/** Measurement and data: time, money, shapes, units and averages. */
+export type MeasureProblem = Extract<
+  ArithmeticProblem,
+  { kind: 'elapsed-time' | 'money-change' | 'rectangle' | 'unit-conversion' | 'statistic' }
+>;
+
 export type WholeNumberProblem = Exclude<
   ArithmeticProblem,
-  RationalProblem | SignedOrRatioProblem | AlgebraProblem
+  RationalProblem | SignedOrRatioProblem | AlgebraProblem | MeasureProblem
 >;
+
+const MEASURE_KINDS: ReadonlySet<string> = new Set([
+  'elapsed-time',
+  'money-change',
+  'rectangle',
+  'unit-conversion',
+  'statistic',
+]);
+
+export function isMeasureProblem(problem: ArithmeticProblem): problem is MeasureProblem {
+  return MEASURE_KINDS.has(problem.kind);
+}
 
 export function isAlgebraProblem(problem: ArithmeticProblem): problem is AlgebraProblem {
   return (

@@ -36,7 +36,12 @@ export type ArithmeticSkillCode =
   | 'EXP.ORDER'
   | 'EXP.EVAL'
   | 'EQN.ONE'
-  | 'EQN.TWO';
+  | 'EQN.TWO'
+  | 'MEAS.TIME'
+  | 'MEAS.MONEY'
+  | 'MEAS.AREA'
+  | 'MEAS.CONV'
+  | 'DATA.MEAN';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -146,6 +151,26 @@ export type ExpressionValueProblem = SkillProblem<'EXP.EVAL', 'expression-value'
 export type EquationProblem = SkillProblem<'EQN.ONE' | 'EQN.TWO', 'equation'> &
   Readonly<{ left: string; right: string; variable: string }>;
 
+/** P3-07: "It is 2:45. What time will it be in 30 minutes?" A 12-hour clock, no am or pm. */
+export type ElapsedTimeProblem = SkillProblem<'MEAS.TIME', 'elapsed-time'> &
+  Readonly<{ start: string; minutes: string }>;
+
+/** P3-07: "It costs $3.45 and you pay $5.00. How much change?" Exact in cents. */
+export type MoneyChangeProblem = SkillProblem<'MEAS.MONEY', 'money-change'> &
+  Readonly<{ paid: string; cost: string }>;
+
+/** P3-07: "A rectangle 6 cm by 4 cm. What is its area?" */
+export type RectangleProblem = SkillProblem<'MEAS.AREA', 'rectangle'> &
+  Readonly<{ width: string; height: string; measure: 'area' | 'perimeter'; unit: string }>;
+
+/** P3-07: "How many cm in 3 m?" Converted by a fixed table, bigger unit to smaller. */
+export type UnitConversionProblem = SkillProblem<'MEAS.CONV', 'unit-conversion'> &
+  Readonly<{ amount: string; from: string; to: string }>;
+
+/** P3-07: "Find the mean of 4, 8, 6 and 2." */
+export type StatisticProblem = SkillProblem<'DATA.MEAN', 'statistic'> &
+  Readonly<{ values: readonly string[]; measure: 'mean' | 'median' }>;
+
 /** P3-07: "In 47, which digit is in the tens place?" */
 export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
   Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
@@ -181,6 +206,11 @@ export type ArithmeticProblem =
   | ExpressionProblem
   | ExpressionValueProblem
   | EquationProblem
+  | ElapsedTimeProblem
+  | MoneyChangeProblem
+  | RectangleProblem
+  | UnitConversionProblem
+  | StatisticProblem
   | DigitPlaceProblem
   | WholeComparisonProblem
   | RoundingProblem;

@@ -11,6 +11,7 @@ import {
   fractionOperationError,
 } from '@/curriculum/misconceptions/derived-fractions';
 import { integerError } from '@/curriculum/misconceptions/derived-integers';
+import { measureError } from '@/curriculum/misconceptions/derived-measures';
 import { divisionError, multiplicationError } from '@/curriculum/misconceptions/derived-mul-div';
 import {
   placeValueError,
@@ -21,6 +22,7 @@ import { ratioError } from '@/curriculum/misconceptions/derived-ratios';
 import type { ArithmeticRule } from '@/curriculum/misconceptions/signature.types';
 import {
   isAlgebraProblem,
+  isMeasureProblem,
   isRationalProblem,
   isSignedOrRatioProblem,
   type RationalProblem,
@@ -51,6 +53,7 @@ export function predictArithmeticError(
   if (isRationalProblem(problem)) return rationalError(rule, problem);
   if (isSignedOrRatioProblem(problem)) return signedOrRatioError(rule, problem);
   if (isAlgebraProblem(problem)) return algebraError(rule, problem);
+  if (isMeasureProblem(problem)) return measureError(rule, problem);
   return wholeError(rule, problem);
 }
 
