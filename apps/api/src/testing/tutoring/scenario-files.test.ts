@@ -35,6 +35,13 @@ describe('checked-in tutoring scenarios', () => {
       'resumed-session',
       'safety-disclosure',
       'tired-child',
+      // P3-08: the phase3/ group, loaded after the top-level files.
+      'backward-move',
+      'brief-drift',
+      'correction-next-session',
+      'invented-fact-trap',
+      'opens-knowing-child',
+      'tired-adapts-no-label',
     ]);
     expect(reports.every((report) => report.passed)).toBe(true);
   });

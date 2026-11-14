@@ -1,0 +1,108 @@
+{
+  "id": "tired-adapts-no-label",
+  "title": "Tired, adapts, no label",
+  "grade": "3",
+  "description": "Slow answers suggest the child may be tired. Aria asks rather than tells, then makes the task smaller once the child says so. She never says the child is tired as a fact, and no lasting fact is made from a passing state. Phase 3 exit, criterion 5.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [],
+    "affectObservations": [
+      {
+        "id": "affect_slow_answers",
+        "claim": "Answers have slowed; the learner may be tired.",
+        "confidence": "low"
+      }
+    ],
+    "safetyDisclosureEventIds": [],
+    "expectedAffectCheckIns": [
+      {
+        "eventId": "evt_p3_tired_slow",
+        "observationId": "affect_slow_answers"
+      }
+    ],
+    "expectedAdaptations": [
+      {
+        "eventId": "evt_p3_tired_confirm"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_p3_tired_slow",
+        "at": "2026-11-10T16:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "SILENCE",
+        "waitedMs": 14000
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_tired_check",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": {
+              "text": "How is your energy right now: ready to keep going, or a bit low?"
+            },
+            "display": [],
+            "expects": "choice",
+            "about": "energy"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "affectClaims": [
+            {
+              "observationId": "affect_slow_answers",
+              "moveId": "mov_p3_tired_check"
+            }
+          ],
+          "approachId": "check-in"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_tired_confirm",
+        "at": "2026-11-10T16:00:08Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_tired_check",
+        "text": "A bit low."
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_tired_small",
+            "at": "2026-11-10T16:00:08Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": {
+              "text": "Thanks for telling me. Let's do just one short one, then you can choose."
+            },
+            "display": [],
+            "expects": "none"
+          },
+          {
+            "id": "mov_p3_tired_ask",
+            "at": "2026-11-10T16:00:08Z",
+            "protocolVersion": "1.1.0",
+            "kind": "ASK",
+            "speech": {
+              "text": "What is 4 add 3?"
+            },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.add_within_10",
+            "itemId": "item_p3_small"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "approachId": "smaller-task"
+        }
+      }
+    }
+  ]
+}

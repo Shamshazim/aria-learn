@@ -3,6 +3,12 @@ import type {
   InvariantFinding,
   InvariantReport,
 } from '@/testing/tutoring/assertions/invariant.types';
+import {
+  checkAdaptations,
+  checkCorrections,
+  checkStateLabels,
+  checkUnsupportedClaims,
+} from '@/testing/tutoring/assertions/phase3';
 import { checkProcedureReveals } from '@/testing/tutoring/assertions/procedure';
 import { checkRepeatedSentences } from '@/testing/tutoring/assertions/repetition';
 import type { TutoringTranscript } from '@/testing/tutoring/transcript';
@@ -19,6 +25,13 @@ export const INVARIANT_RULES: readonly Readonly<{ code: InvariantCode; descripti
   },
   { code: 'INTERRUPTION_NOT_STOPPED', description: 'An interruption stops the current move.' },
   { code: 'SENTENCE_REPEATED', description: 'Aria never repeats her previous sentence.' },
+  {
+    code: 'UNSUPPORTED_CLAIM',
+    description: 'Every proper noun Aria says is in an evidenced fact.',
+  },
+  { code: 'CORRECTED_FACT_ASSERTED', description: 'A corrected fact is never asserted again.' },
+  { code: 'STATE_LABEL_ASSERTED', description: 'No feeling is said about the child as a fact.' },
+  { code: 'ADAPTATION_MISSING', description: 'Aria changes approach where a change is expected.' },
   {
     code: 'REVEAL_BEFORE_STEPS',
     description: 'A procedure is never revealed before every step has had a turn.',
@@ -215,6 +228,10 @@ export function checkTutoringInvariants(transcript: TutoringTranscript): Invaria
     ...checkInterruptions(transcript),
     ...checkRepeatedSentences(transcript),
     ...checkProcedureReveals(transcript),
+    ...checkUnsupportedClaims(transcript),
+    ...checkCorrections(transcript),
+    ...checkStateLabels(transcript),
+    ...checkAdaptations(transcript),
   ];
   return { passed: findings.length === 0, findings };
 }

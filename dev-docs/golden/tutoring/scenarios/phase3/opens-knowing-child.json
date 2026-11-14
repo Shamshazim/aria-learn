@@ -1,0 +1,100 @@
+{
+  "id": "opens-knowing-child",
+  "title": "Opens knowing the child",
+  "grade": "3",
+  "description": "Aria's welcome names one thing she knows about the child, and that thing has evidence behind it: the fact id is traced and its evidence exists. Phase 3 exit, criterion 1.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_fractions_persisted",
+        "claim": "The learner kept going on fraction bars when they got hard.",
+        "evidenceIds": ["session_2026_11_07_event_31"]
+      }
+    ],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_p3_open_arrival",
+        "factId": "fact_fractions_persisted"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_p3_open_arrival",
+        "at": "2026-11-10T16:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "3"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_open_welcome",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "WELCOME",
+            "speech": {
+              "text": "Welcome back. Last time you kept going on fraction bars even when they got hard."
+            },
+            "display": [],
+            "expects": "none",
+            "basedOn": ["session_2026_11_07_event_31"]
+          },
+          {
+            "id": "mov_p3_open_checkin",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": {
+              "text": "Do you want an easy start or a challenge?"
+            },
+            "display": [],
+            "expects": "choice",
+            "about": "difficulty"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "assertedFactIds": ["fact_fractions_persisted"],
+          "approachId": "welcome-known"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_open_choice",
+        "at": "2026-11-10T16:00:05Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_open_checkin",
+        "text": "A challenge."
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_open_recommend",
+            "at": "2026-11-10T16:00:05Z",
+            "protocolVersion": "1.1.0",
+            "kind": "RECOMMEND",
+            "speech": {
+              "text": "Let's pick up fractions where we left off."
+            },
+            "display": [],
+            "expects": "choice",
+            "subjectId": "math",
+            "grade": "3",
+            "reason": "Fractions were the last thing practised."
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "approachId": "recommend-continue"
+        }
+      }
+    }
+  ]
+}

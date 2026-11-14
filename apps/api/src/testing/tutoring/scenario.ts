@@ -63,6 +63,26 @@ const tutoringScenarioShapeSchema = z.strictObject({
     expectedAffectCheckIns: z.array(expectedAffectCheckInSchema).max(16).default([]),
     safetyDisclosureEventIds: z.array(boundedIdSchema).max(16).default([]),
     /**
+     * P3-08: a parent correction. From its event on, the old fact must not be asserted, by id
+     * or by its retired phrase; the replacement is asserted through `expectedFactAssertions`.
+     */
+    corrections: z
+      .array(
+        z.strictObject({
+          factId: boundedIdSchema,
+          replacementFactId: boundedIdSchema,
+          effectiveFromEventId: boundedIdSchema,
+          retiredPhrase: z.string().min(1).max(200),
+        }),
+      )
+      .max(8)
+      .optional(),
+    /** P3-08: turns where Aria must change what she is doing, such as after a tired check-in. */
+    expectedAdaptations: z
+      .array(z.strictObject({ eventId: boundedIdSchema }))
+      .max(8)
+      .optional(),
+    /**
      * P3-07: the item the scenario is about, when it is not the default golden skill's. A
      * procedure item here brings its steps with it, which is what the long-division scenario
      * is testing.
@@ -177,16 +197,38 @@ export function parseTutoringScenario(input: unknown): TutoringScenario {
 export async function loadTutoringScenarios(
   directory: string,
 ): Promise<readonly TutoringScenario[]> {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const filenames = entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
-    .map((entry) => entry.name)
-    .sort();
+  const files = await scenarioFiles(directory);
   return Promise.all(
-    filenames.map(async (filename) => {
-      const contents = await readFile(path.join(directory, filename), 'utf8');
+    files.map(async (file) => {
+      const contents = await readFile(file, 'utf8');
       const input: unknown = JSON.parse(contents);
       return parseTutoringScenario(input);
     }),
   );
+}
+
+/**
+ * The scenario files in a directory and, one level down, in its groups (P3-08: `phase3/`), in
+ * a stable order: top-level files first, then each group's.
+ */
+async function scenarioFiles(directory: string): Promise<readonly string[]> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const own = entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+    .map((entry) => path.join(directory, entry.name))
+    .sort();
+  const groups = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  const nested = await Promise.all(
+    groups.map(async (group) => {
+      const inner = await readdir(path.join(directory, group), { withFileTypes: true });
+      return inner
+        .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+        .map((entry) => path.join(directory, group, entry.name))
+        .sort();
+    }),
+  );
+  return [...own, ...nested.flat()];
 }

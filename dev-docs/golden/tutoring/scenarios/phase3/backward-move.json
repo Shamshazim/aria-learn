@@ -1,0 +1,128 @@
+{
+  "id": "backward-move",
+  "title": "Backward move",
+  "grade": "2",
+  "description": "Three misses on 8 + 5. The real policy hints, then explains another way, then steps back to adding within ten instead of asking a fourth time (P3-04, \u00a74.4). Phase 3 exit: two wrong answers never go by without a change of approach.",
+  "context": {
+    "answerOutcomes": [
+      {
+        "eventId": "evt_p3_back_1",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_p3_back_2",
+        "outcome": "wrong"
+      },
+      {
+        "eventId": "evt_p3_back_3",
+        "outcome": "wrong"
+      }
+    ],
+    "learnerFacts": [],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": [],
+    "item": {
+      "skillCode": "ADD.FACT.20",
+      "arithmeticProblem": {
+        "skillCode": "ADD.FACT.20",
+        "kind": "addition",
+        "left": "8",
+        "right": "5"
+      }
+    }
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_p3_back_1",
+        "at": "2026-11-10T17:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_back_ask_1",
+        "text": "10"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_back_1",
+            "at": "2026-11-10T17:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "HINT",
+            "speech": {
+              "text": "Start at eight and count on five more. Where do you land?"
+            },
+            "display": [],
+            "expects": "number",
+            "skillId": "math.add_within_20",
+            "attempt": 1
+          }
+        ],
+        "evidence": {
+          "approachId": "single-nudge",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_back_2",
+        "at": "2026-11-10T17:00:08Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_back_ask_2",
+        "text": "12"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_back_2",
+            "at": "2026-11-10T17:00:08Z",
+            "protocolVersion": "1.1.0",
+            "kind": "RETEACH",
+            "speech": {
+              "text": "Let's fill a ten-frame with eight counters, then add the five. How many spill into the next frame?"
+            },
+            "display": [],
+            "expects": "none",
+            "skillId": "math.add_within_20"
+          }
+        ],
+        "evidence": {
+          "approachId": "visual-model",
+          "responseOrigin": "scripted"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_back_3",
+        "at": "2026-11-10T17:00:16Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_back_ask_3",
+        "text": "3"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_back_3",
+            "at": "2026-11-10T17:00:16Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SWITCH",
+            "speech": {
+              "text": "Let's practise adding within ten for a bit, then come back to this one."
+            },
+            "display": [],
+            "expects": "none",
+            "fromSkillId": "math.add_within_20",
+            "reason": "The current skill is stuck; return to its weakest prerequisite."
+          }
+        ],
+        "evidence": {
+          "approachId": "prerequisite-step",
+          "responseOrigin": "scripted"
+        }
+      }
+    }
+  ]
+}

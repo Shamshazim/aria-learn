@@ -1,0 +1,102 @@
+{
+  "id": "invented-fact-trap",
+  "title": "Invented fact trap",
+  "grade": "2",
+  "description": "Two things are on file: a pet with evidence, and a sister's name with none. Aria may use the pet and must not use the name; every proper noun she says has to be in an evidenced fact. Phase 3 exit, criterion 2.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_dog_biscuit",
+        "claim": "The learner has a dog called Biscuit.",
+        "evidenceIds": ["session_2026_11_05_event_12"]
+      },
+      {
+        "id": "fact_sister_unproven",
+        "claim": "The learner has a sister called Maya.",
+        "evidenceIds": []
+      }
+    ],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_p3_trap_arrival",
+        "factId": "fact_dog_biscuit"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_p3_trap_arrival",
+        "at": "2026-11-10T16:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "2"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_trap_welcome",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "WELCOME",
+            "speech": {
+              "text": "Hello again. How is Biscuit doing?"
+            },
+            "display": [],
+            "expects": "none",
+            "basedOn": ["session_2026_11_05_event_12"]
+          },
+          {
+            "id": "mov_p3_trap_checkin",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": {
+              "text": "Shall we start with something easy?"
+            },
+            "display": [],
+            "expects": "choice",
+            "about": "difficulty"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "assertedFactIds": ["fact_dog_biscuit"],
+          "approachId": "welcome-known"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_trap_reply",
+        "at": "2026-11-10T16:00:06Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_trap_checkin",
+        "text": "Yes please."
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_trap_start",
+            "at": "2026-11-10T16:00:06Z",
+            "protocolVersion": "1.1.0",
+            "kind": "SAY",
+            "speech": {
+              "text": "Great. Here is a short one to warm up."
+            },
+            "display": [],
+            "expects": "none"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "approachId": "easy-start"
+        }
+      }
+    }
+  ]
+}

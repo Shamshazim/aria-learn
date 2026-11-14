@@ -1,0 +1,93 @@
+{
+  "id": "brief-drift",
+  "title": "Brief drift",
+  "grade": "5",
+  "description": "The end-of-session recap may only say what the evidence shows. One fact is evidenced; a flattering one has drifted in with no evidence. The recap uses the first and not the second. Phase 3 exit, criteria 2 and 6.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_six_fraction_problems",
+        "claim": "The learner finished six fraction problems this session.",
+        "evidenceIds": ["session_2026_11_10_event_44"]
+      },
+      {
+        "id": "fact_natural_at_maths",
+        "claim": "The learner is a natural at maths.",
+        "evidenceIds": []
+      }
+    ],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_p3_brief_leave",
+        "factId": "fact_six_fraction_problems"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_p3_brief_answer",
+        "at": "2026-11-10T16:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ANSWER",
+        "respondsTo": "mov_p3_brief_ask",
+        "text": "5/6"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_brief_praise",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "PRAISE",
+            "speech": {
+              "text": "You made the pieces the same size before you added. That worked."
+            },
+            "display": [],
+            "expects": "none",
+            "skillId": "math.fractions",
+            "because": "Renamed both fractions to sixths before adding."
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "approachId": "specific-evidence"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_brief_leave",
+        "at": "2026-11-10T16:00:09Z",
+        "protocolVersion": "1.1.0",
+        "kind": "LEAVE",
+        "reason": "done"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_brief_end",
+            "at": "2026-11-10T16:00:09Z",
+            "protocolVersion": "1.1.0",
+            "kind": "END",
+            "speech": {
+              "text": "That is the end for today. You finished six fraction problems."
+            },
+            "display": [],
+            "expects": "none",
+            "learned": ["You finished six fraction problems."],
+            "reason": "complete"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "assertedFactIds": ["fact_six_fraction_problems"],
+          "approachId": "recap"
+        }
+      }
+    }
+  ]
+}
