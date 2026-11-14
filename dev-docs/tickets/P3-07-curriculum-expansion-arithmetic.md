@@ -49,6 +49,31 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 8 of 9: expressions and equations
+
+**Code complete 2026-11-14** on `feat/P3-07-arithmetic-expressions`, pending review, stacked
+on strand 7 (#45).
+
+- **Four skills.** `EXP.ORDER` (5.OA.A.1, middle), `EXP.EVAL` (6.EE.A.2.c), `EQN.ONE`
+  (6.EE.B.7), all `number_sense`; `EQN.TWO` (7.EE.B.4.a), `procedure`. Kinds `expression`,
+  `expression-value` and `equation`.
+- **One exact evaluator, rules as a parameter** (`quality/arithmetic/expression.ts`): whole
+  numbers, one letter, + − × ÷, brackets, "3n" as 3 × n, on rationals. The wrong orders of
+  operations are the same evaluator run with wrong rules (left to right, brackets ignored,
+  adding first). Proven against 10,000 random bracketed expressions whose values were built
+  alongside them without parsing.
+- **The ticket's two rules.** Equations are checked by substitution: the child's value goes
+  into both sides and the sides are compared ("x = 8" and "8" are one answer); a solver only
+  names the expected answer. Order-of-operations items never contain an unbracketed ÷ chain,
+  and every one is told apart from at least one wrong order (both tested).
+- **Two-step equation steps:** undo the added or taken-away number on both sides, then the
+  multiplying. Items whose steps would show the answer early are filtered out.
+- **Dispatch gains a fourth group,** algebra, in `kinds.ts`, used by the misconceptions,
+  visuals, phrasing, draft serialiser and `problemNumbers`.
+- **Verification.** Typecheck and lint clean. Full suite: 2916 pass, the same 12 known
+  catalogue failures. `golden:content --generator-only`: 392 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
 ### Strand 7 of 9: ratio and proportion, and dividing fractions
 
 **Code complete 2026-11-14** on `feat/P3-07-arithmetic-ratio`, pending review, stacked on

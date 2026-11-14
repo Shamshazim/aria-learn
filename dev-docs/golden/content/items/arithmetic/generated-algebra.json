@@ -1,0 +1,862 @@
+[
+  {
+    "id": "arith-gen-exp-order-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "2 + 2 × 2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"2 + 2 × 2 = ?\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-senior-30",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 30,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "13 × (3 + 2)"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"13 × (3 + 2) = ?\" with key 65. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-senior-61",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 61,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "(16 + 8) × 2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"(16 + 8) × 2 = ?\" with key 48. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-senior-89",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 89,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "6 × (8 - 2)"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"6 × (8 - 2) = ?\" with key 36. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-senior-120",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 120,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "9 × (5 + 2)"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"9 × (5 + 2) = ?\" with key 63. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-senior-151",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 151,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "9 × 9 + 2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"9 × 9 + 2 = ?\" with key 83. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-middle-178",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 178,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "2 × (2 - 2)"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 2 × (2 - 2)?\" with key 0. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-middle-209",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 209,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "13 × 3 + 2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 13 × 3 + 2?\" with key 41. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-middle-240",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 240,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "12 - 6 × 2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 12 - 6 × 2?\" with key 0. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-order-middle-268",
+    "subject": "arithmetic",
+    "skillCode": "EXP.ORDER",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 268,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.ORDER",
+        "kind": "expression",
+        "expression": "9 × (9 + 2)"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 9 × (9 + 2)?\" with key 99. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "2n + 1",
+        "variable": "n",
+        "value": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 2n + 1 when n = 2?\" with key 5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-senior-27",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 27,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "5y + 3",
+        "variable": "y",
+        "value": "6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 5y + 3 when y = 6?\" with key 33. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-senior-55",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 55,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "8y + 6",
+        "variable": "y",
+        "value": "9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 8y + 6 when y = 9?\" with key 78. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-senior-79",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 79,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "3y - 7",
+        "variable": "y",
+        "value": "5"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3y - 7 when y = 5?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-senior-107",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 107,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "7n - 1",
+        "variable": "n",
+        "value": "9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 7n - 1 when n = 9?\" with key 62. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-senior-135",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 135,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "6 + 2x",
+        "variable": "x",
+        "value": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 6 + 2x when x = 3?\" with key 12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-middle-159",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 159,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "4 + 5y",
+        "variable": "y",
+        "value": "3"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 4 + 5y when y = 3?\" with key 19. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-middle-187",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 187,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "7 + 8y",
+        "variable": "y",
+        "value": "6"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 7 + 8y when y = 6?\" with key 55. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-middle-214",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 214,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "3(n + 12)",
+        "variable": "n",
+        "value": "2"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 3(n + 12) when n = 2?\" with key 42. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-exp-eval-middle-239",
+    "subject": "arithmetic",
+    "skillCode": "EXP.EVAL",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 239,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EXP.EVAL",
+        "kind": "expression-value",
+        "expression": "6(x + 10)",
+        "variable": "x",
+        "value": "9"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"What is 6(x + 10) when x = 9?\" with key 114. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "2x",
+        "right": "4",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 2x = 4. What is x?\" with key 2. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-senior-20",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 20,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x ÷ 5",
+        "right": "4",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x ÷ 5 = 4. What is x?\" with key 20. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-senior-40",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 40,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x ÷ 7",
+        "right": "6",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x ÷ 7 = 6. What is x?\" with key 42. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-senior-58",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 58,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x + 6",
+        "right": "14",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x + 6 = 14. What is x?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-senior-78",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 78,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "6x",
+        "right": "60",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 6x = 60. What is x?\" with key 10. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-senior-99",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 99,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x + 6",
+        "right": "18",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x + 6 = 18. What is x?\" with key 12. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-middle-116",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 116,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x ÷ 12",
+        "right": "13",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x ÷ 12 = 13. What is x?\" with key 156. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-middle-136",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 136,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x ÷ 10",
+        "right": "15",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x ÷ 10 = 15. What is x?\" with key 150. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-middle-157",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 157,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x + 9",
+        "right": "26",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x + 9 = 26. What is x?\" with key 17. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-one-middle-174",
+    "subject": "arithmetic",
+    "skillCode": "EQN.ONE",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 174,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.ONE",
+        "kind": "equation",
+        "left": "x - 4",
+        "right": "15",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve x - 4 = 15. What is x?\" with key 19. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-senior-0",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 0,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "2x - 5",
+        "right": "1",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 2x - 5 = 1. What is x?\" with key 3. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-senior-9",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 9,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "2x + 15",
+        "right": "43",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 2x + 15 = 43. What is x?\" with key 14. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-senior-19",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 19,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "3x - 7",
+        "right": "35",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 3x - 7 = 35. What is x?\" with key 14. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-senior-26",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 26,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "4x + 14",
+        "right": "46",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 4x + 14 = 46. What is x?\" with key 8. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-senior-36",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 36,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "5x - 11",
+        "right": "19",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 5x - 11 = 19. What is x?\" with key 6. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-senior-46",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "senior",
+    "origin": "generator",
+    "generatorIndex": 46,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "6x - 13",
+        "right": "17",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 6x - 13 = 17. What is x?\" with key 5. A curriculum reviewer must confirm the wording suits the senior band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-middle-53",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 53,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "6x + 13",
+        "right": "97",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 6x + 13 = 97. What is x?\" with key 14. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-middle-63",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 63,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "7x - 10",
+        "right": "74",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 7x - 10 = 74. What is x?\" with key 12. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-middle-73",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 73,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "8x - 12",
+        "right": "76",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 8x - 12 = 76. What is x?\" with key 11. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  },
+  {
+    "id": "arith-gen-eqn-two-middle-80",
+    "subject": "arithmetic",
+    "skillCode": "EQN.TWO",
+    "band": "middle",
+    "origin": "generator",
+    "generatorIndex": 80,
+    "expectation": {
+      "arithmeticProblem": {
+        "skillCode": "EQN.TWO",
+        "kind": "equation",
+        "left": "9x - 9",
+        "right": "45",
+        "variable": "x"
+      },
+      "multipleChoice": true
+    },
+    "humanReview": {
+      "status": "pending",
+      "notes": "Generated item: \"Solve 9x - 9 = 45. What is x?\" with key 6. A curriculum reviewer must confirm the wording suits the middle band and that exactly one option is correct."
+    }
+  }
+]

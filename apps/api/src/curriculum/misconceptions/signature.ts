@@ -87,6 +87,17 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'multiplied-total': true,
   'flipped-dividend': true,
   'flipped-both': true,
+  'left-to-right': true,
+  'ignored-brackets': true,
+  'addition-first': true,
+  'concatenated-coefficient': true,
+  'added-coefficient': true,
+  'ignored-coefficient': true,
+  'wrong-inverse': true,
+  'kept-right-side': true,
+  'answered-the-operand': true,
+  'stopped-after-one-step': true,
+  'divided-first': true,
 };
 
 /** Whether this answer carries this wrong idea. */

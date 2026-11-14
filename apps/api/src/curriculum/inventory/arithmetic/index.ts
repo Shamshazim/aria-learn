@@ -1,5 +1,6 @@
 import { ADD_SUB_SKILLS } from './add-sub.skills';
 import { DECIMALS_PERCENT_SKILLS } from './decimals-percent.skills';
+import { EXPRESSION_SKILLS } from './expressions.skills';
 import { FRACTION_SKILLS } from './fractions.skills';
 import { INTEGER_SKILLS } from './integers.skills';
 import { MUL_DIV_SKILLS } from './mul-div.skills';
@@ -18,6 +19,7 @@ export const ARITHMETIC_SKILLS = [
   ...DECIMALS_PERCENT_SKILLS,
   ...INTEGER_SKILLS,
   ...RATIO_PROPORTION_SKILLS,
+  ...EXPRESSION_SKILLS,
 ];
 
 /**

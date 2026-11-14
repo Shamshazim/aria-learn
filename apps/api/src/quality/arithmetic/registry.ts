@@ -11,6 +11,11 @@ import {
   solvePercentOf,
 } from '@/quality/arithmetic/solvers/decimals';
 import {
+  solveEquation,
+  solveExpression,
+  solveExpressionValue,
+} from '@/quality/arithmetic/solvers/expressions';
+import {
   solveFractionMissing,
   solveFractionOperation,
 } from '@/quality/arithmetic/solvers/fraction-operations';
@@ -73,6 +78,10 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'RAT.UNIT': unitRateSolver,
   'RAT.PROP': proportionSolver,
   'FRAC.DIV': fractionOperationSolver,
+  'EXP.ORDER': expressionSolver,
+  'EXP.EVAL': expressionValueSolver,
+  'EQN.ONE': equationSolver,
+  'EQN.TWO': equationSolver,
 };
 
 /** P3-07: the skills a checker exists for — what the inventory is cross-checked against at boot. */
@@ -194,6 +203,20 @@ function unitRateSolver(problem: ArithmeticProblem, candidate: string): CheckRes
 
 function proportionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'proportion' ? solveProportion(problem, candidate) : mismatch(problem);
+}
+
+function expressionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'expression' ? solveExpression(problem, candidate) : mismatch(problem);
+}
+
+function expressionValueSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'expression-value'
+    ? solveExpressionValue(problem, candidate)
+    : mismatch(problem);
+}
+
+function equationSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'equation' ? solveEquation(problem, candidate) : mismatch(problem);
 }
 
 function mismatch(problem: ArithmeticProblem): CheckResult {

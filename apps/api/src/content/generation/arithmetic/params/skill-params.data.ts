@@ -7,6 +7,10 @@ import { DEC_CMP_PARAMS } from '@/content/generation/arithmetic/params/dec-cmp';
 import { DEC_PV_PARAMS } from '@/content/generation/arithmetic/params/dec-pv';
 import { DIV_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/div-fact-10';
 import { DIV_LONG_PARAMS } from '@/content/generation/arithmetic/params/div-long';
+import { EQN_ONE_PARAMS } from '@/content/generation/arithmetic/params/eqn-one';
+import { EQN_TWO_PARAMS } from '@/content/generation/arithmetic/params/eqn-two';
+import { EXP_EVAL_PARAMS } from '@/content/generation/arithmetic/params/exp-eval';
+import { EXP_ORDER_PARAMS } from '@/content/generation/arithmetic/params/exp-order';
 import { FRAC_ADD_LIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-like';
 import { FRAC_ADD_UNLIKE_PARAMS } from '@/content/generation/arithmetic/params/frac-add-unlike';
 import { FRAC_COMPARE_PARAMS } from '@/content/generation/arithmetic/params/frac-compare';
@@ -77,6 +81,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'RAT.UNIT': RAT_UNIT_PARAMS,
   'RAT.PROP': RAT_PROP_PARAMS,
   'FRAC.DIV': FRAC_DIV_PARAMS,
+  'EXP.ORDER': EXP_ORDER_PARAMS,
+  'EXP.EVAL': EXP_EVAL_PARAMS,
+  'EQN.ONE': EQN_ONE_PARAMS,
+  'EQN.TWO': EQN_TWO_PARAMS,
 };
 
 /** Written out rather than derived from the record, so no assertion is needed to name them. */
@@ -115,4 +123,8 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'RAT.UNIT',
   'RAT.PROP',
   'FRAC.DIV',
+  'EXP.ORDER',
+  'EXP.EVAL',
+  'EQN.ONE',
+  'EQN.TWO',
 ];

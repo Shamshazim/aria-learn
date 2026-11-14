@@ -1,8 +1,13 @@
 import { columnAdditionSteps, type ProcedureStep } from '@/quality/arithmetic/column-steps';
 import { decimalSteps } from '@/quality/arithmetic/decimal-steps';
+import { evaluate, linearForm } from '@/quality/arithmetic/expression';
 import { gcd, readWrittenFraction } from '@/quality/arithmetic/fraction-format';
 import { parseInteger } from '@/quality/arithmetic/normalise';
-import type { ArithmeticProblem, FractionOperation } from '@/quality/arithmetic/types';
+import type {
+  ArithmeticProblem,
+  EquationProblem,
+  FractionOperation,
+} from '@/quality/arithmetic/types';
 
 export type { ProcedureStep } from '@/quality/arithmetic/column-steps';
 
@@ -33,6 +38,8 @@ export function procedureSteps(problem: ArithmeticProblem): readonly ProcedureSt
       return decimalSteps(problem);
     case 'FRAC.DIV':
       return fractionDivisionSteps(problem.left, problem.right);
+    case 'EQN.TWO':
+      return equationSteps(problem);
     default:
       return [];
   }
@@ -195,6 +202,31 @@ function fractionDivisionSteps(leftText: string, rightText: string): readonly Pr
     {
       prompt: `Multiply the bottoms: ${left.denominator.toString()} and ${right.numerator.toString()}.`,
       answer: (left.denominator * right.numerator).toString(),
+    },
+  ];
+}
+
+/**
+ * P3-07: a two-step equation, undone in reverse: the number added or taken away first, then
+ * the multiplying. Each step is done to both sides, and says so.
+ */
+function equationSteps(problem: EquationProblem): readonly ProcedureStep[] {
+  const left = linearForm(problem.left, problem.variable);
+  const right = evaluate(problem.right);
+  if (left === null || right === null || left.a.denominator !== 1n || left.b.denominator !== 1n)
+    return [];
+  if (right.denominator !== 1n || left.b.numerator === 0n) return [];
+  const [a, b, r] = [left.a.numerator, left.b.numerator, right.numerator];
+  const term = `${a.toString()}${problem.variable}`;
+  const undo =
+    b > 0n
+      ? `Undo the + ${b.toString()}: take ${b.toString()} from both sides.`
+      : `Undo the - ${(-b).toString()}: add ${(-b).toString()} to both sides.`;
+  return [
+    { prompt: `${undo} What is ${term} now?`, answer: (r - b).toString() },
+    {
+      prompt: `Undo the times ${a.toString()}: divide ${(r - b).toString()} by ${a.toString()}. What is ${problem.variable}?`,
+      answer: a === 0n ? '' : ((r - b) / a).toString(),
     },
   ];
 }

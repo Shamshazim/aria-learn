@@ -1,3 +1,9 @@
+import {
+  isAlgebraProblem,
+  isSignedOrRatioProblem,
+  type AlgebraProblem,
+  type SignedOrRatioProblem,
+} from '@/quality/arithmetic/kinds';
 import type { ArithmeticProblem } from '@/quality/arithmetic/types';
 
 /**
@@ -7,14 +13,42 @@ import type { ArithmeticProblem } from '@/quality/arithmetic/types';
  */
 export function problemNumbers(problem: ArithmeticProblem): readonly string[] {
   if (problem.kind === 'sequence') return [...problem.values, problem.step];
-  if (problem.kind === 'place-value' || problem.kind === 'rounding') return [problem.number];
-  if (problem.kind === 'decimal-place' || problem.kind === 'absolute-value')
-    return [problem.number];
-  if (problem.kind === 'percent-of') return [problem.percent, problem.whole];
-  if (problem.kind === 'ratio-missing') return [problem.first, problem.second, problem.scaledFirst];
-  if (problem.kind === 'unit-rate') return [problem.amount, problem.per];
-  if (problem.kind === 'proportion') return [problem.count, problem.total, problem.asked];
+  if (isAlgebraProblem(problem)) return algebraNumbers(problem);
+  if (isSignedOrRatioProblem(problem)) return signedOrRatioNumbers(problem);
+  if ('number' in problem) return [problem.number];
   if (problem.kind === 'fraction-missing') return [problem.left, problem.denominator];
+  if (problem.kind === 'percent-of') return [problem.percent, problem.whole];
   // Every kind left has two operands; one that does not fails to compile here.
   return [problem.left, problem.right];
+}
+
+function algebraNumbers(problem: AlgebraProblem): readonly string[] {
+  switch (problem.kind) {
+    case 'expression':
+      return numbersIn(problem.expression);
+    case 'expression-value':
+      return [...numbersIn(problem.expression), problem.value];
+    case 'equation':
+      return [...numbersIn(problem.left), ...numbersIn(problem.right)];
+  }
+}
+
+function signedOrRatioNumbers(problem: SignedOrRatioProblem): readonly string[] {
+  switch (problem.kind) {
+    case 'absolute-value':
+      return [problem.number];
+    case 'integer-comparison':
+    case 'integer-operation':
+      return [problem.left, problem.right];
+    case 'ratio-missing':
+      return [problem.first, problem.second, problem.scaledFirst];
+    case 'unit-rate':
+      return [problem.amount, problem.per];
+    case 'proportion':
+      return [problem.count, problem.total, problem.asked];
+  }
+}
+
+function numbersIn(text: string): readonly string[] {
+  return [...text.matchAll(/\d+/gu)].map((match) => match[0]);
 }
