@@ -7,6 +7,13 @@ import { generateItem, parameterSpaceSize } from '@/content/generation/arithmeti
 import type { GeneratedItem } from '@/content/generation/arithmetic';
 import type { ContentKind, ContentLookup, JsonValue } from '@/content/types';
 import type { ArithmeticProblem, ArithmeticSkillCode } from '@/quality/arithmetic';
+import {
+  isRationalProblem,
+  isSignedOrRatioProblem,
+  type RationalProblem,
+  type SignedOrRatioProblem,
+  type WholeNumberProblem,
+} from '@/quality/arithmetic/kinds';
 
 const OPTION_IDS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
 
@@ -66,27 +73,72 @@ export function toGeneratedContent(item: GeneratedItem, kind: ContentKind): Gene
  */
 function problemJson(problem: ArithmeticProblem): JsonValue {
   const base = { skillCode: problem.skillCode, kind: problem.kind };
+  if (isRationalProblem(problem)) return { ...base, ...rationalFields(problem) };
+  if (isSignedOrRatioProblem(problem)) return { ...base, ...signedOrRatioFields(problem) };
+  return { ...base, ...wholeFields(problem) };
+}
+
+type Fields = Readonly<Record<string, string | readonly string[]>>;
+
+function wholeFields(problem: WholeNumberProblem): Fields {
   switch (problem.kind) {
     case 'sequence':
-      return { ...base, values: [...problem.values], step: problem.step };
+      return { values: [...problem.values], step: problem.step };
     case 'place-value':
-      return { ...base, number: problem.number, place: problem.place };
+      return { number: problem.number, place: problem.place };
     case 'rounding':
-      return { ...base, number: problem.number, to: problem.to };
+      return { number: problem.number, to: problem.to };
+    case 'addition':
+    case 'subtraction':
+    case 'multiplication':
+    case 'division':
+    case 'whole-comparison':
+      return { left: problem.left, right: problem.right };
+  }
+}
+
+function rationalFields(problem: RationalProblem): Fields {
+  switch (problem.kind) {
     case 'fraction-missing':
-      return { ...base, left: problem.left, denominator: problem.denominator };
+      return { left: problem.left, denominator: problem.denominator };
     case 'fraction-operation':
     case 'decimal-operation':
-    case 'integer-operation':
-      return { ...base, operation: problem.operation, left: problem.left, right: problem.right };
+      return { operation: problem.operation, left: problem.left, right: problem.right };
     case 'decimal-place':
-      return { ...base, number: problem.number, place: problem.place };
-    case 'absolute-value':
-      return { ...base, number: problem.number };
+      return { number: problem.number, place: problem.place };
     case 'percent-of':
-      return { ...base, percent: problem.percent, whole: problem.whole };
-    default:
-      return { ...base, left: problem.left, right: problem.right };
+      return { percent: problem.percent, whole: problem.whole };
+    case 'fraction-equality':
+    case 'fraction-comparison':
+    case 'decimal-comparison':
+      return { left: problem.left, right: problem.right };
+  }
+}
+
+function signedOrRatioFields(problem: SignedOrRatioProblem): Fields {
+  switch (problem.kind) {
+    case 'integer-comparison':
+      return { left: problem.left, right: problem.right };
+    case 'integer-operation':
+      return { operation: problem.operation, left: problem.left, right: problem.right };
+    case 'absolute-value':
+      return { number: problem.number };
+    case 'ratio-missing':
+      return { first: problem.first, second: problem.second, scaledFirst: problem.scaledFirst };
+    case 'unit-rate':
+      return {
+        amount: problem.amount,
+        per: problem.per,
+        amountUnit: problem.amountUnit,
+        perUnit: problem.perUnit,
+      };
+    case 'proportion':
+      return {
+        count: problem.count,
+        total: problem.total,
+        asked: problem.asked,
+        thing: problem.thing,
+      };
   }
 }
 

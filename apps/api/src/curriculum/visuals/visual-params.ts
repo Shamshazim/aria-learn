@@ -3,10 +3,13 @@ import type { VisualKind } from '@aria/shared';
 import { decimalParams } from '@/curriculum/visuals/decimal-visuals';
 import { fractionOperationParams } from '@/curriculum/visuals/fraction-visuals';
 import { integerParams } from '@/curriculum/visuals/integer-visuals';
+import { ratioParams } from '@/curriculum/visuals/ratio-visuals';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import {
   isRationalProblem,
+  isSignedOrRatioProblem,
   type RationalProblem,
+  type SignedOrRatioProblem,
   type WholeNumberProblem,
 } from '@/quality/arithmetic/kinds';
 import { parseInteger, parseRational } from '@/quality/arithmetic/normalise';
@@ -35,7 +38,9 @@ export function visualParams(kind: VisualKind, problem: ArithmeticProblem | null
 
 function fromProblem(kind: VisualKind, problem: ArithmeticProblem | null): Params | null {
   if (problem === null) return null;
-  return isRationalProblem(problem) ? fromRational(kind, problem) : fromWholeNumbers(kind, problem);
+  if (isRationalProblem(problem)) return fromRational(kind, problem);
+  if (isSignedOrRatioProblem(problem)) return fromSignedOrRatio(kind, problem);
+  return fromWholeNumbers(kind, problem);
 }
 
 function fromWholeNumbers(kind: VisualKind, problem: WholeNumberProblem): Params | null {
@@ -53,10 +58,19 @@ function fromWholeNumbers(kind: VisualKind, problem: WholeNumberProblem): Params
     case 'place-value':
     case 'rounding':
       return fromWhole(kind, problem.number);
+  }
+}
+
+function fromSignedOrRatio(kind: VisualKind, problem: SignedOrRatioProblem): Params | null {
+  switch (problem.kind) {
     case 'integer-comparison':
     case 'absolute-value':
     case 'integer-operation':
       return integerParams(kind, problem);
+    case 'ratio-missing':
+    case 'unit-rate':
+    case 'proportion':
+      return ratioParams(kind, problem);
   }
 }
 

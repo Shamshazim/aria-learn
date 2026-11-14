@@ -114,7 +114,15 @@ export type ArithmeticRule =
   | 'wrong-sign'
   | 'minus-negative-as-minus'
   | 'magnitudes-added'
-  | 'sign-of-first-factor';
+  | 'sign-of-first-factor'
+  // P3-07: ratio and proportion, and dividing fractions.
+  | 'additive-ratio'
+  | 'kept-second-term'
+  | 'answered-the-scale'
+  | 'kept-total'
+  | 'multiplied-total'
+  | 'flipped-dividend'
+  | 'flipped-both';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

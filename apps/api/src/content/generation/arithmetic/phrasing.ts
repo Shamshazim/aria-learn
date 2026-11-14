@@ -30,6 +30,7 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
   if (isFraction(problem)) return fractionPrompt(problem, band);
   if (isDecimal(problem)) return decimalPrompt(problem, band);
   if (isInteger(problem)) return integerPrompt(problem, band);
+  if (isRatio(problem)) return ratioPrompt(problem, band);
   // Only the number-sense kinds are left; a new kind that is none of these fails to compile.
   return numberSensePrompt(problem, band);
 }
@@ -104,6 +105,33 @@ function integerPrompt(problem: IntegerProblem, band: Band): string {
   }
 }
 
+type RatioProblem = Extract<
+  ArithmeticProblem,
+  { kind: 'ratio-missing' | 'unit-rate' | 'proportion' }
+>;
+
+function isRatio(problem: ArithmeticProblem): problem is RatioProblem {
+  return (
+    problem.kind === 'ratio-missing' ||
+    problem.kind === 'unit-rate' ||
+    problem.kind === 'proportion'
+  );
+}
+
+/** P3-07: ratios, rates and proportion, each in one short everyday sentence and a question. */
+function ratioPrompt(problem: RatioProblem, band: Band): string {
+  switch (problem.kind) {
+    case 'ratio-missing':
+      return band === 'senior'
+        ? `${problem.first} : ${problem.second} = ${problem.scaledFirst} : ?`
+        : `${problem.first} : ${problem.second} is the same ratio as ${problem.scaledFirst} : ?. What is the missing number?`;
+    case 'unit-rate':
+      return `${problem.amount} ${problem.amountUnit} in ${problem.per} ${problem.perUnit}s. How many ${problem.amountUnit} in 1 ${problem.perUnit}?`;
+    case 'proportion':
+      return `${problem.count} ${problem.thing} cost $${problem.total}. How much do ${problem.asked} ${problem.thing} cost?`;
+  }
+}
+
 /** P3-07: decimals and percent. */
 function decimalPrompt(problem: DecimalProblem, band: Band): string {
   switch (problem.kind) {
@@ -168,8 +196,13 @@ function fractionPrompt(
   return `What is ${left} ${FRACTION_WORDS[problem.operation]} ${right}?`;
 }
 
-const FRACTION_SIGNS = { add: '+', subtract: '-', multiply: '×' } as const;
-const FRACTION_WORDS = { add: 'add', subtract: 'take away', multiply: 'times' } as const;
+const FRACTION_SIGNS = { add: '+', subtract: '-', multiply: '×', divide: '÷' } as const;
+const FRACTION_WORDS = {
+  add: 'add',
+  subtract: 'take away',
+  multiply: 'times',
+  divide: 'divided by',
+} as const;
 
 /** The four operations, each in the words its band is taught. */
 function operationPrompt(

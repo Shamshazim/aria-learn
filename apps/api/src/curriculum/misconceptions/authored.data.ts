@@ -12,6 +12,7 @@ import { FL_WCPM_60_MISCONCEPTIONS } from '@/curriculum/misconceptions/fl-wcpm-6
 import { FRAC_ADD_LIKE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-add-like.data';
 import { FRAC_ADD_UNLIKE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-add-unlike.data';
 import { FRAC_COMPARE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-compare.data';
+import { FRAC_DIV_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-div.data';
 import { FRAC_EQUAL_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equal.data';
 import { FRAC_EQUIV_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-equiv.data';
 import { FRAC_MUL_WHOLE_MISCONCEPTIONS } from '@/curriculum/misconceptions/frac-mul-whole.data';
@@ -32,6 +33,9 @@ import { PA_RHYME_MISCONCEPTIONS } from '@/curriculum/misconceptions/pa-rhyme.da
 import { PCT_OF_MISCONCEPTIONS } from '@/curriculum/misconceptions/pct-of.data';
 import { PH_CVC_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-cvc.data';
 import { PH_SILENT_E_MISCONCEPTIONS } from '@/curriculum/misconceptions/ph-silent-e.data';
+import { RAT_EQUIV_MISCONCEPTIONS } from '@/curriculum/misconceptions/rat-equiv.data';
+import { RAT_PROP_MISCONCEPTIONS } from '@/curriculum/misconceptions/rat-prop.data';
+import { RAT_UNIT_MISCONCEPTIONS } from '@/curriculum/misconceptions/rat-unit.data';
 import type { AuthoredMisconception } from '@/curriculum/misconceptions/signature.types';
 import { SUB_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/sub-fact-10.data';
 import { SUB_REGROUP_2D_MISCONCEPTIONS } from '@/curriculum/misconceptions/sub-regroup-2d.data';
@@ -74,6 +78,10 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...INT_ABS_MISCONCEPTIONS,
   ...INT_ADD_MISCONCEPTIONS,
   ...INT_MUL_MISCONCEPTIONS,
+  ...RAT_EQUIV_MISCONCEPTIONS,
+  ...RAT_UNIT_MISCONCEPTIONS,
+  ...RAT_PROP_MISCONCEPTIONS,
+  ...FRAC_DIV_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

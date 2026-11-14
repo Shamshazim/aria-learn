@@ -22,6 +22,11 @@ import {
 } from '@/quality/arithmetic/solvers/integers';
 import { solveMultiplication } from '@/quality/arithmetic/solvers/multiplication';
 import { solvePlaceValue } from '@/quality/arithmetic/solvers/place-value';
+import {
+  solveProportion,
+  solveRatioMissing,
+  solveUnitRate,
+} from '@/quality/arithmetic/solvers/ratios';
 import { solveRounding } from '@/quality/arithmetic/solvers/rounding';
 import { solveSubtraction } from '@/quality/arithmetic/solvers/subtraction';
 import { solveWholeDivision } from '@/quality/arithmetic/solvers/whole-division';
@@ -64,6 +69,10 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'INT.ABS': absoluteValueSolver,
   'INT.ADD': integerOperationSolver,
   'INT.MUL': integerOperationSolver,
+  'RAT.EQUIV': ratioMissingSolver,
+  'RAT.UNIT': unitRateSolver,
+  'RAT.PROP': proportionSolver,
+  'FRAC.DIV': fractionOperationSolver,
 };
 
 /** P3-07: the skills a checker exists for — what the inventory is cross-checked against at boot. */
@@ -171,6 +180,20 @@ function integerOperationSolver(problem: ArithmeticProblem, candidate: string): 
   return problem.kind === 'integer-operation'
     ? solveIntegerOperation(problem, candidate)
     : mismatch(problem);
+}
+
+function ratioMissingSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'ratio-missing'
+    ? solveRatioMissing(problem, candidate)
+    : mismatch(problem);
+}
+
+function unitRateSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'unit-rate' ? solveUnitRate(problem, candidate) : mismatch(problem);
+}
+
+function proportionSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  return problem.kind === 'proportion' ? solveProportion(problem, candidate) : mismatch(problem);
 }
 
 function mismatch(problem: ArithmeticProblem): CheckResult {

@@ -50,6 +50,11 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'INT.ABS': [],
   'INT.ADD': [],
   'INT.MUL': [],
+  // P3-07: a ratio answer can be found by scaling, by a unit rate or by a table; none is proven.
+  'RAT.EQUIV': [],
+  'RAT.UNIT': [],
+  'RAT.PROP': [],
+  'FRAC.DIV': [],
   'PA.RHYME': [],
   'PA.BLEND': ['blended-the-sounds'],
   'PH.CVC': ['sounded-it-out'],

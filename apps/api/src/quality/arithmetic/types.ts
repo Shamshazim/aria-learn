@@ -28,7 +28,11 @@ export type ArithmeticSkillCode =
   | 'INT.CMP'
   | 'INT.ABS'
   | 'INT.ADD'
-  | 'INT.MUL';
+  | 'INT.MUL'
+  | 'RAT.EQUIV'
+  | 'RAT.UNIT'
+  | 'RAT.PROP'
+  | 'FRAC.DIV';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -74,12 +78,12 @@ export type FractionMissingProblem = SkillProblem<'FRAC.EQUIV', 'fraction-missin
  * a fraction over one. Subtraction never goes below zero.
  */
 export type FractionOperationProblem = SkillProblem<
-  'FRAC.ADD.LIKE' | 'FRAC.ADD.UNLIKE' | 'FRAC.MUL.WHOLE',
+  'FRAC.ADD.LIKE' | 'FRAC.ADD.UNLIKE' | 'FRAC.MUL.WHOLE' | 'FRAC.DIV',
   'fraction-operation'
 > &
   Readonly<{ operation: FractionOperation; left: string; right: string }>;
 
-export type FractionOperation = 'add' | 'subtract' | 'multiply';
+export type FractionOperation = 'add' | 'subtract' | 'multiply' | 'divide';
 
 /** P3-07: "In 3.47, which digit is in the tenths place?" */
 export type DecimalPlaceProblem = SkillProblem<'DEC.PV', 'decimal-place'> &
@@ -114,6 +118,18 @@ export type IntegerOperationProblem = SkillProblem<'INT.ADD' | 'INT.MUL', 'integ
 
 export type IntegerOperation = 'add' | 'subtract' | 'multiply' | 'divide';
 
+/** P3-07: "2 : 3 = 8 : ?". The answer is the missing second term. */
+export type RatioMissingProblem = SkillProblem<'RAT.EQUIV', 'ratio-missing'> &
+  Readonly<{ first: string; second: string; scaledFirst: string }>;
+
+/** P3-07: "48 km in 4 hours. How many km in 1 hour?" The units are for the reader only. */
+export type UnitRateProblem = SkillProblem<'RAT.UNIT', 'unit-rate'> &
+  Readonly<{ amount: string; per: string; amountUnit: string; perUnit: string }>;
+
+/** P3-07: "3 pens cost $12. How much do 5 pens cost?" Always a whole number of dollars. */
+export type ProportionProblem = SkillProblem<'RAT.PROP', 'proportion'> &
+  Readonly<{ count: string; total: string; asked: string; thing: string }>;
+
 /** P3-07: "In 47, which digit is in the tens place?" */
 export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
   Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
@@ -143,6 +159,9 @@ export type ArithmeticProblem =
   | IntegerComparisonProblem
   | AbsoluteValueProblem
   | IntegerOperationProblem
+  | RatioMissingProblem
+  | UnitRateProblem
+  | ProportionProblem
   | DigitPlaceProblem
   | WholeComparisonProblem
   | RoundingProblem;
