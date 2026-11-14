@@ -1,6 +1,7 @@
 import { AUTHORED_MISCONCEPTIONS, predictedAnswers } from '@/curriculum/misconceptions';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import { checkArithmetic } from '@/quality/arithmetic';
+import { cents, clockMinutes, clockText, dollars } from '@/quality/arithmetic/solvers/measures';
 
 export type Distractor = Readonly<{ text: string; misconceptionId: string | null }>;
 
@@ -55,11 +56,30 @@ function fromMisconceptions(problem: ArithmeticProblem, answer: string): readonl
 function nearMisses(problem: ArithmeticProblem, answer: string): readonly string[] {
   if (RELATION_KINDS.has(problem.kind)) return ['<', '=', '>'];
   if (problem.kind === 'fraction-equality') return ['equal', 'not equal'];
+  // P3-07: a time or an amount of money has neighbours of its own kind, not of its digits.
+  if (problem.kind === 'elapsed-time') return clockNeighbours(answer);
+  if (problem.kind === 'money-change') return moneyNeighbours(answer);
   const key = Number.parseInt(answer, 10);
   if (Number.isNaN(key)) return [];
   // P3-07: below zero is a real answer for an integer, and the opposite sign a real mistake.
   if (problem.kind === 'integer-operation') return [-key, key + 1, key - 1, key + 10].map(String);
   return [key + 1, key - 1, key + 10, key - 10].filter((value) => value >= 0).map(String);
+}
+
+/** Five minutes and an hour either side, as a clock reads them. */
+function clockNeighbours(answer: string): readonly string[] {
+  const minutes = clockMinutes(answer);
+  return minutes === null ? [] : [5, -5, 60, -60].map((delta) => clockText(minutes + delta));
+}
+
+/** Ten cents and a dollar either side, never below nothing. */
+function moneyNeighbours(answer: string): readonly string[] {
+  const amount = cents(answer);
+  if (amount === null) return [];
+  return [10n, -10n, 100n, -100n]
+    .map((delta) => amount + delta)
+    .filter((value) => value > 0n)
+    .map(dollars);
 }
 
 const RELATION_KINDS: ReadonlySet<string> = new Set([

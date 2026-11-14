@@ -3,6 +3,7 @@ import { DECIMALS_PERCENT_SKILLS } from './decimals-percent.skills';
 import { EXPRESSION_SKILLS } from './expressions.skills';
 import { FRACTION_SKILLS } from './fractions.skills';
 import { INTEGER_SKILLS } from './integers.skills';
+import { MEASUREMENT_DATA_SKILLS } from './measurement-data.skills';
 import { MUL_DIV_SKILLS } from './mul-div.skills';
 import { NUM_SENSE_SKILLS } from './num-sense.skills';
 import { RATIO_PROPORTION_SKILLS } from './ratio-prop.skills';
@@ -20,6 +21,7 @@ export const ARITHMETIC_SKILLS = [
   ...INTEGER_SKILLS,
   ...RATIO_PROPORTION_SKILLS,
   ...EXPRESSION_SKILLS,
+  ...MEASUREMENT_DATA_SKILLS,
 ];
 
 /**

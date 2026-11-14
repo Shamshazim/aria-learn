@@ -1,7 +1,17 @@
 import type { Band } from '@aria/shared';
 
+import {
+  algebraPrompt,
+  decimalPrompt,
+  integerPrompt,
+  isDecimal,
+  isInteger,
+  isRatio,
+  measurePrompt,
+  ratioPrompt,
+} from '@/content/generation/arithmetic/phrasing-upper';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
-import { isAlgebraProblem, type AlgebraProblem } from '@/quality/arithmetic/kinds';
+import { isAlgebraProblem, isMeasureProblem } from '@/quality/arithmetic/kinds';
 
 /** Number words up to ten; below that a digit on the page is harder than the word out loud. */
 const WORDS: readonly string[] = [
@@ -33,6 +43,7 @@ export function phraseItem(problem: ArithmeticProblem, band: Band): string {
   if (isInteger(problem)) return integerPrompt(problem, band);
   if (isRatio(problem)) return ratioPrompt(problem, band);
   if (isAlgebraProblem(problem)) return algebraPrompt(problem, band);
+  if (isMeasureProblem(problem)) return measurePrompt(problem);
   // Only the number-sense kinds are left; a new kind that is none of these fails to compile.
   return numberSensePrompt(problem, band);
 }
@@ -59,109 +70,6 @@ function isOperation(problem: ArithmeticProblem): problem is OperationProblem {
 
 function isFraction(problem: ArithmeticProblem): problem is FractionProblem {
   return problem.kind.startsWith('fraction-');
-}
-
-type DecimalProblem = Extract<
-  ArithmeticProblem,
-  { kind: 'decimal-place' | 'decimal-comparison' | 'decimal-operation' | 'percent-of' }
->;
-
-function isDecimal(problem: ArithmeticProblem): problem is DecimalProblem {
-  return problem.kind.startsWith('decimal-') || problem.kind === 'percent-of';
-}
-
-type IntegerProblem = Extract<
-  ArithmeticProblem,
-  { kind: 'integer-comparison' | 'absolute-value' | 'integer-operation' }
->;
-
-function isInteger(problem: ArithmeticProblem): problem is IntegerProblem {
-  return problem.kind.startsWith('integer-') || problem.kind === 'absolute-value';
-}
-
-const INTEGER_SIGNS = { add: '+', subtract: '-', multiply: '×', divide: '÷' } as const;
-const INTEGER_WORDS = {
-  add: 'add',
-  subtract: 'take away',
-  multiply: 'times',
-  divide: 'divided by',
-} as const;
-
-/** P3-07: integers. A negative second number goes in brackets, so two signs never touch. */
-function integerPrompt(problem: IntegerProblem, band: Band): string {
-  switch (problem.kind) {
-    case 'integer-comparison':
-      return band === 'senior'
-        ? `Compare ${problem.left} and ${problem.right}. Use <, > or =.`
-        : `Is ${problem.left} more than, less than, or the same as ${problem.right}?`;
-    case 'absolute-value':
-      return band === 'senior'
-        ? `|${problem.number}| = ?`
-        : `What is the absolute value of ${problem.number}?`;
-    case 'integer-operation': {
-      const right = problem.right.trim().startsWith('-') ? `(${problem.right})` : problem.right;
-      return band === 'senior'
-        ? `${problem.left} ${INTEGER_SIGNS[problem.operation]} ${right} = ?`
-        : `What is ${problem.left} ${INTEGER_WORDS[problem.operation]} ${right}?`;
-    }
-  }
-}
-
-type RatioProblem = Extract<
-  ArithmeticProblem,
-  { kind: 'ratio-missing' | 'unit-rate' | 'proportion' }
->;
-
-function isRatio(problem: ArithmeticProblem): problem is RatioProblem {
-  return (
-    problem.kind === 'ratio-missing' ||
-    problem.kind === 'unit-rate' ||
-    problem.kind === 'proportion'
-  );
-}
-
-/** P3-07: ratios, rates and proportion, each in one short everyday sentence and a question. */
-function ratioPrompt(problem: RatioProblem, band: Band): string {
-  switch (problem.kind) {
-    case 'ratio-missing':
-      return band === 'senior'
-        ? `${problem.first} : ${problem.second} = ${problem.scaledFirst} : ?`
-        : `${problem.first} : ${problem.second} is the same ratio as ${problem.scaledFirst} : ?. What is the missing number?`;
-    case 'unit-rate':
-      return `${problem.amount} ${problem.amountUnit} in ${problem.per} ${problem.perUnit}s. How many ${problem.amountUnit} in 1 ${problem.perUnit}?`;
-    case 'proportion':
-      return `${problem.count} ${problem.thing} cost $${problem.total}. How much do ${problem.asked} ${problem.thing} cost?`;
-  }
-}
-
-/** P3-07: expressions and equations. The expression is shown exactly as written. */
-function algebraPrompt(problem: AlgebraProblem, band: Band): string {
-  switch (problem.kind) {
-    case 'expression':
-      return band === 'senior' ? `${problem.expression} = ?` : `What is ${problem.expression}?`;
-    case 'expression-value':
-      return `What is ${problem.expression} when ${problem.variable} = ${problem.value}?`;
-    case 'equation':
-      return `Solve ${problem.left} = ${problem.right}. What is ${problem.variable}?`;
-  }
-}
-
-/** P3-07: decimals and percent. */
-function decimalPrompt(problem: DecimalProblem, band: Band): string {
-  switch (problem.kind) {
-    case 'decimal-place':
-      return `In ${problem.number}, which digit is in the ${problem.place} place?`;
-    case 'decimal-comparison':
-      return band === 'senior'
-        ? `Compare ${problem.left} and ${problem.right}. Use <, > or =.`
-        : `Is ${problem.left} more than, less than, or the same as ${problem.right}?`;
-    case 'decimal-operation':
-      return band === 'senior'
-        ? `${problem.left} ${problem.operation === 'add' ? '+' : '-'} ${problem.right} = ?`
-        : `What is ${problem.left} ${problem.operation === 'add' ? 'add' : 'take away'} ${problem.right}?`;
-    case 'percent-of':
-      return `What is ${problem.percent}% of ${problem.whole}?`;
-  }
 }
 
 /** P3-07: place value, comparing and rounding whole numbers. */

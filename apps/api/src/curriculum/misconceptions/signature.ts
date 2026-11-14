@@ -98,6 +98,17 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'answered-the-operand': true,
   'stopped-after-one-step': true,
   'divided-first': true,
+  'minutes-as-hundreds': true,
+  'hour-not-carried': true,
+  'minutes-replaced': true,
+  'swapped-measure': true,
+  'added-two-sides': true,
+  'one-side-squared': true,
+  'divided-instead': true,
+  'used-ten': true,
+  'wrong-factor': true,
+  'median-unsorted': true,
+  'sum-not-divided': true,
 };
 
 /** Whether this answer carries this wrong idea. */

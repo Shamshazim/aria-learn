@@ -49,6 +49,50 @@ own PR against this ticket, as Scope asks.
   100%; the release result stays FAIL only because no case has had human review, as on
   `main`. `golden:tutoring`: 9 scenarios pass.
 
+### Strand 9 of 9: measurement and data — P3-07 complete
+
+**Code complete 2026-11-14** on `feat/P3-07-arithmetic-measurement`, pending review, stacked
+on strand 8 (#46). With it every strand in the Design is built.
+
+- **Five skills, all `number_sense`.** `MEAS.TIME` (3.MD.A.1), `MEAS.MONEY` (4.MD.A.2),
+  `MEAS.AREA` (3.MD.C.7, 3.MD.D.8), `MEAS.CONV` (4.MD.A.1), `DATA.MEAN` (6.SP.B.5.c, senior).
+  Kinds `elapsed-time`, `money-change`, `rectangle`, `unit-conversion` and `statistic`, a fifth
+  dispatch group in `kinds.ts`.
+- **The edge cases the ticket names.** Money is exact in cents: "$1.50", "1.50", "1.5" and
+  "150 cents" are one amount; a plain "150" is dollars, as a price is written. Units convert
+  by the fixed table in `units.ts`, and an answer may carry its unit ("300 cm", "24 square
+  cm", "24 cm²", "660 seconds"). Times are a 12-hour clock; "3:15" and "3.15" are one answer.
+- **Built for the tell-tale wrong ideas:** every elapsed-time item crosses the hour, so
+  "2:75" is caught on all of them (tested); every median is asked of an unsorted list whose
+  written middle is not the median; area and perimeter alternate on the same rectangles.
+- **Wording found by the gate.** "Rectangle" reads above the middle band, so the shape is a
+  card, a garden or a book; "photo" is blocked by output safety, rightly. Time units are words
+  in prompts ("seconds"), metric ones their symbols. `phrasing.ts` split into two files.
+- **Verification.** Typecheck and lint clean. Full suite: 2968 pass, the same 12 known
+  catalogue failures (two earlier runs showed load-timing flakes in auth and adapter tests
+  that pass alone). `golden:content --generator-only`: 442 cases, every check 100%.
+  `golden:tutoring`: 10 scenarios pass.
+
+### P3-07 against its acceptance criteria
+
+- Every skill has a checker, ≥3 misconceptions, a lesson note, a generator recipe and ≥5
+  golden cases: enforced at boot (`validate.ts`: checker, mode, prerequisites), by the
+  misconception and lesson coverage tests, and by `golden:content` per skill (ten each).
+- Prerequisites acyclic, every non-entry skill has one, entry skills listed
+  (`ARITHMETIC_ENTRY_SKILLS`): enforced at boot.
+- Property tests, 10,000 seeded items per family against independent references: one file
+  per strand under `quality/arithmetic/*.property.test.ts`.
+- Normaliser covers every listed format: fractions, decimals, remainders, money, number words
+  and spoken negatives, each with tests.
+- `golden:content` arithmetic correctness 100%, reading level 100% (bar 98%).
+- A procedure never reveals before every step is tried: the policy rule, its property test
+  and the `long-division` tutoring scenario with the `REVEAL_BEFORE_STEPS` invariant.
+- Startup fails with a named skill when a checker is missing: tested.
+- No file over 300 lines; strands are separate files.
+
+Open for P3-08: per-step answer collection for procedures (strand 3), and the curriculum
+review of the 53 pending lesson notes and the generated golden cases, which no PR can do.
+
 ### Strand 8 of 9: expressions and equations
 
 **Code complete 2026-11-14** on `feat/P3-07-arithmetic-expressions`, pending review, stacked

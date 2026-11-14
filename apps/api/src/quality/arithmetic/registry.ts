@@ -25,6 +25,13 @@ import {
   solveIntegerComparison,
   solveIntegerOperation,
 } from '@/quality/arithmetic/solvers/integers';
+import {
+  solveElapsedTime,
+  solveMoneyChange,
+  solveRectangle,
+  solveStatistic,
+  solveUnitConversion,
+} from '@/quality/arithmetic/solvers/measures';
 import { solveMultiplication } from '@/quality/arithmetic/solvers/multiplication';
 import { solvePlaceValue } from '@/quality/arithmetic/solvers/place-value';
 import {
@@ -82,6 +89,11 @@ const SKILL_SOLVERS: Readonly<Record<ArithmeticSkillCode, Solver>> = {
   'EXP.EVAL': expressionValueSolver,
   'EQN.ONE': equationSolver,
   'EQN.TWO': equationSolver,
+  'MEAS.TIME': measureSolver,
+  'MEAS.MONEY': measureSolver,
+  'MEAS.AREA': measureSolver,
+  'MEAS.CONV': measureSolver,
+  'DATA.MEAN': measureSolver,
 };
 
 /** P3-07: the skills a checker exists for — what the inventory is cross-checked against at boot. */
@@ -217,6 +229,24 @@ function expressionValueSolver(problem: ArithmeticProblem, candidate: string): C
 
 function equationSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
   return problem.kind === 'equation' ? solveEquation(problem, candidate) : mismatch(problem);
+}
+
+/** P3-07: each measurement skill has exactly one kind, so one dispatch covers the strand. */
+function measureSolver(problem: ArithmeticProblem, candidate: string): CheckResult {
+  switch (problem.kind) {
+    case 'elapsed-time':
+      return solveElapsedTime(problem, candidate);
+    case 'money-change':
+      return solveMoneyChange(problem, candidate);
+    case 'rectangle':
+      return solveRectangle(problem, candidate);
+    case 'unit-conversion':
+      return solveUnitConversion(problem, candidate);
+    case 'statistic':
+      return solveStatistic(problem, candidate);
+    default:
+      return mismatch(problem);
+  }
 }
 
 function mismatch(problem: ArithmeticProblem): CheckResult {

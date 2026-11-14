@@ -3,6 +3,7 @@ import { ADD_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact
 import { ADD_FACT_20_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-fact-20.data';
 import { ADD_REGROUP_2D_MISCONCEPTIONS } from '@/curriculum/misconceptions/add-regroup-2d.data';
 import { CMP_RETELL_MISCONCEPTIONS } from '@/curriculum/misconceptions/cmp-retell.data';
+import { DATA_MEAN_MISCONCEPTIONS } from '@/curriculum/misconceptions/data-mean.data';
 import { DEC_ADD_MISCONCEPTIONS } from '@/curriculum/misconceptions/dec-add.data';
 import { DEC_CMP_MISCONCEPTIONS } from '@/curriculum/misconceptions/dec-cmp.data';
 import { DEC_PV_MISCONCEPTIONS } from '@/curriculum/misconceptions/dec-pv.data';
@@ -24,6 +25,10 @@ import { INT_ABS_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-abs.data
 import { INT_ADD_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-add.data';
 import { INT_CMP_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-cmp.data';
 import { INT_MUL_MISCONCEPTIONS } from '@/curriculum/misconceptions/int-mul.data';
+import { MEAS_AREA_MISCONCEPTIONS } from '@/curriculum/misconceptions/meas-area.data';
+import { MEAS_CONV_MISCONCEPTIONS } from '@/curriculum/misconceptions/meas-conv.data';
+import { MEAS_MONEY_MISCONCEPTIONS } from '@/curriculum/misconceptions/meas-money.data';
+import { MEAS_TIME_MISCONCEPTIONS } from '@/curriculum/misconceptions/meas-time.data';
 import { MUL_2D1D_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-2d1d.data';
 import { MUL_FACT_10_MISCONCEPTIONS } from '@/curriculum/misconceptions/mul-fact-10.data';
 import { NUM_CMP_100_MISCONCEPTIONS } from '@/curriculum/misconceptions/num-cmp-100.data';
@@ -90,6 +95,11 @@ export const AUTHORED_MISCONCEPTIONS: readonly AuthoredMisconception[] = [
   ...EXP_EVAL_MISCONCEPTIONS,
   ...EQN_ONE_MISCONCEPTIONS,
   ...EQN_TWO_MISCONCEPTIONS,
+  ...MEAS_TIME_MISCONCEPTIONS,
+  ...MEAS_MONEY_MISCONCEPTIONS,
+  ...MEAS_AREA_MISCONCEPTIONS,
+  ...MEAS_CONV_MISCONCEPTIONS,
+  ...DATA_MEAN_MISCONCEPTIONS,
   ...ADD_FACT_10_MISCONCEPTIONS,
   ...ADD_REGROUP_2D_MISCONCEPTIONS,
   ...FRAC_EQUAL_MISCONCEPTIONS,

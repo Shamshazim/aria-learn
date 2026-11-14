@@ -134,7 +134,19 @@ export type ArithmeticRule =
   | 'kept-right-side'
   | 'answered-the-operand'
   | 'stopped-after-one-step'
-  | 'divided-first';
+  | 'divided-first'
+  // P3-07: measurement and data.
+  | 'minutes-as-hundreds'
+  | 'hour-not-carried'
+  | 'minutes-replaced'
+  | 'swapped-measure'
+  | 'added-two-sides'
+  | 'one-side-squared'
+  | 'divided-instead'
+  | 'used-ten'
+  | 'wrong-factor'
+  | 'median-unsorted'
+  | 'sum-not-divided';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =
