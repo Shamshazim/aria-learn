@@ -24,7 +24,11 @@ export type ArithmeticSkillCode =
   | 'DEC.PV'
   | 'DEC.CMP'
   | 'DEC.ADD'
-  | 'PCT.OF';
+  | 'PCT.OF'
+  | 'INT.CMP'
+  | 'INT.ABS'
+  | 'INT.ADD'
+  | 'INT.MUL';
 
 type SkillProblem<TCode extends ArithmeticSkillCode, TKind extends string> = Readonly<{
   skillCode: TCode;
@@ -93,6 +97,23 @@ export type DecimalOperationProblem = SkillProblem<'DEC.ADD', 'decimal-operation
 export type PercentOfProblem = SkillProblem<'PCT.OF', 'percent-of'> &
   Readonly<{ percent: string; whole: string }>;
 
+/** P3-07: "Compare -7 and -3." The answer is `<`, `=` or `>`. */
+export type IntegerComparisonProblem = SkillProblem<'INT.CMP', 'integer-comparison'> &
+  Readonly<{ left: string; right: string }>;
+
+/** P3-07: "What is the absolute value of -7?" */
+export type AbsoluteValueProblem = SkillProblem<'INT.ABS', 'absolute-value'> &
+  Readonly<{ number: string }>;
+
+/**
+ * P3-07: "What is -5 add 3?", "What is -6 times -4?". Integers, exact; a division always
+ * comes out whole, because remainders with negatives are not taught at this level.
+ */
+export type IntegerOperationProblem = SkillProblem<'INT.ADD' | 'INT.MUL', 'integer-operation'> &
+  Readonly<{ operation: IntegerOperation; left: string; right: string }>;
+
+export type IntegerOperation = 'add' | 'subtract' | 'multiply' | 'divide';
+
 /** P3-07: "In 47, which digit is in the tens place?" */
 export type DigitPlaceProblem = SkillProblem<'NUM.PV.TENS' | 'NUM.PV.HUNDREDS', 'place-value'> &
   Readonly<{ number: string; place: PlaceValueProblem['place'] }>;
@@ -119,6 +140,9 @@ export type ArithmeticProblem =
   | DecimalComparisonProblem
   | DecimalOperationProblem
   | PercentOfProblem
+  | IntegerComparisonProblem
+  | AbsoluteValueProblem
+  | IntegerOperationProblem
   | DigitPlaceProblem
   | WholeComparisonProblem
   | RoundingProblem;

@@ -104,7 +104,17 @@ export type ArithmeticRule =
   | 'decimal-parts-as-wholes'
   | 'percent-without-hundred'
   | 'divided-by-percent'
-  | 'subtracted-percent';
+  | 'subtracted-percent'
+  // P3-07: integers.
+  | 'absolute-value-comparison'
+  | 'zero-is-smallest'
+  | 'kept-sign'
+  | 'negated'
+  | 'counted-zero'
+  | 'wrong-sign'
+  | 'minus-negative-as-minus'
+  | 'magnitudes-added'
+  | 'sign-of-first-factor';
 
 /** Rules computed from the answer key or the question, for reading and writing. */
 export type TextRule =

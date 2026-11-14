@@ -84,6 +84,24 @@ export const arithmeticProblemSchema: z.ZodType<ArithmeticProblem> = z.discrimin
     whole: z.string(),
   }),
   z.object({
+    skillCode: z.literal('INT.CMP'),
+    kind: z.literal('integer-comparison'),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
+    skillCode: z.literal('INT.ABS'),
+    kind: z.literal('absolute-value'),
+    number: z.string(),
+  }),
+  z.object({
+    skillCode: z.enum(['INT.ADD', 'INT.MUL']),
+    kind: z.literal('integer-operation'),
+    operation: z.enum(['add', 'subtract', 'multiply', 'divide']),
+    left: z.string(),
+    right: z.string(),
+  }),
+  z.object({
     skillCode: z.enum(['NUM.PV.TENS', 'NUM.PV.HUNDREDS']),
     kind: z.literal('place-value'),
     number: z.string(),

@@ -45,6 +45,11 @@ export const SKILL_STRATEGIES: Readonly<Record<string, readonly string[]>> = {
   'DEC.CMP': [],
   'DEC.ADD': ['lined-up-place-value'],
   'PCT.OF': [],
+  // P3-07: an integer answer can be reached on the line, by rule or by counting; none proves one.
+  'INT.CMP': [],
+  'INT.ABS': [],
+  'INT.ADD': [],
+  'INT.MUL': [],
   'PA.RHYME': [],
   'PA.BLEND': ['blended-the-sounds'],
   'PH.CVC': ['sounded-it-out'],

@@ -2,6 +2,7 @@ import type { VisualKind } from '@aria/shared';
 
 import { decimalParams } from '@/curriculum/visuals/decimal-visuals';
 import { fractionOperationParams } from '@/curriculum/visuals/fraction-visuals';
+import { integerParams } from '@/curriculum/visuals/integer-visuals';
 import type { ArithmeticProblem } from '@/quality/arithmetic';
 import {
   isRationalProblem,
@@ -52,6 +53,10 @@ function fromWholeNumbers(kind: VisualKind, problem: WholeNumberProblem): Params
     case 'place-value':
     case 'rounding':
       return fromWhole(kind, problem.number);
+    case 'integer-comparison':
+    case 'absolute-value':
+    case 'integer-operation':
+      return integerParams(kind, problem);
   }
 }
 

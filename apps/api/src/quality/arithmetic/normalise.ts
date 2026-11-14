@@ -30,9 +30,17 @@ export function normaliseAnswer(value: string): string {
   return UNICODE_FRACTIONS[trimmed] ?? wordsToFraction(trimmed) ?? trimmed;
 }
 
-/** A whole number, as digits ("007", "1,200", "-0") or as words ("twenty one"). */
+/**
+ * A whole number, as digits ("007", "1,200", "-0") or as words ("twenty one"). P3-07: a
+ * negative may be spoken — "negative five", "minus 5" — as well as written with a sign.
+ */
 export function parseInteger(value: string): bigint | null {
   const normalised = normaliseAnswer(value).replaceAll(',', '');
+  const spoken = /^(?:negative|minus)\s+(.+)$/iu.exec(normalised);
+  if (spoken !== null) {
+    const magnitude = parseInteger(spoken[1] ?? '');
+    return magnitude === null || magnitude < 0n ? null : -magnitude;
+  }
   if (/^-?\d+$/u.test(normalised)) return BigInt(normalised);
   return wordsToInteger(normalised);
 }

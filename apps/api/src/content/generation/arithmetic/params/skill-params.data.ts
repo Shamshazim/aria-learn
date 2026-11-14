@@ -13,6 +13,10 @@ import { FRAC_COMPARE_PARAMS } from '@/content/generation/arithmetic/params/frac
 import { FRAC_EQUAL_PARAMS } from '@/content/generation/arithmetic/params/frac-equal';
 import { FRAC_EQUIV_PARAMS } from '@/content/generation/arithmetic/params/frac-equiv';
 import { FRAC_MUL_WHOLE_PARAMS } from '@/content/generation/arithmetic/params/frac-mul-whole';
+import { INT_ABS_PARAMS } from '@/content/generation/arithmetic/params/int-abs';
+import { INT_ADD_PARAMS } from '@/content/generation/arithmetic/params/int-add';
+import { INT_CMP_PARAMS } from '@/content/generation/arithmetic/params/int-cmp';
+import { INT_MUL_PARAMS } from '@/content/generation/arithmetic/params/int-mul';
 import { MUL_2D1D_PARAMS } from '@/content/generation/arithmetic/params/mul-2d1d';
 import { MUL_FACT_10_PARAMS } from '@/content/generation/arithmetic/params/mul-fact-10';
 import { NUM_CMP_100_PARAMS } from '@/content/generation/arithmetic/params/num-cmp-100';
@@ -61,6 +65,10 @@ export const SKILL_PARAMS: Readonly<Record<ArithmeticSkillCode, GeneratorParams>
   'DEC.CMP': DEC_CMP_PARAMS,
   'DEC.ADD': DEC_ADD_PARAMS,
   'PCT.OF': PCT_OF_PARAMS,
+  'INT.CMP': INT_CMP_PARAMS,
+  'INT.ABS': INT_ABS_PARAMS,
+  'INT.ADD': INT_ADD_PARAMS,
+  'INT.MUL': INT_MUL_PARAMS,
 };
 
 /** Written out rather than derived from the record, so no assertion is needed to name them. */
@@ -91,4 +99,8 @@ export const ARITHMETIC_SKILL_CODES: readonly ArithmeticSkillCode[] = [
   'DEC.CMP',
   'DEC.ADD',
   'PCT.OF',
+  'INT.CMP',
+  'INT.ABS',
+  'INT.ADD',
+  'INT.MUL',
 ];

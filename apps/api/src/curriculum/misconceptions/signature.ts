@@ -71,6 +71,15 @@ const ARITHMETIC_RULES: Readonly<Record<ArithmeticRule, true>> = {
   'percent-without-hundred': true,
   'divided-by-percent': true,
   'subtracted-percent': true,
+  'absolute-value-comparison': true,
+  'zero-is-smallest': true,
+  'kept-sign': true,
+  negated: true,
+  'counted-zero': true,
+  'wrong-sign': true,
+  'minus-negative-as-minus': true,
+  'magnitudes-added': true,
+  'sign-of-first-factor': true,
 };
 
 /** Whether this answer carries this wrong idea. */

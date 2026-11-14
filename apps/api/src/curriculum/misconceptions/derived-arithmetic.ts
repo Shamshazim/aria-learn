@@ -9,6 +9,7 @@ import {
   fractionMissingError,
   fractionOperationError,
 } from '@/curriculum/misconceptions/derived-fractions';
+import { integerError } from '@/curriculum/misconceptions/derived-integers';
 import { divisionError, multiplicationError } from '@/curriculum/misconceptions/derived-mul-div';
 import {
   placeValueError,
@@ -63,6 +64,10 @@ function wholeError(rule: ArithmeticRule, problem: WholeNumberProblem): readonly
       return wholeComparisonError(rule, problem);
     case 'rounding':
       return roundingError(rule, problem);
+    case 'integer-comparison':
+    case 'absolute-value':
+    case 'integer-operation':
+      return integerError(rule, problem);
   }
 }
 
