@@ -1,14 +1,13 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { beforeAll, describe, expect, it } from 'vitest';
 
-import { ESLint } from 'eslint';
-import { describe, expect, it } from 'vitest';
+import { lintRuleIds, warmLint, WARM_LINT_TIMEOUT_MS } from '@/testing/eslint-probe';
 
-const REPO_ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
-const OUTSIDE_CLIENT_PATH = path.join(REPO_ROOT, 'apps/api/src/server.ts');
-const SERVICE_PATH = path.join(REPO_ROOT, 'apps/api/src/services/health.service.ts');
+const OUTSIDE_CLIENT_PATH = 'apps/api/src/server.ts';
+const SERVICE_PATH = 'apps/api/src/services/health.service.ts';
 
 describe('AiClient provider seam', () => {
+  beforeAll(warmLint, WARM_LINT_TIMEOUT_MS);
+
   it.each([
     {
       name: 'port type',
@@ -22,32 +21,17 @@ describe('AiClient provider seam', () => {
       name: 'private routing module',
       source: `import { createRoutedLlmProvider } from '@/ai/provider/routing';\nvoid createRoutedLlmProvider;`,
     },
-  ])(
-    'rejects $name outside ai-client.ts',
-    async ({ source }) => {
-      const eslint = new ESLint({ cwd: REPO_ROOT });
-      const [result] = await eslint.lintText(source, { filePath: OUTSIDE_CLIENT_PATH });
-
-      expect(result?.messages.map((message) => message.ruleId)).toContain('no-restricted-imports');
-    },
-    15_000,
-  );
+  ])('rejects $name outside ai-client.ts', async ({ source }) => {
+    expect(await lintRuleIds(source, OUTSIDE_CLIENT_PATH)).toContain('no-restricted-imports');
+  });
 
   it('allows the composition root to construct the routed provider through its public factory', async () => {
     const source = `import { createRoutedLlmProvider, type RoutedProviderDependencies } from '@/ai/provider';\ndeclare const dependencies: RoutedProviderDependencies;\nvoid createRoutedLlmProvider;\nvoid dependencies;`;
-    const eslint = new ESLint({ cwd: REPO_ROOT });
-    const [result] = await eslint.lintText(source, { filePath: OUTSIDE_CLIENT_PATH });
-
-    expect(result?.messages.map((message) => message.ruleId)).not.toContain(
-      'no-restricted-imports',
-    );
-  }, 15_000);
+    expect(await lintRuleIds(source, OUTSIDE_CLIENT_PATH)).not.toContain('no-restricted-imports');
+  });
 
   it('rejects routed provider construction outside the composition root', async () => {
     const source = `import { createRoutedLlmProvider } from '@/ai/provider';\nvoid createRoutedLlmProvider;`;
-    const eslint = new ESLint({ cwd: REPO_ROOT });
-    const [result] = await eslint.lintText(source, { filePath: SERVICE_PATH });
-
-    expect(result?.messages.map((message) => message.ruleId)).toContain('no-restricted-imports');
-  }, 15_000);
+    expect(await lintRuleIds(source, SERVICE_PATH)).toContain('no-restricted-imports');
+  });
 });
