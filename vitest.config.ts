@@ -87,6 +87,12 @@ export default defineConfig({
           environment: 'node',
           include: ['src/**/*.test.ts'],
           exclude: EXCLUDED,
+          // P3-08-F2: a timeout here catches a hang, not slowness. The CPU-heavy tests (the
+          // 10,000-item property sweeps, the lint boundaries) take under a second alone and
+          // crossed the 5 s default when the machine was busy; a 20-run soak caught it. The
+          // budget matches `api-db`, and nothing retries.
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
         },
         // Vitest does not read tsconfig `paths`, so the `@/*` alias each app declares has to
         // be repeated here or its tests cannot resolve their own imports (P0-03).

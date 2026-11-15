@@ -25,7 +25,10 @@ describe('a reasoning endpoint', () => {
         'api-key': 'k',
         model: 'openai/gpt-oss-120b',
         'max-tokens': 1_024,
-        'timeout-seconds': 1,
+        // P3-08-F2: a stub on localhost, not a deadline under test. One second was short enough
+        // for a busy machine to turn a passing request into a timeout; the deadline tests set
+        // their own `timeoutMs`.
+        'timeout-seconds': 10,
         'cost-per-mtok-in': 0.1,
         'cost-per-mtok-out': 0.3,
         ...endpoint,

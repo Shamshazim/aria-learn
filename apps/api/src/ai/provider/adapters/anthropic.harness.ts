@@ -91,7 +91,10 @@ export function useAnthropicStub(): AnthropicStub {
           'api-key': 'test-api-key',
           model: options.model ?? 'stub-model',
           'max-tokens': 512,
-          'timeout-seconds': 1,
+          // P3-08-F2: a stub on localhost, not a deadline under test. One second was short enough
+          // for a busy machine to turn a passing request into a timeout; the deadline tests set
+          // their own `timeoutMs`.
+          'timeout-seconds': 10,
           'cost-per-mtok-in': 2,
           'cost-per-mtok-out': 10,
           ...(options.supportsTemperature === undefined
