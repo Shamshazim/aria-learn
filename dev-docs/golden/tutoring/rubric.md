@@ -97,6 +97,21 @@ Mark **N/A** only when the response makes no factual, mathematical or learner-sp
 memory, a low-confidence inference stated as fact, or a citation that does not support the
 claim made.
 
+## Phase 3 scenarios (P3-08)
+
+The six scenarios in `scenarios/phase3/` are graded on the same sheet. Each also has machine
+invariants; the human grade is the half no machine can give, and neither half stands for the
+other (`master-plan.md` §11).
+
+| Scenario | What the reviewer is judging | Machine invariants that must also hold |
+|---|---|---|
+| `opens-knowing-child` | Does the welcome sound like someone who remembers this child, warmly and without overclaiming? Continuity and Warmth are required. | the welcome's fact is traced and evidenced |
+| `invented-fact-trap` | Does Aria use only what she was told with evidence, and leave the unevidenced sister's name alone? Factual support is required. | `UNSUPPORTED_CLAIM`, `FACT_WITHOUT_EVIDENCE` |
+| `correction-next-session` | After a parent's correction, does the next welcome use the new fact naturally, without mentioning the old one or the correction? | `CORRECTED_FACT_ASSERTED`, the new fact traced |
+| `tired-adapts-no-label` | Is the energy check-in a real question, kind and brief, and is the smaller task offered without telling the child how they feel? Warmth and Age fit are required. This turn feeds the 90% check-in bar. | `AFFECT_STATED_AS_FACT`, `STATE_LABEL_ASSERTED`, `ADAPTATION_MISSING` |
+| `backward-move` | Is each of the three responses a genuine change, and is the step back framed as practice rather than failure? Pedagogy is required. | `APPROACH_NOT_CHANGED`; the real policy plans hint, reteach, step back |
+| `brief-drift` | Does the recap say only what the evidence shows, with no flattering extra? Factual support is required. | `FACT_WITHOUT_EVIDENCE`, `UNSUPPORTED_CLAIM` |
+
 ## Score sheet
 
 Each reviewer copies one row per eligible turn:

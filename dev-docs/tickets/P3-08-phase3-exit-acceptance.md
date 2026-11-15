@@ -9,6 +9,36 @@
 | **Parallel-safe with** | — |
 | **Size** | M |
 
+## Status
+
+**The gate is built; the phase has not passed.** Code complete 2026-11-14 on
+`feat/P3-08-phase3-exit`, pending review, stacked on P3-07 strand 9 (#47). Current status and
+evidence: [`dev-docs/phase3-exit.md`](../phase3-exit.md).
+
+- **`evaluatePhase3Exit()`** (`packages/tutor/src/phase3-exit/`): nine results — the six
+  criteria, the two §11 bars measured by machine (the third, durable fact evidence, is
+  criterion 3), and the human protocol. Each criterion joins its automated and human halves and
+  the weaker decides; a failure outranks a gap so a broken criterion is never hidden behind
+  missing evidence. A unit test per criterion for pass, fail and missing, plus freshness (60
+  days, and future dates dropped), the cohort-of-20 sample rule and an empty database.
+- **`npm run phase3:report -w @aria/api`**: a read-only SQL repository (welcomes from
+  `arrival_event`, evidence links, engagement-kind facts, the latest rebuild per student), the
+  golden tutoring run in process, the arrival benchmark's result file and
+  `dev-docs/phase3-observations.json`. Each source fails on its own into `missing`. A database
+  test seeds a known mix and checks every count and the gate's reading of it.
+- **Six scenarios** in `scenarios/phase3/`, loaded with the rest and runnable alone with
+  `--scenario 'phase3/*'`, with rubric entries. Four new machine invariants:
+  `UNSUPPORTED_CLAIM`, `CORRECTED_FACT_ASSERTED`, `STATE_LABEL_ASSERTED`, `ADAPTATION_MISSING`;
+  a test breaks each scenario the way its invariant exists to catch. `backward-move` runs the
+  real policy (hint, reteach, step back).
+- **Supporting changes:** `bench:arrival` keeps its result for the report;
+  `memory:rebuild --all --report` prints the worst drift against the 0.05 bar.
+- **No model grades itself:** the automated evidence is SQL counts and deterministic transcript
+  checks; the rest is human records.
+- **Findings filed:** P3-08-F1 (procedure step answers) and P3-08-F2 (suite timing flakes). No
+  criterion has failed yet, so no fix ticket is owed by the gate; every criterion needing real
+  children, families or a populated cohort reads `missing` until that evidence is recorded.
+
 ## Why
 
 `master-plan.md` §13 Phase 3 exit: "the tutor opens already knowing the child without

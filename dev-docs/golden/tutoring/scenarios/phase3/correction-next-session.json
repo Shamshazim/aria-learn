@@ -1,0 +1,115 @@
+{
+  "id": "correction-next-session",
+  "title": "Correction next session",
+  "grade": "4",
+  "description": "Aria remembers the child loves dinosaurs. A parent corrects it to sharks between sessions. Next session the welcome uses sharks, and dinosaurs is never said again. Phase 3 exit, criterion 4.",
+  "context": {
+    "answerOutcomes": [],
+    "learnerFacts": [
+      {
+        "id": "fact_loves_dinosaurs",
+        "claim": "The learner loves dinosaurs.",
+        "evidenceIds": ["session_2026_10_28_event_7"]
+      },
+      {
+        "id": "fact_loves_sharks",
+        "claim": "The learner loves sharks.",
+        "evidenceIds": ["correction_2026_11_08_parent"]
+      }
+    ],
+    "affectObservations": [],
+    "safetyDisclosureEventIds": [],
+    "expectedFactAssertions": [
+      {
+        "eventId": "evt_p3_corr_first",
+        "factId": "fact_loves_dinosaurs"
+      },
+      {
+        "eventId": "evt_p3_corr_next",
+        "factId": "fact_loves_sharks"
+      }
+    ],
+    "corrections": [
+      {
+        "factId": "fact_loves_dinosaurs",
+        "replacementFactId": "fact_loves_sharks",
+        "effectiveFromEventId": "evt_p3_corr_next",
+        "retiredPhrase": "dinosaur"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "event": {
+        "id": "evt_p3_corr_first",
+        "at": "2026-11-07T16:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "4"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_corr_welcome1",
+            "at": "2026-11-07T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "WELCOME",
+            "speech": {
+              "text": "Welcome back. I remember you love dinosaurs."
+            },
+            "display": [],
+            "expects": "none",
+            "basedOn": ["session_2026_10_28_event_7"]
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "assertedFactIds": ["fact_loves_dinosaurs"],
+          "approachId": "welcome-known"
+        }
+      }
+    },
+    {
+      "event": {
+        "id": "evt_p3_corr_next",
+        "at": "2026-11-10T16:00:00Z",
+        "protocolVersion": "1.1.0",
+        "kind": "ARRIVED",
+        "grade": "4"
+      },
+      "scripted": {
+        "moves": [
+          {
+            "id": "mov_p3_corr_welcome2",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "WELCOME",
+            "speech": {
+              "text": "Hello again. I hear sharks are your favourite now."
+            },
+            "display": [],
+            "expects": "none",
+            "basedOn": ["correction_2026_11_08_parent"]
+          },
+          {
+            "id": "mov_p3_corr_checkin",
+            "at": "2026-11-10T16:00:00Z",
+            "protocolVersion": "1.1.0",
+            "kind": "CHECK_IN",
+            "speech": {
+              "text": "Ready for a challenge today?"
+            },
+            "display": [],
+            "expects": "choice",
+            "about": "difficulty"
+          }
+        ],
+        "evidence": {
+          "responseOrigin": "scripted",
+          "assertedFactIds": ["fact_loves_sharks"],
+          "approachId": "welcome-corrected"
+        }
+      }
+    }
+  ]
+}

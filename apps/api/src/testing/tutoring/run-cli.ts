@@ -17,9 +17,13 @@ function readScenarioArgument(arguments_: readonly string[]): string | undefined
 
 async function main(): Promise<void> {
   const outputDirectory = path.join(REPO_ROOT, '.cache/golden/tutoring');
-  const scenarioId = readScenarioArgument(process.argv.slice(2));
+  const scenario = readScenarioArgument(process.argv.slice(2));
+  // P3-08: "--scenario phase3/*" runs one group; anything else is a single scenario id.
+  const group = scenario === undefined ? null : (/^([a-z0-9-]+)\/\*$/u.exec(scenario)?.[1] ?? null);
+  const scenarioId = group === null ? scenario : undefined;
+  const scenarios = path.join(REPO_ROOT, 'dev-docs/golden/tutoring/scenarios');
   const report = await runTutoringGoldenSet({
-    scenarioDirectory: path.join(REPO_ROOT, 'dev-docs/golden/tutoring/scenarios'),
+    scenarioDirectory: group === null ? scenarios : path.join(scenarios, group),
     outputDirectory,
     tutorFactory: createHarnessTutor,
     ...(scenarioId === undefined ? {} : { scenarioId }),
